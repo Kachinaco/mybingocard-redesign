@@ -160,7 +160,7 @@ export default async function DashboardPage() {
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Templates</p>
                     <p className="text-lg font-bold text-slate-900">
-                      {plan.limits.canUseAdvancedTemplates ? "Full Access" : "Basic"}
+                      {plan.limits.canUseAdvancedTemplates ? "Full Access" : "Premium Only"}
                     </p>
                   </div>
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">

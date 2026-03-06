@@ -10,7 +10,7 @@ import Link from "next/link";
 const FREE_FEATURES = [
   "1 bingo card",
   "3x3 and 4x4 grids",
-  "Basic templates",
+  "No templates",
   "Standard PDF export",
   "Share links",
   "Includes ads",
@@ -327,7 +327,7 @@ function PricingContent() {
                 {[
                   ["Bingo cards", "1 saved", "Unlimited"],
                   ["Grid sizes", "3x3, 4x4", "3x3, 4x4, 5x5"],
-                  ["Templates", "Basic", "All premium"],
+                  ["Templates", "-", "All premium"],
                   ["PDF export", "Standard", "HD quality"],
                   ["PNG export", "-", "Yes"],
                   ["Custom colors & fonts", "-", "Yes"],

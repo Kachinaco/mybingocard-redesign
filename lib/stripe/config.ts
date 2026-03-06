@@ -40,7 +40,7 @@ export const PLANS = {
     features: [
       "3 bingo cards per month",
       "3x3 and 4x4 grids",
-      "Basic templates",
+      "No templates",
       "Standard PDF export",
       "Share links",
       "Includes ads",
