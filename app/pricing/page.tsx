@@ -78,7 +78,7 @@ function PricingContent() {
         return;
       }
 
-      const response = await fetch("/api/stripe/create-checkout", {
+      const response = await fetch("/api/stripe/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
