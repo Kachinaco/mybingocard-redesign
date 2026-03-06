@@ -554,126 +554,132 @@ function CreateCardContent() {
                 </h2>
 
                 <div className="space-y-5">
-                  <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                          Background
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={style.backgroundColor}
-                            onChange={(e) =>
-                              setStyle({ ...style, backgroundColor: e.target.value })
-                            }
-                            disabled={showPreview}
-                            className="w-10 h-10 rounded-lg cursor-pointer border border-slate-200 p-1 bg-white"
-                          />
-                          <input
-                            type="text"
-                            value={style.backgroundColor}
-                            onChange={(e) =>
-                              setStyle({ ...style, backgroundColor: e.target.value })
-                            }
-                            disabled={showPreview}
-                            className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                          />
-                        </div>
-                      </div>
-
-                       <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                          Text
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={style.textColor}
-                            onChange={(e) =>
-                              setStyle({ ...style, textColor: e.target.value })
-                            }
-                            disabled={showPreview}
-                            className="w-10 h-10 rounded-lg cursor-pointer border border-slate-200 p-1 bg-white"
-                          />
-                          <input
-                            type="text"
-                            value={style.textColor}
-                            onChange={(e) =>
-                              setStyle({ ...style, textColor: e.target.value })
-                            }
-                            disabled={showPreview}
-                            className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                          />
-                        </div>
-                      </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                       <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                          Borders
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="color"
-                            value={style.borderColor}
-                            onChange={(e) =>
-                              setStyle({ ...style, borderColor: e.target.value })
-                            }
-                            disabled={showPreview}
-                            className="w-10 h-10 rounded-lg cursor-pointer border border-slate-200 p-1 bg-white"
-                          />
-                          <input
-                            type="text"
-                            value={style.borderColor}
-                            onChange={(e) =>
-                              setStyle({ ...style, borderColor: e.target.value })
-                            }
-                            disabled={showPreview}
-                            className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                          />
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                          Font Size
-                        </label>
-                        <select
-                          value={style.fontSize}
-                          onChange={(e) => setStyle({ ...style, fontSize: e.target.value })}
-                          disabled={showPreview}
-                          className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                        >
-                          <option value="12px">Small</option>
-                          <option value="14px">Medium</option>
-                          <option value="16px">Large</option>
-                          <option value="18px">Extra Large</option>
-                        </select>
-                      </div>
-                  </div>
-
+                  {/* Theme Presets */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                      Font Family
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                      Quick Themes
                     </label>
-                    <select
-                      value={style.fontFamily}
-                      onChange={(e) =>
-                        setStyle({ ...style, fontFamily: e.target.value })
-                      }
-                      disabled={showPreview}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                    >
-                      <option value="Arial">Arial (Sans-serif)</option>
-                      <option value="Georgia">Georgia (Serif)</option>
-                      <option value="Times New Roman">Times New Roman (Serif)</option>
-                      <option value="Courier New">Courier New (Monospace)</option>
-                      <option value="Verdana">Verdana (Sans-serif)</option>
-                      <option value="Comic Sans MS">Comic Sans MS (Casual)</option>
-                    </select>
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { name: "Classic", bg: "#ffffff", text: "#0f172a", border: "#e2e8f0", font: "Arial" },
+                        { name: "Ocean", bg: "#eff6ff", text: "#1e3a5f", border: "#93c5fd", font: "Georgia" },
+                        { name: "Sunset", bg: "#fff7ed", text: "#7c2d12", border: "#fdba74", font: "Georgia" },
+                        { name: "Forest", bg: "#f0fdf4", text: "#14532d", border: "#86efac", font: "Verdana" },
+                        { name: "Berry", bg: "#fdf2f8", text: "#701a75", border: "#f0abfc", font: "Arial" },
+                        { name: "Gold", bg: "#fefce8", text: "#713f12", border: "#fde047", font: "Georgia" },
+                        { name: "Slate", bg: "#f8fafc", text: "#334155", border: "#cbd5e1", font: "Verdana" },
+                        { name: "Night", bg: "#1e293b", text: "#f1f5f9", border: "#475569", font: "Arial" },
+                      ].map((theme) => (
+                        <button
+                          key={theme.name}
+                          onClick={() => setStyle({
+                            ...style,
+                            backgroundColor: theme.bg,
+                            textColor: theme.text,
+                            borderColor: theme.border,
+                            fontFamily: theme.font,
+                          })}
+                          disabled={showPreview}
+                          className={`group relative flex flex-col items-center gap-1.5 p-2 rounded-xl border-2 transition-all duration-200 hover:scale-105 ${
+                            style.backgroundColor === theme.bg && style.textColor === theme.text
+                              ? "border-indigo-500 ring-2 ring-indigo-500/20"
+                              : "border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <div
+                            className="w-full h-8 rounded-lg border flex items-center justify-center"
+                            style={{ backgroundColor: theme.bg, borderColor: theme.border }}
+                          >
+                            <span className="text-[10px] font-bold" style={{ color: theme.text }}>B I N G O</span>
+                          </div>
+                          <span className="text-[10px] font-medium text-slate-600">{theme.name}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
+                  {/* Custom Colors (collapsed by default) */}
+                  <details className="group">
+                    <summary className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-500 uppercase tracking-wide select-none hover:text-indigo-600 transition-colors">
+                      <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                      Custom Colors
+                    </summary>
+                    <div className="mt-3 space-y-3">
+                      {[
+                        { label: "Background", key: "backgroundColor" as const },
+                        { label: "Text", key: "textColor" as const },
+                        { label: "Borders", key: "borderColor" as const },
+                      ].map(({ label, key }) => (
+                        <div key={key} className="flex items-center gap-3">
+                          <input
+                            type="color"
+                            value={style[key]}
+                            onChange={(e) => setStyle({ ...style, [key]: e.target.value })}
+                            disabled={showPreview}
+                            className="w-9 h-9 rounded-lg cursor-pointer border border-slate-200 p-0.5 bg-white flex-shrink-0"
+                          />
+                          <span className="text-sm text-slate-600 w-20">{label}</span>
+                          <div
+                            className="flex-1 h-6 rounded-md border border-slate-200"
+                            style={{ backgroundColor: style[key] }}
+                          ></div>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+
+                  {/* Font Controls */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                        Font
+                      </label>
+                      <select
+                        value={style.fontFamily}
+                        onChange={(e) => setStyle({ ...style, fontFamily: e.target.value })}
+                        disabled={showPreview}
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        style={{ fontFamily: style.fontFamily }}
+                      >
+                        <option value="Arial" style={{ fontFamily: "Arial" }}>Arial</option>
+                        <option value="Georgia" style={{ fontFamily: "Georgia" }}>Georgia</option>
+                        <option value="Times New Roman" style={{ fontFamily: "Times New Roman" }}>Times New Roman</option>
+                        <option value="Courier New" style={{ fontFamily: "Courier New" }}>Courier New</option>
+                        <option value="Verdana" style={{ fontFamily: "Verdana" }}>Verdana</option>
+                        <option value="Comic Sans MS" style={{ fontFamily: "Comic Sans MS" }}>Comic Sans</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                        Text Size
+                      </label>
+                      <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-1">
+                        {[
+                          { value: "12px", label: "S" },
+                          { value: "14px", label: "M" },
+                          { value: "16px", label: "L" },
+                          { value: "18px", label: "XL" },
+                        ].map((s) => (
+                          <button
+                            key={s.value}
+                            onClick={() => setStyle({ ...style, fontSize: s.value })}
+                            disabled={showPreview}
+                            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                              style.fontSize === s.value
+                                ? "bg-white text-indigo-600 shadow-sm"
+                                : "text-slate-500 hover:text-slate-700"
+                            }`}
+                          >
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Header & Footer Text */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
                       Header Text
