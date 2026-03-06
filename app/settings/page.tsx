@@ -54,49 +54,32 @@ export default function SettingsPage() {
   useEffect(() => {
     if (session?.user) {
       setName(session.user.name || "");
-      fetchPlanInfo();
-      fetchEmailPrefs();
-      fetchConnectedAccounts();
+      fetchAll();
     }
   }, [session]);
 
-  const fetchPlanInfo = async () => {
+  const fetchAll = async () => {
     try {
-      const response = await fetch("/api/cards/can-create");
-      const data = await response.json();
-      setPlanInfo(data);
+      const [planRes, emailRes, profileRes] = await Promise.all([
+        fetch("/api/cards/can-create"),
+        fetch("/api/user/email-preferences"),
+        fetch("/api/user/profile"),
+      ]);
+
+      const planData = await planRes.json();
+      setPlanInfo(planData);
+
+      const emailData = await emailRes.json();
+      setMarketingEmails(emailData.marketingEmails);
+      setProductUpdates(emailData.productUpdates);
+
+      const profileData = await profileRes.json();
+      setHasPassword(profileData.hasPassword ?? true);
+      setConnectedAccounts(profileData.connectedProviders ?? []);
     } catch (error) {
-      console.error("Failed to fetch plan info:", error);
+      console.error("Failed to fetch settings data:", error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchEmailPrefs = async () => {
-    try {
-      const response = await fetch("/api/user/email-preferences");
-      const data = await response.json();
-      setMarketingEmails(data.marketingEmails);
-      setProductUpdates(data.productUpdates);
-    } catch (error) {
-      console.error("Failed to fetch email preferences:", error);
-    }
-  };
-
-  const fetchConnectedAccounts = async () => {
-    try {
-      const response = await fetch("/api/auth/session");
-      const data = await response.json();
-      // Check if user signed up with Google (has image from Google)
-      const accounts: string[] = [];
-      if (data?.user?.image?.includes("googleusercontent")) {
-        accounts.push("google");
-      }
-      setConnectedAccounts(accounts);
-      // If user signed up via Google only, they may not have a password
-      setHasPassword(!accounts.includes("google") || false);
-    } catch (error) {
-      console.error("Failed to fetch connected accounts:", error);
     }
   };
 
