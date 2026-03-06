@@ -925,21 +925,25 @@ function CreateCardContent() {
                     Browse Templates
                   </Link>
 
+                  {permissionStatus && !permissionStatus.allowed ? (
+                    <Link
+                      href="/pricing"
+                      className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-6 py-3.5 rounded-xl hover:shadow-lg hover:shadow-orange-500/20 hover:-translate-y-0.5 transition-all font-bold text-lg shadow-md shadow-orange-200 text-center"
+                    >
+                      Limit Reached — Upgrade Plan
+                    </Link>
+                  ) : (
                   <button
                     onClick={handleSave}
                     disabled={
                       loading ||
-                      showPreview ||
-                      (permissionStatus?.allowed === false)
+                      showPreview
                     }
                     className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-6 py-3.5 rounded-xl hover:shadow-lg hover:shadow-indigo-500/20 hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-lg shadow-md shadow-indigo-200"
                   >
-                    {loading
-                      ? "Creating Card..."
-                      : permissionStatus && !permissionStatus.allowed
-                      ? "Limit Reached - Upgrade Plan"
-                      : "Create Bingo Card"}
+                    {loading ? "Creating Card..." : "Create Bingo Card"}
                   </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -956,21 +960,22 @@ function CreateCardContent() {
               >
                 📋 Templates
               </Link>
+              {permissionStatus && !permissionStatus.allowed ? (
+                <Link
+                  href="/pricing"
+                  className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-4 py-3 rounded-lg font-bold text-sm shadow-md text-center"
+                >
+                  Upgrade to Create
+                </Link>
+              ) : (
               <button
                 onClick={handleSave}
-                disabled={
-                  loading ||
-                  showPreview ||
-                  (permissionStatus?.allowed === false)
-                }
+                disabled={loading || showPreview}
                 className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-3 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed font-bold text-sm shadow-md"
               >
-                {loading
-                  ? "Creating..."
-                  : permissionStatus && !permissionStatus.allowed
-                  ? "Upgrade to Create"
-                  : "Create Card"}
+                {loading ? "Creating..." : "Create Card"}
               </button>
+              )}
             </div>
           </div>
         </div>

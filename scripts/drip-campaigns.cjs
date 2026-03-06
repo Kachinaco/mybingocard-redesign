@@ -39,7 +39,7 @@ const transporter = nodemailer.createTransport({
 const CAMPAIGNS = [
   {
     id: 'create_first_card',
-    dayAfterSignup: 2,
+    dayAfterSignup: 1,
     condition: 'no_cards',
     subject: (name) => `${name}, ready to create your first bingo card?`,
     build: buildCreateFirstCardEmail,
@@ -232,10 +232,10 @@ async function run() {
       }
 
       const daysSinceSignup = Math.floor((now - new Date(user.createdAt)) / 86400000);
-      const cardCount = await db.collection('cards').countDocuments({ userId: user._id.toString() });
+      const cardCount = await db.collection('bingocards').countDocuments({ userId: user._id.toString() });
 
       // Check last activity (last card created or updated)
-      const lastCard = await db.collection('cards')
+      const lastCard = await db.collection('bingocards')
         .find({ userId: user._id.toString() })
         .sort({ updatedAt: -1 })
         .limit(1)

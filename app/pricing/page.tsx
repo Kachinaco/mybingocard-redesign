@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 const FREE_FEATURES = [
-  "3 bingo cards per month",
+  "1 bingo card",
   "3x3 and 4x4 grids",
   "Basic templates",
   "Standard PDF export",
@@ -321,7 +321,7 @@ function PricingContent() {
               </thead>
               <tbody className="text-sm">
                 {[
-                  ["Bingo cards", "3/month", "Unlimited"],
+                  ["Bingo cards", "1 saved", "Unlimited"],
                   ["Grid sizes", "3x3, 4x4", "3x3, 4x4, 5x5"],
                   ["Templates", "Basic", "All premium"],
                   ["PDF export", "Standard", "HD quality"],

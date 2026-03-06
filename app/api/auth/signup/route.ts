@@ -48,7 +48,14 @@ export async function POST(request: Request) {
     sendWelcomeEmail(email, name).catch(console.error);
 
     // Notify Discord
-    notifySignup(name, email).catch(console.error);
+    notifySignup(name, email, {
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_content,
+      utm_term,
+      referrer,
+    }).catch(console.error);
 
     return NextResponse.json(
       {
