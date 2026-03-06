@@ -679,34 +679,6 @@ function CreateCardContent() {
                     </div>
                   </div>
 
-                  {/* Header & Footer Text */}
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                      Header Text
-                    </label>
-                    <input
-                      type="text"
-                      value={style.headerText || ""}
-                      onChange={(e) => setStyle({ ...style, headerText: e.target.value })}
-                      placeholder="e.g., Sarah's Baby Shower"
-                      disabled={showPreview}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder:text-slate-400"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                      Footer Text
-                    </label>
-                    <input
-                      type="text"
-                      value={style.footerText || ""}
-                      onChange={(e) => setStyle({ ...style, footerText: e.target.value })}
-                      placeholder="e.g., March 2026"
-                      disabled={showPreview}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder:text-slate-400"
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -834,13 +806,6 @@ function CreateCardContent() {
                 {/* Bingo Grid */}
                 <div className="flex-grow flex items-center justify-center bg-slate-50 rounded-xl border border-slate-100 p-4 md:p-8 mb-8 overflow-auto">
                    <div className="w-full max-w-2xl">
-                      {/* Custom Header */}
-                      {style.headerText && (
-                        <div className="text-center mb-3" style={{ fontFamily: style.fontFamily, color: style.textColor }}>
-                          <div className="text-lg font-bold">{style.headerText}</div>
-                        </div>
-                      )}
-
                       {/* Grid Header */}
                       <div className="grid grid-cols-5 mb-2 gap-2 text-center font-black text-2xl md:text-4xl tracking-widest text-slate-900 opacity-90">
                          {['B','I','N','G','O'].map((char, i) => (
