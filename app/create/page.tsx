@@ -25,10 +25,10 @@ function CreateCardContent() {
   const searchParams = useSearchParams();
   const sessionData = useSession();
   const session = sessionData?.data;
-  const [size, setSize] = useState<GridSize>(5);
+  const [size, setSize] = useState<GridSize>(3);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [cells, setCells] = useState<string[]>(Array(25).fill(""));
+  const [cells, setCells] = useState<string[]>(Array(9).fill(""));
   const [freeSpace, setFreeSpace] = useState(true);
   const [isPublic, setIsPublic] = useState(false);
   const [style, setStyle] = useState<CellStyle>({
