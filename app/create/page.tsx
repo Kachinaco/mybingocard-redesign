@@ -8,7 +8,7 @@ import Link from "next/link";
 import AdUnit from "@/components/AdUnit";
 
 type GridSize = 3 | 4 | 5;
-type PlanType = "FREE" | "PRO" | "BUSINESS";
+type PlanType = "FREE" | "PREMIUM";
 
 interface CellStyle {
   backgroundColor?: string;
@@ -318,11 +318,10 @@ function CreateCardContent() {
     // Map plan types to max grid sizes
     const maxGridSizes: Record<PlanType, number> = {
       FREE: 3,
-      PRO: 4,
-      BUSINESS: 5,
+      PREMIUM: 5,
     };
 
-    const planType = permissionStatus.planType || "FREE";
+    const planType = (permissionStatus.planType === "PREMIUM" ? "PREMIUM" : "FREE") as PlanType;
     return gridSize <= maxGridSizes[planType];
   };
 
@@ -330,9 +329,9 @@ function CreateCardContent() {
     if (canUseGridSize(gridSize)) return "";
 
     if (gridSize === 5) {
-      return "5×5 grids require Business plan";
+      return "5×5 grids require Premium plan";
     } else if (gridSize === 4) {
-      return "4×4 grids require Pro or Business plan";
+      return "4×4 grids require Premium plan";
     }
     return "";
   };
@@ -749,7 +748,7 @@ function CreateCardContent() {
                     </div>
 
                     <p className="text-xs text-slate-500">
-                      Each card will have a unique random arrangement of your items. Requires Business plan.
+                      Each card will have a unique random arrangement of your items. Requires Premium plan.
                     </p>
 
                     {batchResult && (

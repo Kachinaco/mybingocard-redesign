@@ -141,7 +141,7 @@ export default function WeddingBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to use · Elegant themes · Print-ready PDF export</p>
+                  <p className="text-sm text-slate-400">Free to start · Elegant themes · Print-ready PDF export</p>
                 </div>
 
                 <div className="relative">

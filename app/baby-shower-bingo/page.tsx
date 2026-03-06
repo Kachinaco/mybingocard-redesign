@@ -132,7 +132,7 @@ export default function BabyShowerBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to use · No sign-up required · Instant PDF download</p>
+                  <p className="text-sm text-slate-400">Free to start · Sign up in seconds · Instant PDF download</p>
                 </div>
 
                 <div className="relative">
@@ -208,7 +208,7 @@ export default function BabyShowerBingoPage() {
                 Ready to wow the mom-to-be?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Create your baby shower bingo cards in under 2 minutes. Free to start, no account required.
+                Create your baby shower bingo cards in under 2 minutes. Free to start — sign up in seconds.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-pink-50 transition-all duration-300 shadow-xl">

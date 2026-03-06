@@ -141,7 +141,7 @@ export default function HolidayBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to use · Festive themes · Instant PDF download</p>
+                  <p className="text-sm text-slate-400">Free to start · Festive themes · Instant PDF download</p>
                 </div>
 
                 <div className="relative">
@@ -189,7 +189,7 @@ export default function HolidayBingoPage() {
                 Make this holiday season the most fun ever
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Create festive holiday bingo cards in under 2 minutes. Free — no account required.
+                Create festive holiday bingo cards in under 2 minutes. Free to start — sign up in seconds.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-green-50 transition-all duration-300 shadow-xl">

@@ -1,3 +1,5 @@
+import { getSignupSourceLabel, type AttributionData } from "./attribution";
+
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
 export async function sendDiscordNotification(content: string, embeds?: any[]) {
@@ -16,13 +18,21 @@ export async function sendDiscordNotification(content: string, embeds?: any[]) {
   }
 }
 
-export async function notifySignup(name: string, email: string) {
+export async function notifySignup(
+  name: string,
+  email: string,
+  attribution?: Partial<AttributionData>
+) {
+  const source = getSignupSourceLabel(attribution);
+
   await sendDiscordNotification("", [{
     title: "🎉 New Signup on MyBingoCard!",
     color: 0x6366f1,
     fields: [
       { name: "Name", value: name, inline: true },
       { name: "Email", value: email, inline: true },
+      { name: "Source", value: source, inline: true },
+      ...(attribution?.referrer ? [{ name: "Referrer", value: attribution.referrer, inline: false }] : []),
     ],
     timestamp: new Date().toISOString(),
   }]);

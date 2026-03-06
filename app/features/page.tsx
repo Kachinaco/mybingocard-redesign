@@ -74,8 +74,8 @@ const features = [
       </svg>
     ),
     title: "Advanced Analytics",
-    description: "Track how your cards perform. See how many people viewed, played, and shared your bingo games. Available on Business plan.",
-    highlights: ["View & play counts", "Share tracking", "Export data", "Business plan feature"],
+    description: "Track how your cards perform. See how many people viewed, played, and shared your bingo games.",
+    highlights: ["View & play counts", "Share tracking", "Export data"],
   },
   {
     icon: (
@@ -85,7 +85,7 @@ const features = [
     ),
     title: "Team Collaboration",
     description: "Invite team members to create and manage cards together. Perfect for schools, event companies, and HR teams running multiple games.",
-    highlights: ["Multi-user access", "Shared card library", "Role permissions", "Business plan feature"],
+    highlights: ["Multi-user access", "Shared card library", "Role permissions"],
   },
 ];
 
@@ -209,7 +209,7 @@ export default function FeaturesPage() {
         <div className="max-w-2xl mx-auto text-center">
           <div className="bg-gradient-to-br from-violet-600 to-indigo-600 rounded-3xl p-12 text-white shadow-2xl shadow-indigo-500/25">
             <h2 className="text-3xl font-black mb-4">Ready to create your first card?</h2>
-            <p className="text-indigo-100 mb-8 text-lg">Free forever. No credit card required. Set up in 2 minutes.</p>
+            <p className="text-indigo-100 mb-8 text-lg">Free to start. No credit card required. Set up in 2 minutes.</p>
             <Link
               href="/create"
               className="inline-flex items-center gap-2 bg-white text-indigo-700 font-bold px-8 py-4 rounded-2xl hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"

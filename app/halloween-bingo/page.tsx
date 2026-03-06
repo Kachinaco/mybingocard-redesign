@@ -116,7 +116,7 @@ export default function HalloweenBingoPage() {
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-orange-500 to-purple-600 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">BOO! Ready to Play? 👻</h2>
-            <p className="text-orange-100 text-lg mb-8">Create spooky bingo cards in minutes. Free for up to 3 cards — perfect for a small haunt!</p>
+            <p className="text-orange-100 text-lg mb-8">Create spooky bingo cards in minutes. Free to start — 1 card included, upgrade for unlimited!</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-orange-600 rounded-xl font-bold text-lg hover:bg-orange-50 transition-colors shadow-lg">Create Halloween Bingo</Link>
           </div>
 

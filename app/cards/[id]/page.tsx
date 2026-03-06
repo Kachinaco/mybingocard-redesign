@@ -2,8 +2,6 @@
 
 import { trackCardPrinted } from "@/lib/analytics";
 import SocialShare from "@/components/SocialShare";
-import DarkModeToggle from "@/components/DarkModeToggle";
-import { useDarkMode } from "@/components/DarkModeProvider";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -43,7 +41,6 @@ export default function CardViewPage() {
   const cardId = params.id as string;
   const cardRef = useRef<HTMLDivElement>(null);
   const cardContainerRef = useRef<HTMLDivElement>(null);
-  const { dark } = useDarkMode();
 
   const [card, setCard] = useState<Card | null>(null);
   const [loading, setLoading] = useState(true);
@@ -310,20 +307,20 @@ export default function CardViewPage() {
   };
 
   if (loading) return (
-    <div className={`min-h-screen flex items-center justify-center ${dark ? "bg-slate-900" : "bg-slate-50"}`}>
+    <div className={`min-h-screen flex items-center justify-center ${"bg-slate-50"}`}>
       <div className="text-center">
         <div className="inline-block w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className={dark ? "text-slate-400" : "text-slate-500"}>Loading card...</p>
+        <p className={"text-slate-500"}>Loading card...</p>
       </div>
     </div>
   );
 
   if (error || !card) return (
-    <div className={`min-h-screen flex items-center justify-center px-4 ${dark ? "bg-slate-900" : "bg-slate-50"}`}>
-      <div className={`max-w-md w-full rounded-2xl shadow p-8 text-center ${dark ? "bg-slate-800" : "bg-white"}`}>
+    <div className={`min-h-screen flex items-center justify-center px-4 ${"bg-slate-50"}`}>
+      <div className={`max-w-md w-full rounded-2xl shadow p-8 text-center ${"bg-white"}`}>
         <div className="text-5xl mb-4">😕</div>
-        <h2 className={`text-2xl font-bold mb-2 ${dark ? "text-white" : "text-slate-900"}`}>Card Not Found</h2>
-        <p className={`mb-6 ${dark ? "text-slate-400" : "text-slate-500"}`}>{error}</p>
+        <h2 className={`text-2xl font-bold mb-2 ${"text-slate-900"}`}>Card Not Found</h2>
+        <p className={`mb-6 ${"text-slate-500"}`}>{error}</p>
         <Link href="/dashboard/cards" className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-semibold">Back to My Cards</Link>
       </div>
     </div>
@@ -338,7 +335,7 @@ export default function CardViewPage() {
     <div
       ref={cardContainerRef}
       className={`min-h-screen transition-colors duration-200 ${
-        dark ? "bg-slate-900 text-slate-100" : "bg-slate-50 text-slate-900"
+        "bg-slate-50 text-slate-900"
       } ${isFullscreen ? "fullscreen-card" : ""}`}
     >
       {showBingo && (
@@ -352,22 +349,21 @@ export default function CardViewPage() {
 
       {!isFullscreen && (
         <header className={`border-b sticky top-0 z-10 print:hidden ${
-          dark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-100"
+          "bg-white border-slate-100"
         }`}>
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">
             <Link href="/dashboard" className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
               MyBingoCard
             </Link>
             <div className="flex gap-2 items-center">
-              <DarkModeToggle />
               <FavoriteButton cardId={card._id} />
               <Link href={`/create?cardId=${card._id}`} className={`px-4 py-2 text-sm border rounded-lg font-medium transition-colors ${
-                dark ? "border-slate-600 text-slate-300 hover:bg-slate-700" : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                "border-slate-200 text-slate-700 hover:bg-slate-50"
               }`}>
                 Edit
               </Link>
               <Link href="/dashboard/cards" className={`hidden sm:inline px-4 py-2 text-sm transition-colors ${
-                dark ? "text-slate-400 hover:text-slate-200" : "text-slate-500 hover:text-slate-700"
+                "text-slate-500 hover:text-slate-700"
               }`}>
                 ← My Cards
               </Link>
@@ -387,18 +383,18 @@ export default function CardViewPage() {
           {!isFullscreen && (
             <div className="hidden lg:block lg:col-span-1 space-y-4 print:hidden">
               <div className={`rounded-2xl shadow-sm border overflow-hidden ${
-                dark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-100"
+                "bg-white border-slate-100"
               }`}>
-                <div className={`flex border-b ${dark ? "border-slate-700" : "border-slate-100"}`}>
+                <div className={`flex border-b ${"border-slate-100"}`}>
                   <button
                     onClick={() => setActiveTab("play")}
-                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "play" ? "bg-indigo-600 text-white" : dark ? "text-slate-400 hover:bg-slate-700" : "text-slate-600 hover:bg-slate-50"}`}
+                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "play" ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
                   >
                     🎮 Play
                   </button>
                   <button
                     onClick={() => setActiveTab("export")}
-                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "export" ? "bg-indigo-600 text-white" : dark ? "text-slate-400 hover:bg-slate-700" : "text-slate-600 hover:bg-slate-50"}`}
+                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "export" ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
                   >
                     📥 Export
                   </button>
@@ -407,24 +403,24 @@ export default function CardViewPage() {
                 {activeTab === "play" && (
                   <div className="p-4 space-y-4">
                     <div>
-                      <div className={`flex justify-between text-sm mb-1 ${dark ? "text-slate-400" : "text-slate-500"}`}>
+                      <div className={`flex justify-between text-sm mb-1 ${"text-slate-500"}`}>
                         <span>Progress</span>
                         <span>{marked.size}/{totalCells} marked</span>
                       </div>
-                      <div className={`h-2 rounded-full overflow-hidden ${dark ? "bg-slate-700" : "bg-slate-100"}`}>
+                      <div className={`h-2 rounded-full overflow-hidden ${"bg-slate-100"}`}>
                         <div className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-300" style={{ width: `${(marked.size / totalCells) * 100}%` }} />
                       </div>
                     </div>
-                    <p className={`text-xs ${dark ? "text-slate-500" : "text-slate-400"}`}>Tap any cell on the card to mark it. Get a row, column, or diagonal to win!</p>
+                    <p className={`text-xs ${"text-slate-400"}`}>Tap any cell on the card to mark it. Get a row, column, or diagonal to win!</p>
                     <div className="flex gap-2">
-                      <button onClick={resetGame} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl transition-all ${dark ? "border-slate-600 text-slate-300 hover:border-indigo-400 hover:text-indigo-400" : "border-slate-200 text-slate-600 hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50"}`}>
+                      <button onClick={resetGame} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl transition-all ${"border-slate-200 text-slate-600 hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50"}`}>
                         🔄 Reset
                       </button>
-                      <button onClick={undoLast} disabled={undoStack.length === 0} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed ${dark ? "border-slate-600 text-slate-300 hover:border-amber-400 hover:text-amber-400" : "border-slate-200 text-slate-600 hover:border-amber-200 hover:text-amber-600 hover:bg-amber-50"}`}>
+                      <button onClick={undoLast} disabled={undoStack.length === 0} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed ${"border-slate-200 text-slate-600 hover:border-amber-200 hover:text-amber-600 hover:bg-amber-50"}`}>
                         ↩ Undo
                       </button>
                     </div>
-                    <button onClick={toggleFullscreen} className={`w-full py-2.5 text-sm font-semibold border-2 rounded-xl transition-all ${dark ? "border-slate-600 text-slate-300 hover:border-emerald-400 hover:text-emerald-400" : "border-slate-200 text-slate-600 hover:border-emerald-200 hover:text-emerald-600 hover:bg-emerald-50"}`}>
+                    <button onClick={toggleFullscreen} className={`w-full py-2.5 text-sm font-semibold border-2 rounded-xl transition-all ${"border-slate-200 text-slate-600 hover:border-emerald-200 hover:text-emerald-600 hover:bg-emerald-50"}`}>
                       ⛶ Fullscreen
                     </button>
                     {card.isPublic && card.shareLink && (
@@ -456,7 +452,7 @@ export default function CardViewPage() {
                       <span>Print</span>
                     </button>
                     {userPlan && (
-                      <p className={`text-xs text-center ${dark ? "text-slate-500" : "text-slate-400"}`}>
+                      <p className={`text-xs text-center ${"text-slate-400"}`}>
                         {userPlan.canExportHD ? "✨ HD Quality (2400px)" : "📄 Standard Quality (1200px)"}
                       </p>
                     )}
@@ -464,8 +460,8 @@ export default function CardViewPage() {
                 )}
               </div>
 
-              <div className={`rounded-2xl shadow-sm border p-4 ${dark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-100"}`}>
-                <h3 className={`text-sm font-semibold mb-3 ${dark ? "text-slate-200" : "text-slate-700"}`}>Card Details</h3>
+              <div className={`rounded-2xl shadow-sm border p-4 ${"bg-white border-slate-100"}`}>
+                <h3 className={`text-sm font-semibold mb-3 ${"text-slate-700"}`}>Card Details</h3>
                 <div className="space-y-1.5 text-sm">
                   {([
                     ["Grid", `${card.size}×${card.size}`],
@@ -474,8 +470,8 @@ export default function CardViewPage() {
                     ["Created", new Date(card.createdAt).toLocaleDateString()],
                   ] as const).map(([label, value]) => (
                     <div key={label} className="flex justify-between">
-                      <span className={dark ? "text-slate-400" : "text-slate-500"}>{label}</span>
-                      <span className={`font-medium ${dark ? "text-slate-200" : "text-slate-700"}`}>{value}</span>
+                      <span className={"text-slate-500"}>{label}</span>
+                      <span className={`font-medium ${"text-slate-700"}`}>{value}</span>
                     </div>
                   ))}
                 </div>
@@ -485,11 +481,11 @@ export default function CardViewPage() {
 
           {/* Card grid */}
           <div className={isFullscreen ? "bingo-container w-full max-w-2xl mx-auto" : "lg:col-span-2"}>
-            <div className={`rounded-2xl shadow-sm border p-3 md:p-6 print-card ${dark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-100"}`} ref={cardRef}>
+            <div className={`rounded-2xl shadow-sm border p-3 md:p-6 print-card ${"bg-white border-slate-100"}`} ref={cardRef}>
               <div className="text-center mb-3 md:mb-6">
-                <h1 className={`text-xl md:text-2xl font-black ${dark ? "text-white" : "text-slate-900"}`}>{card.title}</h1>
-                {card.description && <p className={`text-sm mt-1 ${dark ? "text-slate-400" : "text-slate-500"}`}>{card.description}</p>}
-                <p className={`text-xs mt-1 print:hidden ${dark ? "text-slate-500" : "text-slate-400"}`}>Tap a cell to mark it</p>
+                <h1 className={`text-xl md:text-2xl font-black ${"text-slate-900"}`}>{card.title}</h1>
+                {card.description && <p className={`text-sm mt-1 ${"text-slate-500"}`}>{card.description}</p>}
+                <p className={`text-xs mt-1 print:hidden ${"text-slate-400"}`}>Tap a cell to mark it</p>
               </div>
 
               <div className="grid gap-1.5 md:gap-2 w-full bingo-grid-print" style={{ gridTemplateColumns: `repeat(${card.size}, 1fr)` }}>
@@ -507,9 +503,7 @@ export default function CardViewPage() {
                           ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white cursor-default shadow-md"
                           : isMarked
                             ? "bg-gradient-to-br from-violet-500 to-indigo-500 text-white shadow-md ring-2 ring-indigo-300"
-                            : dark
-                              ? "bg-slate-700 text-slate-200 border border-slate-600 hover:border-indigo-400 hover:bg-slate-600 active:scale-95"
-                              : "bg-slate-50 text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 active:scale-95"
+                            : "bg-slate-50 text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 active:scale-95"
                         }
                       `}
                       style={{
@@ -554,7 +548,7 @@ export default function CardViewPage() {
               )}
 
               {!userPlan?.canRemoveBranding && (
-                <p className={`text-center text-xs mt-4 ${dark ? "text-slate-500" : "text-slate-400"}`}>Created with MyBingoCard.com</p>
+                <p className={`text-center text-xs mt-4 ${"text-slate-400"}`}>Created with MyBingoCard.com</p>
               )}
 
               {shareUrl && (
@@ -575,20 +569,20 @@ export default function CardViewPage() {
         )}
 
         {!isFullscreen && (
-          <div className={`md:hidden fixed bottom-0 left-0 right-0 border-t shadow-lg z-20 print:hidden ${dark ? "bg-slate-800 border-slate-700" : "bg-white border-slate-200"}`}>
+          <div className={`md:hidden fixed bottom-0 left-0 right-0 border-t shadow-lg z-20 print:hidden ${"bg-white border-slate-200"}`}>
             {barExpanded && (
               <div className="px-4 pt-3 pb-2">
                 {activeTab === "play" && (
                   <div className="space-y-2">
-                    <div className={`h-1.5 rounded-full overflow-hidden ${dark ? "bg-slate-700" : "bg-slate-100"}`}>
+                    <div className={`h-1.5 rounded-full overflow-hidden ${"bg-slate-100"}`}>
                       <div className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-300" style={{ width: `${(marked.size / totalCells) * 100}%` }} />
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={resetGame} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl ${dark ? "border-slate-600 text-slate-300" : "border-slate-200 text-slate-600"}`}>🔄 Reset</button>
-                      <button onClick={undoLast} disabled={undoStack.length === 0} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl disabled:opacity-30 ${dark ? "border-slate-600 text-slate-300" : "border-slate-200 text-slate-600"}`}>↩ Undo</button>
+                      <button onClick={resetGame} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl ${"border-slate-200 text-slate-600"}`}>🔄 Reset</button>
+                      <button onClick={undoLast} disabled={undoStack.length === 0} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl disabled:opacity-30 ${"border-slate-200 text-slate-600"}`}>↩ Undo</button>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={toggleFullscreen} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl ${dark ? "border-slate-600 text-slate-300" : "border-slate-200 text-slate-600"}`}>⛶ Fullscreen</button>
+                      <button onClick={toggleFullscreen} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl ${"border-slate-200 text-slate-600"}`}>⛶ Fullscreen</button>
                       {card.isPublic && card.shareLink && (
                         <button onClick={copyShareLink} className="flex-1 py-2.5 text-sm font-semibold bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl">
                           {copied ? "✅ Copied" : "🔗 Share"}
@@ -612,13 +606,13 @@ export default function CardViewPage() {
             <div className="flex items-center px-3 py-2 gap-2">
               <button
                 onClick={() => { setActiveTab("play"); setBarExpanded(v => activeTab === "play" ? !v : true); }}
-                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "play" && barExpanded ? "bg-indigo-600 text-white" : dark ? "bg-slate-700 text-slate-300" : "bg-slate-100 text-slate-600"}`}
+                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "play" && barExpanded ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"}`}
               >
                 🎮 Play · {marked.size}/{totalCells}
               </button>
               <button
                 onClick={() => { setActiveTab("export"); setBarExpanded(v => activeTab === "export" ? !v : true); }}
-                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "export" && barExpanded ? "bg-indigo-600 text-white" : dark ? "bg-slate-700 text-slate-300" : "bg-slate-100 text-slate-600"}`}
+                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "export" && barExpanded ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"}`}
               >
                 📥 Export
               </button>

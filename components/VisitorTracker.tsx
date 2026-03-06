@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { ATTRIBUTION_COOKIE_NAME } from "@/lib/attribution";
 
 type Metrics = {
   clicks: number;
@@ -94,6 +95,7 @@ function persistAttribution() {
 
   if (Object.keys(next).length > 0) {
     window.localStorage.setItem(ATTRIBUTION_STORAGE_KEY, JSON.stringify(next));
+    document.cookie = `${ATTRIBUTION_COOKIE_NAME}=${encodeURIComponent(JSON.stringify(next))}; path=/; max-age=2592000; SameSite=Lax`;
   }
 }
 

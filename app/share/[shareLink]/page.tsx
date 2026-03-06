@@ -1,8 +1,6 @@
 "use client";
 
 import SocialShare from "@/components/SocialShare";
-import DarkModeToggle from "@/components/DarkModeToggle";
-import { useDarkMode } from "@/components/DarkModeProvider";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -65,7 +63,6 @@ export default function SharedCardPage() {
   const params = useParams();
   const shareLink = params.shareLink as string;
   const cardContainerRef = useRef<HTMLDivElement>(null);
-  const { dark } = useDarkMode();
 
   const [card, setCard] = useState<Card | null>(null);
   const [loading, setLoading] = useState(true);
@@ -214,10 +211,10 @@ export default function SharedCardPage() {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${dark ? "bg-slate-900" : "bg-gradient-to-br from-slate-50 to-indigo-50"}`}>
+      <div className={`min-h-screen flex items-center justify-center ${"bg-gradient-to-br from-slate-50 to-indigo-50"}`}>
         <div className="text-center">
           <div className="inline-block w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className={dark ? "text-slate-400" : "text-slate-500"}>Loading bingo card...</p>
+          <p className={"text-slate-500"}>Loading bingo card...</p>
         </div>
       </div>
     );
@@ -225,11 +222,11 @@ export default function SharedCardPage() {
 
   if (error || !card) {
     return (
-      <div className={`min-h-screen flex items-center justify-center px-4 ${dark ? "bg-slate-900" : "bg-gradient-to-br from-slate-50 to-indigo-50"}`}>
-        <div className={`max-w-md w-full rounded-2xl shadow-lg p-8 text-center ${dark ? "bg-slate-800" : "bg-white"}`}>
+      <div className={`min-h-screen flex items-center justify-center px-4 ${"bg-gradient-to-br from-slate-50 to-indigo-50"}`}>
+        <div className={`max-w-md w-full rounded-2xl shadow-lg p-8 text-center ${"bg-white"}`}>
           <div className="text-5xl mb-4">😕</div>
-          <h2 className={`text-2xl font-bold mb-2 ${dark ? "text-white" : "text-slate-900"}`}>Card Not Found</h2>
-          <p className={`mb-6 ${dark ? "text-slate-400" : "text-slate-500"}`}>{error || "This card doesn't exist or is no longer shared."}</p>
+          <h2 className={`text-2xl font-bold mb-2 ${"text-slate-900"}`}>Card Not Found</h2>
+          <p className={`mb-6 ${"text-slate-500"}`}>{error || "This card doesn't exist or is no longer shared."}</p>
           <Link href="/create" className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-semibold">
             Create Your Own Card
           </Link>
@@ -248,7 +245,7 @@ export default function SharedCardPage() {
     <div
       ref={cardContainerRef}
       className={`min-h-screen transition-colors duration-200 ${
-        dark ? "bg-slate-900" : "bg-gradient-to-br from-slate-50 to-indigo-50"
+        "bg-gradient-to-br from-slate-50 to-indigo-50"
       } ${isFullscreen ? "fullscreen-card" : ""}`}
     >
       {/* Confetti burst on BINGO */}
@@ -264,14 +261,13 @@ export default function SharedCardPage() {
       {/* Header */}
       {!isFullscreen && (
         <header className={`backdrop-blur-sm border-b sticky top-0 z-10 print:hidden ${
-          dark ? "bg-slate-800/80 border-slate-700" : "bg-white/80 border-slate-100"
+          "bg-white/80 border-slate-100"
         }`}>
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">
             <Link href="/" className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
               MyBingoCard
             </Link>
             <div className="flex gap-2 items-center">
-              <DarkModeToggle />
               <Link href="/create" className="px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition font-semibold text-sm">
                 Create Your Own
               </Link>
@@ -290,13 +286,13 @@ export default function SharedCardPage() {
 
         {/* Card */}
         <div className={`rounded-2xl shadow-lg p-4 md:p-6 mb-4 print-card ${
-          dark ? "bg-slate-800" : "bg-white"
+          "bg-white"
         }`}>
           {/* Title */}
           <div className="text-center mb-4 md:mb-6">
-            <h1 className={`text-xl md:text-2xl font-black ${dark ? "text-white" : "text-slate-900"}`}>{card.title}</h1>
-            {card.description && <p className={`text-xs md:text-sm mt-1 ${dark ? "text-slate-400" : "text-slate-500"}`}>{card.description}</p>}
-            <p className={`text-xs mt-2 print:hidden ${dark ? "text-slate-500" : "text-slate-400"}`}>Tap cells to mark • {markedCount}/{totalCells} marked</p>
+            <h1 className={`text-xl md:text-2xl font-black ${"text-slate-900"}`}>{card.title}</h1>
+            {card.description && <p className={`text-xs md:text-sm mt-1 ${"text-slate-500"}`}>{card.description}</p>}
+            <p className={`text-xs mt-2 print:hidden ${"text-slate-400"}`}>Tap cells to mark • {markedCount}/{totalCells} marked</p>
           </div>
 
           {/* Grid */}
@@ -318,9 +314,7 @@ export default function SharedCardPage() {
                       ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-indigo-200 shadow-md cursor-default"
                       : isMarked
                         ? "bg-gradient-to-br from-violet-500 to-indigo-500 text-white shadow-indigo-200 shadow-md ring-2 ring-indigo-300"
-                        : dark
-                          ? "bg-slate-700 text-slate-200 border border-slate-600 hover:border-indigo-400 hover:bg-slate-600 active:scale-95"
-                          : "bg-slate-50 text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 active:scale-95"
+                        : "bg-slate-50 text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 active:scale-95"
                     }
                   `}
                   style={{
@@ -357,7 +351,7 @@ export default function SharedCardPage() {
           {/* Progress bar */}
           {!isFullscreen && (
             <div className="mt-5 print:hidden">
-              <div className={`h-1.5 rounded-full overflow-hidden ${dark ? "bg-slate-700" : "bg-slate-100"}`}>
+              <div className={`h-1.5 rounded-full overflow-hidden ${"bg-slate-100"}`}>
                 <div
                   className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-300"
                   style={{ width: `${(markedCount / totalCells) * 100}%` }}
@@ -392,7 +386,7 @@ export default function SharedCardPage() {
               onClick={undoLast}
               disabled={undoStack.length === 0}
               className={`text-sm font-medium px-4 py-2 rounded-xl transition-all disabled:opacity-30 ${
-                dark ? "bg-slate-800 text-slate-300 hover:bg-slate-700" : "bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
+                "bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
               }`}
             >
               ↩ Undo
@@ -400,7 +394,7 @@ export default function SharedCardPage() {
             <button
               onClick={resetCard}
               className={`text-sm font-medium px-4 py-2 rounded-xl transition-all ${
-                dark ? "bg-slate-800 text-slate-300 hover:bg-slate-700" : "bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
+                "bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
               }`}
             >
               🔄 Reset
@@ -408,7 +402,7 @@ export default function SharedCardPage() {
             <button
               onClick={toggleFullscreen}
               className={`text-sm font-medium px-4 py-2 rounded-xl transition-all ${
-                dark ? "bg-slate-800 text-slate-300 hover:bg-slate-700" : "bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
+                "bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
               }`}
             >
               ⛶ Fullscreen
@@ -443,7 +437,7 @@ export default function SharedCardPage() {
       </main>
 
       {!isFullscreen && (
-        <footer className={`text-center text-xs py-6 print:hidden ${dark ? "text-slate-500" : "text-slate-400"}`}>
+        <footer className={`text-center text-xs py-6 print:hidden ${"text-slate-400"}`}>
           © {new Date().getFullYear()} MyBingoCard.com
         </footer>
       )}

@@ -184,7 +184,7 @@ function SignupForm() {
              </Link>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">Get started for free</h1>
             <p className="mt-2 text-gray-600">
-              No credit card required. Create unlimited cards instantly.
+              No credit card required. Start creating bingo cards today.
             </p>
           </div>
 

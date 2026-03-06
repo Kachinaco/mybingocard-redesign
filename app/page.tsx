@@ -1,7 +1,6 @@
 import Link from "next/link";
 import MobileNav from "@/components/MobileNav";
 import AdUnit from "@/components/AdUnit";
-import { EmailCaptureInline } from "@/components/EmailCapture";
 
 // Sample bingo card data for the visual demo
 const demoBingoItems = [
@@ -149,15 +148,18 @@ export default function Home() {
                     Browse Templates
                   </Link>
                 </div>
-                <p className="mt-4 text-sm text-slate-500 text-center lg:text-left">
-                  No account needed. Create a card in under 2 minutes.
-                </p>
+
 
                 <div className="mt-10 flex items-center justify-center lg:justify-start gap-4 text-sm text-slate-500">
                   <div className="flex -space-x-3">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center overflow-hidden">
-                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt="User" />
+                    {[
+                      { bg: "bg-violet-400", emoji: "😊" },
+                      { bg: "bg-indigo-400", emoji: "🎉" },
+                      { bg: "bg-pink-400",   emoji: "🙌" },
+                      { bg: "bg-emerald-400",emoji: "⭐" },
+                    ].map((av, i) => (
+                      <div key={i} className={`w-8 h-8 rounded-full border-2 border-white ${av.bg} flex items-center justify-center text-sm`}>
+                        {av.emoji}
                       </div>
                     ))}
                   </div>
@@ -301,12 +303,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Email Capture Section */}
-        <section className="py-16 bg-slate-50">
-          <div className="container mx-auto px-4 lg:px-8 max-w-2xl">
-            <EmailCaptureInline />
-          </div>
-        </section>
 
         {/* Ad placement - above CTA */}
         <section className="py-6 bg-slate-50">

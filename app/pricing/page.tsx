@@ -73,13 +73,12 @@ function PricingContent() {
         body.priceId = process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_PRICE_ID!;
       } else {
         body.priceId = process.env.NEXT_PUBLIC_STRIPE_PREMIUM_ONETIME_PRICE_ID!;
-        // For per-card purchases, redirect to create page with premium upsell
         router.push("/create?premium=true");
         setLoading(false);
         return;
       }
 
-      const response = await fetch("/api/stripe/create-checkout-session", {
+      const response = await fetch("/api/stripe/create-checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -146,7 +145,6 @@ function PricingContent() {
       </header>
 
       <main className="pt-32 pb-24 px-4">
-        {/* Success/Cancel Messages */}
         {success && (
           <div className="max-w-4xl mx-auto mb-8 bg-emerald-50 border border-emerald-100 rounded-xl p-4 animate-fade-in-up">
             <div className="flex items-center gap-3">
@@ -216,9 +214,15 @@ function PricingContent() {
               </ul>
             </div>
             <div className="p-8 md:p-10 pt-0 mt-auto">
-              <button disabled className="w-full py-4 px-6 bg-slate-100 text-slate-500 rounded-xl font-bold cursor-not-allowed border border-slate-200">
-                {isPremium ? "Your Previous Plan" : "Current Plan"}
-              </button>
+              {isPremium ? (
+                <button disabled className="w-full py-4 px-6 bg-slate-100 text-slate-500 rounded-xl font-bold cursor-not-allowed border border-slate-200">
+                  Your Previous Plan
+                </button>
+              ) : (
+                <Link href="/signup" className="block w-full py-4 px-6 bg-slate-100 text-slate-700 rounded-xl font-bold text-center hover:bg-slate-200 transition-colors border border-slate-200">
+                  Get Started Free
+                </Link>
+              )}
             </div>
           </div>
 
@@ -378,10 +382,10 @@ function PricingContent() {
 
             <div className="bg-white rounded-2xl border border-slate-100 p-8 shadow-sm hover:shadow-md transition-shadow">
               <h3 className="font-bold text-lg text-slate-900 mb-3">
-                Will my free cards still work if I don't upgrade?
+                What can I do on the free plan?
               </h3>
               <p className="text-slate-600 leading-relaxed">
-                Yes! Free cards are always available with basic features and ads. Upgrading removes ads and unlocks premium customization options.
+                The free plan lets you create and save 1 bingo card with basic templates and standard PDF export. It's a great way to try out the tool before upgrading.
               </p>
             </div>
           </div>

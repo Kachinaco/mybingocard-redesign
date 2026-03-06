@@ -294,10 +294,34 @@
       "namedRegex": "^/api/unsubscribe(?:/)?$"
     },
     {
+      "page": "/api/user/account",
+      "regex": "^/api/user/account(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/user/account(?:/)?$"
+    },
+    {
+      "page": "/api/user/email-preferences",
+      "regex": "^/api/user/email\\-preferences(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/user/email\\-preferences(?:/)?$"
+    },
+    {
+      "page": "/api/user/password",
+      "regex": "^/api/user/password(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/user/password(?:/)?$"
+    },
+    {
       "page": "/api/user/plan",
       "regex": "^/api/user/plan(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/user/plan(?:/)?$"
+    },
+    {
+      "page": "/api/user/profile",
+      "regex": "^/api/user/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/user/profile(?:/)?$"
     },
     {
       "page": "/api/user/update-utm",

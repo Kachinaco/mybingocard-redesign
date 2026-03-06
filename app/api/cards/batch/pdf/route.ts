@@ -267,7 +267,7 @@ export async function POST(request: Request) {
     const plan = PLANS[user.planType as keyof typeof PLANS];
     if (!(plan.limits as any).canBulkGenerate) {
       return NextResponse.json(
-        { error: "Batch PDF download requires a Business plan." },
+        { error: "Batch PDF download requires a Premium plan." },
         { status: 403 }
       );
     }

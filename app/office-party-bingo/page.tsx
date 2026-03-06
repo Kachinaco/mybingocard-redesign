@@ -141,7 +141,7 @@ export default function OfficePartyBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to use · No account needed · Works on any device</p>
+                  <p className="text-sm text-slate-400">Free to start · Sign up in seconds · Works on any device</p>
                 </div>
 
                 <div className="relative">

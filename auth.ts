@@ -3,10 +3,12 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import Nodemailer from "next-auth/providers/nodemailer";
+import { cookies } from "next/headers";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "./lib/mongodb";
 import bcrypt from "bcryptjs";
-import { ensureUserDefaults, getUserByEmail } from "./lib/db/users";
+import { ATTRIBUTION_COOKIE_NAME, parseAttributionCookie } from "@/lib/attribution";
+import { ensureUserDefaults, getUserByEmail, updateUserAttribution } from "./lib/db/users";
 import { sendMagicLinkEmail, sendWelcomeEmail } from "./lib/email";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -72,14 +74,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   events: {
     async createUser({ user }) {
+      let fullUser = null;
+
       if (user.id) {
-        await ensureUserDefaults(user.id);
+        try {
+          const cookieStore = await cookies();
+          const attribution = parseAttributionCookie(
+            cookieStore.get(ATTRIBUTION_COOKIE_NAME)?.value
+          );
+
+          if (Object.keys(attribution).length > 0) {
+            fullUser = await updateUserAttribution(user.id, attribution);
+          }
+        } catch (error) {
+          console.error("Failed to read signup attribution cookie:", error);
+        }
+      }
+
+      if (user.id) {
+        fullUser = await ensureUserDefaults(user.id);
       }
       if (!user.email) return;
       sendWelcomeEmail(user.email, user.name || "there").catch((error) => {
         console.error("Failed to send welcome email after user creation:", error);
       });
-      notifySignup(user.name || "Google User", user.email).catch(console.error);
+
+      if (!fullUser && user.email) {
+        fullUser = await getUserByEmail(user.email);
+      }
+
+      notifySignup(user.name || fullUser?.name || "Google User", user.email, fullUser || undefined).catch(console.error);
     },
   },
   callbacks: {

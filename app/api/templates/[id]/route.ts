@@ -25,7 +25,7 @@ export async function GET(
 
       if (!session?.user?.email) {
         return NextResponse.json(
-          { error: "This is a premium template. Please sign in and upgrade to Pro or Business plan." },
+          { error: "This is a premium template. Please sign in and upgrade to Premium." },
           { status: 403 }
         );
       }
@@ -43,7 +43,7 @@ export async function GET(
 
       if (!permission.allowed) {
         return NextResponse.json(
-          { error: permission.reason || "Premium templates require Pro or Business plan." },
+          { error: permission.reason || "Premium templates require a Premium plan." },
           { status: 403 }
         );
       }

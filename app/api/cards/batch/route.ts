@@ -58,7 +58,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check plan - batch generation requires BUSINESS plan
+    // Check plan - batch generation requires Premium plan
     const user = await getUserByEmail(session.user.email);
     if (!user) {
       return NextResponse.json(
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     const plan = PLANS[user.planType as keyof typeof PLANS];
     if (!(plan.limits as any).canBulkGenerate) {
       return NextResponse.json(
-        { error: "Batch card generation requires a Business plan. Please upgrade." },
+        { error: "Batch card generation requires a Premium plan. Please upgrade." },
         { status: 403 }
       );
     }

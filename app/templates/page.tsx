@@ -139,7 +139,7 @@ export default function TemplatesPage() {
       }
 
       if (!userPlan?.canAccessAllTemplates) {
-        if (confirm("This is a premium template. Upgrade to Pro or Business plan to access all templates. Go to pricing?")) {
+        if (confirm("This is a premium template. Upgrade to Premium to access all templates. Go to pricing?")) {
           router.push("/pricing");
         }
         return;

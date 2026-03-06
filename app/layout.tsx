@@ -4,7 +4,6 @@ import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import VisitorTracker from "@/components/VisitorTracker";
-import { DarkModeProvider } from "@/components/DarkModeProvider";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import UtmFlusher from "@/components/UtmFlusher";
 
@@ -75,7 +74,7 @@ export default function RootLayout({
         <ServiceWorkerRegistration />
         <Providers>
           <UtmFlusher />
-          <DarkModeProvider>{children}</DarkModeProvider>
+          {children}
         </Providers>
       </body>
     </html>

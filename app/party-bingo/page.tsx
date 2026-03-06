@@ -161,7 +161,7 @@ export default function PartyBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to use · No sign-up required · Instant PDF download</p>
+                  <p className="text-sm text-slate-400">Free to start · Sign up in seconds · Instant PDF download</p>
                 </div>
 
                 <div className="relative">

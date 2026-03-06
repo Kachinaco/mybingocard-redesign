@@ -182,20 +182,22 @@ function buildUpgradeNudgeEmail(user) {
     <p style="margin:0 0 14px;font-size:15px;line-height:1.65;color:#334155;">You've been using MyBingoCard for about a month now${cardCount > 0 ? ` and created ${cardCount} card${cardCount > 1 ? 's' : ''}` : ''}. We hope you're having fun!</p>
     <p style="margin:0 0 14px;font-size:15px;line-height:1.65;color:#334155;">Did you know our paid plans unlock even more?</p>
     <div style="margin:18px 0;padding:16px;border:1px solid #a7f3d0;background:#ecfdf5;border-radius:12px;">
-      <p style="margin:0 0 8px;font-size:14px;color:#065f46;font-weight:600;">Starter plan highlights:</p>
+      <p style="margin:0 0 8px;font-size:14px;color:#065f46;font-weight:600;">Premium plan highlights:</p>
       <ul style="margin:0;padding:0 0 0 18px;color:#334155;font-size:14px;line-height:1.7;">
-        <li>Up to 25 bingo cards</li>
-        <li>100 exports per month</li>
-        <li>Remove the watermark</li>
-        <li>Priority support</li>
+        <li>Unlimited bingo cards</li>
+        <li>All grid sizes (3x3, 4x4, 5x5)</li>
+        <li>HD PDF &amp; PNG export</li>
+        <li>Custom colors &amp; fonts</li>
+        <li>Batch generate up to 100 cards</li>
+        <li>Ad-free experience</li>
       </ul>
     </div>
     ${btn('View Plans & Pricing', appUrl + '/pricing')}
-    <p style="margin:14px 0 0;font-size:14px;color:#64748b;">No pressure - the free plan is always available. We just want to make sure you know what's there if you need it.</p>
+    <p style="margin:14px 0 0;font-size:14px;color:#64748b;">No pressure — the free plan is always available. Upgrade whenever you're ready.</p>
   `;
   return {
     html: wrap('Unlock the full experience', 'See what MyBingoCard paid plans can do for you.', body),
-    text: `Hey ${name},\n\nYou've been using MyBingoCard for about a month now. Did you know our paid plans unlock more features?\n\n- Up to 25 cards (Starter)\n- 100 exports/month\n- Remove watermark\n- Priority support\n\nView plans: ${appUrl}/pricing\n\nNo pressure - free plan is always available.`,
+    text: `Hey ${name},\n\nYou've been using MyBingoCard for about a month now. Did you know Premium unlocks the full experience?\n\n- Unlimited bingo cards\n- All grid sizes (3x3, 4x4, 5x5)\n- HD PDF & PNG export\n- Custom colors & fonts\n- Batch generate up to 100 cards\n- Ad-free experience\n\nUpgrade: ${appUrl}/pricing\n\nNo pressure — free plan is always available.`,
   };
 }
 

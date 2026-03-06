@@ -21,6 +21,22 @@ try {
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 
+function getSignupSourceLabel(user) {
+  if (user.utm_source) {
+    return user.utm_source;
+  }
+
+  if (user.referrer) {
+    try {
+      return new URL(user.referrer).hostname.replace(/^www\./, '');
+    } catch (e) {
+      return user.referrer;
+    }
+  }
+
+  return 'direct';
+}
+
 async function run() {
   const client = new MongoClient(MONGODB_URI);
   try {
@@ -37,6 +53,12 @@ async function run() {
     const newUsers24h = await db.collection('users').countDocuments({ createdAt: { $gte: yesterday } });
     const newUsers7d = await db.collection('users').countDocuments({ createdAt: { $gte: lastWeek } });
     const newUsers30d = await db.collection('users').countDocuments({ createdAt: { $gte: lastMonth } });
+    const newUsersWithSource = await db.collection('users')
+      .find(
+        { createdAt: { $gte: yesterday } },
+        { projection: { utm_source: 1, referrer: 1 } }
+      )
+      .toArray();
 
     // --- Subscription Metrics ---
     const paidUsers = await db.collection('users').countDocuments({
@@ -72,7 +94,7 @@ async function run() {
 
     // --- Recent signups (last 5) ---
     const recentSignups = await db.collection('users')
-      .find({}, { projection: { name: 1, email: 1, createdAt: 1, planType: 1 } })
+      .find({}, { projection: { name: 1, email: 1, createdAt: 1, planType: 1, utm_source: 1, referrer: 1 } })
       .sort({ createdAt: -1 })
       .limit(5)
       .toArray();
@@ -82,8 +104,19 @@ async function run() {
       const plan = u.planType || 'FREE';
       const ago = Math.round((now - new Date(u.createdAt)) / 3600000);
       const timeStr = ago < 24 ? ago + 'h ago' : Math.round(ago / 24) + 'd ago';
-      return name + ' (' + plan + ') - ' + timeStr;
+      const source = getSignupSourceLabel(u);
+      return name + ' (' + plan + ', ' + source + ') - ' + timeStr;
     }).join('\n');
+
+    const sourceCounts = {};
+    newUsersWithSource.forEach((user) => {
+      const source = getSignupSourceLabel(user);
+      sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+    });
+    const signupSources = Object.entries(sourceCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([source, count]) => source + ': **' + count + '**')
+      .join(' | ');
 
     // --- Most popular cards ---
     const topCards = await db.collection('cards')
@@ -149,6 +182,11 @@ async function run() {
         {
           name: 'Recent Signups',
           value: recentList || 'None',
+          inline: false,
+        },
+        {
+          name: 'Signup Sources (24h)',
+          value: signupSources || 'No new signups',
           inline: false,
         },
         {

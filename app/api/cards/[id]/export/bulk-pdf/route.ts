@@ -139,7 +139,7 @@ export async function POST(
     // Check plan — bulk PDF is Pro/Business only
     if (user.planType === "FREE") {
       return NextResponse.json(
-        { error: "Bulk PDF export requires Pro or Business plan.", upgradeRequired: true },
+        { error: "Bulk PDF export requires Premium plan.", upgradeRequired: true },
         { status: 403 }
       );
     }
