@@ -804,31 +804,36 @@ function CreateCardContent() {
                 </div>
 
                 {/* Bingo Grid */}
-                <div className="flex-grow flex items-center justify-center bg-slate-50 rounded-xl border border-slate-100 p-4 md:p-8 mb-8 overflow-auto">
-                   <div className="w-full max-w-2xl">
-                      {/* Grid Header */}
-                      <div className="grid grid-cols-5 mb-2 gap-2 text-center font-black text-2xl md:text-4xl tracking-widest text-slate-900 opacity-90">
-                         {['B','I','N','G','O'].map((char, i) => (
-                           <div key={i} className="py-2 text-transparent bg-clip-text bg-gradient-to-br from-violet-600 to-indigo-600">
+                <div className="flex-grow flex items-center justify-center bg-slate-50 rounded-xl border border-slate-100 p-3 md:p-6 mb-8">
+                   <div className="w-full">
+                      {/* Grid Header - matches grid columns */}
+                      <div
+                        className="grid mb-1.5 md:mb-2 text-center font-black tracking-widest text-slate-900 opacity-90"
+                        style={{ gridTemplateColumns: `repeat(${size}, 1fr)`, gap: size === 5 ? "4px" : "8px" }}
+                      >
+                         {['B','I','N','G','O'].slice(0, size).map((char, i) => (
+                           <div key={i} className={`${size === 5 ? "py-1 text-lg md:text-2xl" : size === 4 ? "py-1.5 text-xl md:text-3xl" : "py-2 text-2xl md:text-4xl"} text-transparent bg-clip-text bg-gradient-to-br from-violet-600 to-indigo-600`}>
                              {char}
                            </div>
                          ))}
                       </div>
 
                       <div
-                        className="grid gap-2 md:gap-3"
+                        className="grid"
                         style={{
                           gridTemplateColumns: `repeat(${size}, 1fr)`,
+                          gap: size === 5 ? "4px" : size === 4 ? "6px" : "8px",
                         }}
                       >
                         {cells.map((cell, index) => {
                           const isFreeSpace = freeSpace && index === getFreeSpaceIndex();
+                          const cellHeight = size === 5 ? "h-16 md:h-20" : size === 4 ? "h-20 md:h-24" : "h-24 md:h-28";
 
                           return (
                             <div
                               key={index}
-                              className={`aspect-square relative group transition-all duration-200 ${
-                                showPreview ? "shadow-sm" : "focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2"
+                              className={`${cellHeight} relative group transition-all duration-200 ${
+                                showPreview ? "shadow-sm" : "focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-1"
                               }`}
                               style={{
                                 backgroundColor: style.backgroundColor,
@@ -837,7 +842,7 @@ function CreateCardContent() {
                             >
                               {isFreeSpace ? (
                                 <div
-                                  className="w-full h-full flex items-center justify-center border-2 rounded-xl font-bold p-2 text-center shadow-inner bg-opacity-90"
+                                  className="w-full h-full flex items-center justify-center border-2 rounded-lg md:rounded-xl font-bold p-1 text-center shadow-inner bg-opacity-90"
                                   style={{
                                     color: style.textColor,
                                     fontSize: style.fontSize,
@@ -847,14 +852,13 @@ function CreateCardContent() {
                                   }}
                                 >
                                   FREE
-                                  <span className="hidden group-hover:block absolute top-1 right-1 w-2 h-2 bg-indigo-500 rounded-full animate-ping"></span>
                                 </div>
                               ) : showPreview ? (
                                 <div
-                                  className="w-full h-full flex items-center justify-center border border-opacity-50 rounded-xl p-2 text-center break-words overflow-hidden shadow-sm"
+                                  className="w-full h-full flex items-center justify-center border border-opacity-50 rounded-lg md:rounded-xl p-1.5 text-center break-words overflow-hidden shadow-sm"
                                   style={{
                                     color: style.textColor,
-                                    fontSize: style.fontSize,
+                                    fontSize: size === 5 ? "12px" : style.fontSize,
                                     fontFamily: style.fontFamily,
                                     borderColor: style.borderColor,
                                     backgroundColor: style.backgroundColor,
@@ -866,13 +870,11 @@ function CreateCardContent() {
                                 <textarea
                                   value={cell}
                                   onChange={(e) => handleCellChange(index, e.target.value)}
-                                  placeholder={`Item ${index + 1}`}
-                                  className="w-full h-full p-2 border rounded-xl resize-none focus:outline-none text-center bg-transparent transition-colors hover:bg-slate-50/50 focus:bg-white placeholder:text-slate-300"
+                                  placeholder={`${index + 1}`}
+                                  className={`w-full h-full p-1.5 border rounded-lg md:rounded-xl resize-none focus:outline-none text-center bg-transparent transition-colors hover:bg-slate-50/50 focus:bg-white placeholder:text-slate-300 ${size === 5 ? "text-xs md:text-sm" : "text-sm"}`}
                                   style={{
                                     color: style.textColor,
-                                    fontSize: style.fontSize,
                                     fontFamily: style.fontFamily,
-                                    borderColor: style.borderColor,
                                   }}
                                 />
                               )}
