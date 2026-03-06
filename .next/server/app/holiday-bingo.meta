@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/holiday-bingo/layout,_N_T_/holiday-bingo/page,_N_T_/holiday-bingo"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/holiday-bingo/__PAGE__",
+    "/holiday-bingo",
+    "/_index",
+    "/_head"
+  ]
+}

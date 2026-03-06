@@ -1,0 +1,3 @@
+{
+  "/api/cards/[id]/export/bulk-pdf/route": "app/api/cards/[id]/export/bulk-pdf/route.js"
+}

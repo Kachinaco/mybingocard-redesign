@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/baby-shower-bingo/layout,_N_T_/baby-shower-bingo/page,_N_T_/baby-shower-bingo"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/baby-shower-bingo/__PAGE__",
+    "/baby-shower-bingo",
+    "/_index",
+    "/_head"
+  ]
+}

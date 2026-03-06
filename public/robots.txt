@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Block API routes
+Disallow: /api/
+# Block auth-related pages
+Disallow: /forgot-password
+Disallow: /reset-password
+# Block user dashboard
+Disallow: /dashboard/
+Disallow: /settings
+
+Sitemap: https://mybingocard.com/sitemap.xml

@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/blog/layout,_N_T_/blog/party-bingo-tips/layout,_N_T_/blog/party-bingo-tips/page,_N_T_/blog/party-bingo-tips"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/blog/party-bingo-tips/__PAGE__",
+    "/blog/party-bingo-tips",
+    "/blog",
+    "/_index",
+    "/_head"
+  ]
+}

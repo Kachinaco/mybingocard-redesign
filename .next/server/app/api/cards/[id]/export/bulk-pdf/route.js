@@ -1,0 +1,11 @@
+var R=require("../../../../../../chunks/[turbopack]_runtime.js")("server/app/api/cards/[id]/export/bulk-pdf/route.js")
+R.c("server/chunks/lib_db_users_ts_46ae81ce._.js")
+R.c("server/chunks/node_modules_next_f5199d09._.js")
+R.c("server/chunks/[root-of-the-server]__9847617f._.js")
+R.c("server/chunks/node_modules_next_1402a1da._.js")
+R.c("server/chunks/_3c89315f._.js")
+R.c("server/chunks/_828d2bcb._.js")
+R.c("server/chunks/[root-of-the-server]__9d217c47._.js")
+R.c("server/chunks/_next-internal_server_app_api_cards_[id]_export_bulk-pdf_route_actions_3f4ede9b.js")
+R.m(7476)
+module.exports=R.m(7476).exports

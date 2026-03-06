@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/blog/layout,_N_T_/blog/best-bingo-games-baby-showers/layout,_N_T_/blog/best-bingo-games-baby-showers/page,_N_T_/blog/best-bingo-games-baby-showers"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/blog/best-bingo-games-baby-showers/__PAGE__",
+    "/blog/best-bingo-games-baby-showers",
+    "/blog",
+    "/_index",
+    "/_head"
+  ]
+}

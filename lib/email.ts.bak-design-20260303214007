@@ -1,0 +1,225 @@
+import nodemailer from "nodemailer";
+
+const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
+const fromAddress = process.env.EMAIL_FROM || "support@mybingocard.com";
+const port = Number(process.env.EMAIL_SERVER_PORT) || 587;
+
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_SERVER_HOST,
+  port,
+  secure: port === 465,
+  auth: {
+    user: process.env.EMAIL_SERVER_USER,
+    pass: process.env.EMAIL_SERVER_PASSWORD,
+  },
+});
+
+type EmailPayload = {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+};
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function getFirstName(name?: string): string {
+  if (!name) return "there";
+  const trimmed = name.trim();
+  if (!trimmed) return "there";
+  return trimmed.split(" ")[0] || "there";
+}
+
+function formatMoney(amountCents: number, currency: string): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: (currency || "USD").toUpperCase(),
+  }).format((amountCents || 0) / 100);
+}
+
+function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
+
+async function sendEmail(payload: EmailPayload): Promise<boolean> {
+  try {
+    await transporter.sendMail({
+      from: fromAddress,
+      to: payload.to,
+      subject: payload.subject,
+      html: payload.html,
+      text: payload.text,
+    });
+    console.log(`Email sent to ${payload.to}: ${payload.subject}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to send email to ${payload.to}:`, error);
+    return false;
+  }
+}
+
+export async function sendWelcomeEmail(to: string, name: string): Promise<boolean> {
+  const firstName = escapeHtml(getFirstName(name));
+  const subject = "Welcome to MyBingoCard!";
+
+  return sendEmail({
+    to,
+    subject,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#111827;line-height:1.5;">
+        <h1 style="margin:0 0 12px;font-size:28px;">Welcome, ${firstName}!</h1>
+        <p style="margin:0 0 16px;">Thanks for joining MyBingoCard. You can now create, share, and export bingo cards in minutes.</p>
+        <a href="${appUrl}/create" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">Create Your First Card</a>
+        <p style="margin:20px 0 0;color:#6b7280;font-size:14px;">Need help? Reply to this email and we'll help you out.</p>
+      </div>
+    `,
+    text: `Welcome, ${getFirstName(name)}!\n\nThanks for joining MyBingoCard.\n\nCreate your first card: ${appUrl}/create\n\nNeed help? Reply to this email.`,
+  });
+}
+
+export async function sendMagicLinkEmail(to: string, url: string): Promise<boolean> {
+  const safeUrl = escapeHtml(url);
+  const subject = "Your MyBingoCard sign-in link";
+
+  return sendEmail({
+    to,
+    subject,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#111827;line-height:1.5;">
+        <h1 style="margin:0 0 12px;font-size:26px;">Sign in to MyBingoCard</h1>
+        <p style="margin:0 0 16px;">Use the secure link below to sign in. This link expires automatically.</p>
+        <a href="${safeUrl}" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">Sign In Securely</a>
+        <p style="margin:20px 0 0;color:#6b7280;font-size:14px;word-break:break-all;">If the button doesn't work, copy this URL:\n${safeUrl}</p>
+      </div>
+    `,
+    text: `Sign in to MyBingoCard\n\nUse this secure link to sign in:\n${url}\n\nIf you didn't request this, you can ignore this email.`,
+  });
+}
+
+export async function sendPasswordResetEmail(to: string, name: string, resetUrl: string): Promise<boolean> {
+  const firstName = escapeHtml(getFirstName(name));
+  const safeUrl = escapeHtml(resetUrl);
+  const subject = "Reset your MyBingoCard password";
+
+  return sendEmail({
+    to,
+    subject,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#111827;line-height:1.5;">
+        <h1 style="margin:0 0 12px;font-size:26px;">Reset your password</h1>
+        <p style="margin:0 0 16px;">Hi ${firstName}, we received a request to reset your password.</p>
+        <a href="${safeUrl}" style="display:inline-block;background:#dc2626;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">Reset Password</a>
+        <p style="margin:20px 0 0;color:#6b7280;font-size:14px;">This link expires in 1 hour. If you didn't request this, ignore this email.</p>
+      </div>
+    `,
+    text: `Hi ${getFirstName(name)},\n\nReset your password using this link (expires in 1 hour):\n${resetUrl}\n\nIf you didn't request this, ignore this email.`,
+  });
+}
+
+export async function sendSubscriptionActivatedEmail(to: string, name: string, planName: string): Promise<boolean> {
+  const firstName = escapeHtml(getFirstName(name));
+  const safePlanName = escapeHtml(planName);
+  const subject = `Your ${safePlanName} plan is active`;
+
+  return sendEmail({
+    to,
+    subject,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#111827;line-height:1.5;">
+        <h1 style="margin:0 0 12px;font-size:26px;">Subscription active</h1>
+        <p style="margin:0 0 16px;">Hi ${firstName}, your <strong>${safePlanName}</strong> plan is now active.</p>
+        <a href="${appUrl}/dashboard" style="display:inline-block;background:#059669;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">Go to Dashboard</a>
+      </div>
+    `,
+    text: `Hi ${getFirstName(name)}, your ${planName} plan is now active.\n\nOpen dashboard: ${appUrl}/dashboard`,
+  });
+}
+
+export async function sendSubscriptionCanceledEmail(
+  to: string,
+  name: string,
+  currentPeriodEnd?: Date | null
+): Promise<boolean> {
+  const firstName = escapeHtml(getFirstName(name));
+  const subject = "Your MyBingoCard subscription was canceled";
+  const renewalText = currentPeriodEnd
+    ? `You'll keep access through ${formatDate(currentPeriodEnd)}.`
+    : "Your subscription has been canceled.";
+
+  return sendEmail({
+    to,
+    subject,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#111827;line-height:1.5;">
+        <h1 style="margin:0 0 12px;font-size:26px;">Subscription canceled</h1>
+        <p style="margin:0 0 16px;">Hi ${firstName}, ${escapeHtml(renewalText)}</p>
+        <a href="${appUrl}/pricing" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">View Plans</a>
+      </div>
+    `,
+    text: `Hi ${getFirstName(name)}, ${renewalText}\n\nView plans: ${appUrl}/pricing`,
+  });
+}
+
+export async function sendBillingSuccessEmail(
+  to: string,
+  name: string,
+  amountCents: number,
+  currency: string,
+  currentPeriodEnd?: Date | null
+): Promise<boolean> {
+  const firstName = escapeHtml(getFirstName(name));
+  const amount = formatMoney(amountCents, currency);
+  const nextBill = currentPeriodEnd ? formatDate(currentPeriodEnd) : null;
+  const subject = "Payment received - MyBingoCard";
+
+  return sendEmail({
+    to,
+    subject,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#111827;line-height:1.5;">
+        <h1 style="margin:0 0 12px;font-size:26px;">Payment received</h1>
+        <p style="margin:0 0 8px;">Hi ${firstName}, we received your payment of <strong>${escapeHtml(amount)}</strong>.</p>
+        ${nextBill ? `<p style="margin:0 0 16px;">Your current billing period ends on ${escapeHtml(nextBill)}.</p>` : ""}
+        <a href="${appUrl}/settings" style="display:inline-block;background:#4f46e5;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">Manage Billing</a>
+      </div>
+    `,
+    text: `Hi ${getFirstName(name)}, we received your payment of ${amount}.\n${nextBill ? `Current billing period ends on ${nextBill}.\n` : ""}\nManage billing: ${appUrl}/settings`,
+  });
+}
+
+export async function sendBillingFailedEmail(
+  to: string,
+  name: string,
+  amountCents: number,
+  currency: string,
+  manageBillingUrl: string
+): Promise<boolean> {
+  const firstName = escapeHtml(getFirstName(name));
+  const amount = formatMoney(amountCents, currency);
+  const safeBillingUrl = escapeHtml(manageBillingUrl);
+  const subject = "Payment failed - update your billing details";
+
+  return sendEmail({
+    to,
+    subject,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:24px;color:#111827;line-height:1.5;">
+        <h1 style="margin:0 0 12px;font-size:26px;">Payment failed</h1>
+        <p style="margin:0 0 16px;">Hi ${firstName}, we couldn't process your payment of <strong>${escapeHtml(amount)}</strong>.</p>
+        <a href="${safeBillingUrl}" style="display:inline-block;background:#dc2626;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:600;">Update Billing Details</a>
+      </div>
+    `,
+    text: `Hi ${getFirstName(name)}, we couldn't process your payment of ${amount}.\n\nUpdate billing details: ${manageBillingUrl}`,
+  });
+}

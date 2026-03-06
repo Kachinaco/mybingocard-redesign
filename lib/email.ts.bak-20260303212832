@@ -1,0 +1,112 @@
+import nodemailer from "nodemailer";
+
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_SERVER_HOST,
+  port: Number(process.env.EMAIL_SERVER_PORT) || 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_SERVER_USER,
+    pass: process.env.EMAIL_SERVER_PASSWORD,
+  },
+});
+
+export async function sendWelcomeEmail(to: string, name: string) {
+  const firstName = name?.split(" ")[0] || "there";
+
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM || "MyBingoCard <noreply@mybingocard.com>",
+      to,
+      subject: "Welcome to MyBingoCard!",
+      html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f8fafc;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" style="width: 100%; max-width: 600px; border-collapse: collapse;">
+          <!-- Logo -->
+          <tr>
+            <td align="center" style="padding-bottom: 32px;">
+              <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #7c3aed, #4f46e5); border-radius: 12px; display: inline-block;"></div>
+              <h1 style="margin: 16px 0 0 0; font-size: 24px; font-weight: 700; color: #0f172a;">MyBingoCard</h1>
+            </td>
+          </tr>
+
+          <!-- Main Content -->
+          <tr>
+            <td style="background: white; border-radius: 16px; padding: 48px 40px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+              <h2 style="margin: 0 0 16px 0; font-size: 28px; font-weight: 700; color: #0f172a;">
+                Welcome, ${firstName}!
+              </h2>
+              <p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.6; color: #475569;">
+                Thanks for joining MyBingoCard! We're excited to help you create amazing bingo cards for any occasion.
+              </p>
+
+              <div style="background: #f8fafc; border-radius: 12px; padding: 24px; margin-bottom: 24px;">
+                <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #0f172a;">
+                  Here's what you can do:
+                </h3>
+                <ul style="margin: 0; padding-left: 20px; color: #475569; font-size: 14px; line-height: 1.8;">
+                  <li>Create up to 3 custom bingo cards for free</li>
+                  <li>Choose from 3x3 and 4x4 grid sizes</li>
+                  <li>Export your cards as PDF</li>
+                  <li>Share cards with friends via unique links</li>
+                </ul>
+              </div>
+
+              <a href="https://mybingocard.com/create" style="display: inline-block; background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white; text-decoration: none; padding: 14px 32px; border-radius: 10px; font-weight: 600; font-size: 16px;">
+                Create Your First Card
+              </a>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding-top: 32px;">
+              <p style="margin: 0; font-size: 14px; color: #94a3b8;">
+                &copy; 2025 MyBingoCard. All rights reserved.
+              </p>
+              <p style="margin: 8px 0 0 0; font-size: 12px; color: #94a3b8;">
+                <a href="https://mybingocard.com" style="color: #6366f1; text-decoration: none;">mybingocard.com</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+      `,
+      text: `
+Welcome to MyBingoCard, ${firstName}!
+
+Thanks for joining MyBingoCard! We're excited to help you create amazing bingo cards for any occasion.
+
+Here's what you can do:
+- Create up to 3 custom bingo cards for free
+- Choose from 3x3 and 4x4 grid sizes
+- Export your cards as PDF
+- Share cards with friends via unique links
+
+Get started: https://mybingocard.com/create
+
+---
+MyBingoCard
+https://mybingocard.com
+      `,
+    });
+
+    console.log(`Welcome email sent to ${to}`);
+    return true;
+  } catch (error) {
+    console.error("Failed to send welcome email:", error);
+    return false;
+  }
+}

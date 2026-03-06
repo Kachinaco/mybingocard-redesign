@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/bridal-shower-bingo/layout,_N_T_/bridal-shower-bingo/page,_N_T_/bridal-shower-bingo"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/bridal-shower-bingo/__PAGE__",
+    "/bridal-shower-bingo",
+    "/_index",
+    "/_head"
+  ]
+}

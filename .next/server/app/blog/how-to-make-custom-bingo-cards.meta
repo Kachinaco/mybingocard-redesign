@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/blog/layout,_N_T_/blog/how-to-make-custom-bingo-cards/layout,_N_T_/blog/how-to-make-custom-bingo-cards/page,_N_T_/blog/how-to-make-custom-bingo-cards"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/blog/how-to-make-custom-bingo-cards/__PAGE__",
+    "/blog/how-to-make-custom-bingo-cards",
+    "/blog",
+    "/_index",
+    "/_head"
+  ]
+}
