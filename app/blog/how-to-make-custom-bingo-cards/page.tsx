@@ -111,7 +111,7 @@ export default function HowToMakeCustomBingoCards() {
 
         <h2>Start Creating Your Bingo Cards Now</h2>
         <p>
-          Ready to make your own custom bingo cards? Head to our <Link href="/create">free bingo card creator</Link> and have your cards ready in under 5 minutes. Sign up free — no credit card required.
+          Ready to make your own custom bingo cards? Head to our <Link href="/create">bingo card creator</Link>, build your card in under 5 minutes, then create an account and start your 7-day trial in Stripe when you’re ready to save it.
         </p>
       </BlogLayout>
     </>

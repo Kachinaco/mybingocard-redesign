@@ -2,6 +2,23 @@ import { sanitizeCells, sanitizeText } from "@/lib/sanitize";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getCardById, updateCard } from "@/lib/db/cards";
+import { getUserAccessState } from "@/lib/access";
+
+async function ensureBillingReady(email?: string | null) {
+  if (!email) {
+    return null;
+  }
+
+  const { billingSetupRequired } = await getUserAccessState(email);
+  if (!billingSetupRequired) {
+    return null;
+  }
+
+  return NextResponse.json(
+    { error: "Billing setup required", trialRequired: true },
+    { status: 402 }
+  );
+}
 
 export async function GET(
   request: Request,
@@ -15,6 +32,11 @@ export async function GET(
         { error: "Unauthorized - Please sign in" },
         { status: 401 }
       );
+    }
+
+    const billingResponse = await ensureBillingReady(session.user.email);
+    if (billingResponse) {
+      return billingResponse;
     }
 
     const { id } = await params;
@@ -57,6 +79,11 @@ export async function PUT(
         { error: "Unauthorized - Please sign in" },
         { status: 401 }
       );
+    }
+
+    const billingResponse = await ensureBillingReady(session.user.email);
+    if (billingResponse) {
+      return billingResponse;
     }
 
     const { id } = await params;

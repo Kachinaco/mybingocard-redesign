@@ -58,8 +58,8 @@ export default function RootLayout({
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
-            gtag(js, new Date());
-            gtag(config, G-LWWM9BCCTR);
+            gtag('js', new Date());
+            gtag('config', 'G-LWWM9BCCTR');
           `}
         </Script>
         {adsenseId && adsenseId !== "ca-pub-XXXXXXXXXX" && (

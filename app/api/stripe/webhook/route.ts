@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { stripe, STRIPE_CONFIG, getPlanByPriceId, PLANS } from "@/lib/stripe/config";
 import { updateUserSubscription, getUserByEmail } from "@/lib/db/users";
-import { markCardAsPremium } from "@/lib/db/cards";
 import {
   sendBillingFailedEmail,
   sendBillingSuccessEmail,
@@ -17,6 +16,28 @@ function fireAndForget(promise: Promise<unknown>, context: string) {
   promise.catch((error) => {
     console.error(`${context} failed:`, error);
   });
+}
+
+function toDate(timestamp?: number | null): Date | null {
+  return typeof timestamp === "number" ? new Date(timestamp * 1000) : null;
+}
+
+function mapSubscriptionStatus(
+  status: Stripe.Subscription.Status
+): "active" | "inactive" | "past_due" | "canceled" | "trialing" {
+  switch (status) {
+    case "trialing":
+      return "trialing";
+    case "active":
+      return "active";
+    case "past_due":
+    case "unpaid":
+      return "past_due";
+    case "canceled":
+      return "canceled";
+    default:
+      return "inactive";
+  }
 }
 
 export async function POST(request: Request) {
@@ -51,22 +72,7 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        const purchaseType = session.metadata?.purchaseType;
-
-        if (purchaseType === "one_time" && session.mode === "payment") {
-          // One-time card premium purchase
-          const userId = session.metadata?.userId || session.client_reference_id;
-          const cardId = session.metadata?.cardId;
-
-          if (userId && cardId) {
-            try {
-              await markCardAsPremium(cardId, userId);
-              console.log(`Card ${cardId} marked as premium for user ${userId}`);
-            } catch (err) {
-              console.error(`Failed to mark card ${cardId} as premium:`, err);
-            }
-          }
-        } else if (session.mode === "subscription") {
+        if (session.mode === "subscription") {
           const userId = session.metadata?.userId || session.client_reference_id;
           const subscriptionId = session.subscription as string;
 
@@ -81,9 +87,12 @@ export async function POST(request: Request) {
                 stripeCustomerId: session.customer as string,
                 stripeSubscriptionId: subscriptionId,
                 stripePriceId: priceId,
-                status: "active",
-                currentPeriodStart: new Date(subscription.items.data[0]!.current_period_start * 1000),
-                currentPeriodEnd: new Date(subscription.items.data[0]!.current_period_end * 1000),
+                status: mapSubscriptionStatus(subscription.status),
+                currentPeriodStart: toDate(subscription.items.data[0]?.current_period_start),
+                currentPeriodEnd: toDate(subscription.items.data[0]?.current_period_end),
+                trialEndsAt: toDate(subscription.trial_end),
+                cancelAtPeriodEnd: subscription.cancel_at_period_end,
+                cancelAt: toDate(subscription.cancel_at),
               });
 
               console.log(`Subscription activated for user ${userId}: ${planType}`);
@@ -117,9 +126,12 @@ export async function POST(request: Request) {
           await updateUserSubscription(userId, {
             planType,
             stripePriceId: priceId,
-            status: subscription.status === "active" ? "active" : "inactive",
-            currentPeriodStart: new Date(subscription.items.data[0]!.current_period_start * 1000),
-            currentPeriodEnd: new Date(subscription.items.data[0]!.current_period_end * 1000),
+            status: mapSubscriptionStatus(subscription.status),
+            currentPeriodStart: toDate(subscription.items.data[0]?.current_period_start),
+            currentPeriodEnd: toDate(subscription.items.data[0]?.current_period_end),
+            trialEndsAt: toDate(subscription.trial_end),
+            cancelAtPeriodEnd: subscription.cancel_at_period_end,
+            cancelAt: toDate(subscription.cancel_at),
           });
 
           console.log(`Subscription updated for user ${userId}: ${subscription.status}`);
@@ -134,9 +146,14 @@ export async function POST(request: Request) {
         if (userId) {
           await updateUserSubscription(userId, {
             planType: "FREE",
-            status: "inactive",
+            stripeSubscriptionId: null,
+            stripePriceId: null,
+            status: "canceled",
             currentPeriodStart: null,
             currentPeriodEnd: null,
+            trialEndsAt: toDate(subscription.trial_end),
+            cancelAtPeriodEnd: false,
+            cancelAt: toDate(subscription.canceled_at),
           });
 
           console.log(`Subscription canceled for user ${userId}`);
@@ -147,7 +164,7 @@ export async function POST(request: Request) {
               userId,
               user?.name || userId,
               subscription.items.data[0]?.current_period_end
-                ? new Date(subscription.items.data[0]!.current_period_end * 1000)
+                ? new Date(subscription.items.data[0].current_period_end * 1000)
                 : null
             ),
             `sendSubscriptionCanceledEmail(${userId})`
@@ -166,9 +183,12 @@ export async function POST(request: Request) {
 
           if (userId) {
             await updateUserSubscription(userId, {
-              status: "active",
-              currentPeriodStart: new Date(subscription.items.data[0]!.current_period_start * 1000),
-              currentPeriodEnd: new Date(subscription.items.data[0]!.current_period_end * 1000),
+              status: mapSubscriptionStatus(subscription.status),
+              currentPeriodStart: toDate(subscription.items.data[0]?.current_period_start),
+              currentPeriodEnd: toDate(subscription.items.data[0]?.current_period_end),
+              trialEndsAt: toDate(subscription.trial_end),
+              cancelAtPeriodEnd: subscription.cancel_at_period_end,
+              cancelAt: toDate(subscription.cancel_at),
             });
 
             console.log(`Payment succeeded for user ${userId}`);
@@ -181,7 +201,7 @@ export async function POST(request: Request) {
                 invoice.amount_paid || invoice.amount_due || 0,
                 (invoice.currency || "usd").toUpperCase(),
                 subscription.items.data[0]?.current_period_end
-                  ? new Date(subscription.items.data[0]!.current_period_end * 1000)
+                  ? new Date(subscription.items.data[0].current_period_end * 1000)
                   : null
               ),
               `sendBillingSuccessEmail(${userId})`
@@ -201,7 +221,10 @@ export async function POST(request: Request) {
 
           if (userId) {
             await updateUserSubscription(userId, {
-              status: "past_due",
+              status: mapSubscriptionStatus(subscription.status),
+              trialEndsAt: toDate(subscription.trial_end),
+              cancelAtPeriodEnd: subscription.cancel_at_period_end,
+              cancelAt: toDate(subscription.cancel_at),
             });
 
             console.log(`Payment failed for user ${userId}`);

@@ -25,6 +25,11 @@ function readStoredAttribution(): StoredAttribution {
   }
 }
 
+function buildTrialStartPath(callbackUrl: string): string {
+  const safeCallbackUrl = callbackUrl.startsWith("/") ? callbackUrl : "/dashboard";
+  return `/start-trial?returnTo=${encodeURIComponent(safeCallbackUrl)}`;
+}
+
 function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -102,7 +107,7 @@ function SignupForm() {
         setError("Account created but failed to sign in. Please try logging in.");
       } else {
         const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-        router.push(callbackUrl);
+        router.push(buildTrialStartPath(callbackUrl));
       }
     } catch (error) {
       setError("An error occurred. Please try again.");
@@ -182,9 +187,9 @@ function SignupForm() {
                </span>
                <span className="font-bold text-gray-900 text-xl">MyBingoCard</span>
              </Link>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Get started for free</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Start your 7-day free trial</h1>
             <p className="mt-2 text-gray-600">
-              No credit card required. Start creating bingo cards today.
+              Create your account, then add a card in Stripe to unlock Premium for 7 days. Cancel anytime.
             </p>
           </div>
 

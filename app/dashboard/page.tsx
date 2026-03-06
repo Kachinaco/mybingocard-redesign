@@ -5,6 +5,7 @@ import { getUserByEmail } from "@/lib/db/users";
 import { getUserCards } from "@/lib/db/cards";
 import { PLANS } from "@/lib/stripe/config";
 import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
+import UpgradeButton from "@/components/UpgradeButton";
 import Link from "next/link";
 import { getGameHistory, getGameStats } from "@/lib/gameHistory";
 import { getUserFavorites } from "@/lib/favorites";
@@ -25,6 +26,16 @@ export default async function DashboardPage() {
   const currentPlan = user?.planType || "FREE";
   const plan = PLANS[currentPlan as keyof typeof PLANS] || PLANS.FREE;
   const isSubscribed = currentPlan !== "FREE";
+  const isNewUser = user?.createdAt && (Date.now() - new Date(user.createdAt).getTime()) < 60000;
+  const trialEligible = currentPlan === "FREE" && !user?.stripeSubscriptionId && !user?.trialEndsAt;
+  const isTrialing = user?.subscriptionStatus === "trialing" && user?.trialEndsAt;
+  const trialDaysLeft = isTrialing
+    ? Math.max(0, Math.ceil((new Date(user!.trialEndsAt!).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : null;
+  const cancelPending = Boolean(user?.cancelAtPeriodEnd && user?.currentPeriodEnd);
+  const subscriptionEndsOn = user?.currentPeriodEnd
+    ? new Date(user.currentPeriodEnd).toLocaleDateString()
+    : null;
 
   const recentCards = session.user.id
     ? (await getUserCards(session.user.id)).slice(0, 6)
@@ -86,13 +97,33 @@ export default async function DashboardPage() {
         <div className="container mx-auto max-w-6xl">
           <div className="mb-10 animate-fade-in-up">
             <h1 className="text-3xl font-bold text-slate-900">
-              Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">{session.user.name?.split(" ")[0] || "Friend"}</span>!
+              {isNewUser ? "Welcome" : "Welcome back"}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">{session.user.name?.split(" ")[0] || "Friend"}</span>!
             </h1>
             <p className="text-slate-500 mt-2 text-lg">
               Here&apos;s what&apos;s happening with your bingo cards today.
             </p>
           </div>
 
+
+          {isTrialing && trialDaysLeft !== null && trialDaysLeft > 0 && (
+            <div className="mb-8 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-6 text-white animate-fade-in-up">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold mb-1">Premium Trial — {trialDaysLeft} day{trialDaysLeft !== 1 ? "s" : ""} left</h2>
+                  <p className="text-indigo-100 text-sm">
+                    {cancelPending && subscriptionEndsOn
+                      ? `Your premium access is scheduled to end on ${subscriptionEndsOn}. Reopen billing if you want to keep it after the trial.`
+                      : "You have full Premium access. Subscribe before your trial ends to keep it."}
+                  </p>
+                </div>
+                {cancelPending ? (
+                  <ManageSubscriptionButton />
+                ) : (
+                  <UpgradeButton className="whitespace-nowrap px-6 py-3 bg-white text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition-all shadow-lg">Subscribe — $4.99/mo</UpgradeButton>
+                )}
+              </div>
+            </div>
+          )}
           <div className="grid lg:grid-cols-3 gap-8 mb-10">
              {/* Subscription Status Card */}
             <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 animate-fade-in-up animation-delay-100 relative overflow-hidden group">
@@ -107,16 +138,18 @@ export default async function DashboardPage() {
                     {isSubscribed ? (
                       <div className="flex items-center gap-3 text-sm">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${
-                            user?.subscriptionStatus === "active"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                              : "bg-amber-50 text-amber-700 border border-amber-100"
+                            cancelPending
+                              ? "bg-amber-50 text-amber-700 border border-amber-100"
+                              : user?.subscriptionStatus === "active"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                                : "bg-amber-50 text-amber-700 border border-amber-100"
                           }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${user?.subscriptionStatus === "active" ? "bg-emerald-500" : "bg-amber-500"}`}></span>
-                          {user?.subscriptionStatus || "active"}
+                          <span className={`w-1.5 h-1.5 rounded-full ${cancelPending ? "bg-amber-500" : user?.subscriptionStatus === "active" ? "bg-emerald-500" : "bg-amber-500"}`}></span>
+                          {cancelPending ? "scheduled to end" : user?.subscriptionStatus || "active"}
                         </span>
-                        {user?.currentPeriodEnd && (
+                        {subscriptionEndsOn && (
                           <span className="text-slate-500">
-                            Renews {new Date(user.currentPeriodEnd).toLocaleDateString()}
+                            {cancelPending ? `Ends ${subscriptionEndsOn}` : user?.subscriptionStatus === "trialing" ? `Trial ends ${subscriptionEndsOn}` : `Renews ${subscriptionEndsOn}`}
                           </span>
                         )}
                       </div>
@@ -129,12 +162,7 @@ export default async function DashboardPage() {
                   
                   <div>
                     {!isSubscribed ? (
-                      <Link
-                        href="/pricing"
-                        className="inline-flex items-center justify-center px-6 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg hover:shadow-indigo-200 transition-all font-semibold text-sm"
-                      >
-                        Upgrade Now
-                      </Link>
+                      <UpgradeButton>Subscribe Now</UpgradeButton>
                     ) : (
                       <div className="flex">
                          <ManageSubscriptionButton />

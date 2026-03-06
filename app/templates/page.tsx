@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { redirectToCheckout } from "@/lib/upgrade";
 
 interface Template {
   _id: string;
@@ -139,8 +140,8 @@ export default function TemplatesPage() {
       }
 
       if (!userPlan?.canAccessAllTemplates) {
-        if (confirm("This is a premium template. Upgrade to Premium to access all templates. Go to pricing?")) {
-          router.push("/pricing");
+        if (confirm("This is a premium template. Upgrade to Premium to access all templates.")) {
+          redirectToCheckout();
         }
         return;
       }
@@ -406,12 +407,12 @@ export default function TemplatesPage() {
               <p className="text-slate-600 max-w-md mx-auto mb-6">
                 Unlock 24 professionally designed templates for weddings, parties, classrooms, and more.
               </p>
-              <Link
-                href="/pricing"
+              <button
+                onClick={redirectToCheckout}
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-indigo-500/20 hover:-translate-y-0.5 transition-all"
               >
                 Upgrade to Premium
-              </Link>
+              </button>
             </div>
           )}
 

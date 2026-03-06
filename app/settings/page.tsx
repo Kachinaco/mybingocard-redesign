@@ -4,6 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { redirectToCheckout } from "@/lib/upgrade";
 
 export default function SettingsPage() {
   const { data: session, status, update: updateSession } = useSession();
@@ -226,6 +227,11 @@ export default function SettingsPage() {
   if (!session) return null;
 
   const isPremium = planInfo?.planType === "PREMIUM";
+  const subscriptionEndsOn = planInfo?.currentPeriodEnd
+    ? new Date(planInfo.currentPeriodEnd).toLocaleDateString()
+    : null;
+  const cancelPending = Boolean(planInfo?.cancelAtPeriodEnd && subscriptionEndsOn);
+  const isTrialingPlan = planInfo?.subscriptionStatus === "trialing";
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -411,17 +417,19 @@ export default function SettingsPage() {
               }`}>
                 {planInfo?.planType || "FREE"} Plan
               </span>
-              {isPremium && planInfo?.subscriptionStatus === "active" && (
-                <span className="text-xs text-green-600 font-medium">Active</span>
+              {isPremium && (
+                <span className={`text-xs font-medium ${cancelPending ? "text-amber-600" : "text-green-600"}`}>
+                  {cancelPending ? "Scheduled to end" : isTrialingPlan ? "Trial active" : "Active"}
+                </span>
               )}
             </div>
             {!isPremium && (
-              <Link
-                href="/pricing"
+              <button
+                onClick={redirectToCheckout}
                 className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
               >
                 Upgrade
-              </Link>
+              </button>
             )}
           </div>
 
@@ -447,13 +455,24 @@ export default function SettingsPage() {
 
           {/* Manage subscription */}
           {isPremium && (
-            <button
-              onClick={handleManageSubscription}
-              disabled={portalLoading}
-              className="w-full sm:w-auto px-5 py-2.5 border border-slate-200 text-slate-700 text-sm rounded-xl font-semibold hover:bg-slate-50 disabled:opacity-50"
-            >
-              {portalLoading ? "Opening..." : "Manage Subscription & Billing"}
-            </button>
+            <>
+              <button
+                onClick={handleManageSubscription}
+                disabled={portalLoading}
+                className="w-full sm:w-auto px-5 py-2.5 border border-slate-200 text-slate-700 text-sm rounded-xl font-semibold hover:bg-slate-50 disabled:opacity-50"
+              >
+                {portalLoading ? "Opening..." : "Manage Subscription & Billing"}
+              </button>
+              {subscriptionEndsOn && (
+                <p className={`mt-3 text-sm ${cancelPending ? "text-amber-600" : "text-slate-500"}`}>
+                  {cancelPending
+                    ? `Your premium access is scheduled to end on ${subscriptionEndsOn}. It will not renew unless you restart it in billing.`
+                    : isTrialingPlan
+                      ? `Your free trial ends on ${subscriptionEndsOn}.`
+                      : `Your next renewal is ${subscriptionEndsOn}.`}
+                </p>
+              )}
+            </>
           )}
         </div>
 

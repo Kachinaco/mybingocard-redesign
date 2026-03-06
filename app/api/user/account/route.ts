@@ -42,17 +42,19 @@ export async function DELETE(request: Request) {
       }
     }
 
-    // Delete user data
+    // Delete user data (accounts/sessions store userId as ObjectId, others as string)
+    const userOid = new ObjectId(userId);
     await Promise.all([
       db.collection("cards").deleteMany({ userId }),
       db.collection("gameHistory").deleteMany({ userId }),
       db.collection("game_states").deleteMany({ userId }),
       db.collection("favorites").deleteMany({ userId }),
-      db.collection("accounts").deleteMany({ userId }),
-      db.collection("sessions").deleteMany({ userId }),
+      db.collection("accounts").deleteMany({ userId: userOid }),
+      db.collection("sessions").deleteMany({ userId: userOid }),
       db.collection("email_preferences").deleteOne({ email: user.email }),
       db.collection("drip_opens").deleteMany({ email: user.email }),
-      db.collection("users").deleteOne({ _id: new ObjectId(userId) }),
+      db.collection("drip_log").deleteMany({ userId }),
+      db.collection("users").deleteOne({ _id: userOid }),
     ]);
 
     return NextResponse.json({ success: true });

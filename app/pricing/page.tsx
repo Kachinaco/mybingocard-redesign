@@ -35,7 +35,7 @@ function PricingContent() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<string>("FREE");
-  const [billingType, setBillingType] = useState<"monthly" | "per_card">("monthly");
+  
 
   const success = searchParams.get("success");
   const canceled = searchParams.get("canceled");
@@ -53,6 +53,7 @@ function PricingContent() {
       if (data.planType) {
         setCurrentPlan(data.planType);
       }
+
     } catch (error) {
       console.error("Failed to fetch current plan:", error);
     }
@@ -67,16 +68,9 @@ function PricingContent() {
     setLoading(true);
 
     try {
-      const body: any = {};
-
-      if (billingType === "monthly") {
-        body.priceId = process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_PRICE_ID!;
-      } else {
-        body.priceId = process.env.NEXT_PUBLIC_STRIPE_PREMIUM_ONETIME_PRICE_ID!;
-        router.push("/create?premium=true");
-        setLoading(false);
-        return;
-      }
+      const body = {
+        priceId: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_PRICE_ID!,
+      };
 
       const response = await fetch("/api/stripe/create-checkout-session", {
         method: "POST",
@@ -91,7 +85,7 @@ function PricingContent() {
       }
 
       if (data.url) {
-        trackPremiumPurchase(billingType === "monthly" ? "premium_monthly" : "premium_onetime");
+        trackPremiumPurchase("premium_monthly");
         window.location.href = data.url;
       }
     } catch (error: any) {
@@ -183,10 +177,10 @@ function PricingContent() {
             Simple, Transparent Pricing
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-            Free to start, <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">premium</span> when you're ready.
+            Start a <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">7-day free trial</span> of Premium.
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Create bingo cards for free with ads, or go premium for the full experience.
+            Add a payment method in Stripe to unlock Premium instantly. Cancel before billing and your account falls back to the free plan.
           </p>
         </div>
 
@@ -198,7 +192,7 @@ function PricingContent() {
               <h3 className="text-2xl font-bold text-slate-900 mb-2">Free</h3>
               <div className="flex items-baseline gap-1 mb-8">
                 <span className="text-5xl font-black text-slate-900 tracking-tight">$0</span>
-                <span className="text-slate-500 font-medium">/forever</span>
+                <span className="text-slate-500 font-medium">build free</span>
               </div>
               <ul className="space-y-4 mb-8">
                 {FREE_FEATURES.map((feature, i) => (
@@ -220,7 +214,7 @@ function PricingContent() {
                 </button>
               ) : (
                 <Link href="/signup" className="block w-full py-4 px-6 bg-slate-100 text-slate-700 rounded-xl font-bold text-center hover:bg-slate-200 transition-colors border border-slate-200">
-                  Get Started Free
+                  Create Account
                 </Link>
               )}
             </div>
@@ -235,42 +229,16 @@ function PricingContent() {
             <div className="p-8 md:p-10 flex-grow">
               <h3 className="text-2xl font-bold text-slate-900 mb-2">Premium</h3>
 
-              {/* Billing Toggle */}
-              <div className="flex items-center gap-3 mb-6">
-                <button
-                  onClick={() => setBillingType("monthly")}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                    billingType === "monthly"
-                      ? "bg-indigo-600 text-white shadow-md"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
-                >
-                  Monthly
-                </button>
-                <button
-                  onClick={() => setBillingType("per_card")}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                    billingType === "per_card"
-                      ? "bg-indigo-600 text-white shadow-md"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
-                >
-                  Per Card
-                </button>
-              </div>
-
               <div className="flex items-baseline gap-1 mb-2">
                 <span className="text-5xl font-black text-slate-900 tracking-tight">
-                  ${billingType === "monthly" ? "4.99" : "2.99"}
+                  $4.99
                 </span>
                 <span className="text-slate-500 font-medium">
-                  {billingType === "monthly" ? "/month" : "/card"}
+                  /month
                 </span>
               </div>
               <p className="text-sm text-slate-500 mb-8">
-                {billingType === "monthly"
-                  ? "Unlimited premium cards, cancel anytime"
-                  : "One-time payment, premium features for that card"}
+                Add a card to start your 7-day trial, then $4.99/month. Cancel anytime.
               </p>
 
               <ul className="space-y-4 mb-8">
@@ -300,11 +268,7 @@ function PricingContent() {
                     loading ? "opacity-70 cursor-wait" : ""
                   }`}
                 >
-                  {loading
-                    ? "Processing..."
-                    : billingType === "monthly"
-                      ? "Subscribe to Premium"
-                      : "Get Premium Per Card"}
+                  {loading ? "Processing..." : "Start 7-Day Free Trial"}
                 </button>
               )}
             </div>
@@ -355,10 +319,10 @@ function PricingContent() {
           <div className="grid gap-6">
             <div className="bg-white rounded-2xl border border-slate-100 p-8 shadow-sm hover:shadow-md transition-shadow">
               <h3 className="font-bold text-lg text-slate-900 mb-3">
-                What's the difference between monthly and per-card pricing?
+                Why choose monthly premium?
               </h3>
               <p className="text-slate-600 leading-relaxed">
-                Monthly ($4.99/mo) gives you unlimited premium cards with all features. Per-card ($2.99) is a one-time payment that makes a specific card premium - great if you only need premium features occasionally.
+                Monthly premium gives you unlimited bingo cards, all premium templates, HD exports, custom styles, and an ad-free experience for one flat monthly price.
               </p>
             </div>
 
@@ -367,7 +331,7 @@ function PricingContent() {
                 Can I cancel anytime?
               </h3>
               <p className="text-slate-600 leading-relaxed">
-                Absolutely! Monthly subscriptions can be canceled anytime from your settings. You'll keep premium access until the end of your billing period. Per-card purchases are permanent - no subscription needed.
+                Absolutely! Monthly subscriptions can be canceled anytime from your settings. If you cancel, you'll keep premium access until the end of your current billing period or trial.
               </p>
             </div>
 
@@ -385,7 +349,7 @@ function PricingContent() {
                 What can I do on the free plan?
               </h3>
               <p className="text-slate-600 leading-relaxed">
-                The free plan lets you create and save 1 bingo card with basic templates and standard PDF export. It's a great way to try out the tool before upgrading.
+                The free plan lets you build a card, but you’ll need to create an account and start the Stripe-backed 7-day trial before saving your first one.
               </p>
             </div>
           </div>
@@ -403,7 +367,7 @@ function PricingContent() {
                 Ready to create amazing bingo cards?
               </h2>
               <p className="text-indigo-200 text-lg mb-8 max-w-2xl mx-auto">
-                Start for free or go premium for the full experience. No credit card required to get started.
+                Build your card for free, then create an account and start your 7-day trial in Stripe when you're ready to save it.
               </p>
               <Link href="/create" className="inline-block px-8 py-4 bg-white text-slate-900 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-colors shadow-lg shadow-white/10">
                 Create Your First Card

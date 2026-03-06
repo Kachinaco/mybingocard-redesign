@@ -4,6 +4,23 @@ import { auth } from "@/auth";
 import { createCard, getUserCards, updateCard, deleteCard, getCardById } from "@/lib/db/cards";
 import { canCreateCard } from "@/lib/db/subscriptions";
 import { generateShareLink } from "@/lib/db/cards";
+import { getUserAccessState } from "@/lib/access";
+
+async function ensureBillingReady(email?: string | null) {
+  if (!email) {
+    return null;
+  }
+
+  const { billingSetupRequired } = await getUserAccessState(email);
+  if (!billingSetupRequired) {
+    return null;
+  }
+
+  return NextResponse.json(
+    { error: "Billing setup required", trialRequired: true },
+    { status: 402 }
+  );
+}
 
 export async function GET(request: Request) {
   try {
@@ -15,6 +32,15 @@ export async function GET(request: Request) {
         { status: 401 }
       );
     }
+
+    const billingResponse = await ensureBillingReady(session.user.email);
+    if (billingResponse) {
+      return billingResponse;
+    }
+
+
+
+
 
     const cards = await getUserCards(session.user.id);
 
@@ -37,6 +63,11 @@ export async function POST(request: Request) {
         { error: "Unauthorized" },
         { status: 401 }
       );
+    }
+
+    const billingResponse = await ensureBillingReady(session.user.email);
+    if (billingResponse) {
+      return billingResponse;
     }
 
     // Check if user can create more cards
@@ -117,6 +148,11 @@ export async function PUT(request: Request) {
       );
     }
 
+    const billingResponse = await ensureBillingReady(session.user.email);
+    if (billingResponse) {
+      return billingResponse;
+    }
+
     const data = await request.json();
 
     if (!data.cardId) {
@@ -169,6 +205,11 @@ export async function DELETE(request: Request) {
         { error: "Unauthorized" },
         { status: 401 }
       );
+    }
+
+    const billingResponse = await ensureBillingReady(session.user.email);
+    if (billingResponse) {
+      return billingResponse;
     }
 
     const { searchParams } = new URL(request.url);

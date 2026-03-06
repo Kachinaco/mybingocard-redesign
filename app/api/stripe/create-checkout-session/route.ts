@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { stripe, STRIPE_CONFIG, PLANS, getPlanByPriceId, isOneTimePrice } from "@/lib/stripe/config";
+import { getUserByEmail } from "@/lib/db/users";
+import { stripe, PLANS, getPlanByPriceId } from "@/lib/stripe/config";
+import type Stripe from "stripe";
+
+const TRIAL_DAYS = 7;
+const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
+
+function buildCheckoutUrl(path: string | undefined, fallback: string): string {
+  const safePath = path && path.startsWith("/") ? path : fallback;
+  return `${appUrl}${safePath}`;
+}
 
 export async function POST(request: Request) {
   try {
@@ -14,7 +24,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { priceId, cardId } = body;
+    const { priceId, successPath, cancelPath } = body;
 
     if (!priceId) {
       return NextResponse.json(
@@ -23,7 +33,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Validate that the price ID exists in our plans
     const planType = getPlanByPriceId(priceId);
     if (!planType) {
       return NextResponse.json(
@@ -32,80 +41,54 @@ export async function POST(request: Request) {
       );
     }
 
+    const user = await getUserByEmail(session.user.email);
     const plan = PLANS[planType];
-    const isOneTime = isOneTimePrice(priceId);
-
-    // For one-time purchases, cardId is required
-    if (isOneTime && !cardId) {
-      return NextResponse.json(
-        { error: "Card ID is required for one-time purchases" },
-        { status: 400 }
-      );
-    }
+    const trialEligible = Boolean(
+      user && user.planType === "FREE" && !user.stripeSubscriptionId && !user.trialEndsAt
+    );
 
     const metadata: Record<string, string> = {
       userId: session.user.email,
-      planType: planType,
+      planType,
       planName: plan.name,
-      purchaseType: isOneTime ? "one_time" : "subscription",
+      purchaseType: trialEligible ? "trial_subscription" : "subscription",
     };
 
-    if (isOneTime && cardId) {
-      metadata.cardId = cardId;
+    const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
+      metadata: {
+        userId: session.user.email,
+        planType,
+      },
+    };
+
+    if (trialEligible) {
+      subscriptionData.trial_period_days = TRIAL_DAYS;
     }
 
-    if (isOneTime) {
-      // One-time payment for a specific card
-      const checkoutSession = await stripe.checkout.sessions.create({
-        mode: "payment",
-        payment_method_types: ["card"],
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
-        success_url: STRIPE_CONFIG.successUrl,
-        cancel_url: STRIPE_CONFIG.cancelUrl,
-        customer_email: session.user.email,
-        client_reference_id: session.user.email,
-        metadata,
-      });
-
-      return NextResponse.json({
-        sessionId: checkoutSession.id,
-        url: checkoutSession.url,
-      });
-    } else {
-      // Subscription checkout
-      const checkoutSession = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        payment_method_types: ["card"],
-        allow_promotion_codes: true,
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
-        success_url: STRIPE_CONFIG.successUrl,
-        cancel_url: STRIPE_CONFIG.cancelUrl,
-        customer_email: session.user.email,
-        client_reference_id: session.user.email,
-        metadata,
-        subscription_data: {
-          metadata: {
-            userId: session.user.email,
-            planType: planType,
-          },
+    const checkoutSession = await stripe.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      payment_method_collection: "always",
+      allow_promotion_codes: true,
+      line_items: [
+        {
+          price: priceId,
+          quantity: 1,
         },
-      });
+      ],
+      success_url: buildCheckoutUrl(successPath, "/dashboard?success=true"),
+      cancel_url: buildCheckoutUrl(cancelPath, "/pricing?canceled=true"),
+      customer_email: session.user.email,
+      client_reference_id: session.user.email,
+      metadata,
+      subscription_data: subscriptionData,
+    });
 
-      return NextResponse.json({
-        sessionId: checkoutSession.id,
-        url: checkoutSession.url,
-      });
-    }
+    return NextResponse.json({
+      sessionId: checkoutSession.id,
+      url: checkoutSession.url,
+      trialEligible,
+    });
   } catch (error: any) {
     console.error("Create checkout session error:", error);
     return NextResponse.json(

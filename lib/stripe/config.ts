@@ -62,8 +62,6 @@ export const PLANS = {
     monthlyPrice: 4.99,
     price: 4.99,
     priceId: process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID || "price_1T7OqQGk2tmTlW8Zn2uPMYGh",
-    oneTimePriceId: process.env.STRIPE_PREMIUM_ONETIME_PRICE_ID || "price_1T7OqQGk2tmTlW8Z1UzmTHsf",
-    oneTimePrice: 2.99,
     features: [
       "Unlimited bingo cards",
       "All grid sizes (3x3, 4x4, 5x5)",
@@ -95,9 +93,6 @@ export function getPlanByPriceId(priceId: string): PlanType | null {
     if ("priceId" in plan && plan.priceId === priceId) {
       return key as PlanType;
     }
-    if ("oneTimePriceId" in plan && (plan as any).oneTimePriceId === priceId) {
-      return key as PlanType;
-    }
   }
   return null;
 }
@@ -110,6 +105,3 @@ export function canUserAccessFeature(
   return (plan.limits as any)[feature] !== false;
 }
 
-export function isOneTimePrice(priceId: string): boolean {
-  return priceId === PLANS.PREMIUM.oneTimePriceId;
-}

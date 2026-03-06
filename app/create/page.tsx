@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import AdUnit from "@/components/AdUnit";
+import { redirectToCheckout } from "@/lib/upgrade";
 
 type GridSize = 3 | 4 | 5;
 type PlanType = "FREE" | "PREMIUM";
@@ -52,9 +53,10 @@ function CreateCardContent() {
     allowed: boolean;
     reason?: string;
     upgradeRequired?: boolean;
-    cardsCreatedThisMonth?: number;
+    cardsCreated?: number;
     cardsLimit?: number;
     planType?: PlanType;
+    trialEligible?: boolean;
   } | null>(null);
   const [checkingPermission, setCheckingPermission] = useState(true);
 
@@ -144,6 +146,32 @@ function CreateCardContent() {
     setCells(newCells);
   };
 
+  const persistDraft = () => {
+    try {
+      localStorage.setItem("mybingo_card_draft", JSON.stringify({
+        title,
+        description,
+        size,
+        cells,
+        freeSpace,
+        isPublic,
+        style,
+      }));
+    } catch (e) {
+      console.error("Failed to save card draft:", e);
+    }
+  };
+
+  const redirectToSignupForCreation = () => {
+    persistDraft();
+    router.push("/signup?callbackUrl=/create&reason=create");
+  };
+
+  const redirectToTrialForCreation = () => {
+    persistDraft();
+    router.push("/start-trial?returnTo=/create");
+  };
+
   const handleSave = async () => {
     setLoading(true);
     setError("");
@@ -184,14 +212,10 @@ function CreateCardContent() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          try {
-            localStorage.setItem("mybingo_card_draft", JSON.stringify({
-              title, description, size, cells, freeSpace, isPublic, style,
-            }));
-          } catch (e) {
-            console.error("Failed to save card draft:", e);
-          }
-          router.push("/signup?callbackUrl=/create&reason=save");
+          redirectToSignupForCreation();
+          return;
+        } else if (response.status === 402 && data.trialRequired) {
+          redirectToTrialForCreation();
           return;
         } else if (response.status === 403) {
           setError(data.error || "Card limit reached. Please upgrade your plan.");
@@ -253,6 +277,14 @@ function CreateCardContent() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          redirectToSignupForCreation();
+          return;
+        }
+        if (response.status === 402 && data.trialRequired) {
+          redirectToTrialForCreation();
+          return;
+        }
         setError(data.error || "Failed to generate batch cards");
         setBatchLoading(false);
         return;
@@ -387,15 +419,15 @@ function CreateCardContent() {
                   <span className="text-sm opacity-90">
                      {permissionStatus.cardsLimit === -1
                       ? "Unlimited Cards"
-                      : `${permissionStatus.cardsCreatedThisMonth}/${permissionStatus.cardsLimit} used`}
+                      : `${permissionStatus.cardsCreated}/${permissionStatus.cardsLimit} used`}
                   </span>
                    {permissionStatus.upgradeRequired && (
-                    <Link
-                      href="/pricing"
+                    <button
+                      onClick={redirectToCheckout}
                       className="ml-2 px-3 py-1 bg-white rounded-full text-xs font-bold shadow-sm hover:shadow transition-all"
                     >
                       Upgrade
-                    </Link>
+                    </button>
                   )}
               </div>
             )}
@@ -408,15 +440,15 @@ function CreateCardContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-sm">
-                You&apos;ll need an account to save your card.{" "}
+                Build your card first. When you press create, we&apos;ll ask you to sign up and start your 7-day free trial in Stripe before saving it.{" "}
                 <Link href="/signup?callbackUrl=/create" className="font-semibold underline underline-offset-2 hover:text-indigo-900">
-                  Sign up free
+                  Sign up now
                 </Link>{" "}
                 or{" "}
                 <Link href="/login?callbackUrl=/create" className="font-semibold underline underline-offset-2 hover:text-indigo-900">
                   log in
                 </Link>{" "}
-                to get started.
+                if you already have an account.
               </span>
             </div>
           )}
@@ -430,6 +462,34 @@ function CreateCardContent() {
             </div>
           )}
 
+          {/* Paywall - Free user card limit reached */}
+          {permissionStatus && !permissionStatus.allowed && permissionStatus.upgradeRequired && (
+            <div className="mb-8 bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-2xl p-8 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-indigo-100 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">You&apos;ve used your free card</h2>
+              <p className="text-slate-600 mb-6 max-w-md mx-auto">
+                Upgrade to Premium for unlimited cards, all grid sizes, templates, and HD exports.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={redirectToCheckout}
+                  className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5 transition-all"
+                >
+                  {permissionStatus?.trialEligible ? "Start 7-Day Free Trial" : "Upgrade to Premium — $4.99/mo"}
+                </button>
+                <Link
+                  href="/dashboard"
+                  className="px-6 py-4 text-slate-600 hover:text-slate-900 font-semibold transition-colors"
+                >
+                  Back to Dashboard
+                </Link>
+              </div>
+              <p className="mt-4 text-xs text-slate-400">{permissionStatus?.trialEligible ? "No charge for 7 days. Then $4.99/mo. Cancel anytime." : "Cancel anytime. No commitments."}</p>
+            </div>
+          )}
+
           {/* Ad placement for free users */}
           {(!permissionStatus?.planType || permissionStatus.planType === "FREE") && (
             <div className="mb-6">
@@ -437,6 +497,7 @@ function CreateCardContent() {
             </div>
           )}
 
+          {(!permissionStatus || permissionStatus.allowed) && (
           <div className="grid lg:grid-cols-12 gap-8">
             {/* Left Panel - Card Settings */}
             <div className="lg:col-span-4 space-y-6">
@@ -898,12 +959,12 @@ function CreateCardContent() {
                   </Link>
 
                   {permissionStatus && !permissionStatus.allowed ? (
-                    <Link
-                      href="/pricing"
+                    <button
+                      onClick={redirectToCheckout}
                       className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-6 py-3.5 rounded-xl hover:shadow-lg hover:shadow-orange-500/20 hover:-translate-y-0.5 transition-all font-bold text-lg shadow-md shadow-orange-200 text-center"
                     >
                       Limit Reached — Upgrade Plan
-                    </Link>
+                    </button>
                   ) : (
                   <button
                     onClick={handleSave}
@@ -920,10 +981,11 @@ function CreateCardContent() {
               </div>
             </div>
           </div>
+          )}
         </div>
 
         {/* Mobile sticky bottom action bar */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50">
+        {(!permissionStatus || permissionStatus.allowed) && (<div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50">
           <div className="container mx-auto px-4 py-3">
             <div className="flex gap-2">
               <Link
@@ -933,12 +995,12 @@ function CreateCardContent() {
                 📋 Templates
               </Link>
               {permissionStatus && !permissionStatus.allowed ? (
-                <Link
-                  href="/pricing"
+                <button
+                  onClick={redirectToCheckout}
                   className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-4 py-3 rounded-lg font-bold text-sm shadow-md text-center"
                 >
                   Upgrade to Create
-                </Link>
+                </button>
               ) : (
               <button
                 onClick={handleSave}
@@ -951,6 +1013,7 @@ function CreateCardContent() {
             </div>
           </div>
         </div>
+        )}
       </main>
     </div>
   );
