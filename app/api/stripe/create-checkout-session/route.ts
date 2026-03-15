@@ -146,7 +146,10 @@ export async function POST(request: Request) {
         session.user.email,
         session.user.name || "",
         "one_time",
-        `${batchPack.count} Card Batch`
+        `${batchPack.count} Card Batch`,
+        batchPack.amount,
+        batchPack.currency,
+        checkoutSession.id
       ).catch(console.error);
 
       return NextResponse.json({
@@ -293,7 +296,10 @@ export async function POST(request: Request) {
       session.user.email,
       session.user.name || "",
       "subscription",
-      plan.name
+      plan.name,
+      Math.round(plan.price * 100),
+      "usd",
+      checkoutSession.id
     ).catch(console.error);
 
     return NextResponse.json({

@@ -18,6 +18,19 @@ export async function sendDiscordNotification(content: string, embeds?: any[]) {
   }
 }
 
+function formatMoney(amount: number | null | undefined, currency: string | null | undefined) {
+  if (typeof amount !== "number") return "Unknown";
+  return `${(amount / 100).toFixed(2)} ${(currency || "usd").toUpperCase()}`;
+}
+
+function formatSessionId(sessionId: string) {
+  return sessionId ? `\`${sessionId}\`` : "Unknown";
+}
+
+function getCheckoutTypeLabel(checkoutType: "subscription" | "one_time") {
+  return checkoutType === "subscription" ? "Subscription" : "One-Time";
+}
+
 export async function notifySignup(
   name: string,
   email: string,
@@ -114,21 +127,29 @@ export async function notifyCheckoutStarted(
   email: string,
   name: string,
   checkoutType: "subscription" | "one_time",
-  product: string
+  product: string,
+  amount: number | null | undefined,
+  currency: string | null | undefined,
+  sessionId: string
 ) {
   await sendDiscordNotification("", [{
     title: "🛒 Stripe Checkout Started",
     color: 0xf59e0b,
+    description: "A user opened a Stripe checkout session.",
     fields: [
       { name: "User", value: name || "Unknown", inline: true },
       { name: "Email", value: email, inline: true },
       {
         name: "Type",
-        value: checkoutType === "subscription" ? "Subscription" : "One-Time",
+        value: getCheckoutTypeLabel(checkoutType),
         inline: true,
       },
       { name: "Product", value: product, inline: true },
+      { name: "Amount", value: formatMoney(amount, currency), inline: true },
+      { name: "Status", value: "Awaiting payment", inline: true },
+      { name: "Session ID", value: formatSessionId(sessionId), inline: false },
     ],
+    footer: { text: "MyBingoCard • Stripe" },
     timestamp: new Date().toISOString(),
   }]);
 }
@@ -145,29 +166,21 @@ export async function notifyCheckoutActivated(
   await sendDiscordNotification("", [{
     title: "✅ Stripe Checkout Activated",
     color: 0x22c55e,
+    description: "A Stripe checkout completed successfully.",
     fields: [
       { name: "User", value: name || "Unknown", inline: true },
       { name: "Email", value: email, inline: true },
       {
         name: "Type",
-        value: checkoutType === "subscription" ? "Subscription" : "One-Time",
+        value: getCheckoutTypeLabel(checkoutType),
         inline: true,
       },
       { name: "Product", value: product, inline: true },
-      {
-        name: "Amount",
-        value:
-          typeof amount === "number"
-            ? `${(amount / 100).toFixed(2)} ${(currency || "usd").toUpperCase()}`
-            : "Unknown",
-        inline: true,
-      },
-      {
-        name: "Session",
-        value: sessionId,
-        inline: true,
-      },
+      { name: "Amount", value: formatMoney(amount, currency), inline: true },
+      { name: "Status", value: "Paid / Activated", inline: true },
+      { name: "Session ID", value: formatSessionId(sessionId), inline: false },
     ],
+    footer: { text: "MyBingoCard • Stripe" },
     timestamp: new Date().toISOString(),
   }]);
 }
