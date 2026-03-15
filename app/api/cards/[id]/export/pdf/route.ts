@@ -4,6 +4,7 @@ import { getCardById } from "@/lib/db/cards";
 import { getUserByEmail } from "@/lib/db/users";
 import { canExportHD, canRemoveBranding } from "@/lib/permissions";
 import puppeteer from "puppeteer";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 export async function POST(
   request: Request,
@@ -11,6 +12,7 @@ export async function POST(
 ) {
   try {
     const session = await auth();
+    const requestContext = getRequestActivityContext(request);
 
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -65,6 +67,7 @@ export async function POST(
 
     // Launch headless browser
     const browser = await puppeteer.launch({
+      executablePath: "/usr/bin/google-chrome",
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
@@ -97,6 +100,24 @@ export async function POST(
     });
 
     await browser.close();
+
+    await trackActivity({
+      event: "export_pdf",
+      source: "server",
+      userId: session.user.id || null,
+      email: session.user.email,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        cardId: id,
+        title: card.title,
+        grayscale: options.grayscale,
+        copies: options.copies,
+        hd: hdPermission.allowed,
+      },
+    });
 
     // Return PDF as downloadable file
     return new NextResponse(Buffer.from(pdfBuffer), {
@@ -144,6 +165,7 @@ function generateCardHTML(
 
   const singleCard = `
     <div class="card-container" style="width: ${cardWidth};">
+      \${!removeBranding ? '<div class="watermark-overlay"><div class="watermark-text">MyBingoCard.com</div></div>' : ""}
       <div class="card-title" style="font-size: ${titleSize};">${escapeHtml(title)}</div>
       ${description ? `<div class="card-desc" style="font-size: ${descSize};">${escapeHtml(description)}</div>` : ""}
       <div class="bingo-grid" style="grid-template-columns: repeat(${size}, 1fr); gap: ${gridGap}; max-width: ${gridMaxWidth};">
@@ -224,6 +246,7 @@ function generateCardHTML(
           .card-container {
             text-align: center;
             page-break-inside: avoid;
+            position: relative;
           }
 
           .card-title {
@@ -258,6 +281,28 @@ function generateCardHTML(
           .card-footer {
             color: #94a3b8;
             margin-top: 8px;
+          }
+
+          .watermark-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 10;
+          }
+          .watermark-text {
+            font-size: 48px;
+            font-weight: 900;
+            color: rgba(100, 100, 120, 0.13);
+            transform: rotate(-30deg);
+            white-space: nowrap;
+            letter-spacing: 0.05em;
+            user-select: none;
           }
 
           /* Cut lines for multi-card layouts */

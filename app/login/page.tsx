@@ -4,10 +4,12 @@ import { signIn } from "next-auth/react";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { trackClientActivity } from "@/lib/activity-client";
 
 function LoginContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const justVerified = searchParams.get("verified") === "1";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,6 +23,10 @@ function LoginContent() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    trackClientActivity("login_attempted", {
+      method: "credentials",
+      callbackUrl,
+    });
 
     try {
       const result = await signIn("credentials", {
@@ -31,18 +37,38 @@ function LoginContent() {
       });
 
       if (result?.error) {
-        setError("Invalid email or password");
+        if (result.error === "CallbackRouteError" || result.error.includes("EMAIL_NOT_VERIFIED")) {
+          setError("Please verify your email address before signing in. Check your inbox for a verification link.");
+        } else if (result.error.includes("TOO_MANY_ATTEMPTS")) {
+          setError("Too many failed login attempts. Please wait an hour before trying again.");
+        } else {
+          setError("Invalid email or password");
+        }
+        trackClientActivity("login_failed", {
+          method: "credentials",
+          callbackUrl,
+          reason: result.error.includes("TOO_MANY_ATTEMPTS") ? "rate_limited" : result.error === "CallbackRouteError" ? "email_not_verified" : "invalid_credentials",
+        });
       } else {
         window.location.href = callbackUrl;
       }
     } catch (error) {
       setError("An error occurred. Please try again.");
+      trackClientActivity("login_failed", {
+        method: "credentials",
+        callbackUrl,
+        reason: "unexpected_error",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleLogin = () => {
+    trackClientActivity("oauth_login_started", {
+      provider: "google",
+      callbackUrl,
+    });
     signIn("google", { callbackUrl });
   };
 
@@ -52,6 +78,9 @@ function LoginContent() {
     setError("");
 
     try {
+      trackClientActivity("magic_link_requested", {
+        callbackUrl,
+      });
       await signIn("nodemailer", {
         email: magicLinkEmail,
         redirect: false,
@@ -171,6 +200,12 @@ function LoginContent() {
               </div>
             </div>
 
+            {justVerified && (
+              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm font-medium">
+                ✅ Email verified! You can now sign in.
+              </div>
+            )}
+
             {error && (
               <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -283,7 +318,7 @@ function LoginContent() {
             <p className="text-center text-sm text-gray-600 mt-8">
               Don't have an account?{" "}
               <Link href="/signup" className="font-semibold text-violet-600 hover:text-violet-700 hover:underline transition-colors">
-                Start your free trial
+                Create an account
               </Link>
             </p>
           </div>

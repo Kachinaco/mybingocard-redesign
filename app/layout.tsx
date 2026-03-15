@@ -6,6 +6,8 @@ import { Providers } from "@/components/Providers";
 import VisitorTracker from "@/components/VisitorTracker";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import UtmFlusher from "@/components/UtmFlusher";
+import Analytics from "@/components/Analytics";
+import SessionHeartbeat from "@/components/SessionHeartbeat";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -71,9 +73,11 @@ export default function RootLayout({
           />
         )}
         <VisitorTracker />
+        <Analytics />
         <ServiceWorkerRegistration />
         <Providers>
           <UtmFlusher />
+          <SessionHeartbeat />
           {children}
         </Providers>
       </body>

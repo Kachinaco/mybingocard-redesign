@@ -4,6 +4,7 @@ import { getCardById } from "@/lib/db/cards";
 import { getUserByEmail } from "@/lib/db/users";
 import { canExportHD, canRemoveBranding } from "@/lib/permissions";
 import puppeteer from "puppeteer";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 export async function POST(
   request: Request,
@@ -11,6 +12,7 @@ export async function POST(
 ) {
   try {
     const session = await auth();
+    const requestContext = getRequestActivityContext(request);
 
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -55,6 +57,7 @@ export async function POST(
 
     // Launch headless browser
     const browser = await puppeteer.launch({
+      executablePath: "/usr/bin/google-chrome",
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
@@ -82,6 +85,22 @@ export async function POST(
     });
 
     await browser.close();
+
+    await trackActivity({
+      event: "export_png",
+      source: "server",
+      userId: session.user.id || null,
+      email: session.user.email,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        cardId: id,
+        title: card.title,
+        hd: hdPermission.allowed,
+      },
+    });
 
     // Return PNG as downloadable file
     return new NextResponse(Buffer.from(pngBuffer), {
@@ -147,6 +166,7 @@ function generateCardHTML(card: any, removeBranding: boolean, isHD: boolean): st
           .container {
             width: 100%;
             max-width: ${maxWidth}px;
+            position: relative;
           }
 
           .header {
@@ -195,6 +215,28 @@ function generateCardHTML(card: any, removeBranding: boolean, isHD: boolean): st
             font-weight: bold;
           }
 
+          .watermark-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 10;
+          }
+          .watermark-text {
+            font-size: ${isHD ? 96 : 48}px;
+            font-weight: 900;
+            color: rgba(100, 100, 120, 0.13);
+            transform: rotate(-30deg);
+            white-space: nowrap;
+            letter-spacing: 0.05em;
+            user-select: none;
+          }
+
           .footer {
             text-align: center;
             margin-top: ${footerMargin}px;
@@ -205,6 +247,7 @@ function generateCardHTML(card: any, removeBranding: boolean, isHD: boolean): st
       </head>
       <body>
         <div class="container">
+          \${!removeBranding ? '<div class="watermark-overlay"><div class="watermark-text">MyBingoCard.com</div></div>' : ""}
           <div class="header">
             <div class="title">${escapeHtml(title)}</div>
             ${description ? `<div class="description">${escapeHtml(description)}</div>` : ""}

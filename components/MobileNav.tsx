@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
+  const { data: session } = useSession();
+  const isLoggedIn = !!session?.user;
 
   return (
     <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
@@ -29,27 +32,36 @@ export default function MobileNav() {
           <Link href="/pricing" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
             Pricing
           </Link>
-          <Link
-            href="/login"
-            className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 border border-indigo-200 hover:border-indigo-300 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-indigo-50"
-          >
-            Sign In
-          </Link>
+          {isLoggedIn ? (
+            <Link
+              href="/dashboard"
+              className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 border border-indigo-200 hover:border-indigo-300 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-indigo-50"
+            >
+              My Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 border border-indigo-200 hover:border-indigo-300 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-indigo-50"
+            >
+              Sign In
+            </Link>
+          )}
           <Link
             href="/create"
             className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 transform hover:-translate-y-0.5"
           >
-            Create Free
+            {isLoggedIn ? "Create Card" : "Create Free"}
           </Link>
         </nav>
 
-        {/* Mobile: dark mode + Sign In + hamburger */}
+        {/* Mobile: Sign In/Dashboard + hamburger */}
         <div className="md:hidden flex items-center gap-2">
           <Link
-            href="/login"
+            href={isLoggedIn ? "/dashboard" : "/login"}
             className="text-sm font-semibold text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors"
           >
-            Sign In
+            {isLoggedIn ? "Dashboard" : "Sign In"}
           </Link>
           <button
             onClick={() => setOpen(!open)}
@@ -74,20 +86,32 @@ export default function MobileNav() {
         <div className="md:hidden bg-white border-t border-slate-100 shadow-lg">
           <div className="container mx-auto px-4 py-4 flex flex-col gap-1">
             <div className="flex gap-3 mb-3">
-              <Link
-                href="/login"
-                onClick={() => setOpen(false)}
-                className="flex-1 text-center py-3 font-bold text-indigo-600 border-2 border-indigo-200 rounded-xl hover:bg-indigo-50 transition-colors"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/signup"
-                onClick={() => setOpen(false)}
-                className="flex-1 text-center py-3 font-bold text-white bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl hover:shadow-lg transition-all"
-              >
-                Sign Up Free
-              </Link>
+              {isLoggedIn ? (
+                <Link
+                  href="/dashboard"
+                  onClick={() => setOpen(false)}
+                  className="flex-1 text-center py-3 font-bold text-indigo-600 border-2 border-indigo-200 rounded-xl hover:bg-indigo-50 transition-colors"
+                >
+                  My Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    onClick={() => setOpen(false)}
+                    className="flex-1 text-center py-3 font-bold text-indigo-600 border-2 border-indigo-200 rounded-xl hover:bg-indigo-50 transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/signup"
+                    onClick={() => setOpen(false)}
+                    className="flex-1 text-center py-3 font-bold text-white bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl hover:shadow-lg transition-all"
+                  >
+                    Sign Up Free
+                  </Link>
+                </>
+              )}
             </div>
             <div className="h-px bg-slate-100 my-1" />
             <Link href="/create" onClick={() => setOpen(false)} className="py-3 px-2 text-slate-700 font-medium hover:text-indigo-600 transition-colors">

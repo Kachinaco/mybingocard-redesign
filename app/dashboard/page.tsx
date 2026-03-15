@@ -1,4 +1,6 @@
 import { auth } from "@/auth";
+import PlaySoloButton from "@/components/PlaySoloButton";
+import StartGameButton from "@/components/StartGameButton";
 import SignOutButton from "@/components/SignOutButton";
 import { redirect } from "next/navigation";
 import { getUserByEmail } from "@/lib/db/users";
@@ -11,6 +13,9 @@ import { getGameHistory, getGameStats } from "@/lib/gameHistory";
 import { getUserFavorites } from "@/lib/favorites";
 import DashboardEngagement from "./DashboardEngagement";
 import FavCardPreview from "./FavCardPreview";
+import UpgradeBanner from "@/components/UpgradeBanner";
+import NpsWidget from "@/components/NpsWidget";
+import OnboardingChecklist from "@/components/OnboardingChecklist";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -27,11 +32,6 @@ export default async function DashboardPage() {
   const plan = PLANS[currentPlan as keyof typeof PLANS] || PLANS.FREE;
   const isSubscribed = currentPlan !== "FREE";
   const isNewUser = user?.createdAt && (Date.now() - new Date(user.createdAt).getTime()) < 60000;
-  const trialEligible = currentPlan === "FREE" && !user?.stripeSubscriptionId && !user?.trialEndsAt;
-  const isTrialing = user?.subscriptionStatus === "trialing" && user?.trialEndsAt;
-  const trialDaysLeft = isTrialing
-    ? Math.max(0, Math.ceil((new Date(user!.trialEndsAt!).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    : null;
   const cancelPending = Boolean(user?.cancelAtPeriodEnd && user?.currentPeriodEnd);
   const subscriptionEndsOn = user?.currentPeriodEnd
     ? new Date(user.currentPeriodEnd).toLocaleDateString()
@@ -100,30 +100,52 @@ export default async function DashboardPage() {
               {isNewUser ? "Welcome" : "Welcome back"}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">{session.user.name?.split(" ")[0] || "Friend"}</span>!
             </h1>
             <p className="text-slate-500 mt-2 text-lg">
-              Here&apos;s what&apos;s happening with your bingo cards today.
+              {isNewUser ? "Let's create your first bingo card — it takes less than 2 minutes." : "Here's what's happening with your bingo cards today."}
             </p>
           </div>
 
-
-          {isTrialing && trialDaysLeft !== null && trialDaysLeft > 0 && (
-            <div className="mb-8 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-6 text-white animate-fade-in-up">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-bold mb-1">Premium Trial — {trialDaysLeft} day{trialDaysLeft !== 1 ? "s" : ""} left</h2>
-                  <p className="text-indigo-100 text-sm">
-                    {cancelPending && subscriptionEndsOn
-                      ? `Your premium access is scheduled to end on ${subscriptionEndsOn}. Reopen billing if you want to keep it after the trial.`
-                      : "You have full Premium access. Subscribe before your trial ends to keep it."}
-                  </p>
-                </div>
-                {cancelPending ? (
-                  <ManageSubscriptionButton />
-                ) : (
-                  <UpgradeButton className="whitespace-nowrap px-6 py-3 bg-white text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition-all shadow-lg">Subscribe — $4.99/mo</UpgradeButton>
-                )}
+          {recentCards.length === 0 && (
+            <div className="mb-8 rounded-2xl overflow-hidden border border-indigo-100 shadow-lg animate-fade-in-up">
+              <div className="bg-gradient-to-br from-violet-600 to-indigo-600 px-8 py-10 text-white text-center">
+                <div className="text-5xl mb-4">🎉</div>
+                <h3 className="text-2xl font-bold mb-2">Create your first bingo card</h3>
+                <p className="text-indigo-100 mb-6 max-w-md mx-auto">
+                  Pick a theme, add your words, and you&apos;ll have a ready-to-print bingo card in under 2 minutes.
+                </p>
+                <Link
+                  href="/create"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-white text-indigo-600 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-all shadow-lg"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Start Creating
+                </Link>
+              </div>
+              <div className="bg-white px-8 py-6 grid grid-cols-3 gap-6 text-center">
+                {[
+                  { icon: "🎨", title: "Pick a theme", desc: "Wedding, classroom, baby shower & more" },
+                  { icon: "✏️", title: "Add your words", desc: "Type your items or use a template" },
+                  { icon: "🖨️", title: "Print & play", desc: "Download PDF and share with everyone" },
+                ].map(({ icon, title, desc }) => (
+                  <div key={title} className="flex flex-col items-center">
+                    <div className="text-2xl mb-2">{icon}</div>
+                    <div className="font-bold text-slate-900 text-sm mb-1">{title}</div>
+                    <div className="text-slate-500 text-xs">{desc}</div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
+
+
+
+          {currentPlan === "FREE" && recentCards.length >= 1 && (
+            <UpgradeBanner />
+          )}
+
+          <OnboardingChecklist />
+
           <div className="grid lg:grid-cols-3 gap-8 mb-10">
              {/* Subscription Status Card */}
             <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 animate-fade-in-up animation-delay-100 relative overflow-hidden group">
@@ -149,7 +171,7 @@ export default async function DashboardPage() {
                         </span>
                         {subscriptionEndsOn && (
                           <span className="text-slate-500">
-                            {cancelPending ? `Ends ${subscriptionEndsOn}` : user?.subscriptionStatus === "trialing" ? `Trial ends ${subscriptionEndsOn}` : `Renews ${subscriptionEndsOn}`}
+                            {cancelPending ? `Ends ${subscriptionEndsOn}` : `Renews ${subscriptionEndsOn}`}
                           </span>
                         )}
                       </div>
@@ -312,28 +334,52 @@ export default async function DashboardPage() {
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {favoriteCards.map((card: any) => (
-                  <Link
-                    key={card._id.toString()}
-                    href={`/cards/${card._id.toString()}`}
-                    className="group p-4 bg-slate-50 hover:bg-indigo-50 rounded-xl border border-slate-100 hover:border-indigo-200 transition-all"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
-                        {card.title}
-                      </h3>
-                      <span className="text-xs font-medium text-slate-400 bg-white px-2 py-0.5 rounded">
-                        {card.size}x{card.size}
-                      </span>
+                  <div key={card._id.toString()} className="group p-4 bg-slate-50 hover:bg-indigo-50 rounded-xl border border-slate-100 hover:border-indigo-200 transition-all">
+                    <Link href={`/cards/${card._id.toString()}`} className="block">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                          {card.title}
+                        </h3>
+                        <span className="text-xs font-medium text-slate-400 bg-white px-2 py-0.5 rounded">
+                          {card.size}x{card.size}
+                        </span>
+                      </div>
+                      <FavCardPreview card={card} />
+                      <p className="text-xs text-slate-400 mb-3">
+                        {new Date(card.createdAt).toLocaleDateString()}
+                      </p>
+                    </Link>
+                    <div className="grid grid-cols-2 gap-2">
+                      <PlaySoloButton cardId={card._id.toString()} />
+                      <StartGameButton cardId={card._id.toString()} />
                     </div>
-                    <FavCardPreview card={card} />
-                    <p className="text-xs text-slate-400">
-                      {new Date(card.createdAt).toLocaleDateString()}
-                    </p>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </div>
           )}
+
+          {/* Live Games Section */}
+          <div className="mb-8 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-6 md:p-8 text-white shadow-lg">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">🎮</span>
+                  <h2 className="text-xl font-bold">Live Bingo Games</h2>
+                  <span className="px-2 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">NEW</span>
+                </div>
+                <p className="text-white/80 text-sm">Host a live game from any of your cards — friends join with a room code and play together in real time.</p>
+              </div>
+              <div className="flex gap-3 shrink-0">
+                <a href="/game/join" className="px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold rounded-xl text-sm transition-all">
+                  Join a Game
+                </a>
+                <a href="/dashboard/cards" className="px-5 py-2.5 bg-white text-violet-700 font-bold rounded-xl text-sm hover:shadow-lg transition-all">
+                  Host a Game →
+                </a>
+              </div>
+            </div>
+          </div>
 
           {/* Recent Cards Preview */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 animate-fade-in-up animation-delay-300">
@@ -347,63 +393,39 @@ export default async function DashboardPage() {
             </div>
 
             {recentCards.length === 0 ? (
-              <div className="text-center py-16 bg-slate-50/50 rounded-xl border border-slate-100 border-dashed">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-100">
-                  <svg
-                    className="w-8 h-8 text-slate-300"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-slate-900 mb-1">No cards created yet</h3>
-                <p className="text-slate-500 text-sm mb-6">
-                  Your recently created bingo cards will appear here.
-                </p>
-                <Link
-                  href="/create"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  Create Your First Card
-                </Link>
+              <div className="text-center py-10 text-slate-400 text-sm">
+                Your cards will appear here once you create one.
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {recentCards.map((card) => (
-                  <Link
-                    key={card._id.toString()}
-                    href={`/cards/${card._id.toString()}`}
-                    className="group p-4 bg-slate-50 hover:bg-indigo-50 rounded-xl border border-slate-100 hover:border-indigo-200 transition-all"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
-                        {card.title}
-                      </h3>
-                      <span className="text-xs font-medium text-slate-400 bg-white px-2 py-0.5 rounded">
-                        {card.size}x{card.size}
-                      </span>
+                  <div key={card._id.toString()} className="group p-4 bg-slate-50 hover:bg-indigo-50 rounded-xl border border-slate-100 hover:border-indigo-200 transition-all">
+                    <Link href={`/cards/${card._id.toString()}`} className="block">
+                      <div className="flex items-start justify-between mb-3">
+                        <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
+                          {card.title}
+                        </h3>
+                        <span className="text-xs font-medium text-slate-400 bg-white px-2 py-0.5 rounded">
+                          {card.size}x{card.size}
+                        </span>
+                      </div>
+                      <FavCardPreview card={card} />
+                      <p className="text-xs text-slate-400 mb-3">
+                        {new Date(card.createdAt).toLocaleDateString()}
+                      </p>
+                    </Link>
+                    <div className="grid grid-cols-2 gap-2">
+                      <PlaySoloButton cardId={card._id.toString()} />
+                      <StartGameButton cardId={card._id.toString()} />
                     </div>
-                    <FavCardPreview card={card} />
-                    <p className="text-xs text-slate-400">
-                      {new Date(card.createdAt).toLocaleDateString()}
-                    </p>
-                  </Link>
+                  </div>
                 ))}
               </div>
             )}
           </div>
         </div>
       </main>
+      <NpsWidget />
     </div>
   );
 }

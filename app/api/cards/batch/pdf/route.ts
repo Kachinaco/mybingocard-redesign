@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getCardById } from "@/lib/db/cards";
+import { findGeneratedBatchPurchaseForCards } from "@/lib/db/batchPurchases";
 import { getUserByEmail } from "@/lib/db/users";
 import { canRemoveBranding } from "@/lib/permissions";
 import { PLANS } from "@/lib/stripe/config";
 import puppeteer from "puppeteer";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 function escapeHtml(text: string): string {
   const map: { [key: string]: string } = {
@@ -24,14 +26,14 @@ function generateBatchHTML(
 ): string {
   const { grayscale, cardsPerPage, showCutLines } = options;
 
-  const cardHTMLs = cards.map((card, cardIndex) => {
+  const cardHTMLs = cards.map((card) => {
     const { title, size, cells, freeSpace, style } = card;
     const freeSpaceIndex = freeSpace ? Math.floor((size * size) / 2) : -1;
 
     const cellFontSize = size === 3 ? "11px" : size === 4 ? "9px" : "8px";
 
     return `
-      <div class="card-container" ${cardsPerPage > 1 ? `style="width: ${cardsPerPage === 4 ? '48%' : '100%'}; page-break-inside: avoid;"` : ''}>
+      <div class="card-container">
         <div class="card-title">${escapeHtml(title)}</div>
         <div class="bingo-grid grid-${size}">
           ${cells
@@ -95,47 +97,57 @@ function generateBatchHTML(
             padding: 0.25in;
             page-break-after: always;
             position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 0.3in;
           }
 
           .page:last-child {
             page-break-after: avoid;
           }
 
-          .page-grid-2x2 {
+          .page-grid-1x1 {
             display: flex;
-            flex-wrap: wrap;
-            flex-direction: row;
-            justify-content: space-between;
-            align-content: space-between;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .page-grid-2x2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-rows: repeat(2, minmax(0, 1fr));
+            gap: 0.18in;
+            align-items: center;
           }
 
           .page-grid-2x1 {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: repeat(2, minmax(0, 1fr));
+            gap: 0.22in;
+            align-items: center;
           }
 
           .card-container {
             text-align: center;
+            width: 100%;
+            height: 100%;
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            page-break-inside: avoid;
           }
 
           .page-grid-1x1 .card-container {
-            width: 100%;
+            max-width: 100%;
           }
 
           .page-grid-2x1 .card-container {
-            width: 100%;
-            max-height: 4.5in;
+            max-height: 4.55in;
           }
 
           .page-grid-2x2 .card-container {
-            width: 48%;
-            max-height: 4.5in;
+            max-height: 4.55in;
           }
 
           .card-title {
@@ -151,6 +163,11 @@ function generateBatchHTML(
             margin-bottom: 4px;
           }
 
+          .page-grid-2x2 .card-title {
+            font-size: 11px;
+            margin-bottom: 3px;
+          }
+
           .bingo-grid {
             display: grid;
             gap: 3px;
@@ -161,11 +178,11 @@ function generateBatchHTML(
           }
 
           .page-grid-2x2 .bingo-grid {
-            max-width: 3.2in;
+            max-width: 3in;
           }
 
           .page-grid-2x1 .bingo-grid {
-            max-width: 4.2in;
+            max-width: 4in;
           }
 
           .grid-3 { grid-template-columns: repeat(3, 1fr); }
@@ -194,6 +211,11 @@ function generateBatchHTML(
             font-size: 8px;
             color: #94a3b8;
             margin-top: 4px;
+          }
+
+          .page-grid-2x2 .card-footer {
+            font-size: 7px;
+            margin-top: 2px;
           }
 
           /* Cut lines */
@@ -251,8 +273,9 @@ function generateBatchHTML(
 export async function POST(request: Request) {
   try {
     const session = await auth();
+    const requestContext = getRequestActivityContext(request);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id || !session?.user?.email) {
       return NextResponse.json(
         { error: "Unauthorized - Please sign in" },
         { status: 401 }
@@ -265,12 +288,8 @@ export async function POST(request: Request) {
     }
 
     const plan = PLANS[user.planType as keyof typeof PLANS];
-    if (!(plan.limits as any).canBulkGenerate) {
-      return NextResponse.json(
-        { error: "Batch PDF download requires a Premium plan." },
-        { status: 403 }
-      );
-    }
+    const maxBatchSize = Number((plan.limits as any).maxBatchSize || 0);
+    const hasPremiumBatchAccess = maxBatchSize >= 10;
 
     const data = await request.json();
     const {
@@ -287,25 +306,58 @@ export async function POST(request: Request) {
       );
     }
 
-    if (cardIds.length > 100) {
+    if (hasPremiumBatchAccess && cardIds.length > maxBatchSize) {
       return NextResponse.json(
-        { error: "Maximum 100 cards per batch PDF" },
-        { status: 400 }
+        { error: `Your plan supports up to ${maxBatchSize} cards per batch PDF.` },
+        { status: 403 }
       );
     }
 
-    // Fetch all cards
+    if (!hasPremiumBatchAccess && cardIds.length > 100) {
+      return NextResponse.json(
+        { error: "Batch PDF download supports up to 100 cards per batch." },
+        { status: 403 }
+      );
+    }
+
+    // Fetch all cards and ensure they belong to the signed-in user.
     const cards = [];
     for (const id of cardIds) {
-      const card = await getCardById(id);
-      if (card) cards.push(card);
+      let card;
+      try {
+        card = await getCardById(id);
+      } catch {
+        return NextResponse.json(
+          { error: `Invalid card id: ${id}` },
+          { status: 400 }
+        );
+      }
+
+      if (!card) {
+        return NextResponse.json(
+          { error: `Card not found: ${id}` },
+          { status: 404 }
+        );
+      }
+
+      if (card.userId.toString() !== session.user.id) {
+        return NextResponse.json(
+          { error: "Access denied for one or more cards" },
+          { status: 403 }
+        );
+      }
+
+      cards.push(card);
     }
 
-    if (cards.length === 0) {
-      return NextResponse.json(
-        { error: "No valid cards found" },
-        { status: 404 }
-      );
+    if (!hasPremiumBatchAccess) {
+      const purchasedBatch = await findGeneratedBatchPurchaseForCards(session.user.id, cardIds);
+      if (!purchasedBatch) {
+        return NextResponse.json(
+          { error: "Batch PDF download requires a purchased batch for these cards." },
+          { status: 403 }
+        );
+      }
     }
 
     const brandingPermission = canRemoveBranding(user.planType as any);
@@ -332,6 +384,23 @@ export async function POST(request: Request) {
     });
 
     await browser.close();
+
+    await trackActivity({
+      event: "batch_pdf_exported",
+      source: "server",
+      userId: session.user.id || null,
+      email: session.user.email,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        cardCount: cards.length,
+        grayscale,
+        cardsPerPage,
+        showCutLines,
+      },
+    });
 
     return new NextResponse(Buffer.from(pdfBuffer), {
       headers: {

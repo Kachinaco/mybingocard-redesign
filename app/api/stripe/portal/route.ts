@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getUserByEmail } from "@/lib/db/users";
 import Stripe from "stripe";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-12-15.clover",
@@ -10,6 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(request: Request) {
   try {
     const session = await auth();
+    const requestContext = getRequestActivityContext(request);
 
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -38,6 +40,20 @@ export async function POST(request: Request) {
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: user.stripeCustomerId,
       return_url: `${process.env.NEXTAUTH_URL}/dashboard`,
+    });
+
+    await trackActivity({
+      event: "billing_portal_opened",
+      source: "server",
+      userId: session.user.id || null,
+      email: session.user.email,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        portalUrl: portalSession.url,
+      },
     });
 
     return NextResponse.json({

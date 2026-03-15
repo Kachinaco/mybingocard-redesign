@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { getCardById } from "@/lib/db/cards";
 import { getUserByEmail } from "@/lib/db/users";
 import puppeteer from "puppeteer";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 function shuffleArray<T>(arr: T[], seed: number): T[] {
   const array = [...arr];
@@ -126,6 +127,7 @@ export async function POST(
 ) {
   try {
     const session = await auth();
+    const requestContext = getRequestActivityContext(request);
 
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized - Please sign in" }, { status: 401 });
@@ -167,6 +169,7 @@ export async function POST(
     const html = generateBulkHTML(card, allCardCells, count);
 
     const browser = await puppeteer.launch({
+      executablePath: "/usr/bin/google-chrome",
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
@@ -183,6 +186,22 @@ export async function POST(
     await browser.close();
 
     const filename = `${sanitizeFilename(card.title)}-${count}-cards.pdf`;
+
+    await trackActivity({
+      event: "export_bulk_pdf",
+      source: "server",
+      userId: session.user.id || null,
+      email: session.user.email,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        cardId: id,
+        title: card.title,
+        count,
+      },
+    });
 
     return new NextResponse(Buffer.from(pdfBuffer), {
       headers: {

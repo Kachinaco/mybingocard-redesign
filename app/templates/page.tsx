@@ -94,8 +94,8 @@ export default function TemplatesPage() {
       const data = await response.json();
       if (data.plan) {
         setUserPlan({
-          planType: data.plan.planType,
-          canAccessAllTemplates: data.plan.features.includes("Access to all templates"),
+          planType: data.plan.planName || data.planType,
+          canAccessAllTemplates: data.plan?.canAccessAllTemplates || false,
         });
       }
     } catch (error) {

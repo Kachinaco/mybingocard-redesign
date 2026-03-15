@@ -19,6 +19,8 @@ export interface BingoCard {
   templateId?: ObjectId; // If created from template
   isPublic: boolean;
   shareLink?: string; // Unique share link
+  sharePassword?: string | null; // Hashed password for protected share links
+  shareExpiresAt?: Date | null; // Expiration date for share links
   views: number;
   createdAt: Date;
   updatedAt: Date;
@@ -47,9 +49,17 @@ export async function getUserCards(userId: string): Promise<BingoCard[]> {
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
+  // Cards may be stored with userId as string OR ObjectId — query both to handle mixed storage
+  let objectId: ObjectId | null = null;
+  try { objectId = new ObjectId(userId); } catch { /* invalid ObjectId, string only */ }
+
+  const query = objectId
+    ? { $or: [{ userId: userId }, { userId: objectId as unknown as string }] }
+    : { userId };
+
   const cards = await db
     .collection<BingoCard>("cards")
-    .find({ userId })
+    .find(query)
     .sort({ updatedAt: -1 })
     .toArray();
 

@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getCardById } from "@/lib/db/cards";
 import { createGameRoom } from "@/lib/db/games";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 export async function POST(request: Request) {
   try {
     const session = await auth();
+    const requestContext = getRequestActivityContext(request);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -38,6 +40,23 @@ export async function POST(request: Request) {
       card.freeSpace,
       card.style || {}
     );
+
+    await trackActivity({
+      event: "game_created",
+      source: "server",
+      userId: session.user.id,
+      email: session.user.email || null,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        cardId,
+        roomCode: room.roomCode,
+        title: room.title,
+        size: room.size,
+      },
+    });
 
     return NextResponse.json({
       roomCode: room.roomCode,

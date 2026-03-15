@@ -73,6 +73,11 @@ export default function SharedCardPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [stateRestored, setStateRestored] = useState(false);
+  const [requiresPassword, setRequiresPassword] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordTitle, setPasswordTitle] = useState("");
+  const [expired, setExpired] = useState(false);
 
   useEffect(() => { fetchCard(); }, [shareLink]);
 
@@ -104,12 +109,56 @@ export default function SharedCardPage() {
       setLoading(true);
       const response = await fetch(`/api/cards/share/${shareLink}`);
       const data = await response.json();
+
+      if (response.status === 410) {
+        setExpired(true);
+        return;
+      }
+
       if (!response.ok) throw new Error(data.error || "Failed to fetch card");
+
+      if (data.requiresPassword) {
+        setRequiresPassword(true);
+        setPasswordTitle(data.card?.title || "");
+        return;
+      }
+
       setCard(data.card);
     } catch (err: any) {
       setError(err.message || "Failed to load card");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const submitPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError("");
+    try {
+      const response = await fetch(`/api/cards/share/${shareLink}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: passwordInput }),
+      });
+      const data = await response.json();
+
+      if (response.status === 410) {
+        setExpired(true);
+        setRequiresPassword(false);
+        return;
+      }
+
+      if (response.status === 401) {
+        setPasswordError("Incorrect password. Please try again.");
+        return;
+      }
+
+      if (!response.ok) throw new Error(data.error || "Failed to verify password");
+
+      setRequiresPassword(false);
+      setCard(data.card);
+    } catch (err: any) {
+      setPasswordError(err.message || "Failed to verify password");
     }
   };
 
@@ -215,6 +264,55 @@ export default function SharedCardPage() {
         <div className="text-center">
           <div className="inline-block w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className={"text-slate-500"}>Loading bingo card...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (expired) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-50 to-indigo-50">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+          <div className="text-5xl mb-4">&#x23F3;</div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Link Expired</h2>
+          <p className="text-slate-500 mb-6">This share link has expired and is no longer available.</p>
+          <Link href="/create" className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-semibold">
+            Create Your Own Card
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (requiresPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-50 to-indigo-50">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
+          <div className="text-5xl mb-4">&#x1F512;</div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Password Protected</h2>
+          <p className="text-slate-500 mb-6">This bingo card requires a password to view.</p>
+          {passwordTitle && (
+            <p className="text-lg font-semibold text-slate-700 mb-6">{passwordTitle}</p>
+          )}
+          <form onSubmit={submitPassword}>
+            <input
+              type="password"
+              placeholder="Enter password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl text-center text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              autoFocus
+            />
+            {passwordError && (
+              <p className="text-red-500 text-sm mt-2">{passwordError}</p>
+            )}
+            <button
+              type="submit"
+              className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition font-semibold"
+            >
+              View Card
+            </button>
+          </form>
         </div>
       </div>
     );

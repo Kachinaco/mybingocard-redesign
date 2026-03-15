@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { ATTRIBUTION_COOKIE_NAME } from "@/lib/attribution";
+import { trackClientActivity } from "@/lib/activity-client";
 
 type Metrics = {
   clicks: number;
@@ -199,6 +200,12 @@ export default function VisitorTracker() {
         reason,
         timestamp: new Date().toISOString(),
       };
+
+      if (reason === "page_view") {
+        trackClientActivity("page_view", payload, { sessionId });
+      } else {
+        trackClientActivity("page_engagement", payload, { sessionId, keepalive: true });
+      }
 
       fetch("/api/track-visitor", {
         method: "POST",

@@ -50,3 +50,158 @@ export async function notifySupportEmail(from: string, subject: string, preview:
     timestamp: new Date().toISOString(),
   }]);
 }
+
+export async function notifySignIn(name: string, email: string, provider: string) {
+  await sendDiscordNotification("", [{
+    title: "🔑 User Signed In",
+    color: 0x22c55e,
+    fields: [
+      { name: "Name", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Provider", value: provider, inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyCardCreated(name: string, email: string, cardTitle: string, planType: string) {
+  await sendDiscordNotification("", [{
+    title: "🎴 New Bingo Card Created",
+    color: 0x3b82f6,
+    fields: [
+      { name: "User", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Plan", value: planType || "FREE", inline: true },
+      { name: "Card Title", value: cardTitle || "Untitled", inline: false },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifySubscription(name: string, email: string, planType: string, event: "activated" | "canceled" | "payment_failed") {
+  const configs = {
+    activated: { title: "💳 New Subscription!", color: 0xf59e0b },
+    canceled: { title: "❌ Subscription Canceled", color: 0xef4444 },
+    payment_failed: { title: "⚠️ Payment Failed", color: 0xf97316 },
+  };
+  const { title, color } = configs[event];
+
+  await sendDiscordNotification("", [{
+    title,
+    color,
+    fields: [
+      { name: "Name", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Plan", value: planType, inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyMagicLink(email: string) {
+  await sendDiscordNotification("", [{
+    title: "✉️ Magic Link Requested",
+    color: 0xa855f7,
+    fields: [
+      { name: "Email", value: email, inline: true },
+      { name: "Type", value: "Sign-in / Signup", inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyCheckoutStarted(email: string, name: string, planType: string) {
+  await sendDiscordNotification("", [{
+    title: "🛒 Stripe Checkout Started",
+    color: 0xf59e0b,
+    fields: [
+      { name: "User", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Plan", value: planType || "PREMIUM", inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyBatchPackPurchased(
+  email: string,
+  batchCount: number,
+  amount: number,
+  currency: string
+) {
+  await sendDiscordNotification("", [{
+    title: "📦 Batch Pack Purchased",
+    color: 0x14b8a6,
+    fields: [
+      { name: "Email", value: email, inline: true },
+      { name: "Batch Size", value: `${batchCount} cards`, inline: true },
+      {
+        name: "Amount",
+        value: `${(amount / 100).toFixed(2)} ${(currency || "usd").toUpperCase()}`,
+        inline: true,
+      },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyBatchCardsCreated(
+  name: string,
+  email: string,
+  title: string,
+  count: number,
+  planType: string
+) {
+  await sendDiscordNotification("", [{
+    title: "🧾 Batch Cards Generated",
+    color: 0x0ea5e9,
+    fields: [
+      { name: "User", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Plan", value: planType || "FREE", inline: true },
+      { name: "Batch", value: `${count} cards`, inline: true },
+      { name: "Title", value: title || "Untitled", inline: false },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyAdminImpersonationStarted(
+  adminEmail: string,
+  targetEmail: string,
+  targetName?: string | null
+) {
+  await sendDiscordNotification("", [{
+    title: "🕵️ Admin Impersonation Started",
+    color: 0xf59e0b,
+    fields: [
+      { name: "Admin", value: adminEmail, inline: true },
+      { name: "Target", value: targetEmail, inline: true },
+      { name: "Target Name", value: targetName || "Unknown", inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyAccountDeleted(
+  name: string,
+  email: string,
+  planType: string,
+  hadStripeSubscription: boolean
+) {
+  await sendDiscordNotification("", [{
+    title: "🗑️ Account Deleted",
+    color: 0xef4444,
+    fields: [
+      { name: "Name", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Plan", value: planType || "FREE", inline: true },
+      {
+        name: "Had Stripe Subscription",
+        value: hadStripeSubscription ? "Yes" : "No",
+        inline: true,
+      },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}

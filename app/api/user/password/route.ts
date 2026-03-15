@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getUserByEmail, updateUserPassword } from "@/lib/db/users";
 import bcrypt from "bcryptjs";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 export async function PUT(request: Request) {
   try {
     const session = await auth();
+    const requestContext = getRequestActivityContext(request);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -44,6 +46,20 @@ export async function PUT(request: Request) {
 
     // User signed up via Google (no password) — allow setting one
     await updateUserPassword(session.user.email, newPassword);
+
+    await trackActivity({
+      event: "password_updated",
+      source: "server",
+      userId: user._id.toString(),
+      email: user.email,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        hadExistingPassword: Boolean(user.password),
+      },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

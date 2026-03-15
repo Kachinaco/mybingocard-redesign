@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getUserByEmail, checkTrialExpiry } from "@/lib/db/users";
+import { getUserByEmail } from "@/lib/db/users";
+import { getPlanPermissions } from "@/lib/permissions";
 
 export async function GET() {
   try {
@@ -13,7 +14,7 @@ export async function GET() {
       );
     }
 
-    let user = await getUserByEmail(session.user.email);
+    const user = await getUserByEmail(session.user.email);
 
     if (!user) {
       return NextResponse.json(
@@ -22,14 +23,7 @@ export async function GET() {
       );
     }
 
-    user = await checkTrialExpiry(user);
-
-    let trialDaysLeft = 0;
-    if (user.subscriptionStatus === "trialing" && user.trialEndsAt) {
-      trialDaysLeft = Math.max(0, Math.ceil((new Date(user.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
-    }
-
-    const trialEligible = user.planType === "FREE" && !user.stripeSubscriptionId && !user.trialEndsAt;
+    const permissions = getPlanPermissions(user.planType);
 
     return NextResponse.json({
       planType: user.planType,
@@ -37,9 +31,7 @@ export async function GET() {
       currentPeriodEnd: user.currentPeriodEnd,
       cancelAtPeriodEnd: user.cancelAtPeriodEnd || false,
       cancelAt: user.cancelAt || null,
-      trialEligible,
-      trialDaysLeft,
-      trialEndsAt: user.trialEndsAt || null,
+      plan: permissions,
     });
   } catch (error: any) {
     console.error("Get user plan error:", error);

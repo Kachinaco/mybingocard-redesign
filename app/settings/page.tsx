@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { redirectToCheckout } from "@/lib/upgrade";
+import { trackClientActivity } from "@/lib/activity-client";
 
 export default function SettingsPage() {
   const { data: session, status, update: updateSession } = useSession();
@@ -213,6 +214,7 @@ export default function SettingsPage() {
   };
 
   const handleSignOut = () => {
+    trackClientActivity("sign_out_clicked", { source: "settings" }, { keepalive: true });
     signOut({ callbackUrl: "/" });
   };
 
@@ -231,7 +233,6 @@ export default function SettingsPage() {
     ? new Date(planInfo.currentPeriodEnd).toLocaleDateString()
     : null;
   const cancelPending = Boolean(planInfo?.cancelAtPeriodEnd && subscriptionEndsOn);
-  const isTrialingPlan = planInfo?.subscriptionStatus === "trialing";
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -419,7 +420,7 @@ export default function SettingsPage() {
               </span>
               {isPremium && (
                 <span className={`text-xs font-medium ${cancelPending ? "text-amber-600" : "text-green-600"}`}>
-                  {cancelPending ? "Scheduled to end" : isTrialingPlan ? "Trial active" : "Active"}
+                  {cancelPending ? "Scheduled to end" :"Active"}
                 </span>
               )}
             </div>
@@ -467,8 +468,6 @@ export default function SettingsPage() {
                 <p className={`mt-3 text-sm ${cancelPending ? "text-amber-600" : "text-slate-500"}`}>
                   {cancelPending
                     ? `Your premium access is scheduled to end on ${subscriptionEndsOn}. It will not renew unless you restart it in billing.`
-                    : isTrialingPlan
-                      ? `Your free trial ends on ${subscriptionEndsOn}.`
                       : `Your next renewal is ${subscriptionEndsOn}.`}
                 </p>
               )}

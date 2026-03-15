@@ -2,6 +2,7 @@
 
 import { SessionProvider, useSession } from "next-auth/react";
 import { useEffect } from "react";
+import ImpersonationBanner from "@/components/ImpersonationBanner";
 
 function LocalStorageGuard() {
   const { data: session, status } = useSession();
@@ -33,6 +34,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <LocalStorageGuard />
+      <ImpersonationBanner />
       {children}
     </SessionProvider>
   );

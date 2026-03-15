@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const Imap = require('imap');
 const { simpleParser } = require('mailparser');
+const { MongoClient } = require('mongodb');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -20,6 +21,18 @@ try {
 }
 
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || '';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
+
+let mongoClient = null;
+async function getDb() {
+  if (!mongoClient) {
+    mongoClient = new MongoClient(MONGODB_URI);
+    await mongoClient.connect();
+    console.log('[' + new Date().toISOString() + '] Connected to MongoDB');
+  }
+  return mongoClient.db('mybingocard');
+}
+
 const IMAP_CONFIG = {
   user: process.env.EMAIL_SERVER_USER || 'support@mybingocard.com',
   password: process.env.EMAIL_SERVER_PASSWORD || '',
@@ -35,40 +48,52 @@ const IMAP_CONFIG = {
 let imap = null;
 let reconnectTimer = null;
 
-async function sendToDiscord(from, subject, preview) {
+async function sendToDiscord(from, subject, preview, date, isReply) {
   if (!WEBHOOK_URL) { console.error('No DISCORD_WEBHOOK_URL set'); return; }
   try {
+    const color = isReply ? 0xef4444 : 0xf59e0b;
+    const title = isReply ? '🔴 Support Reply - MyBingoCard' : '📧 New Email - MyBingoCard';
+    const content = isReply ? '@here' : '';
+
     await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        content,
         embeds: [{
-          title: 'New Support Email - MyBingoCard',
-          color: 0xf59e0b,
+          title,
+          color,
           fields: [
             { name: 'From', value: from || 'unknown', inline: true },
             { name: 'Subject', value: subject || '(no subject)', inline: true },
-            { name: 'Preview', value: (preview || '').substring(0, 200) || '(empty)', inline: false },
+            ...(isReply ? [{ name: 'Type', value: '🏷️ support_reply', inline: true }] : []),
+            { name: 'Preview', value: (preview || '').substring(0, 300) || '(empty)', inline: false },
           ],
+          footer: { text: date ? new Date(date).toLocaleString() : '' },
           timestamp: new Date().toISOString(),
         }],
       }),
     });
-    console.log('[' + new Date().toISOString() + '] Sent email notification to Discord');
+    console.log('[' + new Date().toISOString() + '] Sent email notification to Discord: ' + subject + (isReply ? ' (reply)' : ''));
   } catch (err) {
     console.error('Discord webhook failed:', err.message);
   }
 }
 
-function processNewEmails() {
+function processEmails(criteria) {
   if (!imap || imap.state !== 'authenticated') return;
 
-  imap.search(['UNSEEN'], (err, results) => {
+  imap.search(criteria, (err, results) => {
     if (err) { console.error('Search error:', err.message); return; }
     if (!results || results.length === 0) return;
 
-    console.log('[' + new Date().toISOString() + '] Found ' + results.length + ' new email(s)');
-    const f = imap.fetch(results, { bodies: '', markSeen: false });
+    console.log('[' + new Date().toISOString() + '] Found ' + results.length + ' email(s) to forward');
+    // Mark as seen so we don't re-send on reconnect
+    imap.setFlags(results, ['\\Seen'], (err) => {
+      if (err) console.error('Mark seen error:', err.message);
+    });
+
+    const f = imap.fetch(results, { bodies: '' });
     f.on('message', (msg) => {
       msg.on('body', (stream) => {
         simpleParser(stream, async (err, parsed) => {
@@ -76,7 +101,28 @@ function processNewEmails() {
           const from = parsed.from?.text || 'unknown';
           const subject = parsed.subject || '(no subject)';
           const preview = parsed.text || '';
-          await sendToDiscord(from, subject, preview);
+          const date = parsed.date;
+          const isReply = !!(parsed.inReplyTo || (subject && subject.toLowerCase().startsWith('re:')));
+          const threadId = parsed.inReplyTo || parsed.messageId || '';
+
+          await sendToDiscord(from, subject, preview, date, isReply);
+
+          // Save to support_tickets collection
+          try {
+            const db = await getDb();
+            await db.collection('support_tickets').insertOne({
+              email: from,
+              subject,
+              preview: (preview || '').substring(0, 500),
+              receivedAt: date || new Date(),
+              status: 'open',
+              threadId,
+              isReply,
+            });
+            console.log('[' + new Date().toISOString() + '] Saved support ticket: ' + subject);
+          } catch (dbErr) {
+            console.error('Failed to save support ticket:', dbErr.message);
+          }
         });
       });
     });
@@ -84,7 +130,7 @@ function processNewEmails() {
   });
 }
 
-function connect() {
+function connect(initialBulkSend) {
   if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
 
   console.log('[' + new Date().toISOString() + '] Connecting to IMAP...');
@@ -100,13 +146,18 @@ function connect() {
       }
       console.log('[' + new Date().toISOString() + '] INBOX open — listening for new emails via IDLE');
 
-      // Check for any existing unseen emails
-      processNewEmails();
+      if (initialBulkSend) {
+        // First run: send ALL emails in inbox
+        console.log('[' + new Date().toISOString() + '] Bulk sending all existing emails to Discord...');
+        processEmails(['ALL']);
+      } else {
+        // Normal run: only unseen
+        processEmails(['UNSEEN']);
+      }
 
-      // Listen for new mail events (triggered by IDLE)
       imap.on('mail', (numNewMsgs) => {
         console.log('[' + new Date().toISOString() + '] New mail event: ' + numNewMsgs + ' message(s)');
-        processNewEmails();
+        processEmails(['UNSEEN']);
       });
     });
   });
@@ -130,27 +181,27 @@ function connect() {
 }
 
 function scheduleReconnect() {
-  if (reconnectTimer) return; // already scheduled
+  if (reconnectTimer) return;
   console.log('[' + new Date().toISOString() + '] Reconnecting in 30 seconds...');
   reconnectTimer = setTimeout(() => {
     reconnectTimer = null;
-    connect();
+    connect(false);
   }, 30000);
 }
 
-// Graceful shutdown
 process.on('SIGINT', () => {
-  console.log('Shutting down...');
   if (imap) try { imap.end(); } catch (e) {}
+  if (mongoClient) try { mongoClient.close(); } catch (e) {}
   process.exit(0);
 });
 process.on('SIGTERM', () => {
-  console.log('Shutting down...');
   if (imap) try { imap.end(); } catch (e) {}
+  if (mongoClient) try { mongoClient.close(); } catch (e) {}
   process.exit(0);
 });
 
 console.log('MyBingoCard Email Monitor started (IDLE mode)');
 console.log('Using IMAP user:', IMAP_CONFIG.user);
 console.log('Webhook URL set:', !!WEBHOOK_URL);
-connect();
+// First connect does a bulk send of all emails, subsequent reconnects only unseen
+connect(true);

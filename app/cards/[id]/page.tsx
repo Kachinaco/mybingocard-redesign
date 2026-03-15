@@ -8,6 +8,8 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import AdUnit from "@/components/AdUnit";
 import FavoriteButton from "@/components/FavoriteButton";
+import { trackClientActivity } from "@/lib/activity-client";
+import { redirectToCheckout } from "@/lib/upgrade";
 
 interface Card {
   _id: string;
@@ -55,7 +57,8 @@ export default function CardViewPage() {
   const [showBingo, setShowBingo] = useState(false);
   const [copied, setCopied] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(false);
-  const [barExpanded, setBarExpanded] = useState(false);
+  const [barExpanded, setBarExpanded] = useState(true);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const sessionData = useSession();
@@ -123,9 +126,9 @@ export default function CardViewPage() {
       const data = await response.json();
       if (data.plan) {
         setUserPlan({
-          planType: data.plan.planType,
-          canExportHD: data.plan.features.includes("Export HD quality (2400px)"),
-          canRemoveBranding: data.plan.features.includes("Remove MyBingoCard.com branding"),
+          planType: data.plan.planName || data.planType,
+          canExportHD: data.plan?.canExportHD || false,
+          canRemoveBranding: data.plan?.canRemoveBranding || false,
         });
       }
     } catch {}
@@ -238,6 +241,10 @@ export default function CardViewPage() {
   const handlePrint = () => {
     if (typeof window !== "undefined") {
       trackCardPrinted(cardId, "print");
+      trackClientActivity("card_printed", {
+        cardId,
+        title: card?.title || "",
+      });
       window.print();
     }
   };
@@ -280,6 +287,10 @@ export default function CardViewPage() {
     if (card?.shareLink) {
       const url = `${window.location.origin}/share/${card.shareLink}`;
       await navigator.clipboard.writeText(url);
+      trackClientActivity("card_share_link_copied", {
+        cardId,
+        title: card.title,
+      });
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -295,6 +306,11 @@ export default function CardViewPage() {
       setCard({ ...card, shareLink: data.shareLink, isPublic: true });
       const url = `${window.location.origin}/share/${data.shareLink}`;
       await navigator.clipboard.writeText(url);
+      trackClientActivity("card_share_link_copied", {
+        cardId,
+        title: card.title,
+        generated: true,
+      });
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err: any) {
@@ -326,6 +342,9 @@ export default function CardViewPage() {
 
   const freeSpaceIdx = getFreeSpaceIndex();
   const totalCells = card.size * card.size;
+  const markedCount = marked.size;
+  const progressPercent = Math.round((markedCount / totalCells) * 100);
+  const remainingSquares = Math.max(totalCells - markedCount, 0);
   const shareUrl = card.shareLink ? `${typeof window !== "undefined" ? window.location.origin : ""}/share/${card.shareLink}` : "";
   const qrCodeUrl = shareUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(shareUrl)}` : "";
 
@@ -379,6 +398,74 @@ export default function CardViewPage() {
           </div>
         )}
 
+        {!isFullscreen && (
+          <section className="mb-6 rounded-[28px] bg-gradient-to-br from-slate-900 via-indigo-900 to-violet-700 text-white p-5 md:p-6 shadow-xl shadow-indigo-200/50 print:hidden relative overflow-hidden">
+            <div className="absolute -top-16 -right-12 w-40 h-40 rounded-full bg-white/10 blur-3xl" />
+            <div className="absolute -bottom-12 -left-8 w-32 h-32 rounded-full bg-fuchsia-400/20 blur-3xl" />
+
+            <div className="relative z-10">
+              <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+                <div className="max-w-2xl">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-indigo-100">
+                    <span>Solo Mode</span>
+                    {bingo ? <span className="text-yellow-200">BINGO</span> : null}
+                  </div>
+                  <h1 className="mt-3 text-2xl md:text-4xl font-black tracking-tight">{card.title}</h1>
+                  <p className="mt-2 text-sm md:text-base text-indigo-100/90">
+                    {card.description || "Play at your own pace. Tap any square to mark it, and complete a row, column, or diagonal to win."}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-3 backdrop-blur-sm md:min-w-[220px]">
+                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-100/80">Progress</div>
+                  <div className="mt-2 flex items-end gap-2">
+                    <span className="text-3xl font-black">{progressPercent}%</span>
+                    <span className="pb-1 text-sm text-indigo-100/80">{markedCount}/{totalCells} marked</span>
+                  </div>
+                  <div className="mt-3 h-2 rounded-full bg-white/15 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-cyan-300 to-white transition-all duration-300"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl bg-white/10 border border-white/10 p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-100/75">Goal</div>
+                  <p className="mt-2 text-sm font-semibold">Complete any row, column, or diagonal.</p>
+                </div>
+                <div className="rounded-2xl bg-white/10 border border-white/10 p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-100/75">Remaining</div>
+                  <p className="mt-2 text-sm font-semibold">{remainingSquares} squares left to fill.</p>
+                </div>
+                <div className="rounded-2xl bg-white/10 border border-white/10 p-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-100/75">Autosave</div>
+                  <p className="mt-2 text-sm font-semibold">Your solo progress is saved on this device.</p>
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:hidden">
+                <button onClick={resetGame} className="rounded-xl bg-white text-slate-900 px-4 py-2.5 text-sm font-bold shadow-sm hover:bg-indigo-50 transition-colors">
+                  Reset
+                </button>
+                <button onClick={undoLast} disabled={undoStack.length === 0} className="rounded-xl bg-white/10 border border-white/15 px-4 py-2.5 text-sm font-bold text-white transition-colors disabled:opacity-40">
+                  Undo
+                </button>
+                <button onClick={toggleFullscreen} className="rounded-xl bg-white/10 border border-white/15 px-4 py-2.5 text-sm font-bold text-white transition-colors">
+                  Fullscreen
+                </button>
+                {card.isPublic && card.shareLink && (
+                  <button onClick={copyShareLink} className="rounded-xl bg-white/10 border border-white/15 px-4 py-2.5 text-sm font-bold text-white transition-colors">
+                    {copied ? "Copied" : "Share"}
+                  </button>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+
         <div className={`${isFullscreen ? "" : "grid lg:grid-cols-3 gap-6"}`}>
           {!isFullscreen && (
             <div className="hidden lg:block lg:col-span-1 space-y-4 print:hidden">
@@ -405,10 +492,10 @@ export default function CardViewPage() {
                     <div>
                       <div className={`flex justify-between text-sm mb-1 ${"text-slate-500"}`}>
                         <span>Progress</span>
-                        <span>{marked.size}/{totalCells} marked</span>
+                        <span>{markedCount}/{totalCells} marked</span>
                       </div>
                       <div className={`h-2 rounded-full overflow-hidden ${"bg-slate-100"}`}>
-                        <div className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-300" style={{ width: `${(marked.size / totalCells) * 100}%` }} />
+                        <div className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
                       </div>
                     </div>
                     <p className={`text-xs ${"text-slate-400"}`}>Tap any cell on the card to mark it. Get a row, column, or diagonal to win!</p>
@@ -433,6 +520,15 @@ export default function CardViewPage() {
 
                 {activeTab === "export" && (
                   <div className="p-4 space-y-3">
+                    {userPlan && !userPlan.canRemoveBranding && (
+                      <div className="bg-gradient-to-br from-violet-50 to-indigo-50 border border-indigo-100 rounded-xl p-3 mb-1">
+                        <p className="text-xs font-semibold text-indigo-900 mb-1">Exports include watermark</p>
+                        <p className="text-xs text-indigo-700 mb-2">Remove the MyBingoCard.com watermark and unlock HD exports.</p>
+                        <button onClick={() => redirectToCheckout()} className="w-full py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-lg text-xs font-bold hover:shadow-md transition-all">
+                          Remove Watermark — $4.99/mo
+                        </button>
+                      </div>
+                    )}
                     <button onClick={handleExportPDF} disabled={exporting !== null} className="w-full px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition disabled:opacity-50 flex items-center justify-center gap-2 font-semibold text-sm">
                       {exporting === "pdf" ? (
                         <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Generating...</span></>
@@ -483,9 +579,28 @@ export default function CardViewPage() {
           <div className={isFullscreen ? "bingo-container w-full max-w-2xl mx-auto" : "lg:col-span-2"}>
             <div className={`rounded-2xl shadow-sm border p-3 md:p-6 print-card ${"bg-white border-slate-100"}`} ref={cardRef}>
               <div className="text-center mb-3 md:mb-6">
+                <div className="flex flex-wrap items-center justify-center gap-2 mb-3 print:hidden">
+                  <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wide">
+                    Solo Play
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
+                    {markedCount}/{totalCells} marked
+                  </span>
+                  {bingo ? (
+                    <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-wide">
+                      Bingo
+                    </span>
+                  ) : null}
+                </div>
                 <h1 className={`text-xl md:text-2xl font-black ${"text-slate-900"}`}>{card.title}</h1>
                 {card.description && <p className={`text-sm mt-1 ${"text-slate-500"}`}>{card.description}</p>}
                 <p className={`text-xs mt-1 print:hidden ${"text-slate-400"}`}>Tap a cell to mark it</p>
+                <div className="mt-3 h-2 rounded-full bg-slate-100 overflow-hidden print:hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-300"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
               </div>
 
               <div className="grid gap-1.5 md:gap-2 w-full bingo-grid-print" style={{ gridTemplateColumns: `repeat(${card.size}, 1fr)` }}>
@@ -548,7 +663,12 @@ export default function CardViewPage() {
               )}
 
               {!userPlan?.canRemoveBranding && (
-                <p className={`text-center text-xs mt-4 ${"text-slate-400"}`}>Created with MyBingoCard.com</p>
+                <div className="text-center mt-4">
+                  <p className="text-xs text-slate-400 mb-1">Created with MyBingoCard.com</p>
+                  <button onClick={() => redirectToCheckout()} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors">
+                    Remove watermark →
+                  </button>
+                </div>
               )}
 
               {shareUrl && (
@@ -575,7 +695,7 @@ export default function CardViewPage() {
                 {activeTab === "play" && (
                   <div className="space-y-2">
                     <div className={`h-1.5 rounded-full overflow-hidden ${"bg-slate-100"}`}>
-                      <div className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-300" style={{ width: `${(marked.size / totalCells) * 100}%` }} />
+                      <div className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
                     </div>
                     <div className="flex gap-2">
                       <button onClick={resetGame} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl ${"border-slate-200 text-slate-600"}`}>🔄 Reset</button>
@@ -608,7 +728,7 @@ export default function CardViewPage() {
                 onClick={() => { setActiveTab("play"); setBarExpanded(v => activeTab === "play" ? !v : true); }}
                 className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "play" && barExpanded ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"}`}
               >
-                🎮 Play · {marked.size}/{totalCells}
+                🎮 Play · {markedCount}/{totalCells}
               </button>
               <button
                 onClick={() => { setActiveTab("export"); setBarExpanded(v => activeTab === "export" ? !v : true); }}

@@ -446,3 +446,116 @@ export async function sendBillingFailedEmail(
     text: `Hi ${firstName},\n\nWe could not process your payment of ${amount}.\n\nUpdate billing details: ${manageBillingUrl}`,
   });
 }
+
+export async function sendEmailVerificationEmail(to: string, name: string, verifyUrl: string): Promise<boolean> {
+  const firstName = getFirstName(name);
+  return sendEmail({
+    to,
+    subject: "Verify your MyBingoCard email address",
+    html: renderLayout({
+      theme: "violet",
+      preheader: "One quick step to activate your MyBingoCard account.",
+      headline: "Verify your email",
+      intro: `Hi ${firstName}! Thanks for signing up — one more step to get started.`,
+      bodyHtml: "",
+      ctaLabel: "Verify Email Address",
+      ctaUrl: verifyUrl,
+      ctaHint: "This link expires in 24 hours. If you didn't sign up, you can ignore this email.",
+    }),
+    text: `Hi ${firstName},\n\nThanks for signing up for MyBingoCard!\n\nVerify your email address:\n${verifyUrl}\n\nThis link expires in 24 hours. If you didn't sign up, you can ignore this email.`,
+  });
+}
+
+export async function sendLiveGamesAnnouncementEmail(to: string, name: string): Promise<boolean> {
+  const firstName = getFirstName(name);
+  return sendEmail({
+    to,
+    subject: "🎯 Live Bingo Games are coming to MyBingoCard this Friday",
+    html: renderLayout({
+      theme: "violet",
+      preheader: "Host real-time games with anyone, anywhere — launching in 3 days.",
+      headline: "Live Bingo Games are coming Friday, March 13th",
+      intro: `Hi ${firstName} — something exciting is dropping this Friday.`,
+      bodyHtml: `
+        ${renderPanel(
+          `<p style="margin:0;font-size:15px;font-weight:bold;color:#1e1b4b;">We're launching Live Multiplayer Bingo Games — and you'll be one of the first to try it.</p>`,
+          "violet"
+        )}
+        ${renderBulletList([
+          "Host a live bingo game from any card you've created",
+          "Players join instantly from their phone — no app, no signup required",
+          "Real-time calling, live score tracking, and instant bingo detection",
+          "Perfect for classrooms, parties, team meetings, and game nights",
+        ])}
+        <p style="margin:16px 0 0 0;font-size:15px;color:#334155;">All you need is a bingo card and a room full of people.</p>
+      `,
+      ctaLabel: "Get your cards ready →",
+      ctaUrl: "https://mybingocard.com/dashboard",
+      ctaHint: "See you Friday 🎉",
+    }),
+    text: `Hi ${firstName},\n\nSomething exciting is dropping this Friday, March 13th.\n\nWe're launching Live Multiplayer Bingo Games.\n\nHere's what's coming:\n- Host a live bingo game from any card you've created\n- Players join instantly from their phone — no app, no signup required\n- Real-time calling, live score tracking, and instant bingo detection\n- Perfect for classrooms, parties, team meetings, and game nights\n\nGet your cards ready: https://mybingocard.com/dashboard\n\nSee you Friday!\n\n— The MyBingoCard Team`,
+  });
+}
+
+export async function sendAbandonedCheckoutEmail(
+  to: string,
+  name: string,
+  purchaseType: "subscription" | "batch_pack",
+  batchCount?: number
+): Promise<boolean> {
+  const firstName = getFirstName(name);
+  const isSubscription = purchaseType === "subscription";
+
+  const subject = isSubscription
+    ? "Still thinking it over? Your Premium spot is waiting"
+    : `Your ${batchCount ?? ""} card batch is still available`;
+
+  const headline = isSubscription
+    ? "You left before finishing"
+    : "Your batch cards are a click away";
+
+  const intro = isSubscription
+    ? `Hi ${firstName}, we noticed you started upgrading to Premium but didn't complete it.`
+    : `Hi ${firstName}, you were so close to generating ${batchCount ? `${batchCount} unique bingo cards` : "your card batch"}.`;
+
+  const bulletItems = isSubscription
+    ? [
+        "Unlimited bingo cards — no cap, ever.",
+        "Batch-generate up to 100 unique cards at once.",
+        "HD PDF & PNG export for print-ready cards.",
+        "Ad-free experience across your whole account.",
+      ]
+    : [
+        `${batchCount ?? "Multiple"} unique shuffled cards from your item list.`,
+        "Print-ready PDF export in seconds.",
+        "Perfect for parties, classrooms, and game nights.",
+      ];
+
+  const ctaUrl = isSubscription ? `${appUrl}/pricing` : `${appUrl}/create`;
+  const ctaLabel = isSubscription ? "Complete Upgrade →" : "Generate My Cards →";
+
+  const bodyHtml = `
+    ${renderPanel(renderBulletList(bulletItems), "violet")}
+    <p style="margin:0;font-size:15px;color:#334155;">It only takes a minute to finish. Your card data and settings are still saved.</p>
+  `;
+
+  return sendEmail({
+    to,
+    subject,
+    html: renderLayout({
+      theme: "violet",
+      preheader: isSubscription
+        ? "Your Premium upgrade is incomplete — pick up where you left off."
+        : `Your ${batchCount ?? ""} card batch is still waiting — finish checkout now.`,
+      headline,
+      intro,
+      bodyHtml,
+      ctaLabel,
+      ctaUrl,
+      ctaHint: "Questions? Just reply to this email.",
+    }),
+    text: isSubscription
+      ? `Hi ${firstName},\n\nYou started upgrading to Premium but didn't finish.\n\nPremium includes:\n- Unlimited bingo cards\n- Batch-generate up to 100 cards at once\n- HD PDF & PNG export\n- Ad-free experience\n\nComplete your upgrade: ${appUrl}/pricing\n\nQuestions? Reply to this email.`
+      : `Hi ${firstName},\n\nYou were close to generating ${batchCount ? `${batchCount} unique bingo cards` : "your card batch"}.\n\nHead back to finish: ${appUrl}/create\n\nQuestions? Reply to this email.`,
+  });
+}

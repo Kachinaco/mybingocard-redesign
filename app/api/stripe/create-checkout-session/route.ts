@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getUserByEmail } from "@/lib/db/users";
 import { stripe, PLANS, getPlanByPriceId } from "@/lib/stripe/config";
+import { getUserByEmail, updateUserSubscription } from "@/lib/db/users";
+import { getBatchPack, isBatchCount } from "@/lib/batchPacks";
 import type Stripe from "stripe";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { notifyCheckoutStarted } from "@/lib/discord";
 
-const TRIAL_DAYS = 7;
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
 
 function buildCheckoutUrl(path: string | undefined, fallback: string): string {
@@ -12,9 +14,14 @@ function buildCheckoutUrl(path: string | undefined, fallback: string): string {
   return `${appUrl}${safePath}`;
 }
 
+function isActiveLikeStatus(status: Stripe.Subscription.Status): boolean {
+  return ["active", "trialing", "past_due", "unpaid"].includes(status);
+}
+
 export async function POST(request: Request) {
   try {
     const session = await auth();
+    const requestContext = getRequestActivityContext(request);
 
     if (!session?.user?.email) {
       return NextResponse.json(
@@ -24,7 +31,122 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { priceId, successPath, cancelPath } = body;
+    const { priceId, successPath, cancelPath, purchaseType, batchCount } = body;
+    const user = await getUserByEmail(session.user.email);
+    const existingCustomers = await stripe.customers.list({
+      email: session.user.email,
+      limit: 10,
+    });
+
+    let reusableCustomerId = user?.stripeCustomerId || null;
+
+    for (const customer of existingCustomers.data) {
+      if ("deleted" in customer && customer.deleted) {
+        continue;
+      }
+
+      if (!reusableCustomerId) {
+        reusableCustomerId = customer.id;
+      }
+    }
+
+    if (purchaseType === "batch_pack") {
+      if (!session.user.id) {
+        return NextResponse.json(
+          { error: "Unauthorized - Please sign in" },
+          { status: 401 }
+        );
+      }
+
+      if (!isBatchCount(batchCount)) {
+        return NextResponse.json(
+          { error: "Invalid batch size" },
+          { status: 400 }
+        );
+      }
+
+      if (user?.planType === "PREMIUM") {
+        return NextResponse.json(
+          { error: "Premium already includes batch generation." },
+          { status: 400 }
+        );
+      }
+
+      const batchPack = getBatchPack(batchCount);
+      if (!batchPack) {
+        return NextResponse.json(
+          { error: "Invalid batch size" },
+          { status: 400 }
+        );
+      }
+
+      const checkoutSessionParams: Stripe.Checkout.SessionCreateParams = {
+        mode: "payment",
+        payment_method_types: ["card"],
+        line_items: [
+          {
+            price_data: {
+              currency: batchPack.currency,
+              unit_amount: batchPack.amount,
+              product_data: {
+                name: `${batchPack.count} Bingo Card Batch`,
+                description: `One-time batch generation for ${batchPack.count} unique bingo cards`,
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        success_url: buildCheckoutUrl(
+          successPath,
+          `/create?batchPurchase=success&batchCount=${batchPack.count}`
+        ),
+        cancel_url: buildCheckoutUrl(
+          cancelPath,
+          `/create?batchPurchase=canceled&batchCount=${batchPack.count}`
+        ),
+        client_reference_id: session.user.id,
+        metadata: {
+          purchaseType: "batch_pack",
+          userId: session.user.id,
+          userEmail: session.user.email,
+          batchCount: String(batchPack.count),
+          amount: String(batchPack.amount),
+          currency: batchPack.currency,
+        },
+      };
+
+      if (reusableCustomerId) {
+        checkoutSessionParams.customer = reusableCustomerId;
+      } else {
+        checkoutSessionParams.customer_email = session.user.email;
+      }
+
+      const checkoutSession = await stripe.checkout.sessions.create(checkoutSessionParams);
+
+      await trackActivity({
+        event: "checkout_started",
+        source: "server",
+        userId: session.user.id,
+        email: session.user.email,
+        pathname: requestContext.pathname,
+        domain: requestContext.domain,
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+        metadata: {
+          purchaseType: "batch_pack",
+          batchCount: batchPack.count,
+          amount: batchPack.amount,
+          checkoutSessionId: checkoutSession.id,
+          successPath: successPath || null,
+          cancelPath: cancelPath || null,
+        },
+      });
+
+      return NextResponse.json({
+        sessionId: checkoutSession.id,
+        url: checkoutSession.url,
+      });
+    }
 
     if (!priceId) {
       return NextResponse.json(
@@ -41,17 +163,73 @@ export async function POST(request: Request) {
       );
     }
 
-    const user = await getUserByEmail(session.user.email);
     const plan = PLANS[planType];
-    const trialEligible = Boolean(
-      user && user.planType === "FREE" && !user.stripeSubscriptionId && !user.trialEndsAt
-    );
+    let existingSubscription: Stripe.Subscription | null = null;
+
+    for (const customer of existingCustomers.data) {
+      if ("deleted" in customer && customer.deleted) {
+        continue;
+      }
+
+      const subscriptions = await stripe.subscriptions.list({
+        customer: customer.id,
+        status: "all",
+        limit: 10,
+      });
+
+      const match = subscriptions.data.find((subscription) => {
+        if (!isActiveLikeStatus(subscription.status)) {
+          return false;
+        }
+
+        return subscription.items.data.some((item) => item.price.id === priceId);
+      });
+
+      if (match) {
+        existingSubscription = match;
+        reusableCustomerId = customer.id;
+        break;
+      }
+    }
+
+    if (existingSubscription && reusableCustomerId) {
+      await updateUserSubscription(session.user.email, {
+        planType,
+        stripeCustomerId: reusableCustomerId,
+        stripeSubscriptionId: existingSubscription.id,
+        stripePriceId: priceId,
+        status: existingSubscription.status === "active" || existingSubscription.status === "trialing"
+          ? "active"
+          : existingSubscription.status === "past_due" || existingSubscription.status === "unpaid"
+            ? "past_due"
+            : "inactive",
+        currentPeriodStart: existingSubscription.items.data[0]?.current_period_start
+          ? new Date(existingSubscription.items.data[0].current_period_start * 1000)
+          : null,
+        currentPeriodEnd: existingSubscription.items.data[0]?.current_period_end
+          ? new Date(existingSubscription.items.data[0].current_period_end * 1000)
+          : null,
+        cancelAtPeriodEnd: existingSubscription.cancel_at_period_end,
+        cancelAt: existingSubscription.cancel_at
+          ? new Date(existingSubscription.cancel_at * 1000)
+          : null,
+      });
+
+      return NextResponse.json(
+        {
+          error: "A Premium subscription is already active for this account.",
+          alreadySubscribed: true,
+          redirectTo: buildCheckoutUrl(successPath, "/dashboard?success=true"),
+        },
+        { status: 409 }
+      );
+    }
 
     const metadata: Record<string, string> = {
       userId: session.user.email,
       planType,
       planName: plan.name,
-      purchaseType: trialEligible ? "trial_subscription" : "subscription",
+      purchaseType: "subscription",
     };
 
     const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
@@ -61,11 +239,7 @@ export async function POST(request: Request) {
       },
     };
 
-    if (trialEligible) {
-      subscriptionData.trial_period_days = TRIAL_DAYS;
-    }
-
-    const checkoutSession = await stripe.checkout.sessions.create({
+    const checkoutSessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: "subscription",
       payment_method_types: ["card"],
       payment_method_collection: "always",
@@ -78,16 +252,41 @@ export async function POST(request: Request) {
       ],
       success_url: buildCheckoutUrl(successPath, "/dashboard?success=true"),
       cancel_url: buildCheckoutUrl(cancelPath, "/pricing?canceled=true"),
-      customer_email: session.user.email,
       client_reference_id: session.user.email,
       metadata,
       subscription_data: subscriptionData,
+    };
+
+    if (reusableCustomerId) {
+      checkoutSessionParams.customer = reusableCustomerId;
+    } else {
+      checkoutSessionParams.customer_email = session.user.email;
+    }
+
+    const checkoutSession = await stripe.checkout.sessions.create(checkoutSessionParams);
+
+    await trackActivity({
+      event: "checkout_started",
+      source: "server",
+      userId: session.user.id || null,
+      email: session.user.email,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        planType,
+        checkoutSessionId: checkoutSession.id,
+        successPath: successPath || null,
+        cancelPath: cancelPath || null,
+      },
     });
+
+    notifyCheckoutStarted(session.user.email, session.user.name || "", planType).catch(console.error);
 
     return NextResponse.json({
       sessionId: checkoutSession.id,
       url: checkoutSession.url,
-      trialEligible,
     });
   } catch (error: any) {
     console.error("Create checkout session error:", error);

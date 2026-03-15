@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signOut } from "next-auth/react";
+import { trackClientActivity } from "@/lib/activity-client";
 
 export default function SignOutButton() {
   const [isLoading, setIsLoading] = useState(false);
@@ -10,6 +11,7 @@ export default function SignOutButton() {
     if (isLoading) return;
     setIsLoading(true);
     try {
+      trackClientActivity("sign_out_clicked", undefined, { keepalive: true });
       await signOut({ callbackUrl: "/" });
     } finally {
       setIsLoading(false);

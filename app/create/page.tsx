@@ -1,11 +1,20 @@
 "use client";
 
 import { trackCardCreated } from "@/lib/analytics";
-import { useState, useEffect, Suspense } from "react";
+import { useAnalytics } from "@/lib/analytics/client";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import AdUnit from "@/components/AdUnit";
+import UpgradeModal from "@/components/UpgradeModal";
+import CardUsageBadge from "@/components/CardUsageBadge";
+import {
+  BATCH_PACKS,
+  formatBatchPackPrice,
+  isBatchCount,
+  type BatchCount,
+} from "@/lib/batchPacks";
 import { redirectToCheckout } from "@/lib/upgrade";
 
 type GridSize = 3 | 4 | 5;
@@ -21,11 +30,28 @@ interface CellStyle {
   footerText?: string;
 }
 
+type AutoSaveState = "idle" | "saving" | "saved" | "error";
+type BatchPdfOption = "pdf-1" | "pdf-2" | "pdf-4" | "pdf-gray" | null;
+type AvailableBatchCounts = Partial<Record<BatchCount, number>>;
+
+type CardPayload = {
+  title: string;
+  description: string;
+  size: GridSize;
+  cells: string[];
+  freeSpace: boolean;
+  isPublic: boolean;
+  style: CellStyle;
+};
+
 function CreateCardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionData = useSession();
+  const { track, trackOnce } = useAnalytics();
   const session = sessionData?.data;
+  const searchParamsKey = searchParams.toString();
+  const cardIdFromUrl = searchParams.get("cardId");
   const [size, setSize] = useState<GridSize>(3);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -42,13 +68,24 @@ function CreateCardContent() {
     footerText: "",
   });
   const [loading, setLoading] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [magicEmail, setMagicEmail] = useState("");
+  const [magicSent, setMagicSent] = useState(false);
+  const [magicLoading, setMagicLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [batchMode, setBatchMode] = useState(false);
-  const [batchCount, setBatchCount] = useState<10 | 25 | 50 | 100>(10);
+  const [batchCount, setBatchCount] = useState<BatchCount>(10);
   const [batchLoading, setBatchLoading] = useState(false);
   const [batchResult, setBatchResult] = useState<{count: number; cardIds: string[]} | null>(null);
-  const [batchPdfLoading, setBatchPdfLoading] = useState(false);
+  const [batchPdfLoading, setBatchPdfLoading] = useState<BatchPdfOption>(null);
+  const [availableBatchCounts, setAvailableBatchCounts] = useState<AvailableBatchCounts>({});
+  const [batchCheckoutLoading, setBatchCheckoutLoading] = useState(false);
+  const [loadingBatchPurchases, setLoadingBatchPurchases] = useState(false);
+  const [currentCardId, setCurrentCardId] = useState<string | null>(cardIdFromUrl);
+  const [isLoadingCard, setIsLoadingCard] = useState(Boolean(cardIdFromUrl));
+  const [autoSaveState, setAutoSaveState] = useState<AutoSaveState>("idle");
+  const [autoSaveError, setAutoSaveError] = useState("");
   const [permissionStatus, setPermissionStatus] = useState<{
     allowed: boolean;
     reason?: string;
@@ -56,9 +93,17 @@ function CreateCardContent() {
     cardsCreated?: number;
     cardsLimit?: number;
     planType?: PlanType;
-    trialEligible?: boolean;
   } | null>(null);
   const [checkingPermission, setCheckingPermission] = useState(true);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSavedSnapshotRef = useRef("");
+  const currentCardIdRef = useRef<string | null>(cardIdFromUrl);
+  const createInFlightRef = useRef(false);
+
+  useEffect(() => {
+    currentCardIdRef.current = currentCardId;
+  }, [currentCardId]);
 
   // Check permissions on mount
   useEffect(() => {
@@ -80,6 +125,68 @@ function CreateCardContent() {
     checkPermission();
   }, [session]);
 
+  const loadBatchPurchases = async (expectedBatchCount?: BatchCount) => {
+    if (!session?.user || permissionStatus?.planType !== "FREE") {
+      setAvailableBatchCounts({});
+      return;
+    }
+
+    setLoadingBatchPurchases(true);
+
+    try {
+      const shouldPoll = searchParams.get("batchPurchase") === "success" && expectedBatchCount;
+      const attempts = shouldPoll ? 5 : 1;
+
+      for (let attempt = 0; attempt < attempts; attempt++) {
+        const response = await fetch("/api/batch-purchases", { cache: "no-store" });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to load batch purchases");
+        }
+
+        const nextCounts = Object.entries(data.availableByCount || {}).reduce<AvailableBatchCounts>(
+          (acc, [key, value]) => {
+            const numericKey = Number(key);
+            if (isBatchCount(numericKey)) {
+              acc[numericKey] = Number(value);
+            }
+            return acc;
+          },
+          {}
+        );
+
+        setAvailableBatchCounts(nextCounts);
+
+        if (!shouldPoll || (expectedBatchCount && (nextCounts[expectedBatchCount] || 0) > 0)) {
+          return;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
+    } catch (loadError) {
+      console.error("Failed to load batch purchases:", loadError);
+    } finally {
+      setLoadingBatchPurchases(false);
+    }
+  };
+
+  useEffect(() => {
+    const batchCountFromUrl = Number(searchParams.get("batchCount"));
+    if (isBatchCount(batchCountFromUrl)) {
+      setBatchCount(batchCountFromUrl);
+    }
+  }, [searchParamsKey]);
+
+  useEffect(() => {
+    if (!session?.user || checkingPermission) {
+      return;
+    }
+
+    const batchCountFromUrl = Number(searchParams.get("batchCount"));
+    loadBatchPurchases(isBatchCount(batchCountFromUrl) ? batchCountFromUrl : undefined);
+  }, [session?.user, checkingPermission, permissionStatus?.planType, searchParamsKey]);
+
   // Update cells array when grid size changes
   useEffect(() => {
     const totalCells = size * size;
@@ -93,57 +200,345 @@ function CreateCardContent() {
     });
   }, [size]);
 
-  // Restore saved card draft from localStorage (after signup/login redirect)
   useEffect(() => {
+    let cancelled = false;
+
+    const loadCard = async (cardId: string) => {
+      setIsLoadingCard(true);
+      try {
+        const response = await fetch(`/api/cards/${cardId}`);
+        if (!response.ok) {
+          throw new Error("Failed to load card");
+        }
+
+        const data = await response.json();
+        if (cancelled || !data.card) {
+          return;
+        }
+
+        const nextStyle = {
+          backgroundColor: "#ffffff",
+          textColor: "#0f172a",
+          borderColor: "#e2e8f0",
+          fontSize: "16px",
+          fontFamily: "Arial",
+          ...(data.card.style || {}),
+        };
+
+        setCurrentCardId(data.card._id);
+        setTitle(data.card.title || "");
+        setDescription(data.card.description || "");
+        setSize(data.card.size);
+        setCells(Array.isArray(data.card.cells) ? data.card.cells : []);
+        setFreeSpace(Boolean(data.card.freeSpace));
+        setIsPublic(Boolean(data.card.isPublic));
+        setStyle(nextStyle);
+        setError("");
+        setAutoSaveState("saved");
+        setAutoSaveError("");
+        lastSavedSnapshotRef.current = JSON.stringify({
+          title: data.card.title || "",
+          description: data.card.description || "",
+          size: data.card.size,
+          cells: Array.isArray(data.card.cells) ? data.card.cells : [],
+          freeSpace: Boolean(data.card.freeSpace),
+          isPublic: Boolean(data.card.isPublic),
+          style: nextStyle,
+        });
+      } catch (loadError) {
+        if (!cancelled) {
+          console.error("Failed to load existing card:", loadError);
+          setError("Failed to load the saved card.");
+          setAutoSaveState("error");
+          setAutoSaveError("Failed to load saved card");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingCard(false);
+        }
+      }
+    };
+
+    const loadDraftOrTemplate = () => {
+      try {
+        const saved = localStorage.getItem("mybingo_card_draft");
+        if (saved) {
+          const draft = JSON.parse(saved);
+          if (draft.title) setTitle(draft.title);
+          if (draft.description) setDescription(draft.description);
+          if (draft.size) setSize(draft.size as GridSize);
+          if (draft.cells) setCells(draft.cells);
+          if (typeof draft.freeSpace === "boolean") setFreeSpace(draft.freeSpace);
+          if (typeof draft.isPublic === "boolean") setIsPublic(draft.isPublic);
+          if (draft.style) {
+            setStyle((prev) => ({ ...prev, ...draft.style }));
+          }
+          // Draft kept in localStorage until successfully saved
+        }
+      } catch (draftError) {
+        console.error("Failed to restore card draft:", draftError);
+      }
+
+      const urlTitle = searchParams.get("title");
+      const urlSize = searchParams.get("size");
+      const urlCells = searchParams.get("cells");
+      const urlFreeSpace = searchParams.get("freeSpace");
+      const urlStyle = searchParams.get("style");
+
+      if (urlTitle) setTitle(urlTitle);
+      if (urlSize) setSize(parseInt(urlSize) as GridSize);
+      if (urlCells) {
+        try {
+          setCells(JSON.parse(urlCells));
+        } catch (cellsError) {
+          console.error("Failed to parse cells from URL:", cellsError);
+        }
+      }
+      if (urlFreeSpace) setFreeSpace(urlFreeSpace === "true");
+      if (urlStyle) {
+        try {
+          setStyle((prev) => ({ ...prev, ...JSON.parse(urlStyle) }));
+        } catch (styleError) {
+          console.error("Failed to parse style from URL:", styleError);
+        }
+      }
+
+      setCurrentCardId(null);
+      setAutoSaveState("idle");
+      setAutoSaveError("");
+      lastSavedSnapshotRef.current = "";
+      setIsLoadingCard(false);
+    };
+
+    if (cardIdFromUrl && session?.user) {
+      loadCard(cardIdFromUrl);
+    } else {
+      loadDraftOrTemplate();
+    }
+
+    // If user just signed in and has a pending draft, auto-save it
+    const hasDraft = !!localStorage.getItem("mybingo_card_draft");
+    if (session?.user && hasDraft && !cardIdFromUrl) {
+      // Delay to let React state settle after draft load
+      setTimeout(async () => {
+        const stillHasDraft = !!localStorage.getItem("mybingo_card_draft");
+        if (stillHasDraft) {
+          const saved = await saveCard({ redirectAfterSave: false, suppressValidationErrors: false });
+          if (saved) {
+            localStorage.removeItem("mybingo_card_draft");
+            router.replace("/dashboard");
+          }
+        } else if (searchParams.get("new") === "1") {
+          router.replace("/dashboard");
+        }
+      }, 800);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cardIdFromUrl, searchParamsKey, session?.user]);
+
+  const hasSavableContent = () => {
+    if (!title.trim()) {
+      return false;
+    }
+
+    return cells.some((cell) => cell.trim().length > 0);
+  };
+
+  const getCardPayload = (): CardPayload => ({
+    title: title.trim(),
+    description,
+    size,
+    cells,
+    freeSpace,
+    isPublic,
+    style,
+  });
+
+  const saveCard = async (options?: { redirectAfterSave?: boolean; suppressValidationErrors?: boolean }) => {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+      autoSaveTimerRef.current = null;
+    }
+
+    const payload = getCardPayload();
+
+    if (!payload.title) {
+      if (options?.suppressValidationErrors) {
+        setAutoSaveState("idle");
+        setAutoSaveError("");
+      } else {
+        setError("Card title is required");
+        setAutoSaveState("error");
+        setAutoSaveError("Add a title to save");
+      }
+      return false;
+    }
+
+    if (!hasSavableContent()) {
+      if (options?.suppressValidationErrors) {
+        setAutoSaveState("idle");
+        setAutoSaveError("");
+      } else {
+        setError("Please fill in at least one cell");
+        setAutoSaveState("error");
+        setAutoSaveError("Add at least one filled cell to save");
+      }
+      return false;
+    }
+
+    setError("");
+    setAutoSaveError("");
+    setAutoSaveState("saving");
+
     try {
-      const saved = localStorage.getItem("mybingo_card_draft");
-      if (saved) {
-        const draft = JSON.parse(saved);
-        if (draft.title) setTitle(draft.title);
-        if (draft.description) setDescription(draft.description);
-        if (draft.size) setSize(draft.size as GridSize);
-        if (draft.cells) setCells(draft.cells);
-        if (typeof draft.freeSpace === "boolean") setFreeSpace(draft.freeSpace);
-        if (typeof draft.isPublic === "boolean") setIsPublic(draft.isPublic);
-        if (draft.style) setStyle(draft.style);
-        localStorage.removeItem("mybingo_card_draft");
-      }
-    } catch (e) {
-      console.error("Failed to restore card draft:", e);
-    }
-  }, []);
+      let response: Response;
 
-  // Load template data from URL parameters
+      if (currentCardIdRef.current) {
+        response = await fetch(`/api/cards/${currentCardIdRef.current}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+      } else {
+        if (createInFlightRef.current) {
+          return false;
+        }
+
+        createInFlightRef.current = true;
+        response = await fetch("/api/cards", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          redirectToSignupForCreation();
+          return false;
+        }
+        if (response.status === 403 && !currentCardIdRef.current) {
+          setError(data.error || "Card limit reached. Please upgrade your plan.");
+          setShowUpgradeModal(true);
+          track("card_limit_reached", { plan_type: permissionStatus?.planType || "FREE" });
+        } else {
+          setError(data.error || "Failed to save card");
+        }
+        setAutoSaveState("error");
+        setAutoSaveError(data.error || "Failed to save card");
+        return false;
+      }
+
+      const savedCard = data.card;
+      // Clean up draft from localStorage on successful save
+      try { localStorage.removeItem("mybingo_card_draft"); } catch (e) {}
+      if (savedCard?._id && !currentCardIdRef.current) {
+        currentCardIdRef.current = savedCard._id;
+        setCurrentCardId(savedCard._id);
+        trackCardCreated(savedCard._id, payload.size, payload.isPublic);
+
+        const nextUrl = new URL(window.location.href);
+        nextUrl.searchParams.set("cardId", savedCard._id);
+        nextUrl.searchParams.delete("title");
+        nextUrl.searchParams.delete("size");
+        nextUrl.searchParams.delete("cells");
+        nextUrl.searchParams.delete("freeSpace");
+        nextUrl.searchParams.delete("style");
+        window.history.replaceState({}, "", nextUrl.toString());
+      }
+
+      lastSavedSnapshotRef.current = JSON.stringify(payload);
+      setAutoSaveState("saved");
+
+      if (options?.redirectAfterSave) {
+        router.push("/dashboard");
+      }
+
+      return true;
+    } catch (saveError) {
+      console.error("Save error:", saveError);
+      setError("An error occurred while saving the card");
+      setAutoSaveState("error");
+      setAutoSaveError("Autosave failed");
+      return false;
+    } finally {
+      createInFlightRef.current = false;
+    }
+  };
+
   useEffect(() => {
-    const urlTitle = searchParams.get("title");
-    const urlSize = searchParams.get("size");
-    const urlCells = searchParams.get("cells");
-    const urlFreeSpace = searchParams.get("freeSpace");
-    const urlStyle = searchParams.get("style");
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
 
-    if (urlTitle) setTitle(urlTitle);
-    if (urlSize) setSize(parseInt(urlSize) as GridSize);
-    if (urlCells) {
-      try {
-        setCells(JSON.parse(urlCells));
-      } catch (e) {
-        console.error("Failed to parse cells from URL:", e);
-      }
+    const canPersist =
+      Boolean(session?.user) &&
+      !isLoadingCard &&
+      !checkingPermission &&
+      (Boolean(currentCardId) || Boolean(permissionStatus?.allowed));
+
+    if (!canPersist) {
+      return;
     }
-    if (urlFreeSpace) setFreeSpace(urlFreeSpace === "true");
-    if (urlStyle) {
-      try {
-        setStyle(JSON.parse(urlStyle));
-      } catch (e) {
-        console.error("Failed to parse style from URL:", e);
+
+    if (!hasSavableContent()) {
+      if (!currentCardId) {
+        setAutoSaveState("idle");
+        setAutoSaveError("");
       }
+      return;
     }
-  }, [searchParams]);
+
+    const snapshot = JSON.stringify(getCardPayload());
+    if (snapshot === lastSavedSnapshotRef.current) {
+      if (currentCardId) {
+        setAutoSaveState("saved");
+      }
+      return;
+    }
+
+    setAutoSaveState("saving");
+    autoSaveTimerRef.current = setTimeout(() => {
+      saveCard({ suppressValidationErrors: true });
+    }, 1200);
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [
+    session?.user,
+    currentCardId,
+    isLoadingCard,
+    checkingPermission,
+    permissionStatus?.allowed,
+    title,
+    description,
+    size,
+    cells,
+    freeSpace,
+    isPublic,
+    style,
+  ]);
 
   const handleCellChange = (index: number, value: string) => {
     const newCells = [...cells];
     newCells[index] = value;
     setCells(newCells);
+    if (value.trim()) {
+      const filledCount = newCells.filter((c) => c.trim()).length;
+      trackOnce("card_cells_added", { filled_count: filledCount, grid_size: size });
+    }
   };
 
   const persistDraft = () => {
@@ -164,81 +559,75 @@ function CreateCardContent() {
 
   const redirectToSignupForCreation = () => {
     persistDraft();
-    router.push("/signup?callbackUrl=/create&reason=create");
+    setShowAuthModal(true);
   };
 
-  const redirectToTrialForCreation = () => {
-    persistDraft();
-    router.push("/start-trial?returnTo=/create");
+  const handleMagicLink = async () => {
+    if (!magicEmail.trim()) return;
+    setMagicLoading(true);
+    try {
+      await signIn("nodemailer", { email: magicEmail, callbackUrl: "/create", redirect: false });
+      setMagicSent(true);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setMagicLoading(false);
+    }
   };
 
   const handleSave = async () => {
     setLoading(true);
     setError("");
+    track("card_save_attempted", { title, size, cells_filled: cells.filter((c) => c.trim()).length });
 
     try {
-      // Validate required fields
-      if (!title.trim()) {
-        setError("Card title is required");
-        setLoading(false);
-        return;
-      }
-
-      // Check if at least some cells have content
-      const filledCells = cells.filter((cell) => cell.trim()).length;
-      if (filledCells === 0) {
-        setError("Please fill in at least one cell");
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch("/api/cards", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          size,
-          cells,
-          freeSpace,
-          isPublic,
-          style,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          redirectToSignupForCreation();
-          return;
-        } else if (response.status === 402 && data.trialRequired) {
-          redirectToTrialForCreation();
-          return;
-        } else if (response.status === 403) {
-          setError(data.error || "Card limit reached. Please upgrade your plan.");
-        } else {
-          setError(data.error || "Failed to create card");
-        }
-        setLoading(false);
-        return;
-      }
-
-      // Track card creation
-      if (data.card?._id) {
-        trackCardCreated(data.card._id, size, isPublic);
-      }
-      // Success - redirect to dashboard
-      router.push("/dashboard");
-    } catch (err) {
-      console.error("Save error:", err);
-      setError("An error occurred while saving the card");
+      await saveCard({ redirectAfterSave: true });
+    } finally {
       setLoading(false);
     }
   };
 
+  const handleBatchCheckout = async () => {
+    if (!session?.user) {
+      redirectToSignupForCreation();
+      return;
+    }
+
+    setBatchCheckoutLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          purchaseType: "batch_pack",
+          batchCount,
+          successPath: `/create?batchPurchase=success&batchCount=${batchCount}`,
+          cancelPath: `/create?batchPurchase=canceled&batchCount=${batchCount}`,
+        }),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.status === 401) {
+        redirectToSignupForCreation();
+        return;
+      }
+
+      if (!response.ok || !data.url) {
+        setError(data.error || "Failed to start batch checkout");
+        return;
+      }
+
+      window.location.href = data.url;
+    } catch (checkoutError) {
+      console.error("Batch checkout error:", checkoutError);
+      setError("Failed to start batch checkout");
+    } finally {
+      setBatchCheckoutLoading(false);
+    }
+  };
 
   const handleBatchGenerate = async () => {
     setBatchLoading(true);
@@ -281,9 +670,8 @@ function CreateCardContent() {
           redirectToSignupForCreation();
           return;
         }
-        if (response.status === 402 && data.trialRequired) {
-          redirectToTrialForCreation();
-          return;
+        if (response.status === 403 && data.batchPurchaseRequired) {
+          await loadBatchPurchases(batchCount);
         }
         setError(data.error || "Failed to generate batch cards");
         setBatchLoading(false);
@@ -294,6 +682,8 @@ function CreateCardContent() {
         count: data.count,
         cardIds: data.cards.map((c: any) => c._id),
       });
+
+      await loadBatchPurchases();
     } catch (err) {
       console.error("Batch error:", err);
       setError("An error occurred during batch generation");
@@ -304,7 +694,14 @@ function CreateCardContent() {
 
   const handleBatchPdfDownload = async (cardsPerPage: number = 1, grayscale: boolean = false) => {
     if (!batchResult) return;
-    setBatchPdfLoading(true);
+    const loadingKey: Exclude<BatchPdfOption, null> = grayscale
+      ? "pdf-gray"
+      : cardsPerPage === 4
+        ? "pdf-4"
+        : cardsPerPage === 2
+          ? "pdf-2"
+          : "pdf-1";
+    setBatchPdfLoading(loadingKey);
 
     try {
       const response = await fetch("/api/cards/batch/pdf", {
@@ -335,7 +732,7 @@ function CreateCardContent() {
     } catch (err: any) {
       alert(err.message || "Failed to download batch PDF");
     } finally {
-      setBatchPdfLoading(false);
+      setBatchPdfLoading(null);
     }
   };
 
@@ -348,13 +745,8 @@ function CreateCardContent() {
     if (!permissionStatus) return true;
 
     // Map plan types to max grid sizes
-    const maxGridSizes: Record<PlanType, number> = {
-      FREE: 3,
-      PREMIUM: 5,
-    };
-
-    const planType = (permissionStatus.planType === "PREMIUM" ? "PREMIUM" : "FREE") as PlanType;
-    return gridSize <= maxGridSizes[planType];
+    // All grid sizes available on all plans
+    return true;
   };
 
   const getGridSizeTooltip = (gridSize: GridSize): string => {
@@ -367,6 +759,60 @@ function CreateCardContent() {
     }
     return "";
   };
+
+  const isEditingExistingCard = Boolean(cardIdFromUrl || currentCardId);
+  const editorUnlocked = Boolean(!permissionStatus || permissionStatus.allowed || isEditingExistingCard);
+  const autoSaveLabel =
+    autoSaveState === "saving"
+      ? currentCardId
+        ? "Saving changes..."
+        : "Creating your card..."
+      : autoSaveState === "saved"
+        ? currentCardId
+          ? "All changes saved"
+          : "Draft ready"
+        : autoSaveState === "error"
+          ? autoSaveError || "Autosave failed"
+        : session?.user
+          ? "Changes save automatically"
+          : "Sign in to save automatically";
+  const isPremiumBatchUser = permissionStatus?.planType === "PREMIUM";
+  const selectedBatchPrice = formatBatchPackPrice(batchCount);
+  const selectedBatchPurchases = availableBatchCounts[batchCount] || 0;
+  const hasSelectedBatchPurchase = selectedBatchPurchases > 0;
+  const batchPurchaseStatus = searchParams.get("batchPurchase");
+  const batchStatusMessage =
+    batchPurchaseStatus === "success"
+      ? hasSelectedBatchPurchase
+        ? `${batchCount}-card batch purchased. It is ready to generate.`
+        : `Payment received. If your ${batchCount}-card batch does not unlock within a few seconds, refresh this page.`
+      : batchPurchaseStatus === "canceled"
+        ? "Batch purchase canceled."
+        : "";
+  const availableBatchSummary = ([10, 25, 50, 100] as const)
+    .filter((count) => (availableBatchCounts[count] || 0) > 0)
+    .map((count) => `${count}-card x${availableBatchCounts[count]}`)
+    .join(", ");
+  const batchActionLabel = checkingPermission && session?.user
+    ? "Checking your plan..."
+    : batchLoading
+      ? `Generating ${batchCount} cards...`
+      : batchCheckoutLoading
+        ? "Redirecting to checkout..."
+        : isPremiumBatchUser || hasSelectedBatchPurchase
+          ? `Generate ${batchCount} Unique Cards`
+          : session?.user
+            ? `Buy ${batchCount}-Card Batch • ${selectedBatchPrice}`
+            : `Sign in to buy ${batchCount}-Card Batch • ${selectedBatchPrice}`;
+  const batchActionDisabled =
+    showPreview ||
+    batchLoading ||
+    batchCheckoutLoading ||
+    (Boolean(session?.user) && checkingPermission) ||
+    (permissionStatus?.planType === "FREE" && loadingBatchPurchases);
+  const handleBatchPrimaryAction = isPremiumBatchUser || hasSelectedBatchPurchase
+    ? handleBatchGenerate
+    : handleBatchCheckout;
 
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
@@ -403,12 +849,26 @@ function CreateCardContent() {
 
       <main className="pt-24 pb-32 md:pb-24 px-4">
         <div className="container mx-auto max-w-7xl">
-          <div className="mb-8 flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-slate-900">Create Bingo Card</h1>
+          <div className="mb-8 flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">
+                {isEditingExistingCard ? "Edit Bingo Card" : "Create Bingo Card"}
+              </h1>
+              <p className="mt-2 text-sm text-slate-500">{autoSaveLabel}</p>
+              {!checkingPermission && permissionStatus && permissionStatus.cardsCreated !== undefined && permissionStatus.cardsLimit !== undefined && permissionStatus.planType && (
+                <div className="mt-2">
+                  <CardUsageBadge
+                    cardsCreated={permissionStatus.cardsCreated}
+                    cardsLimit={permissionStatus.cardsLimit}
+                    planType={permissionStatus.planType}
+                  />
+                </div>
+              )}
+            </div>
              {/* Usage Banner */}
             {!checkingPermission && permissionStatus && (
               <div className={`hidden md:flex items-center gap-4 px-4 py-2 rounded-full border ${
-                permissionStatus.allowed
+                permissionStatus.allowed || isEditingExistingCard
                   ? "bg-emerald-50 border-emerald-100 text-emerald-800"
                   : "bg-amber-50 border-amber-100 text-amber-800"
               }`}>
@@ -421,7 +881,7 @@ function CreateCardContent() {
                       ? "Unlimited Cards"
                       : `${permissionStatus.cardsCreated}/${permissionStatus.cardsLimit} used`}
                   </span>
-                   {permissionStatus.upgradeRequired && (
+                   {permissionStatus.upgradeRequired && !isEditingExistingCard && (
                     <button
                       onClick={redirectToCheckout}
                       className="ml-2 px-3 py-1 bg-white rounded-full text-xs font-bold shadow-sm hover:shadow transition-all"
@@ -440,7 +900,7 @@ function CreateCardContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-sm">
-                Build your card first. When you press create, we&apos;ll ask you to sign up and start your 7-day free trial in Stripe before saving it.{" "}
+                Build your card first. Sign up free when you&apos;re ready to save it.{" "}
                 <Link href="/signup?callbackUrl=/create" className="font-semibold underline underline-offset-2 hover:text-indigo-900">
                   Sign up now
                 </Link>{" "}
@@ -462,8 +922,15 @@ function CreateCardContent() {
             </div>
           )}
 
+          {isLoadingCard && (
+            <div className="mb-8 p-4 bg-white border border-slate-200 rounded-xl text-slate-600 flex items-center gap-3">
+              <div className="w-5 h-5 border-2 border-slate-300 border-t-indigo-600 rounded-full animate-spin"></div>
+              Loading saved card...
+            </div>
+          )}
+
           {/* Paywall - Free user card limit reached */}
-          {permissionStatus && !permissionStatus.allowed && permissionStatus.upgradeRequired && (
+          {permissionStatus && !permissionStatus.allowed && permissionStatus.upgradeRequired && !isEditingExistingCard && (
             <div className="mb-8 bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-2xl p-8 text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-indigo-100 rounded-full flex items-center justify-center">
                 <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
@@ -477,7 +944,7 @@ function CreateCardContent() {
                   onClick={redirectToCheckout}
                   className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5 transition-all"
                 >
-                  {permissionStatus?.trialEligible ? "Start 7-Day Free Trial" : "Upgrade to Premium — $4.99/mo"}
+                  Upgrade to Premium — $4.99/mo
                 </button>
                 <Link
                   href="/dashboard"
@@ -486,7 +953,7 @@ function CreateCardContent() {
                   Back to Dashboard
                 </Link>
               </div>
-              <p className="mt-4 text-xs text-slate-400">{permissionStatus?.trialEligible ? "No charge for 7 days. Then $4.99/mo. Cancel anytime." : "Cancel anytime. No commitments."}</p>
+              <p className="mt-4 text-xs text-slate-400">Billed at $4.99/month. Cancel anytime.</p>
             </div>
           )}
 
@@ -497,7 +964,7 @@ function CreateCardContent() {
             </div>
           )}
 
-          {(!permissionStatus || permissionStatus.allowed) && (
+          {editorUnlocked && !isLoadingCard && (
           <div className="grid lg:grid-cols-12 gap-8">
             {/* Left Panel - Card Settings */}
             <div className="lg:col-span-4 space-y-6">
@@ -517,6 +984,11 @@ function CreateCardContent() {
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
+                      onBlur={() => {
+                        if (title.trim()) {
+                          trackOnce("card_title_entered", { title: title.trim() });
+                        }
+                      }}
                       placeholder="e.g., Wedding Bingo"
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder:text-slate-400"
                       disabled={showPreview}
@@ -780,15 +1252,50 @@ function CreateCardContent() {
                                 : "border-slate-200 bg-white text-slate-600 hover:border-indigo-300"
                             }`}
                           >
-                            {n}
+                            <div className="font-semibold">{n}</div>
+                            {!isPremiumBatchUser && (
+                              <div className="mt-0.5 text-[11px] font-medium text-slate-500">
+                                {BATCH_PACKS[n].label}
+                              </div>
+                            )}
+                            {!isPremiumBatchUser && (availableBatchCounts[n] || 0) > 0 && (
+                              <div className="mt-1 text-[10px] font-semibold text-emerald-600">
+                                Ready x{availableBatchCounts[n]}
+                              </div>
+                            )}
                           </button>
                         ))}
                       </div>
                     </div>
 
-                    <p className="text-xs text-slate-500">
-                      Each card will have a unique random arrangement of your items. Requires Premium plan.
-                    </p>
+                    {batchStatusMessage && (
+                      <div
+                        className={`rounded-xl border px-3 py-2 text-xs ${
+                          batchPurchaseStatus === "success"
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            : "border-amber-200 bg-amber-50 text-amber-700"
+                        }`}
+                      >
+                        {batchStatusMessage}
+                      </div>
+                    )}
+
+                    {isPremiumBatchUser ? (
+                      <p className="text-xs text-slate-500">
+                        Each card will have a unique random arrangement of your items. Premium batch generation is included in your plan.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-xs text-slate-500">
+                          Free accounts can buy one-time batch packs. Premium stays unchanged and still includes batch generation.
+                        </p>
+                        {availableBatchSummary && (
+                          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                            Purchased and ready: {availableBatchSummary}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {batchResult && (
                       <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-3">
@@ -798,31 +1305,47 @@ function CreateCardContent() {
                         <div className="space-y-2">
                           <button
                             onClick={() => handleBatchPdfDownload(1)}
-                            disabled={batchPdfLoading}
-                            className="w-full py-2.5 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 transition disabled:opacity-50"
+                            disabled={batchPdfLoading !== null}
+                            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
+                              batchPdfLoading === "pdf-1"
+                                ? "bg-red-700 text-white cursor-wait"
+                                : "bg-red-600 text-white hover:bg-red-700"
+                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-1" ? "cursor-not-allowed" : ""}`}
                           >
-                            {batchPdfLoading ? "Generating PDF..." : "Download PDF (1 per page)"}
+                            {batchPdfLoading === "pdf-1" ? "Generating PDF..." : "Download PDF (1 per page)"}
                           </button>
                           <button
                             onClick={() => handleBatchPdfDownload(2)}
-                            disabled={batchPdfLoading}
-                            className="w-full py-2.5 bg-red-500 text-white rounded-lg text-sm font-semibold hover:bg-red-600 transition disabled:opacity-50"
+                            disabled={batchPdfLoading !== null}
+                            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
+                              batchPdfLoading === "pdf-2"
+                                ? "bg-red-600 text-white cursor-wait"
+                                : "bg-red-500 text-white hover:bg-red-600"
+                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-2" ? "cursor-not-allowed" : ""}`}
                           >
-                            {batchPdfLoading ? "Generating PDF..." : "Download PDF (2 per page)"}
+                            {batchPdfLoading === "pdf-2" ? "Generating PDF..." : "Download PDF (2 per page)"}
                           </button>
                           <button
                             onClick={() => handleBatchPdfDownload(4)}
-                            disabled={batchPdfLoading}
-                            className="w-full py-2.5 bg-red-400 text-white rounded-lg text-sm font-semibold hover:bg-red-500 transition disabled:opacity-50"
+                            disabled={batchPdfLoading !== null}
+                            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
+                              batchPdfLoading === "pdf-4"
+                                ? "bg-red-500 text-white cursor-wait"
+                                : "bg-red-400 text-white hover:bg-red-500"
+                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-4" ? "cursor-not-allowed" : ""}`}
                           >
-                            {batchPdfLoading ? "Generating PDF..." : "Download PDF (4 per page)"}
+                            {batchPdfLoading === "pdf-4" ? "Generating PDF..." : "Download PDF (4 per page)"}
                           </button>
                           <button
                             onClick={() => handleBatchPdfDownload(1, true)}
-                            disabled={batchPdfLoading}
-                            className="w-full py-2 bg-slate-600 text-white rounded-lg text-sm font-semibold hover:bg-slate-700 transition disabled:opacity-50"
+                            disabled={batchPdfLoading !== null}
+                            className={`w-full py-2 rounded-lg text-sm font-semibold transition ${
+                              batchPdfLoading === "pdf-gray"
+                                ? "bg-slate-700 text-white cursor-wait"
+                                : "bg-slate-600 text-white hover:bg-slate-700"
+                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-gray" ? "cursor-not-allowed" : ""}`}
                           >
-                            {batchPdfLoading ? "Generating..." : "Download Grayscale PDF"}
+                            {batchPdfLoading === "pdf-gray" ? "Generating..." : "Download Grayscale PDF"}
                           </button>
                         </div>
                         <button
@@ -836,13 +1359,11 @@ function CreateCardContent() {
 
                     {!batchResult && (
                       <button
-                        onClick={handleBatchGenerate}
-                        disabled={batchLoading || showPreview}
+                        onClick={handleBatchPrimaryAction}
+                        disabled={batchActionDisabled}
                         className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 font-bold text-sm"
                       >
-                        {batchLoading
-                          ? `Generating ${batchCount} cards...`
-                          : `Generate ${batchCount} Unique Cards`}
+                        {batchActionLabel}
                       </button>
                     )}
                   </div>
@@ -872,11 +1393,12 @@ function CreateCardContent() {
                         className="grid mb-1.5 md:mb-2 text-center font-black tracking-widest text-slate-900 opacity-90"
                         style={{ gridTemplateColumns: `repeat(${size}, 1fr)`, gap: size === 5 ? "4px" : "8px" }}
                       >
-                         {['B','I','N','G','O'].slice(0, size).map((char, i) => (
-                           <div key={i} className={`${size === 5 ? "py-1 text-lg md:text-2xl" : size === 4 ? "py-1.5 text-xl md:text-3xl" : "py-2 text-2xl md:text-4xl"} text-transparent bg-clip-text bg-gradient-to-br from-violet-600 to-indigo-600`}>
-                             {char}
-                           </div>
-                         ))}
+                         <div
+                           className="py-1.5 text-sm font-bold text-center text-transparent bg-clip-text bg-gradient-to-br from-violet-600 to-indigo-600 truncate px-2"
+                           style={{ gridColumn: "1 / -1" }}
+                         >
+                           {title || "My Bingo Card"}
+                         </div>
                       </div>
 
                       <div
@@ -888,12 +1410,11 @@ function CreateCardContent() {
                       >
                         {cells.map((cell, index) => {
                           const isFreeSpace = freeSpace && index === getFreeSpaceIndex();
-                          const cellHeight = size === 5 ? "h-16 md:h-20" : size === 4 ? "h-20 md:h-24" : "h-24 md:h-28";
 
                           return (
                             <div
                               key={index}
-                              className={`${cellHeight} relative group transition-all duration-200 ${
+                              className={`aspect-square relative group transition-all duration-200 ${
                                 showPreview ? "shadow-sm" : "focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-1"
                               }`}
                               style={{
@@ -905,11 +1426,11 @@ function CreateCardContent() {
                                 <div
                                   className="w-full h-full flex items-center justify-center border-2 rounded-lg md:rounded-xl font-bold p-1 text-center shadow-inner bg-opacity-90"
                                   style={{
-                                    color: style.textColor,
+                                    color: "#4338ca",
                                     fontSize: style.fontSize,
                                     fontFamily: style.fontFamily,
-                                    borderColor: style.borderColor,
-                                    background: `linear-gradient(135deg, ${style.backgroundColor}, ${style.backgroundColor}ee)`
+                                    borderColor: "#818cf8",
+                                    background: "linear-gradient(135deg, #ede9fe 0%, #dbeafe 100%)",
                                   }}
                                 >
                                   FREE
@@ -936,6 +1457,7 @@ function CreateCardContent() {
                                   style={{
                                     color: style.textColor,
                                     fontFamily: style.fontFamily,
+                                    borderColor: style.borderColor,
                                   }}
                                 />
                               )}
@@ -958,7 +1480,7 @@ function CreateCardContent() {
                     Browse Templates
                   </Link>
 
-                  {permissionStatus && !permissionStatus.allowed ? (
+                  {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
                     <button
                       onClick={redirectToCheckout}
                       className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-6 py-3.5 rounded-xl hover:shadow-lg hover:shadow-orange-500/20 hover:-translate-y-0.5 transition-all font-bold text-lg shadow-md shadow-orange-200 text-center"
@@ -970,11 +1492,12 @@ function CreateCardContent() {
                     onClick={handleSave}
                     disabled={
                       loading ||
-                      showPreview
+                      showPreview ||
+                      isLoadingCard
                     }
                     className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-6 py-3.5 rounded-xl hover:shadow-lg hover:shadow-indigo-500/20 hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-lg shadow-md shadow-indigo-200"
                   >
-                    {loading ? "Creating Card..." : "Create Bingo Card"}
+                    {loading ? "Saving..." : isEditingExistingCard ? "Save & Go to Dashboard" : "Create & Save Card"}
                   </button>
                   )}
                 </div>
@@ -985,7 +1508,7 @@ function CreateCardContent() {
         </div>
 
         {/* Mobile sticky bottom action bar */}
-        {(!permissionStatus || permissionStatus.allowed) && (<div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50">
+        {editorUnlocked && !isLoadingCard && (<div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50">
           <div className="container mx-auto px-4 py-3">
             <div className="flex gap-2">
               <Link
@@ -994,7 +1517,7 @@ function CreateCardContent() {
               >
                 📋 Templates
               </Link>
-              {permissionStatus && !permissionStatus.allowed ? (
+              {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
                 <button
                   onClick={redirectToCheckout}
                   className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-4 py-3 rounded-lg font-bold text-sm shadow-md text-center"
@@ -1004,10 +1527,10 @@ function CreateCardContent() {
               ) : (
               <button
                 onClick={handleSave}
-                disabled={loading || showPreview}
+                disabled={loading || showPreview || isLoadingCard}
                 className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-3 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed font-bold text-sm shadow-md"
               >
-                {loading ? "Creating..." : "Create Card"}
+                {loading ? "Saving..." : isEditingExistingCard ? "Save" : "Create & Save"}
               </button>
               )}
             </div>
@@ -1015,6 +1538,133 @@ function CreateCardContent() {
         </div>
         )}
       </main>
+
+
+      {/* Save Card Auth Modal */}
+      {showAuthModal && (
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget) setShowAuthModal(false); }}
+          style={{
+            position: "fixed", inset: 0, zIndex: 9999,
+            background: "rgba(15,23,42,0.6)", backdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "20px"
+          }}
+        >
+          <div style={{
+            background: "white", borderRadius: "20px", padding: "36px 32px",
+            maxWidth: "420px", width: "100%",
+            boxShadow: "0 24px 64px rgba(0,0,0,0.18)",
+            position: "relative", textAlign: "center"
+          }}>
+            {/* Close */}
+            <button
+              onClick={() => setShowAuthModal(false)}
+              style={{
+                position: "absolute", top: "16px", right: "16px",
+                background: "#f1f5f9", border: "none", borderRadius: "50%",
+                width: "32px", height: "32px", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "18px", color: "#64748b", lineHeight: 1
+              }}
+            >×</button>
+
+            {/* Card saved icon */}
+            <div style={{ fontSize: "40px", marginBottom: "12px" }}>🎯</div>
+
+            <h2 style={{ margin: "0 0 6px", fontSize: "22px", fontWeight: 800, color: "#1e293b", letterSpacing: "-0.5px" }}>
+              Save your card
+            </h2>
+            {title && (
+              <p style={{ margin: "0 0 4px", fontSize: "14px", color: "#7c3aed", fontWeight: 600 }}>
+                &ldquo;{title}&rdquo;
+              </p>
+            )}
+            <p style={{ margin: "0 0 24px", fontSize: "14px", color: "#64748b" }}>
+              Free to join — takes 10 seconds
+            </p>
+
+            {!magicSent ? (
+              <>
+                {/* Google */}
+                <button
+                  onClick={() => signIn("google", { callbackUrl: "/create" })}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                    gap: "10px", padding: "13px 16px", borderRadius: "12px",
+                    border: "1.5px solid #e2e8f0", background: "white", cursor: "pointer",
+                    fontSize: "15px", fontWeight: 600, color: "#1e293b",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.08)", marginBottom: "16px",
+                    transition: "all 0.15s"
+                  }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+                  Continue with Google
+                </button>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "0 0 16px" }}>
+                  <div style={{ flex: 1, height: "1px", background: "#e2e8f0" }} />
+                  <span style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 500 }}>or use email</span>
+                  <div style={{ flex: 1, height: "1px", background: "#e2e8f0" }} />
+                </div>
+
+                {/* Magic link email */}
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={magicEmail}
+                  onChange={(e) => setMagicEmail(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleMagicLink(); }}
+                  style={{
+                    width: "100%", padding: "12px 14px", borderRadius: "10px",
+                    border: "1.5px solid #e2e8f0", fontSize: "14px", marginBottom: "10px",
+                    outline: "none", boxSizing: "border-box", color: "#1e293b"
+                  }}
+                />
+                <button
+                  onClick={handleMagicLink}
+                  disabled={magicLoading || !magicEmail.trim()}
+                  style={{
+                    width: "100%", padding: "13px", borderRadius: "12px", border: "none",
+                    background: magicEmail.trim() ? "#7c3aed" : "#e2e8f0",
+                    color: magicEmail.trim() ? "white" : "#94a3b8",
+                    fontWeight: 700, fontSize: "15px", cursor: magicEmail.trim() ? "pointer" : "default",
+                    marginBottom: "16px", transition: "all 0.15s"
+                  }}
+                >
+                  {magicLoading ? "Sending..." : "Send magic link"}
+                </button>
+
+                <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0 }}>
+                  Already have an account?{" "}
+                  <a href={"/login?callbackUrl=/create"} style={{ color: "#7c3aed", fontWeight: 600, textDecoration: "none" }}>Sign in</a>
+                </p>
+              </>
+            ) : (
+              <div style={{ padding: "20px 0" }}>
+                <div style={{ fontSize: "48px", marginBottom: "12px" }}>📬</div>
+                <h3 style={{ margin: "0 0 8px", fontSize: "18px", fontWeight: 700, color: "#1e293b" }}>Check your inbox</h3>
+                <p style={{ margin: "0 0 16px", fontSize: "14px", color: "#64748b", lineHeight: 1.5 }}>
+                  We sent a magic link to <strong>{magicEmail}</strong>.<br />Click it to sign in and save your card.
+                </p>
+                <button
+                  onClick={() => { setMagicSent(false); setMagicEmail(""); }}
+                  style={{ background: "none", border: "none", color: "#7c3aed", fontWeight: 600, cursor: "pointer", fontSize: "14px" }}
+                >
+                  ← Try a different email
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </div>
   );
 }

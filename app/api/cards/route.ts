@@ -4,23 +4,8 @@ import { auth } from "@/auth";
 import { createCard, getUserCards, updateCard, deleteCard, getCardById } from "@/lib/db/cards";
 import { canCreateCard } from "@/lib/db/subscriptions";
 import { generateShareLink } from "@/lib/db/cards";
-import { getUserAccessState } from "@/lib/access";
-
-async function ensureBillingReady(email?: string | null) {
-  if (!email) {
-    return null;
-  }
-
-  const { billingSetupRequired } = await getUserAccessState(email);
-  if (!billingSetupRequired) {
-    return null;
-  }
-
-  return NextResponse.json(
-    { error: "Billing setup required", trialRequired: true },
-    { status: 402 }
-  );
-}
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { notifyCardCreated } from "@/lib/discord";
 
 export async function GET(request: Request) {
   try {
@@ -31,11 +16,6 @@ export async function GET(request: Request) {
         { error: "Unauthorized" },
         { status: 401 }
       );
-    }
-
-    const billingResponse = await ensureBillingReady(session.user.email);
-    if (billingResponse) {
-      return billingResponse;
     }
 
 
@@ -55,19 +35,16 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const requestContext = getRequestActivityContext(request);
+  let session: { user?: { id?: string; email?: string | null; name?: string | null } } | null = null;
   try {
-    const session = await auth();
+    session = await auth();
 
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
-    }
-
-    const billingResponse = await ensureBillingReady(session.user.email);
-    if (billingResponse) {
-      return billingResponse;
     }
 
     // Check if user can create more cards
@@ -96,6 +73,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+
 
     // Validate cells array length
     const expectedCells = data.size * data.size;
@@ -127,9 +105,47 @@ export async function POST(request: Request) {
       shareLink,
     });
 
+    await trackActivity({
+      event: "card_created",
+      source: "server",
+      userId: session.user.id,
+      email: session.user.email || null,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        cardId: card._id.toString(),
+        title: card.title,
+        size: card.size,
+        isPublic: card.isPublic,
+        templateId: data.templateId || null,
+      },
+    });
+
+    notifyCardCreated(
+      session.user.name || "",
+      session.user.email || "",
+      card.title || "Untitled",
+      "FREE"
+    ).catch(console.error);
+
     return NextResponse.json({ card }, { status: 201 });
   } catch (error) {
     console.error("Create card error:", error);
+    trackActivity({
+      event: "card_create_failed",
+      source: "server",
+      userId: session?.user?.id || null,
+      email: session?.user?.email || null,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        error: error instanceof Error ? error.message : "Unknown error",
+      },
+    }).catch(() => {});
     return NextResponse.json(
       { error: "Failed to create card" },
       { status: 500 }
@@ -140,17 +156,13 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const session = await auth();
+    const requestContext = getRequestActivityContext(request);
 
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
-    }
-
-    const billingResponse = await ensureBillingReady(session.user.email);
-    if (billingResponse) {
-      return billingResponse;
     }
 
     const data = await request.json();
@@ -186,6 +198,20 @@ export async function PUT(request: Request) {
       );
     }
 
+    await trackActivity({
+      event: "card_updated",
+      source: "server",
+      userId: session.user.id,
+      email: session.user.email || null,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        cardId: data.cardId,
+      },
+    });
+
     return NextResponse.json({ card });
   } catch (error) {
     console.error("Update card error:", error);
@@ -199,17 +225,13 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const session = await auth();
+    const requestContext = getRequestActivityContext(request);
 
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
-    }
-
-    const billingResponse = await ensureBillingReady(session.user.email);
-    if (billingResponse) {
-      return billingResponse;
     }
 
     const { searchParams } = new URL(request.url);
@@ -245,6 +267,21 @@ export async function DELETE(request: Request) {
         { status: 404 }
       );
     }
+
+    await trackActivity({
+      event: "card_deleted",
+      source: "server",
+      userId: session.user.id,
+      email: session.user.email || null,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        cardId,
+        title: existingCard.title,
+      },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -185,7 +185,7 @@ export default function BabyShowerBingoPage() {
                   {
                     icon: "💸",
                     title: "Free to Start",
-                    desc: "Build your baby shower bingo card for free, then start a 7-day Stripe trial to save it and unlock unlimited cards.",
+                    desc: "Build your baby shower bingo card for free. Upgrade to Premium for unlimited cards, HD exports, and all templates.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">

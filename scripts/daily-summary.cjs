@@ -118,7 +118,38 @@ async function run() {
       .map(([source, count]) => source + ': **' + count + '**')
       .join(' | ');
 
-    // --- Most popular cards ---
+    // --- Email / Drip Stats ---
+    const totalSent = await db.collection('drip_log').countDocuments();
+    const sent24h = await db.collection('drip_log').countDocuments({ sentAt: { $gte: yesterday } });
+    const totalOpens = await db.collection('drip_opens').countDocuments();
+    const opens24h = await db.collection('drip_opens').countDocuments({ firstOpenedAt: { $gte: yesterday } });
+    const totalUnsubs = await db.collection('email_preferences').countDocuments({ marketingEmails: false });
+
+    const campaignLogs = await db.collection('drip_log').aggregate([
+      { $group: { _id: '$campaignId', sent: { $sum: 1 } } }
+    ]).toArray();
+    const campaignOpens = await db.collection('drip_opens').aggregate([
+      { $group: { _id: '$campaignId', opens: { $sum: 1 } } }
+    ]).toArray();
+    const opensByCampaign = {};
+    campaignOpens.forEach(c => { opensByCampaign[c._id] = c.opens; });
+
+    const campaignLabels = {
+      create_first_card: '📝 Create First Card',
+      how_are_you_liking: '💬 How Are You Liking It',
+      reengage_inactive: '🔄 Re-engagement',
+      upgrade_nudge: '⭐ Upgrade Nudge',
+    };
+    const campaignLines = campaignLogs.map(c => {
+      const label = campaignLabels[c._id] || c._id;
+      const opens = opensByCampaign[c._id] || 0;
+      const rate = c.sent > 0 ? ((opens / c.sent) * 100).toFixed(0) : '0';
+      return label + ': **' + opens + '/' + c.sent + '** (' + rate + '%)';
+    }).join('\n');
+
+    const overallOpenRate = totalSent > 0 ? ((totalOpens / totalSent) * 100).toFixed(1) : '0';
+
+        // --- Most popular cards ---
     const topCards = await db.collection('cards')
       .find({}, { projection: { title: 1, views: 1 } })
       .sort({ views: -1 })
@@ -190,6 +221,20 @@ async function run() {
           inline: false,
         },
         {
+          name: '📧 Email Drip Stats',
+          value: [
+            'Sent (24h): **' + sent24h + '** | Total: **' + totalSent + '**',
+            'Opened (24h): **' + opens24h + '** | Overall rate: **' + overallOpenRate + '%**',
+            'Unsubscribes: **' + totalUnsubs + '**',
+          ].join('\n'),
+          inline: false,
+        },
+        {
+          name: '📊 Open Rate by Campaign',
+          value: campaignLines || 'No data yet',
+          inline: false,
+        },
+                {
           name: 'Top Cards by Views',
           value: topCardsList || 'No cards yet',
           inline: false,

@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { trackClientActivity } from "@/lib/activity-client";
 
 type StoredAttribution = {
   utm_source?: string;
@@ -25,9 +26,8 @@ function readStoredAttribution(): StoredAttribution {
   }
 }
 
-function buildTrialStartPath(callbackUrl: string): string {
-  const safeCallbackUrl = callbackUrl.startsWith("/") ? callbackUrl : "/dashboard";
-  return `/start-trial?returnTo=${encodeURIComponent(safeCallbackUrl)}`;
+function buildPostSignupPath(callbackUrl: string): string {
+  return callbackUrl.startsWith("/") ? callbackUrl : "/dashboard";
 }
 
 function SignupForm() {
@@ -38,6 +38,7 @@ function SignupForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState("");
 
   // Persist UTM params to localStorage so Google OAuth flow can pick them up too
@@ -72,6 +73,10 @@ function SignupForm() {
 
     try {
       const storedAttribution = readStoredAttribution();
+      trackClientActivity("signup_attempted", {
+        method: "credentials",
+        callbackUrl: searchParams.get("callbackUrl") || "/dashboard",
+      });
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -79,6 +84,7 @@ function SignupForm() {
           name,
           email,
           password,
+          website: honeypot,
           utm_source: searchParams.get("utm_source") || storedAttribution.utm_source || undefined,
           utm_medium: searchParams.get("utm_medium") || storedAttribution.utm_medium || undefined,
           utm_campaign: searchParams.get("utm_campaign") || storedAttribution.utm_campaign || undefined,
@@ -92,25 +98,22 @@ function SignupForm() {
 
       if (!response.ok) {
         setError(data.error || "Failed to create account");
+        trackClientActivity("signup_failed", {
+          method: "credentials",
+          reason: data.error || "signup_failed",
+        });
         setIsLoading(false);
         return;
       }
 
-      // Auto sign in after successful registration
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError("Account created but failed to sign in. Please try logging in.");
-      } else {
-        const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-        router.push(buildTrialStartPath(callbackUrl));
-      }
+      // Redirect to verify-email page — user must confirm email before logging in
+      router.push("/verify-email");
     } catch (error) {
       setError("An error occurred. Please try again.");
+      trackClientActivity("signup_failed", {
+        method: "credentials",
+        reason: "unexpected_error",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -118,6 +121,10 @@ function SignupForm() {
 
   const handleGoogleSignup = () => {
     const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+    trackClientActivity("oauth_signup_started", {
+      provider: "google",
+      callbackUrl,
+    });
     signIn("google", { callbackUrl });
   };
 
@@ -187,9 +194,9 @@ function SignupForm() {
                </span>
                <span className="font-bold text-gray-900 text-xl">MyBingoCard</span>
              </Link>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Start your 7-day free trial</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Create your account</h1>
             <p className="mt-2 text-gray-600">
-              Create your account, then add a card in Stripe to unlock Premium for 7 days. Cancel anytime.
+              Free to join. Your card will be saved automatically.
             </p>
           </div>
 
@@ -311,6 +318,19 @@ function SignupForm() {
                   )}
                 </button>
               </div>
+            {/* Honeypot field — hidden from real users, bots fill this in */}
+            <div style={{position:"absolute",left:"-9999px",opacity:0,pointerEvents:"none"}} aria-hidden="true">
+              <label htmlFor="website">Website</label>
+              <input
+                id="website"
+                name="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+              />
+            </div>
             </form>
 
             <p className="text-center text-sm text-gray-600 mt-8">

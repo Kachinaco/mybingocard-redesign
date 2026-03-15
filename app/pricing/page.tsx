@@ -8,10 +8,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 const FREE_FEATURES = [
-  "1 bingo card",
+  "3 bingo cards",
   "3x3 and 4x4 grids",
-  "No templates",
-  "Standard PDF export",
+  "5 starter templates",
+  "Standard PDF export (with watermark)",
   "Share links",
   "Includes ads",
 ];
@@ -177,10 +177,10 @@ function PricingContent() {
             Simple, Transparent Pricing
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-            Start a <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">7-day free trial</span> of Premium.
+            Upgrade to <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Premium</span> for $4.99/month.
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Add a payment method in Stripe to unlock Premium instantly. Cancel before billing and your account falls back to the free plan.
+            Pay securely in Stripe to unlock Premium instantly. You’ll be billed $4.99/month and can cancel anytime.
           </p>
         </div>
 
@@ -238,7 +238,7 @@ function PricingContent() {
                 </span>
               </div>
               <p className="text-sm text-slate-500 mb-8">
-                Add a card to start your 7-day trial, then $4.99/month. Cancel anytime.
+                Clean, watermark-free bingo cards for any event. Unlimited cards, HD exports, all templates, and custom styling. Cancel anytime.
               </p>
 
               <ul className="space-y-4 mb-8">
@@ -268,7 +268,7 @@ function PricingContent() {
                     loading ? "opacity-70 cursor-wait" : ""
                   }`}
                 >
-                  {loading ? "Processing..." : "Start 7-Day Free Trial"}
+                  {loading ? "Processing..." : "Upgrade to Premium"}
                 </button>
               )}
             </div>
@@ -289,10 +289,10 @@ function PricingContent() {
               </thead>
               <tbody className="text-sm">
                 {[
-                  ["Bingo cards", "1 saved", "Unlimited"],
+                  ["Bingo cards", "3 cards", "Unlimited"],
                   ["Grid sizes", "3x3, 4x4", "3x3, 4x4, 5x5"],
-                  ["Templates", "-", "All premium"],
-                  ["PDF export", "Standard", "HD quality"],
+                  ["Templates", "5 starter", "All 24 templates"],
+                  ["PDF export", "With watermark", "HD, no watermark"],
                   ["PNG export", "-", "Yes"],
                   ["Custom colors & fonts", "-", "Yes"],
                   ["Batch generation", "-", "Up to 100"],
@@ -331,7 +331,7 @@ function PricingContent() {
                 Can I cancel anytime?
               </h3>
               <p className="text-slate-600 leading-relaxed">
-                Absolutely! Monthly subscriptions can be canceled anytime from your settings. If you cancel, you'll keep premium access until the end of your current billing period or trial.
+                Absolutely. Monthly subscriptions can be canceled anytime from your settings, and you'll keep premium access until the end of your current billing period.
               </p>
             </div>
 
@@ -349,7 +349,7 @@ function PricingContent() {
                 What can I do on the free plan?
               </h3>
               <p className="text-slate-600 leading-relaxed">
-                The free plan lets you build a card, but you’ll need to create an account and start the Stripe-backed 7-day trial before saving your first one.
+                The free plan lets you create up to 3 bingo cards with 5 starter templates. Free exports include a small watermark. Upgrade to Premium for unlimited cards, all templates, HD exports, and watermark-free downloads.
               </p>
             </div>
           </div>
@@ -364,10 +364,10 @@ function PricingContent() {
             </div>
             <div className="relative z-10">
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                Ready to create amazing bingo cards?
+                Make your next event unforgettable.
               </h2>
               <p className="text-indigo-200 text-lg mb-8 max-w-2xl mx-auto">
-                Build your card for free, then create an account and start your 7-day trial in Stripe when you're ready to save it.
+                Wedding guests, baby shower attendees, and students all love bingo. Create beautiful, watermark-free cards in minutes.
               </p>
               <Link href="/create" className="inline-block px-8 py-4 bg-white text-slate-900 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-colors shadow-lg shadow-white/10">
                 Create Your First Card

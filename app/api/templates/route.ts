@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getUserByEmail } from "@/lib/db/users";
-import { canAccessAllTemplates } from "@/lib/permissions";
 import {
   getAllTemplates,
   searchTemplates,
@@ -9,6 +7,7 @@ import {
   getTemplatesByCategory,
   incrementTemplateUses,
 } from "@/lib/db/templates";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 export async function GET(request: Request) {
   try {
@@ -47,25 +46,7 @@ export async function GET(request: Request) {
       templates = await getAllTemplates(filters);
     }
 
-    // Filter premium templates based on user permissions
-    const session = await auth();
-
-    if (session?.user?.email) {
-      const user = await getUserByEmail(session.user.email);
-
-      if (user) {
-        const permission = canAccessAllTemplates(user.planType);
-
-        // If user doesn't have access to all templates, filter out premium ones
-        if (!permission.allowed) {
-          templates = templates.filter((template: any) => !template.isPremium);
-        }
-      }
-    } else {
-      // Not logged in - only show free templates
-      templates = templates.filter((template: any) => !template.isPremium);
-    }
-
+    // Return all templates - UI handles premium gating with lock icons
     return NextResponse.json({ templates });
   } catch (error) {
     console.error("Get templates error:", error);
@@ -79,6 +60,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
+    const session = await auth();
+    const requestContext = getRequestActivityContext(request);
 
     if (!data.templateId) {
       return NextResponse.json(
@@ -89,6 +72,20 @@ export async function POST(request: Request) {
 
     // Increment template usage count
     await incrementTemplateUses(data.templateId);
+
+    await trackActivity({
+      event: "template_used",
+      source: "server",
+      userId: session?.user?.id || null,
+      email: session?.user?.email || null,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        templateId: data.templateId,
+      },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getUserByEmail, updateUser } from "@/lib/db/users";
 import clientPromise from "@/lib/mongodb";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 export async function GET() {
   try {
@@ -44,6 +45,7 @@ export async function GET() {
 export async function PUT(request: Request) {
   try {
     const session = await auth();
+    const requestContext = getRequestActivityContext(request);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -64,6 +66,20 @@ export async function PUT(request: Request) {
     }
 
     await updateUser(user._id.toString(), { name: name.trim() });
+
+    await trackActivity({
+      event: "profile_updated",
+      source: "server",
+      userId: user._id.toString(),
+      email: user.email,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        fields: ["name"],
+      },
+    });
 
     return NextResponse.json({ success: true, name: name.trim() });
   } catch (error) {

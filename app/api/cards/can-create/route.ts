@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getUserByEmail, checkTrialExpiry } from "@/lib/db/users";
+import { getUserByEmail } from "@/lib/db/users";
 import { PLANS } from "@/lib/stripe/config";
 import clientPromise from "@/lib/mongodb";
 
@@ -12,13 +12,11 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    let user = await getUserByEmail(session.user.email);
+    const user = await getUserByEmail(session.user.email);
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
-    user = await checkTrialExpiry(user);
 
     const client = await clientPromise;
     const db = client.db("mybingocard");
@@ -31,11 +29,8 @@ export async function GET() {
         cardsCreated: 0,
         cardsLimit: -1,
         planType,
-        trialEligible: false,
       });
     }
-
-    const trialEligible = planType === "FREE" && !user.stripeSubscriptionId && !user.trialEndsAt;
 
     const totalCards = await db.collection("cards").countDocuments({
       userId: user._id.toString(),
@@ -54,8 +49,6 @@ export async function GET() {
       subscriptionStatus: user.subscriptionStatus,
       currentPeriodEnd: user.currentPeriodEnd || null,
       cancelAtPeriodEnd: user.cancelAtPeriodEnd || false,
-      trialEndsAt: user.trialEndsAt || null,
-      trialEligible,
     });
   } catch (error: any) {
     console.error("Check card creation permission error:", error);

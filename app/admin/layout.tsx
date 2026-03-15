@@ -1,0 +1,174 @@
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { getAdminSessionEmail, isAdminSession } from "@/lib/admin";
+
+const navItems = [
+  {
+    label: "Overview",
+    href: "/admin",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    ),
+  },
+  {
+    label: "Users",
+    href: "/admin/users",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Cards",
+    href: "/admin/cards",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Coupons",
+    href: "/admin/coupons",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+      </svg>
+    ),
+    disabled: true,
+  },
+  {
+    label: "Support",
+    href: "/admin/support",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    ),
+  },
+];
+
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await auth();
+  const adminEmail = getAdminSessionEmail(session);
+  const impersonation = (session as typeof session & {
+    impersonation?: { active: boolean; targetEmail: string };
+    actor?: { name?: string | null };
+  })?.impersonation;
+  const actorName = (session as typeof session & {
+    actor?: { name?: string | null };
+  })?.actor?.name;
+
+  if (!isAdminSession(session)) {
+    redirect("/dashboard");
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
+        <div className="px-4 sm:px-6">
+          <div className="flex min-h-16 items-center justify-between gap-3 py-3">
+            <Link href="/admin" className="flex items-center gap-2.5">
+              <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+              </div>
+              <span className="text-lg font-bold text-slate-900">Admin</span>
+            </Link>
+
+            <div className="flex items-center gap-2 sm:gap-4">
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-indigo-50 text-indigo-700 border border-indigo-100">
+                MyBingoCard
+              </span>
+              <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">
+                {actorName?.charAt(0) || adminEmail?.charAt(0) || "A"}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 pb-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex gap-2 overflow-x-auto pb-1 sm:hidden">
+              {navItems.map((item) =>
+                item.disabled ? (
+                  <span
+                    key={item.label}
+                    className="shrink-0 rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400"
+                  >
+                    {item.label}
+                  </span>
+                ) : (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+                  >
+                    {item.label}
+                  </Link>
+                )
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {impersonation?.active ? (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                  Impersonating {impersonation.targetEmail}
+                </span>
+              ) : null}
+              <span className="text-xs text-slate-400">
+                Signed in as <span className="font-medium text-slate-600 break-all">{adminEmail}</span>
+              </span>
+            </div>
+
+            <Link
+              href="/dashboard"
+              className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors"
+            >
+              Back to Dashboard
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto flex w-full max-w-[1600px]">
+        <aside className="sticky top-[101px] hidden h-[calc(100vh-101px)] w-60 shrink-0 overflow-y-auto border-r border-slate-200 bg-white lg:block">
+          <nav className="p-4 space-y-1">
+            {navItems.map((item) => (
+              <div key={item.label}>
+                {item.disabled ? (
+                  <span className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 cursor-not-allowed">
+                    {item.icon}
+                    {item.label}
+                    <span className="ml-auto text-[10px] font-semibold uppercase tracking-wider text-slate-300">
+                      Soon
+                    </span>
+                  </span>
+                ) : (
+                  <Link
+                    href={item.href}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+                  >
+                    {item.icon}
+                    {item.label}
+                  </Link>
+                )}
+              </div>
+            ))}
+          </nav>
+        </aside>
+
+        <main className="min-h-[calc(100vh-101px)] flex-1">
+          <div className="p-4 sm:p-6 lg:p-8">{children}</div>
+        </main>
+      </div>
+    </div>
+  );
+}

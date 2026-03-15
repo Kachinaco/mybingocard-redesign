@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { trackCardShared } from "@/lib/analytics";
+import { trackClientActivity } from "@/lib/activity-client";
 
 interface SocialShareProps {
   url: string;
@@ -51,6 +52,12 @@ export default function SocialShare({ url, title, cardId }: SocialShareProps) {
 
   const handleShare = (platform: string, href: string) => {
     trackCardShared(cardId, platform.toLowerCase());
+    trackClientActivity("card_shared", {
+      cardId,
+      title,
+      platform: platform.toLowerCase(),
+      destination: "external_social",
+    });
     window.open(href, "_blank", "noopener,noreferrer,width=600,height=400");
   };
 
@@ -59,6 +66,10 @@ export default function SocialShare({ url, title, cardId }: SocialShareProps) {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       trackCardShared(cardId, "copy_link");
+      trackClientActivity("card_share_link_copied", {
+        cardId,
+        title,
+      });
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Fallback
@@ -70,6 +81,10 @@ export default function SocialShare({ url, title, cardId }: SocialShareProps) {
       document.body.removeChild(input);
       setCopied(true);
       trackCardShared(cardId, "copy_link");
+      trackClientActivity("card_share_link_copied", {
+        cardId,
+        title,
+      });
       setTimeout(() => setCopied(false), 2000);
     }
   };

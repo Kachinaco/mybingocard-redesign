@@ -7,7 +7,7 @@ export interface Subscription {
   _id: ObjectId;
   userId: ObjectId;
   plan: SubscriptionPlan;
-  status: "active" | "canceled" | "past_due" | "trialing";
+  status: "active" | "canceled" | "past_due";
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   stripePriceId?: string;
@@ -65,7 +65,7 @@ export async function createSubscription(data: {
   const subscription: Partial<Subscription> = {
     userId: new ObjectId(data.userId),
     plan: data.plan,
-    status: data.plan === "free" ? "active" : "trialing",
+    status: "active",
     stripeCustomerId: data.stripeCustomerId,
     stripeSubscriptionId: data.stripeSubscriptionId,
     stripePriceId: data.stripePriceId,
@@ -208,18 +208,32 @@ export async function getUserCardCount(userId: string): Promise<number> {
 export async function canCreateCard(userId: string): Promise<boolean> {
   const subscription = await getSubscriptionByUserId(userId);
 
-  // No subscription = free user, use free plan limits
-  const limits = subscription?.limits || PLAN_LIMITS.free;
-  const maxCards = limits.maxCards;
-
-  // Unlimited
-  if (maxCards === -1) {
-    return true;
+  if (subscription) {
+    const maxCards = subscription.limits.maxCards;
+    if (maxCards === -1) return true;
+    const currentCount = await getUserCardCount(userId);
+    return currentCount < maxCards;
   }
 
-  const currentCount = await getUserCardCount(userId);
+  // No subscription record — fall back to users.planType field
+  try {
+    const client = await clientPromise;
+    const db = client.db("mybingocard");
+    const user = await db.collection("users").findOne(
+      { _id: new ObjectId(userId) },
+      { projection: { planType: 1 } }
+    );
+    if (user?.planType && user.planType !== "FREE") {
+      // Paid plan (e.g. PREMIUM) — unlimited cards
+      return true;
+    }
+  } catch {
+    // userId not a valid ObjectId — fall through to free limit
+  }
 
-  return currentCount < maxCards;
+  // Free plan: check card count against free limit
+  const currentCount = await getUserCardCount(userId);
+  return currentCount < PLAN_LIMITS.free.maxCards;
 }
 
 export async function getAllActiveSubscriptions(): Promise<Subscription[]> {

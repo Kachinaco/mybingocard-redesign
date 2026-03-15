@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import PlaySoloButton from "@/components/PlaySoloButton";
+import StartGameButton from "@/components/StartGameButton";
 
 interface Card {
   _id: string;
@@ -250,6 +252,11 @@ export default function MyCardsPage() {
 
                     {/* Actions */}
                     <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        <PlaySoloButton cardId={card._id} />
+                        <StartGameButton cardId={card._id} />
+                      </div>
+
                       <div className="grid grid-cols-2 gap-2">
                           <Link
                             href={`/cards/${card._id}`}

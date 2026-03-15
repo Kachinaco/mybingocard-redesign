@@ -65,6 +65,13 @@ const CAMPAIGNS = [
     subject: (name) => `${name}, unlock the full MyBingoCard experience`,
     build: buildUpgradeNudgeEmail,
   },
+  {
+    id: 'winback_canceled',
+    dayAfterSignup: -1, // special: not day-based
+    condition: 'canceled_7d',
+    subject: (name) => `${name}, we'd love to have you back on MyBingoCard`,
+    build: buildWinbackEmail,
+  },
 ];
 
 // ── Email Templates ──
@@ -201,6 +208,32 @@ function buildUpgradeNudgeEmail(user) {
   };
 }
 
+function buildWinbackEmail(user) {
+  const name = firstName(user.name);
+  const body = `
+    <p style="margin:0 0 14px;font-size:16px;line-height:1.65;color:#334155;">Hey ${escapeHtml(name)},</p>
+    <p style="margin:0 0 14px;font-size:15px;line-height:1.65;color:#334155;">We noticed you recently canceled your MyBingoCard subscription. We're sorry to see you go, and we wanted to check in.</p>
+    <p style="margin:0 0 14px;font-size:15px;line-height:1.65;color:#334155;">Your account and all your bingo cards are still here, waiting for you. If things have changed or you'd like to give it another try, we'd love to have you back.</p>
+    <div style="margin:18px 0;padding:16px;border:1px solid #a7f3d0;background:#ecfdf5;border-radius:12px;">
+      <p style="margin:0 0 8px;font-size:14px;color:#065f46;font-weight:600;">Come back and enjoy:</p>
+      <ul style="margin:0;padding:0 0 0 18px;color:#334155;font-size:14px;line-height:1.7;">
+        <li>All your saved bingo cards, exactly as you left them</li>
+        <li>Unlimited cards with all grid sizes</li>
+        <li>HD PDF &amp; PNG exports</li>
+        <li>Custom colors, fonts, and premium templates</li>
+        <li>Ad-free experience</li>
+      </ul>
+    </div>
+    <p style="margin:0 0 4px;font-size:15px;color:#334155;">Reactivating takes just a moment. We've kept everything safe for you.</p>
+    ${btn('Reactivate My Subscription', appUrl + '/pricing')}
+    <p style="margin:14px 0 0;font-size:14px;color:#64748b;">If there's anything we could do better, just reply to this email. We read every response.</p>
+  `;
+  return {
+    html: wrap("We'd love to have you back", `${name}, your bingo cards are waiting for you.`, body),
+    text: `Hey ${name},\n\nWe noticed you recently canceled your MyBingoCard subscription. We're sorry to see you go.\n\nYour account and all your bingo cards are still here. If you'd like to give it another try, we'd love to have you back.\n\nReactivate: ${appUrl}/pricing\n\nIf there's anything we could do better, just reply to this email.`,
+  };
+}
+
 // ── Main Logic ──
 
 async function run() {
@@ -234,10 +267,10 @@ async function run() {
       }
 
       const daysSinceSignup = Math.floor((now - new Date(user.createdAt)) / 86400000);
-      const cardCount = await db.collection('bingocards').countDocuments({ userId: user._id.toString() });
+      const cardCount = await db.collection('cards').countDocuments({ userId: user._id.toString() });
 
       // Check last activity (last card created or updated)
-      const lastCard = await db.collection('bingocards')
+      const lastCard = await db.collection('cards')
         .find({ userId: user._id.toString() })
         .sort({ updatedAt: -1 })
         .limit(1)
@@ -246,9 +279,22 @@ async function run() {
       const daysSinceActivity = Math.floor((now - new Date(lastActivity)) / 86400000);
 
       for (const campaign of CAMPAIGNS) {
-        // Check if it's the right day (allow a 2-day window)
-        if (daysSinceSignup < campaign.dayAfterSignup || daysSinceSignup > campaign.dayAfterSignup + 2) {
-          continue;
+        // Handle special non-day-based campaigns
+        if (campaign.dayAfterSignup === -1) {
+          // Special condition: canceled_7d — user canceled ~7 days ago
+          if (campaign.condition === 'canceled_7d') {
+            if (user.subscriptionStatus !== 'canceled') continue;
+            // Check if cancellation happened ~7 days ago (allow a 3-day window: days 6-9)
+            const cancelDate = user.cancelAt || user.updatedAt || user.createdAt;
+            if (!cancelDate) continue;
+            const daysSinceCanceled = Math.floor((now - new Date(cancelDate)) / 86400000);
+            if (daysSinceCanceled < 6 || daysSinceCanceled > 9) continue;
+          }
+        } else {
+          // Check if it's the right day (allow a 2-day window)
+          if (daysSinceSignup < campaign.dayAfterSignup || daysSinceSignup > campaign.dayAfterSignup + 2) {
+            continue;
+          }
         }
 
         // Check condition
@@ -300,15 +346,58 @@ async function run() {
     console.log(`\nDrip campaign run complete: ${sentCount} sent, ${skippedCount} skipped`);
 
     // Notify Discord
-    if (sentCount > 0 && WEBHOOK_URL) {
+    if (WEBHOOK_URL) {
+      const fields = [];
+
+      // Summary
+      fields.push({
+        name: '📊 Summary',
+        value: `Sent: **${sentCount}** | Skipped (unsub): **${skippedCount}**`,
+        inline: false,
+      });
+
+      // Breakdown by campaign
+      const campaignCounts = {};
+      const campaignRecipients = {};
+      const sentLogs = await db.collection('drip_log')
+        .find({ sentAt: { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) } })
+        .toArray();
+      for (const log of sentLogs) {
+        campaignCounts[log.campaignId] = (campaignCounts[log.campaignId] || 0) + 1;
+        if (!campaignRecipients[log.campaignId]) campaignRecipients[log.campaignId] = [];
+        campaignRecipients[log.campaignId].push(log.email);
+      }
+
+      const campaignLabels = {
+        create_first_card: '📝 Create First Card (Day 1)',
+        how_are_you_liking: '💬 How Are You Liking It? (Day 5)',
+        reengage_inactive: '🔄 Re-engagement (Day 14)',
+        upgrade_nudge: '⭐ Upgrade Nudge (Day 30)',
+        winback_canceled: '🔙 Win-back Canceled (7d post-cancel)',
+      };
+
+      for (const [id, count] of Object.entries(campaignCounts)) {
+        const label = campaignLabels[id] || id;
+        const recipients = (campaignRecipients[id] || []).join('\n') || 'none';
+        fields.push({
+          name: `${label} — ${count} sent`,
+          value: recipients.substring(0, 900),
+          inline: false,
+        });
+      }
+
+      if (sentCount === 0) {
+        fields.push({ name: 'ℹ️ No emails sent', value: 'No users matched campaign criteria today.', inline: false });
+      }
+
       await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           embeds: [{
-            title: 'Drip Campaign Report',
-            description: `Sent **${sentCount}** engagement email${sentCount !== 1 ? 's' : ''} today.`,
+            title: '📧 Drip Campaign Report',
             color: 0x6366f1,
+            fields,
             timestamp: now.toISOString(),
             footer: { text: 'MyBingoCard Drip Campaigns' },
           }],

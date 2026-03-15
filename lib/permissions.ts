@@ -7,6 +7,10 @@ export interface PermissionCheck {
   upgradeRequired?: boolean;
 }
 
+function getPlan(planType: PlanType) {
+  return PLANS[planType as keyof typeof PLANS] || PLANS.FREE;
+}
+
 /**
  * Check if a user can create a new card based on their plan limits
  */
@@ -14,19 +18,18 @@ export function canCreateCard(
   planType: PlanType,
   cardsCreatedThisMonth: number
 ): PermissionCheck {
-  const plan = PLANS[planType as keyof typeof PLANS];
-  if (!plan) return { allowed: true }; // unknown plan - allow
+  const plan = getPlan(planType);
 
-  // Unlimited cards for Business plan
+  // Unlimited cards
   if (plan.limits.maxCards === -1) {
     return { allowed: true };
   }
 
-  // Check if user has reached their monthly limit
+  // Check if user has reached their limit
   if (cardsCreatedThisMonth >= plan.limits.maxCards) {
     return {
       allowed: false,
-      reason: `You've reached your monthly limit of ${plan.limits.maxCards} cards. Upgrade to create more.`,
+      reason: `You've reached your limit of ${plan.limits.maxCards} cards. Upgrade to create more.`,
       upgradeRequired: true,
     };
   }
@@ -41,15 +44,12 @@ export function canUseGridSize(
   planType: PlanType,
   gridSize: number
 ): PermissionCheck {
-  const plan = PLANS[planType as keyof typeof PLANS];
-  if (!plan) return { allowed: true }; // unknown plan - allow
+  const plan = getPlan(planType);
 
   if (gridSize > plan.limits.maxSize) {
     return {
       allowed: false,
-      reason: `${gridSize}x${gridSize} grids require ${
-        gridSize > 4 ? "Business" : "Pro"
-      } plan. Your plan supports up to ${plan.limits.maxSize}x${plan.limits.maxSize}.`,
+      reason: `${gridSize}x${gridSize} grids require Premium plan. Your plan supports up to ${plan.limits.maxSize}x${plan.limits.maxSize}.`,
       upgradeRequired: true,
     };
   }
@@ -61,13 +61,12 @@ export function canUseGridSize(
  * Check if a user can export in HD quality
  */
 export function canExportHD(planType: PlanType): PermissionCheck {
-  const plan = PLANS[planType as keyof typeof PLANS];
-  if (!plan) return { allowed: true };
+  const plan = getPlan(planType);
 
-  if (!(plan.features as readonly string[]).includes("HD PDF export")) {
+  if (!plan.limits.canExportHD) {
     return {
       allowed: false,
-      reason: "HD exports require Pro or Business plan.",
+      reason: "HD exports require Premium plan.",
       upgradeRequired: true,
     };
   }
@@ -79,12 +78,12 @@ export function canExportHD(planType: PlanType): PermissionCheck {
  * Check if a user can access all templates
  */
 export function canAccessAllTemplates(planType: PlanType): PermissionCheck {
-  const plan = PLANS[planType as keyof typeof PLANS];
+  const plan = getPlan(planType);
 
-  if (!plan || !(plan.features as readonly string[]).includes("Access to all templates") && !(plan.features as readonly string[]).includes("All premium templates")) {
+  if (!plan.limits.canUseAdvancedTemplates) {
     return {
       allowed: false,
-      reason: "Premium templates require Pro or Business plan.",
+      reason: "Premium templates require Premium plan.",
       upgradeRequired: true,
     };
   }
@@ -96,13 +95,12 @@ export function canAccessAllTemplates(planType: PlanType): PermissionCheck {
  * Check if a user can remove branding/watermarks
  */
 export function canRemoveBranding(planType: PlanType): PermissionCheck {
-  const plan = PLANS[planType as keyof typeof PLANS];
-  if (!plan) return { allowed: true };
+  const plan = getPlan(planType);
 
-  if (!(plan.features as readonly string[]).includes("No watermark")) {
+  if (!plan.limits.adFree) {
     return {
       allowed: false,
-      reason: "Removing watermarks requires Pro or Business plan.",
+      reason: "Removing watermarks requires Premium plan.",
       upgradeRequired: true,
     };
   }
@@ -114,8 +112,7 @@ export function canRemoveBranding(planType: PlanType): PermissionCheck {
  * Check if a user can access priority support
  */
 export function hasPrioritySupport(planType: PlanType): boolean {
-  const plan = PLANS[planType as keyof typeof PLANS];
-  if (!plan) return false;
+  const plan = getPlan(planType);
   return (plan.features as readonly string[]).includes("Priority support");
 }
 
@@ -123,16 +120,15 @@ export function hasPrioritySupport(planType: PlanType): boolean {
  * Get all permissions for a plan type
  */
 export function getPlanPermissions(planType: PlanType) {
-  const plan = PLANS[planType as keyof typeof PLANS] || PLANS.FREE;
+  const plan = getPlan(planType);
 
-  const features = plan.features as readonly string[];
   return {
     maxCards: plan.limits.maxCards,
     maxGridSize: plan.limits.maxSize,
-    canExportHD: features.includes("HD PDF export"),
-    canAccessAllTemplates: features.includes("Access to all templates"),
-    canRemoveBranding: features.includes("No watermark"),
-    hasPrioritySupport: features.includes("Priority support"),
+    canExportHD: plan.limits.canExportHD,
+    canAccessAllTemplates: plan.limits.canUseAdvancedTemplates,
+    canRemoveBranding: plan.limits.adFree,
+    hasPrioritySupport: (plan.features as readonly string[]).includes("Priority support"),
     planName: plan.name,
     planPrice: plan.price,
   };

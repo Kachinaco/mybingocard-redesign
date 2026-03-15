@@ -14,10 +14,9 @@ export interface User {
   stripeCustomerId?: string | null;
   stripeSubscriptionId?: string | null;
   stripePriceId?: string | null;
-  subscriptionStatus?: "active" | "inactive" | "past_due" | "canceled" | "trialing";
+  subscriptionStatus?: "active" | "inactive" | "past_due" | "canceled";
   currentPeriodStart?: Date | null;
   currentPeriodEnd?: Date | null;
-  trialEndsAt?: Date | null;
   cancelAtPeriodEnd?: boolean;
   cancelAt?: Date | null;
   createdAt: Date;
@@ -80,7 +79,6 @@ export async function createUser(data: {
     password: hashedPassword,
     planType: "FREE",
     subscriptionStatus: "inactive",
-    trialEndsAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...(data.utm_source && { utm_source: data.utm_source }),
@@ -174,10 +172,6 @@ export async function ensureUserDefaults(id: string): Promise<User | null> {
     updates.subscriptionStatus = "inactive";
   }
 
-  if (current.trialEndsAt === undefined) {
-    updates.trialEndsAt = null;
-  }
-
   if (current.cancelAtPeriodEnd === undefined) {
     updates.cancelAtPeriodEnd = false;
   }
@@ -194,26 +188,7 @@ export async function ensureUserDefaults(id: string): Promise<User | null> {
 }
 
 
-export async function checkTrialExpiry(user: User): Promise<User> {
-  if (
-    user.subscriptionStatus === "trialing" &&
-    user.trialEndsAt &&
-    new Date(user.trialEndsAt) < new Date() &&
-    !user.stripeSubscriptionId
-  ) {
-    // Trial expired, downgrade to free
-    const updated = await updateUser(user._id.toString(), {
-      planType: "FREE" as PlanType,
-      subscriptionStatus: "inactive",
-      currentPeriodStart: null,
-      currentPeriodEnd: null,
-      cancelAtPeriodEnd: false,
-      cancelAt: null,
-    });
-    return updated || user;
-  }
-  return user;
-}
+
 
 export async function updateUserSubscription(
   email: string,
@@ -222,11 +197,10 @@ export async function updateUserSubscription(
     stripeCustomerId?: string | null;
     stripeSubscriptionId?: string | null;
     stripePriceId?: string | null;
-    status?: "active" | "inactive" | "past_due" | "canceled" | "trialing";
+    status?: "active" | "inactive" | "past_due" | "canceled";
     currentPeriodStart?: Date | null;
     currentPeriodEnd?: Date | null;
-    trialEndsAt?: Date | null;
-    cancelAtPeriodEnd?: boolean;
+      cancelAtPeriodEnd?: boolean;
     cancelAt?: Date | null;
   }
 ): Promise<User | null> {
@@ -263,10 +237,6 @@ export async function updateUserSubscription(
 
   if (subscriptionData.currentPeriodEnd !== undefined) {
     updateData.currentPeriodEnd = subscriptionData.currentPeriodEnd;
-  }
-
-  if (subscriptionData.trialEndsAt !== undefined) {
-    updateData.trialEndsAt = subscriptionData.trialEndsAt;
   }
 
   if (subscriptionData.cancelAtPeriodEnd !== undefined) {
