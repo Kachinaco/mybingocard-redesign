@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { stripe, STRIPE_CONFIG, getPlanByPriceId, PLANS } from "@/lib/stripe/config";
+import { stripe, STRIPE_CONFIG, getPlanByPriceId, PLANS, getStripe } from "@/lib/stripe/config";
 import { updateUserSubscription, getUserByEmail } from "@/lib/db/users";
 import { getBatchPack, isBatchCount } from "@/lib/batchPacks";
 import { upsertBatchPurchaseFromCheckout } from "@/lib/db/batchPurchases";
@@ -15,7 +15,15 @@ import { createSubscription, updateSubscription, getSubscriptionByUserId, PLAN_L
 import { ObjectId } from "mongodb";
 import type Stripe from "stripe";
 import { trackActivity } from "@/lib/activity";
-import { notifyCheckoutActivated, notifySubscription } from "@/lib/discord";
+import {
+  notifyCheckoutActivated,
+  notifyCheckoutExpired,
+  notifyDisputeUpdate,
+  notifyRefundIssued,
+  notifyRenewalFailed,
+  notifyRenewalPaid,
+  notifySubscription,
+} from "@/lib/discord";
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
 
@@ -48,6 +56,12 @@ function mapSubscriptionStatus(
     default:
       return "inactive";
   }
+}
+
+function getPlanName(priceId?: string | null) {
+  if (!priceId) return "Subscription";
+  const planType = getPlanByPriceId(priceId);
+  return planType ? PLANS[planType].name : "Subscription";
 }
 
 async function findAlternateActiveSubscription(
@@ -441,6 +455,7 @@ export async function POST(request: Request) {
             console.log(`Payment succeeded for user ${userId}`);
 
             const user = await getUserByEmail(userId);
+            const product = `${getPlanName(subscription.items.data[0]?.price.id)} Renewal`;
             fireAndForget(
               sendBillingSuccessEmail(
                 userId,
@@ -453,6 +468,18 @@ export async function POST(request: Request) {
               ),
               `sendBillingSuccessEmail(${userId})`
             );
+
+            // The initial subscription invoice is already covered by checkout completion.
+            if (invoice.billing_reason !== "subscription_create") {
+              notifyRenewalPaid(
+                userId,
+                user?.name || userId,
+                product,
+                invoice.amount_paid || invoice.amount_due || 0,
+                invoice.currency || "usd",
+                invoice.id
+              ).catch(console.error);
+            }
           }
         }
         break;
@@ -488,6 +515,7 @@ export async function POST(request: Request) {
             console.log(`Payment failed for user ${userId}`);
 
             const user = await getUserByEmail(userId);
+            const product = `${getPlanName(subscription.items.data[0]?.price.id)} Renewal`;
             fireAndForget(
               sendBillingFailedEmail(
                 userId,
@@ -498,7 +526,14 @@ export async function POST(request: Request) {
               ),
               `sendBillingFailedEmail(${userId})`
             );
-            notifySubscription(user?.name || userId, userId, "PREMIUM", "payment_failed").catch(console.error);
+            notifyRenewalFailed(
+              userId,
+              user?.name || userId,
+              product,
+              invoice.amount_due || invoice.amount_paid || 0,
+              invoice.currency || "usd",
+              invoice.id
+            ).catch(console.error);
           }
         }
         break;
@@ -519,6 +554,14 @@ export async function POST(request: Request) {
           if (purchaseType === "subscription" || purchaseType === "batch_pack") {
             await sendAbandonedCheckoutEmail(email, userName, purchaseType, batchCount).catch(console.error);
             console.log(`Abandoned checkout email sent to ${email} (${purchaseType})`);
+            notifyCheckoutExpired(
+              email,
+              userName,
+              purchaseType === "subscription"
+                ? "Premium"
+                : `Batch Pack (${batchCount || "Unknown"} cards)`,
+              expiredSession.id
+            ).catch(console.error);
 
             if (abandonedUser) {
               await trackActivity({
@@ -533,6 +576,60 @@ export async function POST(request: Request) {
             }
           }
         }
+        break;
+      }
+
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        const email = charge.billing_details?.email || charge.receipt_email || "Unknown";
+        const name = charge.billing_details?.name || email;
+
+        notifyRefundIssued(
+          email,
+          name,
+          charge.description || "Stripe Charge",
+          charge.amount_refunded || charge.amount,
+          charge.currency || "usd",
+          charge.id
+        ).catch(console.error);
+        break;
+      }
+
+      case "charge.dispute.created":
+      case "charge.dispute.closed": {
+        const dispute = event.data.object as Stripe.Dispute;
+        const chargeId = typeof dispute.charge === "string" ? dispute.charge : null;
+        let email = "Unknown";
+        let name = "Unknown";
+
+        if (chargeId) {
+          try {
+            const charge = await getStripe().charges.retrieve(chargeId);
+            email = charge.billing_details?.email || charge.receipt_email || email;
+            name = charge.billing_details?.name || email;
+          } catch (error) {
+            console.error(`Failed to load charge ${chargeId} for dispute ${dispute.id}:`, error);
+          }
+        }
+
+        const disputeStatus =
+          event.type === "charge.dispute.created"
+            ? "opened"
+            : dispute.status === "won"
+              ? "won"
+              : dispute.status === "lost"
+                ? "lost"
+                : dispute.status || "closed";
+
+        notifyDisputeUpdate(
+          email,
+          name,
+          dispute.amount,
+          dispute.currency || "usd",
+          dispute.id,
+          disputeStatus,
+          dispute.reason
+        ).catch(console.error);
         break;
       }
 

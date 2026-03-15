@@ -31,6 +31,22 @@ function getCheckoutTypeLabel(checkoutType: "subscription" | "one_time") {
   return checkoutType === "subscription" ? "Subscription" : "One-Time";
 }
 
+async function sendStripeEventEmbed(
+  title: string,
+  description: string,
+  color: number,
+  fields: Array<{ name: string; value: string; inline?: boolean }>
+) {
+  await sendDiscordNotification("", [{
+    title,
+    color,
+    description,
+    fields,
+    footer: { text: "MyBingoCard • Stripe" },
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
 export async function notifySignup(
   name: string,
   email: string,
@@ -132,11 +148,11 @@ export async function notifyCheckoutStarted(
   currency: string | null | undefined,
   sessionId: string
 ) {
-  await sendDiscordNotification("", [{
-    title: "🛒 Stripe Checkout Started",
-    color: 0xf59e0b,
-    description: "A user opened a Stripe checkout session.",
-    fields: [
+  await sendStripeEventEmbed(
+    "🛒 Stripe Checkout Started",
+    "A user opened a Stripe checkout session.",
+    0xf59e0b,
+    [
       { name: "User", value: name || "Unknown", inline: true },
       { name: "Email", value: email, inline: true },
       {
@@ -148,10 +164,8 @@ export async function notifyCheckoutStarted(
       { name: "Amount", value: formatMoney(amount, currency), inline: true },
       { name: "Status", value: "Awaiting payment", inline: true },
       { name: "Session ID", value: formatSessionId(sessionId), inline: false },
-    ],
-    footer: { text: "MyBingoCard • Stripe" },
-    timestamp: new Date().toISOString(),
-  }]);
+    ]
+  );
 }
 
 export async function notifyCheckoutActivated(
@@ -163,11 +177,11 @@ export async function notifyCheckoutActivated(
   currency: string | null | undefined,
   sessionId: string
 ) {
-  await sendDiscordNotification("", [{
-    title: "✅ Stripe Checkout Activated",
-    color: 0x22c55e,
-    description: "A Stripe checkout completed successfully.",
-    fields: [
+  await sendStripeEventEmbed(
+    "✅ Stripe Checkout Activated",
+    "A Stripe checkout completed successfully.",
+    0x22c55e,
+    [
       { name: "User", value: name || "Unknown", inline: true },
       { name: "Email", value: email, inline: true },
       {
@@ -179,10 +193,125 @@ export async function notifyCheckoutActivated(
       { name: "Amount", value: formatMoney(amount, currency), inline: true },
       { name: "Status", value: "Paid / Activated", inline: true },
       { name: "Session ID", value: formatSessionId(sessionId), inline: false },
-    ],
-    footer: { text: "MyBingoCard • Stripe" },
-    timestamp: new Date().toISOString(),
-  }]);
+    ]
+  );
+}
+
+export async function notifyCheckoutExpired(
+  email: string,
+  name: string,
+  product: string,
+  sessionId: string
+) {
+  await sendStripeEventEmbed(
+    "⌛ Stripe Checkout Expired",
+    "A checkout session expired before payment was completed.",
+    0xf97316,
+    [
+      { name: "User", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Product", value: product, inline: true },
+      { name: "Status", value: "Expired", inline: true },
+      { name: "Session ID", value: formatSessionId(sessionId), inline: false },
+    ]
+  );
+}
+
+export async function notifyRenewalPaid(
+  email: string,
+  name: string,
+  product: string,
+  amount: number | null | undefined,
+  currency: string | null | undefined,
+  invoiceId: string
+) {
+  await sendStripeEventEmbed(
+    "💸 Stripe Renewal Paid",
+    "A recurring Stripe invoice was paid successfully.",
+    0x10b981,
+    [
+      { name: "User", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Product", value: product, inline: true },
+      { name: "Amount", value: formatMoney(amount, currency), inline: true },
+      { name: "Status", value: "Renewal paid", inline: true },
+      { name: "Invoice ID", value: `\`${invoiceId}\``, inline: false },
+    ]
+  );
+}
+
+export async function notifyRenewalFailed(
+  email: string,
+  name: string,
+  product: string,
+  amount: number | null | undefined,
+  currency: string | null | undefined,
+  invoiceId: string
+) {
+  await sendStripeEventEmbed(
+    "⚠️ Stripe Renewal Failed",
+    "A recurring Stripe invoice payment failed.",
+    0xef4444,
+    [
+      { name: "User", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Product", value: product, inline: true },
+      { name: "Amount", value: formatMoney(amount, currency), inline: true },
+      { name: "Status", value: "Payment failed", inline: true },
+      { name: "Invoice ID", value: `\`${invoiceId}\``, inline: false },
+    ]
+  );
+}
+
+export async function notifyRefundIssued(
+  email: string,
+  name: string,
+  product: string,
+  amount: number | null | undefined,
+  currency: string | null | undefined,
+  chargeId: string
+) {
+  await sendStripeEventEmbed(
+    "↩️ Stripe Refund Issued",
+    "A Stripe charge was refunded.",
+    0x3b82f6,
+    [
+      { name: "User", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Product", value: product, inline: true },
+      { name: "Amount", value: formatMoney(amount, currency), inline: true },
+      { name: "Status", value: "Refunded", inline: true },
+      { name: "Charge ID", value: `\`${chargeId}\``, inline: false },
+    ]
+  );
+}
+
+export async function notifyDisputeUpdate(
+  email: string,
+  name: string,
+  amount: number | null | undefined,
+  currency: string | null | undefined,
+  disputeId: string,
+  disputeStatus: string,
+  reason?: string | null
+) {
+  await sendStripeEventEmbed(
+    disputeStatus === "won" || disputeStatus === "closed_won"
+      ? "🛡️ Stripe Dispute Won"
+      : disputeStatus === "lost" || disputeStatus === "closed_lost"
+        ? "🚨 Stripe Dispute Lost"
+        : "🚨 Stripe Dispute Opened",
+    "A Stripe dispute event was received.",
+    disputeStatus === "won" || disputeStatus === "closed_won" ? 0x22c55e : 0xef4444,
+    [
+      { name: "User", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Amount", value: formatMoney(amount, currency), inline: true },
+      { name: "Status", value: disputeStatus, inline: true },
+      { name: "Reason", value: reason || "Unknown", inline: true },
+      { name: "Dispute ID", value: `\`${disputeId}\``, inline: false },
+    ]
+  );
 }
 
 export async function notifyBatchCardsCreated(
