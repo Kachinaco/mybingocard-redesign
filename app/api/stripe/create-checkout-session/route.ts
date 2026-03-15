@@ -142,6 +142,13 @@ export async function POST(request: Request) {
         },
       });
 
+      notifyCheckoutStarted(
+        session.user.email,
+        session.user.name || "",
+        "one_time",
+        `${batchPack.count} Card Batch`
+      ).catch(console.error);
+
       return NextResponse.json({
         sessionId: checkoutSession.id,
         url: checkoutSession.url,
@@ -282,7 +289,12 @@ export async function POST(request: Request) {
       },
     });
 
-    notifyCheckoutStarted(session.user.email, session.user.name || "", planType).catch(console.error);
+    notifyCheckoutStarted(
+      session.user.email,
+      session.user.name || "",
+      "subscription",
+      plan.name
+    ).catch(console.error);
 
     return NextResponse.json({
       sessionId: checkoutSession.id,

@@ -110,14 +110,24 @@ export async function notifyMagicLink(email: string) {
   }]);
 }
 
-export async function notifyCheckoutStarted(email: string, name: string, planType: string) {
+export async function notifyCheckoutStarted(
+  email: string,
+  name: string,
+  checkoutType: "subscription" | "one_time",
+  product: string
+) {
   await sendDiscordNotification("", [{
     title: "🛒 Stripe Checkout Started",
     color: 0xf59e0b,
     fields: [
       { name: "User", value: name || "Unknown", inline: true },
       { name: "Email", value: email, inline: true },
-      { name: "Plan", value: planType || "PREMIUM", inline: true },
+      {
+        name: "Type",
+        value: checkoutType === "subscription" ? "Subscription" : "One-Time",
+        inline: true,
+      },
+      { name: "Product", value: product, inline: true },
     ],
     timestamp: new Date().toISOString(),
   }]);
