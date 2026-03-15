@@ -15,7 +15,7 @@ import { createSubscription, updateSubscription, getSubscriptionByUserId, PLAN_L
 import { ObjectId } from "mongodb";
 import type Stripe from "stripe";
 import { trackActivity } from "@/lib/activity";
-import { notifyBatchPackPurchased, notifySubscription } from "@/lib/discord";
+import { notifyCheckoutActivated, notifySubscription } from "@/lib/discord";
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
 
@@ -202,7 +202,15 @@ export async function POST(request: Request) {
                   sendSubscriptionActivatedEmail(recipient, user?.name || recipient, planName),
                   `sendSubscriptionActivatedEmail(${recipient})`
                 );
-                notifySubscription(user?.name || recipient, recipient, planType, "activated").catch(console.error);
+                notifyCheckoutActivated(
+                  recipient,
+                  user?.name || recipient,
+                  "subscription",
+                  planName,
+                  session.amount_total,
+                  session.currency,
+                  session.id
+                ).catch(console.error);
               }
             }
           }
@@ -245,11 +253,15 @@ export async function POST(request: Request) {
               });
 
               console.log(`Batch pack activated for user ${userEmail}: ${batchCount} cards`);
-              notifyBatchPackPurchased(
+              const user = await getUserByEmail(userEmail);
+              notifyCheckoutActivated(
                 userEmail,
-                batchCount,
+                user?.name || userEmail,
+                "one_time",
+                `Batch Pack (${batchCount} cards)`,
                 session.amount_total || batchPack.amount,
-                session.currency || batchPack.currency
+                session.currency || batchPack.currency,
+                session.id
               ).catch(console.error);
             }
           }

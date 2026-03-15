@@ -123,21 +123,38 @@ export async function notifyCheckoutStarted(email: string, name: string, planTyp
   }]);
 }
 
-export async function notifyBatchPackPurchased(
+export async function notifyCheckoutActivated(
   email: string,
-  batchCount: number,
-  amount: number,
-  currency: string
+  name: string,
+  checkoutType: "subscription" | "one_time",
+  product: string,
+  amount: number | null | undefined,
+  currency: string | null | undefined,
+  sessionId: string
 ) {
   await sendDiscordNotification("", [{
-    title: "📦 Batch Pack Purchased",
-    color: 0x14b8a6,
+    title: "✅ Stripe Checkout Activated",
+    color: 0x22c55e,
     fields: [
+      { name: "User", value: name || "Unknown", inline: true },
       { name: "Email", value: email, inline: true },
-      { name: "Batch Size", value: `${batchCount} cards`, inline: true },
+      {
+        name: "Type",
+        value: checkoutType === "subscription" ? "Subscription" : "One-Time",
+        inline: true,
+      },
+      { name: "Product", value: product, inline: true },
       {
         name: "Amount",
-        value: `${(amount / 100).toFixed(2)} ${(currency || "usd").toUpperCase()}`,
+        value:
+          typeof amount === "number"
+            ? `${(amount / 100).toFixed(2)} ${(currency || "usd").toUpperCase()}`
+            : "Unknown",
+        inline: true,
+      },
+      {
+        name: "Session",
+        value: sessionId,
         inline: true,
       },
     ],
