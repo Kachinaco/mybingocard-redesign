@@ -68,14 +68,14 @@ export const PLANS = {
       "All premium templates",
       "HD PDF & PNG export",
       "Custom colors & fonts",
-      "Up to 100 cards per batch",
+      "Up to 500 cards per batch",
       "Ad-free experience",
       "Priority support",
     ],
     limits: {
       maxCards: -1, // unlimited
       maxSize: 5,
-      maxBatchSize: 100,
+      maxBatchSize: 500,
       canExportPNG: true,
       canExportHD: true,
       canUseCustomFonts: true,

@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { stripe, PLANS, getPlanByPriceId } from "@/lib/stripe/config";
 import { getUserByEmail, updateUserSubscription } from "@/lib/db/users";
 import { getBatchPack, isBatchCount } from "@/lib/batchPacks";
+import { upsertBatchPurchaseFromCheckout } from "@/lib/db/batchPurchases";
 import type Stripe from "stripe";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyCheckoutStarted } from "@/lib/discord";
@@ -78,6 +79,41 @@ export async function POST(request: Request) {
           { error: "Invalid batch size" },
           { status: 400 }
         );
+      }
+
+      // Free tier: no Stripe checkout needed, create purchase record directly
+      if (batchPack.amount === 0) {
+        await upsertBatchPurchaseFromCheckout({
+          userId: session.user.id,
+          email: session.user.email || "",
+          batchCount: batchPack.count,
+          amount: 0,
+          currency: "usd",
+          stripeSessionId: `free_${session.user.id}_${batchPack.count}_${Date.now()}`,
+          stripePaymentIntentId: null,
+        });
+
+        await trackActivity({
+          event: "batch_pack_free_claimed",
+          source: "server",
+          userId: session.user.id,
+          email: session.user.email,
+          pathname: requestContext.pathname,
+          domain: requestContext.domain,
+          ipAddress: requestContext.ipAddress,
+          userAgent: requestContext.userAgent,
+          metadata: {
+            purchaseType: "batch_pack",
+            batchCount: batchPack.count,
+            amount: 0,
+          },
+        });
+
+        return NextResponse.json({
+          free: true,
+          batchCount: batchPack.count,
+          message: "Free batch pack activated. You can now generate cards.",
+        });
       }
 
       const checkoutSessionParams: Stripe.Checkout.SessionCreateParams = {

@@ -8,6 +8,7 @@ import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import UtmFlusher from "@/components/UtmFlusher";
 import Analytics from "@/components/Analytics";
 import SessionHeartbeat from "@/components/SessionHeartbeat";
+import NamePromptModal from "@/components/NamePromptModal";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -78,6 +79,7 @@ export default function RootLayout({
         <Providers>
           <UtmFlusher />
           <SessionHeartbeat />
+          <NamePromptModal />
           {children}
         </Providers>
       </body>

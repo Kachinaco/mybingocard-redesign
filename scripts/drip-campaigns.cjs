@@ -318,7 +318,7 @@ async function run() {
         await new Promise(resolve => setTimeout(resolve, 3000));
 
         try {
-          await transporter.sendMail({
+          const sendResult = await transporter.sendMail({
             from: fromAddress,
             to: user.email,
             subject,
@@ -333,12 +333,26 @@ async function run() {
             email: user.email,
             subject,
             sentAt: now,
+            status: 'sent',
+            messageId: sendResult.messageId || null,
           });
 
           sentCount++;
-          console.log(`[SENT] ${campaign.id} -> ${user.email}`);
+          console.log(`[SENT] ${campaign.id} -> ${user.email} (${sendResult.messageId})`);
         } catch (err) {
           console.error(`[FAIL] ${campaign.id} -> ${user.email}: ${err.message}`);
+          // Log the failure so we don't retry and can investigate
+          try {
+            await db.collection('drip_log').insertOne({
+              userId: user._id,
+              campaignId: campaign.id,
+              email: user.email,
+              subject,
+              sentAt: now,
+              status: 'failed',
+              error: err.message,
+            });
+          } catch (_) { /* ignore duplicate key on retry */ }
         }
       }
     }

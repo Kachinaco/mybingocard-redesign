@@ -75,7 +75,7 @@ function CreateCardContent() {
   const [error, setError] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [batchMode, setBatchMode] = useState(false);
-  const [batchCount, setBatchCount] = useState<BatchCount>(10);
+  const [batchCount, setBatchCount] = useState<BatchCount>(30);
   const [batchLoading, setBatchLoading] = useState(false);
   const [batchResult, setBatchResult] = useState<{count: number; cardIds: string[]} | null>(null);
   const [batchPdfLoading, setBatchPdfLoading] = useState<BatchPdfOption>(null);
@@ -615,8 +615,20 @@ function CreateCardContent() {
         return;
       }
 
-      if (!response.ok || !data.url) {
+      if (!response.ok) {
         setError(data.error || "Failed to start batch checkout");
+        return;
+      }
+
+      // Free tier: no Stripe redirect needed, redirect with success params
+      if (data.free) {
+        setBatchCheckoutLoading(false);
+        window.location.href = `/create?batchPurchase=success&batchCount=${batchCount}${currentCardId ? `&cardId=${currentCardId}` : ""}`;
+        return;
+      }
+
+      if (!data.url) {
+        setError("Failed to start batch checkout");
         return;
       }
 
@@ -722,13 +734,17 @@ function CreateCardContent() {
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `bingo-batch-${batchResult.count}-cards.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Open in new tab for preview/printing, then also offer download
+      const newTab = window.open(url, "_blank");
+      if (!newTab) {
+        // Popup blocked — fall back to direct download
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `bingo-batch-${batchResult.count}-cards.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
     } catch (err: any) {
       alert(err.message || "Failed to download batch PDF");
     } finally {
@@ -789,7 +805,7 @@ function CreateCardContent() {
       : batchPurchaseStatus === "canceled"
         ? "Batch purchase canceled."
         : "";
-  const availableBatchSummary = ([10, 25, 50, 100] as const)
+  const availableBatchSummary = ([30, 100, 250, 500] as const)
     .filter((count) => (availableBatchCounts[count] || 0) > 0)
     .map((count) => `${count}-card x${availableBatchCounts[count]}`)
     .join(", ");
@@ -1242,7 +1258,7 @@ function CreateCardContent() {
                         Number of Cards
                       </label>
                       <div className="grid grid-cols-4 gap-2">
-                        {([10, 25, 50, 100] as const).map((n) => (
+                        {([30, 100, 250, 500] as const).map((n) => (
                           <button
                             key={n}
                             onClick={() => setBatchCount(n)}

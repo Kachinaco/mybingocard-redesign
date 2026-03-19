@@ -227,7 +227,7 @@ async function run() {
       await new Promise(resolve => setTimeout(resolve, 3000));
 
       try {
-        await transporter.sendMail({
+        const sendResult = await transporter.sendMail({
           from: fromAddress,
           to: user.email,
           subject,
@@ -239,12 +239,23 @@ async function run() {
           email: emailLower,
           blastId,
           sentAt: new Date(),
+          status: 'sent',
+          messageId: sendResult.messageId || null,
         });
 
         sentCount++;
-        console.log(`[SENT] ${user.email}`);
+        console.log(`[SENT] ${user.email} (${sendResult.messageId})`);
       } catch (err) {
         console.error(`[FAIL] ${user.email}: ${err.message}`);
+        try {
+          await db.collection('email_blasts').insertOne({
+            email: emailLower,
+            blastId,
+            sentAt: new Date(),
+            status: 'failed',
+            error: err.message,
+          });
+        } catch (_) {}
       }
     }
 

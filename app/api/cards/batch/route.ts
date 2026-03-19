@@ -97,7 +97,7 @@ export async function POST(request: Request) {
 
     if (!isBatchCount(count)) {
       return NextResponse.json(
-        { error: "Count must be 10, 25, 50, or 100" },
+        { error: "Count must be 30, 100, 250, or 500" },
         { status: 400 }
       );
     }
