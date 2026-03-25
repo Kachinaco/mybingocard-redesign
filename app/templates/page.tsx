@@ -1,6 +1,7 @@
 "use client";
 
 import { trackTemplateUsed } from "@/lib/analytics";
+import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -201,7 +202,9 @@ export default function TemplatesPage() {
                     border: `1px solid ${template.style.borderColor || "#e2e8f0"}`,
                   }}
                 >
-                  {cell.length > 15 ? cell.substring(0, 15) + "..." : cell}
+                  {isImageCell(cell) ? (
+                    <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="w-full h-full object-contain" loading="lazy" />
+                  ) : cell.length > 15 ? cell.substring(0, 15) + "..." : cell}
                 </div>
               ))}
             </div>
