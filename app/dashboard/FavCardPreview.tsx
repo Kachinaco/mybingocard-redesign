@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { isImageCell, parseImageCell } from "@/lib/cellContent";
+import ThemedCardWrapper from "@/components/ThemedCardWrapper";
 
 interface SavedState {
   marked: number[];
@@ -29,6 +30,7 @@ export default function FavCardPreview({ card }: { card: any }) {
       <div className="text-center mb-1.5">
         <p className="text-[7px] font-bold text-slate-600 truncate">{card.title}</p>
       </div>
+      <ThemedCardWrapper theme={card.style?.theme} title={card.title} size="mini">
       <div
         className="grid gap-[2px]"
         style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}
@@ -73,6 +75,7 @@ export default function FavCardPreview({ card }: { card: any }) {
           );
         })}
       </div>
+      </ThemedCardWrapper>
     </div>
   );
 }

@@ -4,11 +4,14 @@ interface ThemedCardWrapperProps {
   theme?: string;
   title: string;
   children: React.ReactNode;
+  /** "full" for card/share views, "mini" for dashboard/template previews */
+  size?: "full" | "mini";
 }
 
 const themes: Record<string, {
   outerBg: string;
   borderStyle: string;
+  borderStyleMini: string;
   cornerEmoji?: string;
   footerText?: string;
   glow?: string;
@@ -18,6 +21,7 @@ const themes: Record<string, {
   "hannah-montana": {
     outerBg: "bg-gradient-to-br from-pink-400 via-purple-500 to-pink-500",
     borderStyle: "border-4 border-pink-300 shadow-[0_0_30px_rgba(236,72,153,0.4)]",
+    borderStyleMini: "border-2 border-pink-300",
     cornerEmoji: "\u2728",
     footerText: "You get the best of both worlds!",
     glow: "shadow-[0_0_60px_rgba(168,85,247,0.4),0_0_120px_rgba(236,72,153,0.2)]",
@@ -26,12 +30,46 @@ const themes: Record<string, {
   },
 };
 
-export default function ThemedCardWrapper({ theme, title, children }: ThemedCardWrapperProps) {
+export default function ThemedCardWrapper({ theme, title, children, size = "full" }: ThemedCardWrapperProps) {
   if (!theme || !themes[theme]) {
     return <>{children}</>;
   }
 
   const t = themes[theme];
+  const isMini = size === "mini";
+
+  if (isMini) {
+    return (
+      <div className={`rounded-xl p-1 ${t.outerBg}`}>
+        {/* Mini logo */}
+        {t.logoUrl && (
+          <div className="text-center py-1.5 relative">
+            {t.cornerEmoji && (
+              <>
+                <span className="absolute top-0.5 left-1 text-[8px] animate-pulse">{t.cornerEmoji}</span>
+                <span className="absolute top-0.5 right-1 text-[8px] animate-pulse">{t.cornerEmoji}</span>
+              </>
+            )}
+            <img
+              src={t.logoUrl}
+              alt={title}
+              className="mx-auto drop-shadow-[0_1px_3px_rgba(0,0,0,0.3)]"
+              style={{ maxWidth: "80px", height: "auto" }}
+              loading="lazy"
+            />
+          </div>
+        )}
+        <div className={`rounded-lg overflow-hidden ${t.borderStyleMini}`}>
+          {children}
+        </div>
+        {t.cornerEmoji && (
+          <div className="text-center py-0.5">
+            <span className="text-[7px] opacity-50">{t.cornerEmoji}{t.cornerEmoji}{t.cornerEmoji}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={`rounded-3xl p-1.5 md:p-2 ${t.outerBg} ${t.glow || ""}`}>

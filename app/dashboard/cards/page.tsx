@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { isImageCell, parseImageCell } from "@/lib/cellContent";
+import ThemedCardWrapper from "@/components/ThemedCardWrapper";
 import { useSession } from "next-auth/react";
 import PlaySoloButton from "@/components/PlaySoloButton";
 import StartGameButton from "@/components/StartGameButton";
@@ -21,6 +22,7 @@ interface Card {
     borderColor?: string;
     fontSize?: string;
     fontFamily?: string;
+    theme?: string;
   };
   isPublic: boolean;
   shareLink?: string;
@@ -90,31 +92,33 @@ export default function MyCardsPage() {
     const freeSpaceIndex = card.freeSpace ? Math.floor((card.size * card.size) / 2) : -1;
 
     return (
-      <div
-        className="grid gap-1 transform scale-95 group-hover:scale-100 transition-transform duration-300"
-        style={{
-          gridTemplateColumns: `repeat(3, 1fr)`,
-        }}
-      >
-        {displayCells.map((cell, index) => {
-          const isFreeSpace = card.freeSpace && index === freeSpaceIndex && index < 9;
-          return (
-            <div
-              key={index}
-              className="aspect-square flex items-center justify-center text-center text-[8px] leading-tight font-medium rounded p-0.5 overflow-hidden"
-              style={{
-                backgroundColor: card.style.backgroundColor || "#fff",
-                color: card.style.textColor || "#334155",
-                border: `1px solid ${card.style.borderColor || "#e2e8f0"}`,
-              }}
-            >
-              {isFreeSpace ? "FREE" : isImageCell(cell) ? (
-                <img src={parseImageCell(cell)?.imageUrl} alt="" className="w-full h-full object-contain" loading="lazy" />
-              ) : cell.length > 12 ? cell.substring(0, 12) + "..." : cell}
-            </div>
-          );
-        })}
-      </div>
+      <ThemedCardWrapper theme={card.style?.theme} title={card.title} size="mini">
+        <div
+          className="grid gap-1 transform scale-95 group-hover:scale-100 transition-transform duration-300"
+          style={{
+            gridTemplateColumns: `repeat(3, 1fr)`,
+          }}
+        >
+          {displayCells.map((cell, index) => {
+            const isFreeSpace = card.freeSpace && index === freeSpaceIndex && index < 9;
+            return (
+              <div
+                key={index}
+                className="aspect-square flex items-center justify-center text-center text-[8px] leading-tight font-medium rounded p-0.5 overflow-hidden"
+                style={{
+                  backgroundColor: card.style.backgroundColor || "#fff",
+                  color: card.style.textColor || "#334155",
+                  border: `1px solid ${card.style.borderColor || "#e2e8f0"}`,
+                }}
+              >
+                {isFreeSpace ? "FREE" : isImageCell(cell) ? (
+                  <img src={parseImageCell(cell)?.imageUrl} alt="" className="w-full h-full object-contain" loading="lazy" />
+                ) : cell.length > 12 ? cell.substring(0, 12) + "..." : cell}
+              </div>
+            );
+          })}
+        </div>
+      </ThemedCardWrapper>
     );
   };
 

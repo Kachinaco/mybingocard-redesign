@@ -2,6 +2,7 @@
 
 import { trackTemplateUsed } from "@/lib/analytics";
 import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
+import ThemedCardWrapper from "@/components/ThemedCardWrapper";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -23,6 +24,7 @@ interface Template {
     borderColor?: string;
     fontSize?: string;
     fontFamily?: string;
+    theme?: string;
   };
   isPremium: boolean;
   isFeatured: boolean;
@@ -186,6 +188,7 @@ export default function TemplatesPage() {
         {/* Template Preview */}
         <div className="p-6 bg-slate-50 relative border-b border-slate-100 group-hover:bg-indigo-50/30 transition-colors">
           <div className="relative transform group-hover:scale-105 transition-transform duration-500">
+           <ThemedCardWrapper theme={template.style?.theme} title={template.title} size="mini">
             <div
               className="grid gap-1.5 shadow-lg rounded-lg bg-white p-1.5"
               style={{
@@ -208,6 +211,7 @@ export default function TemplatesPage() {
                 </div>
               ))}
             </div>
+           </ThemedCardWrapper>
           </div>
 
           {template.isPremium && (

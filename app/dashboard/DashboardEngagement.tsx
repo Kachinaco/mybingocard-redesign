@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { isImageCell, parseImageCell } from "@/lib/cellContent";
+import ThemedCardWrapper from "@/components/ThemedCardWrapper";
 
 interface RecentlyPlayedItem {
   cardId: string;
@@ -48,6 +49,7 @@ function MiniCardPreview({ cardId }: { cardId: string }) {
   }
 
   return (
+    <ThemedCardWrapper theme={cardData?.style?.theme} title={cardData?.title || ""} size="mini">
     <div className="grid gap-[2px]" style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}>
       {cells.map((cell: string, index: number) => {
         const isFreeSpace = index === freeSpaceIdx;
@@ -75,6 +77,7 @@ function MiniCardPreview({ cardId }: { cardId: string }) {
         );
       })}
     </div>
+    </ThemedCardWrapper>
   );
 }
 
