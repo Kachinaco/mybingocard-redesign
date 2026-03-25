@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { isImageCell, parseImageCell } from "@/lib/cellContent";
 
 interface RecentlyPlayedItem {
   cardId: string;
@@ -63,7 +64,13 @@ function MiniCardPreview({ cardId }: { cardId: string }) {
               }`}
             style={{ fontSize: `${size <= 3 ? 6 : size <= 4 ? 4.5 : 3.5}px`, padding: "1px", lineHeight: 1.1 }}
           >
-            <span className="line-clamp-2">{isFreeSpace ? "★" : (cell || "")}</span>
+            {isFreeSpace ? (
+              <span className="line-clamp-2">★</span>
+            ) : isImageCell(cell) ? (
+              <img src={parseImageCell(cell)?.imageUrl} alt="" className="w-full h-full object-contain" loading="lazy" />
+            ) : (
+              <span className="line-clamp-2">{cell || ""}</span>
+            )}
           </div>
         );
       })}

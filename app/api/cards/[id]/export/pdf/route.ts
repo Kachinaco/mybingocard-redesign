@@ -172,6 +172,17 @@ function generateCardHTML(
         ${cells
           .map((cell: string, index: number) => {
             const isFreeSpace = freeSpace && index === freeSpaceIndex;
+            let cellContent = escapeHtml(cell);
+            if (!isFreeSpace && cell.startsWith("__IMG__:")) {
+              try {
+                const imgData = JSON.parse(cell.slice(8));
+                const imgUrl = imgData.imageUrl?.startsWith("/")
+                  ? `https://mybingocard.com${imgData.imageUrl}`
+                  : imgData.imageUrl;
+                const label = imgData.label ? `<div style="font-size:0.7em;margin-top:2px;text-align:center;">${escapeHtml(imgData.label)}</div>` : "";
+                cellContent = `<img src="${imgUrl}" style="max-width:90%;max-height:${label ? '65%' : '85%'};object-fit:contain;" />${label}`;
+              } catch { /* fall through to text */ }
+            }
             return `
               <div class="cell" style="
                 background-color: ${isFreeSpace ? freeSpaceBg : bgColor};
@@ -183,7 +194,7 @@ function generateCardHTML(
                 border-radius: ${cellBorderRadius};
                 ${isFreeSpace ? 'font-weight: bold;' : ''}
               ">
-                ${isFreeSpace ? "FREE" : escapeHtml(cell)}
+                ${isFreeSpace ? "FREE" : cellContent}
               </div>
             `;
           })
@@ -269,6 +280,7 @@ function generateCardHTML(
 
           .cell {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
@@ -277,6 +289,7 @@ function generateCardHTML(
             overflow: hidden;
             line-height: 1.2;
           }
+          .cell img { display: block; }
 
           .card-footer {
             color: #94a3b8;

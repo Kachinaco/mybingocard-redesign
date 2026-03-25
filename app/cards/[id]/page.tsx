@@ -2,6 +2,7 @@
 
 import { trackCardPrinted } from "@/lib/analytics";
 import SocialShare from "@/components/SocialShare";
+import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -10,6 +11,12 @@ import AdUnit from "@/components/AdUnit";
 import FavoriteButton from "@/components/FavoriteButton";
 import { trackClientActivity } from "@/lib/activity-client";
 import { redirectToCheckout } from "@/lib/upgrade";
+import {
+  BATCH_PACKS,
+  formatBatchPackPrice,
+  isBatchCount,
+  type BatchCount,
+} from "@/lib/batchPacks";
 
 interface Card {
   _id: string;
@@ -50,13 +57,19 @@ export default function CardViewPage() {
   const [exporting, setExporting] = useState<"pdf" | "png" | null>(null);
   const [pdfGrayscale, setPdfGrayscale] = useState(false);
   const [pdfCopies, setPdfCopies] = useState(1);
-  const [activeTab, setActiveTab] = useState<"play" | "export">("play");
+  const [activeTab, setActiveTab] = useState<"play" | "export" | "batch">("play");
   const [marked, setMarked] = useState<Set<number>>(new Set());
   const [undoStack, setUndoStack] = useState<number[]>([]);
   const [bingo, setBingo] = useState(false);
   const [showBingo, setShowBingo] = useState(false);
   const [copied, setCopied] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(false);
+  const [batchCount, setBatchCount] = useState<BatchCount>(30);
+  const [batchLoading, setBatchLoading] = useState(false);
+  const [batchResult, setBatchResult] = useState<{ count: number; cardIds: string[] } | null>(null);
+  const [batchPdfLoading, setBatchPdfLoading] = useState<string | null>(null);
+  const [batchCheckoutLoading, setBatchCheckoutLoading] = useState(false);
+  const [availableBatchCounts, setAvailableBatchCounts] = useState<Partial<Record<BatchCount, number>>>({});
   const [barExpanded, setBarExpanded] = useState(true);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -69,7 +82,10 @@ export default function CardViewPage() {
 
   useEffect(() => { fetchCard(); }, [cardId]);
   useEffect(() => {
-    if (status === "authenticated" && session?.user?.email) fetchUserPlan();
+    if (status === "authenticated" && session?.user?.email) {
+      fetchUserPlan();
+      loadBatchPurchases();
+    }
   }, [status, session]);
 
   // Listen for fullscreen changes
@@ -186,9 +202,28 @@ export default function CardViewPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ cardId: card._id, cardName: card.title, won: true, duration }),
         }).catch(() => {});
+        // Track bingo achieved
+        trackClientActivity("bingo_achieved", {
+          cardId: card._id,
+          cardTitle: card.title,
+          gridSize: card.size,
+          markedCount: next.size,
+          totalCells: card.size * card.size,
+          timeToBingoSeconds: duration,
+          context: "owner_card",
+        });
       } else if (!hasBingo) {
         setBingo(false);
       }
+      // Track cell toggle
+      trackClientActivity("cell_toggled", {
+        cardId: card._id,
+        cellIndex: index,
+        action: next.has(index) ? "marked" : "unmarked",
+        markedCount: next.size,
+        totalCells: card.size * card.size,
+        context: "owner_card",
+      });
       return next;
     });
   };
@@ -320,6 +355,125 @@ export default function CardViewPage() {
     }
   };
 
+  // --- Batch functions ---
+  const loadBatchPurchases = async () => {
+    if (!session?.user || userPlan?.planType === "Premium") {
+      setAvailableBatchCounts({});
+      return;
+    }
+    try {
+      const response = await fetch("/api/batch-purchases", { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) return;
+      const nextCounts = Object.entries(data.availableByCount || {}).reduce<Partial<Record<BatchCount, number>>>(
+        (acc, [key, value]) => {
+          const numericKey = Number(key);
+          if (isBatchCount(numericKey)) acc[numericKey] = Number(value);
+          return acc;
+        },
+        {}
+      );
+      setAvailableBatchCounts(nextCounts);
+    } catch {}
+  };
+
+  const handleBatchCheckout = async () => {
+    if (!session?.user) return;
+    setBatchCheckoutLoading(true);
+    try {
+      const response = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          purchaseType: "batch_pack",
+          batchCount,
+          successPath: `/cards/${cardId}?batchPurchase=success&batchCount=${batchCount}`,
+          cancelPath: `/cards/${cardId}?batchPurchase=canceled`,
+        }),
+      });
+      const data = await response.json();
+      if (data.free) {
+        window.location.href = `/cards/${cardId}?batchPurchase=success&batchCount=${batchCount}`;
+        return;
+      }
+      if (data.url) window.location.href = data.url;
+    } catch {
+    } finally {
+      setBatchCheckoutLoading(false);
+    }
+  };
+
+  const handleBatchGenerate = async () => {
+    if (!card) return;
+    setBatchLoading(true);
+    setBatchResult(null);
+    try {
+      const filledCells = card.cells.filter((c) => c.trim()).length;
+      const neededCells = card.freeSpace ? card.size * card.size - 1 : card.size * card.size;
+      if (filledCells < neededCells) {
+        alert(`Need at least ${neededCells} filled items for ${card.size}x${card.size} batch generation`);
+        setBatchLoading(false);
+        return;
+      }
+      const response = await fetch("/api/cards/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: card.title,
+          size: card.size,
+          cells: card.cells.filter((c) => c.trim()),
+          freeSpace: card.freeSpace,
+          style: card.style,
+          count: batchCount,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        if (response.status === 403 && data.batchPurchaseRequired) {
+          await loadBatchPurchases();
+        }
+        alert(data.error || "Failed to generate batch cards");
+        setBatchLoading(false);
+        return;
+      }
+      setBatchResult({ count: data.count, cardIds: data.cards.map((c: any) => c._id) });
+      await loadBatchPurchases();
+    } catch {
+      alert("An error occurred during batch generation");
+    } finally {
+      setBatchLoading(false);
+    }
+  };
+
+  const handleBatchPdfDownload = async (cardsPerPage: number = 1, grayscale: boolean = false) => {
+    if (!batchResult) return;
+    const loadingKey = grayscale ? "pdf-gray" : `pdf-${cardsPerPage}`;
+    setBatchPdfLoading(loadingKey);
+    try {
+      const response = await fetch("/api/cards/batch/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardIds: batchResult.cardIds, cardsPerPage, grayscale, showCutLines: true }),
+      });
+      if (!response.ok) throw new Error("Failed to generate PDF");
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const w = window.open(url, "_blank");
+      if (!w) {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `bingo-batch-${batchResult.count}-cards.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to download batch PDF");
+    } finally {
+      setBatchPdfLoading(null);
+    }
+  };
+
   if (loading) return (
     <div className={`min-h-screen flex items-center justify-center ${"bg-slate-50"}`}>
       <div className="text-center">
@@ -347,6 +501,20 @@ export default function CardViewPage() {
   const remainingSquares = Math.max(totalCells - markedCount, 0);
   const shareUrl = card.shareLink ? `${typeof window !== "undefined" ? window.location.origin : ""}/share/${card.shareLink}` : "";
   const qrCodeUrl = shareUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(shareUrl)}` : "";
+
+  const isPremiumBatchUser = userPlan?.planType === "Premium";
+  const selectedBatchPrice = formatBatchPackPrice(batchCount);
+  const hasSelectedBatchPurchase = (availableBatchCounts[batchCount] || 0) > 0;
+  const batchActionLabel = batchLoading
+    ? `Generating ${batchCount} cards...`
+    : batchCheckoutLoading
+      ? "Redirecting to checkout..."
+      : isPremiumBatchUser || hasSelectedBatchPurchase
+        ? `Generate ${batchCount} Unique Cards`
+        : `Buy ${batchCount}-Card Batch \u2022 ${selectedBatchPrice}`;
+  const handleBatchPrimaryAction = isPremiumBatchUser || hasSelectedBatchPurchase
+    ? handleBatchGenerate
+    : handleBatchCheckout;
 
   return (
     <div
@@ -485,6 +653,12 @@ export default function CardViewPage() {
                   >
                     📥 Export
                   </button>
+                  <button
+                    onClick={() => { setActiveTab("batch"); loadBatchPurchases(); }}
+                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "batch" ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+                  >
+                    📋 Batch
+                  </button>
                 </div>
 
                 {activeTab === "play" && (
@@ -551,6 +725,115 @@ export default function CardViewPage() {
                       <p className={`text-xs text-center ${"text-slate-400"}`}>
                         {userPlan.canExportHD ? "✨ HD Quality (2400px)" : "📄 Standard Quality (1200px)"}
                       </p>
+                    )}
+                  </div>
+                )}
+
+                {activeTab === "batch" && (
+                  <div className="p-4 space-y-4">
+                    <p className="text-xs text-slate-500">
+                      Generate multiple unique cards from the same items. Each card gets a different shuffled arrangement.
+                    </p>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                        Number of cards
+                      </label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {([30, 100, 250, 500] as const).map((n) => (
+                          <button
+                            key={n}
+                            onClick={() => setBatchCount(n)}
+                            className={`py-2 rounded-lg border text-sm font-medium transition-all ${
+                              batchCount === n
+                                ? "border-indigo-600 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600"
+                                : "border-slate-200 bg-white text-slate-600 hover:border-indigo-300"
+                            }`}
+                          >
+                            <div className="font-semibold">{n}</div>
+                            {!isPremiumBatchUser && (
+                              <div className="mt-0.5 text-[11px] font-medium text-slate-500">
+                                {BATCH_PACKS[n].label}
+                              </div>
+                            )}
+                            {!isPremiumBatchUser && (availableBatchCounts[n] || 0) > 0 && (
+                              <div className="mt-1 text-[10px] font-semibold text-emerald-600">
+                                Ready x{availableBatchCounts[n]}
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {isPremiumBatchUser ? (
+                      <p className="text-xs text-slate-500">
+                        Batch generation is included in your Premium plan.
+                      </p>
+                    ) : (
+                      <p className="text-xs text-slate-500">
+                        Free accounts can buy one-time batch packs. Premium includes unlimited batch generation.
+                      </p>
+                    )}
+
+                    {batchResult ? (
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-3">
+                        <p className="text-sm font-semibold text-emerald-800">
+                          {batchResult.count} cards generated!
+                        </p>
+                        <div className="space-y-2">
+                          <button
+                            onClick={() => handleBatchPdfDownload(1)}
+                            disabled={batchPdfLoading !== null}
+                            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
+                              batchPdfLoading === "pdf-1" ? "bg-red-700 text-white cursor-wait" : "bg-red-600 text-white hover:bg-red-700"
+                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-1" ? "cursor-not-allowed" : ""}`}
+                          >
+                            {batchPdfLoading === "pdf-1" ? "Generating PDF..." : "Download PDF (1 per page)"}
+                          </button>
+                          <button
+                            onClick={() => handleBatchPdfDownload(2)}
+                            disabled={batchPdfLoading !== null}
+                            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
+                              batchPdfLoading === "pdf-2" ? "bg-red-600 text-white cursor-wait" : "bg-red-500 text-white hover:bg-red-600"
+                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-2" ? "cursor-not-allowed" : ""}`}
+                          >
+                            {batchPdfLoading === "pdf-2" ? "Generating PDF..." : "Download PDF (2 per page)"}
+                          </button>
+                          <button
+                            onClick={() => handleBatchPdfDownload(4)}
+                            disabled={batchPdfLoading !== null}
+                            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
+                              batchPdfLoading === "pdf-4" ? "bg-red-500 text-white cursor-wait" : "bg-red-400 text-white hover:bg-red-500"
+                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-4" ? "cursor-not-allowed" : ""}`}
+                          >
+                            {batchPdfLoading === "pdf-4" ? "Generating PDF..." : "Download PDF (4 per page)"}
+                          </button>
+                          <button
+                            onClick={() => handleBatchPdfDownload(1, true)}
+                            disabled={batchPdfLoading !== null}
+                            className={`w-full py-2 rounded-lg text-sm font-semibold transition ${
+                              batchPdfLoading === "pdf-gray" ? "bg-slate-700 text-white cursor-wait" : "bg-slate-600 text-white hover:bg-slate-700"
+                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-gray" ? "cursor-not-allowed" : ""}`}
+                          >
+                            {batchPdfLoading === "pdf-gray" ? "Generating..." : "Download Grayscale PDF"}
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => setBatchResult(null)}
+                          className="w-full py-2 text-sm font-semibold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+                        >
+                          Generate More
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleBatchPrimaryAction}
+                        disabled={batchLoading || batchCheckoutLoading}
+                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 font-bold text-sm"
+                      >
+                        {batchActionLabel}
+                      </button>
                     )}
                   </div>
                 )}
@@ -638,7 +921,16 @@ export default function CardViewPage() {
                       ) : isMarked ? (
                         <span className="flex flex-col items-center gap-0.5">
                           <span className="text-base leading-none">✓</span>
-                          <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: "0.6em" }}>{cell}</span>
+                          {isImageCell(cell) ? (
+                            <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-[60%] max-h-[40%] object-contain opacity-60" />
+                          ) : (
+                            <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: "0.6em" }}>{cell}</span>
+                          )}
+                        </span>
+                      ) : isImageCell(cell) ? (
+                        <span className="flex flex-col items-center gap-0.5 w-full h-full justify-center p-1">
+                          <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-full max-h-[70%] object-contain" loading="lazy" />
+                          {getCellDisplayText(cell) && <span className="text-[0.55em] leading-tight text-center w-full truncate">{getCellDisplayText(cell)}</span>}
                         </span>
                       ) : (
                         <span className="break-words leading-tight text-center">{cell}</span>
@@ -720,6 +1012,50 @@ export default function CardViewPage() {
                     <button onClick={handlePrint} className="w-full py-2.5 bg-slate-700 text-white rounded-xl font-semibold text-sm">🖨 Print</button>
                   </div>
                 )}
+                {activeTab === "batch" && (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {([30, 100, 250, 500] as const).map((n) => (
+                        <button
+                          key={n}
+                          onClick={() => setBatchCount(n)}
+                          className={`py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                            batchCount === n
+                              ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                              : "border-slate-200 text-slate-600"
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      ))}
+                    </div>
+                    {batchResult ? (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleBatchPdfDownload(1)}
+                          disabled={batchPdfLoading !== null}
+                          className="flex-1 py-2.5 bg-red-600 text-white rounded-xl disabled:opacity-50 font-semibold text-sm"
+                        >
+                          {batchPdfLoading ? "..." : "📄 Download PDF"}
+                        </button>
+                        <button
+                          onClick={() => setBatchResult(null)}
+                          className="py-2.5 px-3 border-2 border-slate-200 text-slate-600 rounded-xl font-semibold text-sm"
+                        >
+                          More
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleBatchPrimaryAction}
+                        disabled={batchLoading || batchCheckoutLoading}
+                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-2.5 rounded-xl disabled:opacity-50 font-bold text-sm"
+                      >
+                        {batchActionLabel}
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -735,6 +1071,12 @@ export default function CardViewPage() {
                 className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "export" && barExpanded ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"}`}
               >
                 📥 Export
+              </button>
+              <button
+                onClick={() => { setActiveTab("batch"); setBarExpanded(v => activeTab === "batch" ? !v : true); loadBatchPurchases(); }}
+                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "batch" && barExpanded ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"}`}
+              >
+                📋 Batch
               </button>
             </div>
           </div>

@@ -109,6 +109,38 @@ export function canRemoveBranding(planType: PlanType): PermissionCheck {
 }
 
 /**
+ * Check if a user's shared cards should show unique shuffled layouts per viewer
+ */
+export function canShuffleSharedCards(planType: PlanType): PermissionCheck {
+  const plan = getPlan(planType);
+  if (!(plan.limits as any).canShuffleSharedCards) {
+    return {
+      allowed: false,
+      reason: "Unique cards per viewer requires Premium plan.",
+      upgradeRequired: true,
+    };
+  }
+  return { allowed: true };
+}
+
+/**
+ * Check if a user can upload custom images to bingo cells
+ */
+export function canUploadImages(planType: PlanType): PermissionCheck {
+  const plan = getPlan(planType);
+
+  if (!(plan.limits as any).canUploadImages) {
+    return {
+      allowed: false,
+      reason: "Custom image uploads require Premium plan. Free users can use the clip-art library.",
+      upgradeRequired: true,
+    };
+  }
+
+  return { allowed: true };
+}
+
+/**
  * Check if a user can access priority support
  */
 export function hasPrioritySupport(planType: PlanType): boolean {

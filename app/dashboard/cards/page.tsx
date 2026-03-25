@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { isImageCell, parseImageCell } from "@/lib/cellContent";
 import { useSession } from "next-auth/react";
 import PlaySoloButton from "@/components/PlaySoloButton";
 import StartGameButton from "@/components/StartGameButton";
@@ -107,7 +108,9 @@ export default function MyCardsPage() {
                 border: `1px solid ${card.style.borderColor || "#e2e8f0"}`,
               }}
             >
-              {isFreeSpace ? "FREE" : cell.length > 12 ? cell.substring(0, 12) + "..." : cell}
+              {isFreeSpace ? "FREE" : isImageCell(cell) ? (
+                <img src={parseImageCell(cell)?.imageUrl} alt="" className="w-full h-full object-contain" loading="lazy" />
+              ) : cell.length > 12 ? cell.substring(0, 12) + "..." : cell}
             </div>
           );
         })}
@@ -271,6 +274,16 @@ export default function MyCardsPage() {
                             Edit
                           </Link>
                       </div>
+
+                      <Link
+                        href={`/create?cardId=${card._id}&batchMode=1`}
+                        className="w-full px-4 py-2.5 bg-violet-50 text-violet-700 border border-violet-200 rounded-lg hover:bg-violet-100 hover:border-violet-300 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7h16M4 12h16M4 17h16" />
+                        </svg>
+                        Bulk Generate
+                      </Link>
 
                       {card.isPublic && card.shareLink && (
                         <button

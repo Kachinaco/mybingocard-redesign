@@ -50,7 +50,7 @@ function generateBatchHTML(
                   border: 1.5px solid ${borderClr};
                   font-size: ${cellFontSize};
                 ">
-                  ${isFreeSpace ? '<span class="free">FREE</span>' : escapeHtml(cell)}
+                  ${isFreeSpace ? '<span class="free">FREE</span>' : cell.startsWith("__IMG__:") ? (() => { try { const d = JSON.parse(cell.slice(8)); const u = d.imageUrl?.startsWith("/") ? "https://mybingocard.com" + d.imageUrl : d.imageUrl; return `<img src="${u}" style="max-width:90%;max-height:${d.label ? '65%' : '85%'};object-fit:contain;" />${d.label ? `<div style="font-size:0.6em;margin-top:1px;text-align:center;">${escapeHtml(d.label)}</div>` : ""}`; } catch { return escapeHtml(cell); } })() : escapeHtml(cell)}
                 </div>
               `;
             })
@@ -191,6 +191,7 @@ function generateBatchHTML(
 
           .cell {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
@@ -201,6 +202,7 @@ function generateBatchHTML(
             overflow: hidden;
             line-height: 1.2;
           }
+          .cell img { display: block; }
 
           .free {
             font-weight: bold;

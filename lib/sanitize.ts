@@ -16,5 +16,24 @@ export function sanitizeText(input: string, maxLength = 200): string {
 }
 
 export function sanitizeCells(cells: string[]): string[] {
-  return cells.map((cell) => sanitizeText(cell, 200));
+  return cells.map((cell) => {
+    // Preserve image cell encoding — only sanitize the label inside
+    if (cell.startsWith("__IMG__:")) {
+      try {
+        const data = JSON.parse(cell.slice(8));
+        // Sanitize the label but keep imageId/imageUrl intact
+        if (data.label) {
+          data.label = sanitizeText(data.label, 100);
+        }
+        // Validate imageId looks like a MongoDB ObjectId or system ID
+        if (!/^[a-zA-Z0-9_-]+$/.test(data.imageId)) {
+          return ""; // reject malformed image cell
+        }
+        return "__IMG__:" + JSON.stringify(data);
+      } catch {
+        return ""; // reject unparseable image cells
+      }
+    }
+    return sanitizeText(cell, 200);
+  });
 }

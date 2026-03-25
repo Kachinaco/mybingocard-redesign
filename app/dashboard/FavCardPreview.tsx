@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { isImageCell, parseImageCell } from "@/lib/cellContent";
 
 interface SavedState {
   marked: number[];
@@ -61,9 +62,13 @@ export default function FavCardPreview({ card }: { card: any }) {
                 }),
               }}
             >
-              <span className="line-clamp-2">
-                {isFreeSpace ? "\u2605" : (cell || "")}
-              </span>
+              {isFreeSpace ? (
+                <span className="line-clamp-2">{"\u2605"}</span>
+              ) : isImageCell(cell) ? (
+                <img src={parseImageCell(cell)?.imageUrl} alt="" className="w-full h-full object-contain" loading="lazy" />
+              ) : (
+                <span className="line-clamp-2">{cell || ""}</span>
+              )}
             </div>
           );
         })}

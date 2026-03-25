@@ -257,11 +257,23 @@ function generateCardHTML(card: any, removeBranding: boolean, isHD: boolean): st
             ${cells
               .map((cell: string, index: number) => {
                 const isFreeSpace = freeSpace && index === freeSpaceIndex;
-                return `
-                  <div class="cell ${isFreeSpace ? "free-space" : ""}">
-                    ${isFreeSpace ? "FREE" : escapeHtml(cell)}
-                  </div>
-                `;
+                let cellContent = escapeHtml(cell);
+                let extraStyle = "";
+                if (!isFreeSpace && cell.startsWith("__IMG__:")) {
+                  try {
+                    const imgData = JSON.parse(cell.slice(8));
+                    const imgUrl = imgData.imageUrl?.startsWith("/")
+                      ? "https://mybingocard.com" + imgData.imageUrl
+                      : imgData.imageUrl;
+                    const label = imgData.label ? '<div style="font-size:0.65em;margin-top:4px;text-align:center;">' + escapeHtml(imgData.label) + '</div>' : "";
+                    const maxH = label ? "65%" : "85%";
+                    cellContent = '<img src="' + imgUrl + '" style="max-width:90%;max-height:' + maxH + ';object-fit:contain;" />' + label;
+                    extraStyle = "flex-direction:column;";
+                  } catch { /* fall through to text */ }
+                }
+                return '<div class="cell ' + (isFreeSpace ? "free-space" : "") + '" style="' + extraStyle + '">'
+                  + (isFreeSpace ? "FREE" : cellContent)
+                  + '</div>';
               })
               .join("")}
           </div>

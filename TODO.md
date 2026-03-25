@@ -2,51 +2,41 @@
 
 ## High Priority
 
-- [ ] **Enable Stripe Payments** - Wire up the pricing page to actually accept payments
-- [ ] **Live Multiplayer Bingo** - Host real-time games where players join via code, host calls numbers
-- [ ] **More Templates** - Add 20+ pre-made templates (baby shower, holidays, classroom, drinking games, etc.)
+- [ ] **Picture Bingo Cards** - Let users add images to cells (like Lotería / Mexican bingo) — upload custom images or pick from a built-in icon library
 - [ ] **AI Content Generator** - "Generate bingo items for a baby shower" using OpenAI/Claude
 
 ## Core Features
 
-- [ ] **Custom Themes** - Let users pick colors, fonts, and card styles
 - [ ] **Drag & Drop Editor** - Better card creation UX with drag-to-reorder cells
 - [ ] **Import from Spreadsheet** - Upload CSV/Excel to populate cards
-- [ ] **Bulk Card Generation** - Generate 30 unique cards at once for classroom use
-- [ ] **Sound Effects** - Optional sounds when marking cells, getting bingo
 
 ## Sharing & Engagement
 
 - [ ] **Public Gallery** - Browse and clone popular community cards
 - [ ] **Embed Widget** - `<iframe>` code to embed playable cards on other sites
-- [ ] **Social Sharing** - One-click share to Facebook, Twitter, WhatsApp with preview image
-- [ ] **QR Code Generation** - Generate QR codes linking to shared cards
 
 ## Game Modes
 
 - [ ] **Pattern Modes** - X pattern, four corners, blackout, etc.
 - [ ] **Timed Games** - Countdown timer for competitive play
-- [ ] **Leaderboards** - Track winners across multiple games
+- [ ] **Leaderboards** - Global leaderboard (personal game stats exist, need cross-user rankings)
 - [ ] **Team Play** - Groups compete against each other
 
 ## Business Features
 
 - [ ] **Teams/Organizations** - Shared workspace for companies/schools
-- [ ] **Analytics Dashboard** - Track plays, engagement, popular cards
+- [ ] **Analytics Dashboard** - Custom dashboard UI (GA events + game stats exist, need dedicated page)
 - [ ] **White Label** - Custom branding for enterprise customers
 - [ ] **API Access** - Let developers create cards programmatically
 
 ## Export & Print
 
-- [ ] **Print Layouts** - 2-up, 4-up, 6-up cards per page
+- [ ] **Print Layouts** - Add 6-up cards per page (1/2/4-up done)
 - [ ] **Card Backing** - Printable card backs with instructions
-- [ ] **High-Res PNG Export** - For social media posts
-- [ ] **Batch PDF Export** - Download all cards as single PDF
 
 ## Mobile
 
-- [ ] **PWA Support** - Installable as mobile app
-- [ ] **Offline Mode** - Play without internet connection
+- [ ] **Offline Mode** - Improve offline support (basic caching exists, need full offline play)
 - [ ] **Native App** - iOS/Android apps (Expo/React Native)
 
 ## Integrations
@@ -58,10 +48,7 @@
 
 ## Marketing & SEO
 
-- [ ] **Blog** - Content marketing (bingo game ideas, how-tos)
-- [ ] **Landing Pages** - SEO pages for "wedding bingo", "baby shower bingo", etc.
-- [ ] **Affiliate Program** - Referral rewards
-- [ ] **Email Sequences** - Onboarding, re-engagement emails
+- [ ] **Email Sequences** - Full marketing automation (basic transactional emails + drip script exist)
 
 ## Technical Debt
 
@@ -81,3 +68,17 @@
 - [x] Templates page
 - [x] Pricing page UI
 - [x] Favicon
+- [x] Stripe payments - Subscriptions ($4.99/mo), batch packs, webhooks, billing portal
+- [x] Live multiplayer bingo - SSE real-time rooms, join codes, host/player roles, server-validated claims
+- [x] 24 pre-made templates across 10 categories
+- [x] Custom themes - 6 presets + custom colors, fonts, font sizes
+- [x] Bulk card generation - 30/100/250/500 shuffled card packs
+- [x] Sound effects - 4 Web Audio API sounds with toggle
+- [x] Social sharing - Facebook, Twitter, Pinterest, copy link
+- [x] QR code generation - Print-optimized via qrserver.com
+- [x] High-res PNG export - Up to 2400px (Premium)
+- [x] Batch PDF export - Multi-card PDF with 1/2/4-up layouts
+- [x] PWA support - manifest.json + service worker
+- [x] Blog - 6 SEO posts
+- [x] SEO landing pages - 12+ keyword pages
+- [x] Affiliate/referral program - Referral codes, tracking, dashboard

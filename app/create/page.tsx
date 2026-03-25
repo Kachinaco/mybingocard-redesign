@@ -9,6 +9,9 @@ import Link from "next/link";
 import AdUnit from "@/components/AdUnit";
 import UpgradeModal from "@/components/UpgradeModal";
 import CardUsageBadge from "@/components/CardUsageBadge";
+import ImagePickerModal from "@/components/ImagePickerModal";
+import BingoCell from "@/components/BingoCell";
+import { isImageCell, parseImageCell, encodeImageCell } from "@/lib/cellContent";
 import {
   BATCH_PACKS,
   formatBatchPackPrice,
@@ -96,6 +99,7 @@ function CreateCardContent() {
   } | null>(null);
   const [checkingPermission, setCheckingPermission] = useState(true);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [imagePickerCellIndex, setImagePickerCellIndex] = useState<number | null>(null);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedSnapshotRef = useRef("");
   const currentCardIdRef = useRef<string | null>(cardIdFromUrl);
@@ -344,7 +348,7 @@ function CreateCardContent() {
       return false;
     }
 
-    return cells.some((cell) => cell.trim().length > 0);
+    return cells.some((cell) => cell.trim().length > 0 || isImageCell(cell));
   };
 
   const getCardPayload = (): CardPayload => ({
@@ -541,6 +545,62 @@ function CreateCardContent() {
     }
   };
 
+  const openImagePicker = (index: number) => {
+    if (permissionStatus?.planType !== "PREMIUM") {
+      setShowUpgradeModal(true);
+      return;
+    }
+    setImagePickerCellIndex(index);
+  };
+
+  const handleImagePicked = (imageId: string, imageUrl: string, label: string) => {
+    if (imagePickerCellIndex === null) return;
+    const encoded = encodeImageCell({ imageId, imageUrl, label });
+    handleCellChange(imagePickerCellIndex, encoded);
+    setImagePickerCellIndex(null);
+  };
+
+  const handleClearImageCell = (index: number) => {
+    handleCellChange(index, "");
+  };
+
+  const handleShuffleCells = () => {
+    const totalCells = size * size;
+    const freeIdx = freeSpace ? Math.floor(totalCells / 2) : -1;
+
+    // Collect all non-empty, non-free-space cells
+    const filledCells: string[] = [];
+    const emptyCells: string[] = [];
+    cells.forEach((cell, i) => {
+      if (i === freeIdx) return; // skip free space
+      if (cell.trim() || isImageCell(cell)) {
+        filledCells.push(cell);
+      } else {
+        emptyCells.push(cell);
+      }
+    });
+
+    // Fisher-Yates shuffle
+    for (let i = filledCells.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = filledCells[i]; filledCells[i] = filledCells[j]!; filledCells[j] = tmp!;
+    }
+
+    // Rebuild the cells array
+    const allShuffled = [...filledCells, ...emptyCells];
+    const newCells: string[] = [];
+    let idx = 0;
+    for (let i = 0; i < totalCells; i++) {
+      if (i === freeIdx) {
+        newCells.push(""); // free space stays empty (rendered as FREE)
+      } else {
+        newCells.push(allShuffled[idx] || "");
+        idx++;
+      }
+    }
+    setCells(newCells);
+  };
+
   const persistDraft = () => {
     try {
       localStorage.setItem("mybingo_card_draft", JSON.stringify({
@@ -566,6 +626,7 @@ function CreateCardContent() {
     if (!magicEmail.trim()) return;
     setMagicLoading(true);
     try {
+      track("magic_link_requested", { callbackUrl: "/create", context: "create_page" });
       await signIn("nodemailer", { email: magicEmail, callbackUrl: "/create", redirect: false });
       setMagicSent(true);
     } catch (e) {
@@ -831,17 +892,17 @@ function CreateCardContent() {
     : handleBatchCheckout;
 
   return (
-    <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-[#f2f2f7] selection:bg-blue-100 selection:text-blue-900">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
+      <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50">
         <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-all duration-300">
+            <div className="w-10 h-10 bg-[#007AFF] rounded-xl flex items-center justify-center shadow-sm transition-all duration-300">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
             </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
+            <span className="text-xl font-bold text-gray-900">
               MyBingoCard
             </span>
           </Link>
@@ -849,13 +910,13 @@ function CreateCardContent() {
           <div className="flex gap-4 items-center">
             <button
               onClick={() => setShowPreview(!showPreview)}
-              className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
+              className="text-sm font-medium text-gray-600 hover:text-[#007AFF] transition-colors"
             >
               {showPreview ? "Back to Edit" : "Preview Card"}
             </button>
             <Link
               href="/dashboard"
-              className="px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-all duration-200"
+              className="px-5 py-2.5 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-all duration-200"
             >
               Cancel
             </Link>
@@ -867,10 +928,10 @@ function CreateCardContent() {
         <div className="container mx-auto max-w-7xl">
           <div className="mb-8 flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">
+              <h1 className="text-3xl font-bold text-gray-900">
                 {isEditingExistingCard ? "Edit Bingo Card" : "Create Bingo Card"}
               </h1>
-              <p className="mt-2 text-sm text-slate-500">{autoSaveLabel}</p>
+              <p className="mt-2 text-sm text-gray-500">{autoSaveLabel}</p>
               {!checkingPermission && permissionStatus && permissionStatus.cardsCreated !== undefined && permissionStatus.cardsLimit !== undefined && permissionStatus.planType && (
                 <div className="mt-2">
                   <CardUsageBadge
@@ -911,17 +972,17 @@ function CreateCardContent() {
 
           {/* Sign-in prompt for anonymous users */}
           {!session?.user && !checkingPermission && (
-            <div className="mb-8 p-4 bg-indigo-50 border border-indigo-100 rounded-xl text-indigo-700 flex items-center gap-3">
+            <div className="mb-8 p-4 bg-blue-50 border border-blue-100 rounded-xl text-[#007AFF] flex items-center gap-3">
               <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-sm">
                 Build your card first. Sign up free when you&apos;re ready to save it.{" "}
-                <Link href="/signup?callbackUrl=/create" className="font-semibold underline underline-offset-2 hover:text-indigo-900">
+                <Link href="/signup?callbackUrl=/create" className="font-semibold underline underline-offset-2 hover:text-[#007AFF]">
                   Sign up now
                 </Link>{" "}
                 or{" "}
-                <Link href="/login?callbackUrl=/create" className="font-semibold underline underline-offset-2 hover:text-indigo-900">
+                <Link href="/login?callbackUrl=/create" className="font-semibold underline underline-offset-2 hover:text-[#007AFF]">
                   log in
                 </Link>{" "}
                 if you already have an account.
@@ -939,37 +1000,37 @@ function CreateCardContent() {
           )}
 
           {isLoadingCard && (
-            <div className="mb-8 p-4 bg-white border border-slate-200 rounded-xl text-slate-600 flex items-center gap-3">
-              <div className="w-5 h-5 border-2 border-slate-300 border-t-indigo-600 rounded-full animate-spin"></div>
+            <div className="mb-8 p-4 bg-white border border-gray-200 rounded-xl text-gray-600 flex items-center gap-3">
+              <div className="w-5 h-5 border-2 border-gray-300 border-t-[#007AFF] rounded-full animate-spin"></div>
               Loading saved card...
             </div>
           )}
 
           {/* Paywall - Free user card limit reached */}
           {permissionStatus && !permissionStatus.allowed && permissionStatus.upgradeRequired && !isEditingExistingCard && (
-            <div className="mb-8 bg-gradient-to-br from-violet-50 via-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-2xl p-8 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-indigo-100 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+            <div className="mb-8 bg-blue-50 border-2 border-blue-200 rounded-2xl p-8 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-[#007AFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
               </div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">You&apos;ve used your free card</h2>
-              <p className="text-slate-600 mb-6 max-w-md mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">You&apos;ve used your free card</h2>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
                 Upgrade to Premium for unlimited cards, all grid sizes, templates, and HD exports.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   onClick={redirectToCheckout}
-                  className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-0.5 transition-all"
+                  className="bg-[#007AFF] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-sm transition-all"
                 >
                   Upgrade to Premium — $4.99/mo
                 </button>
                 <Link
                   href="/dashboard"
-                  className="px-6 py-4 text-slate-600 hover:text-slate-900 font-semibold transition-colors"
+                  className="px-6 py-4 text-gray-600 hover:text-gray-900 font-semibold transition-colors"
                 >
                   Back to Dashboard
                 </Link>
               </div>
-              <p className="mt-4 text-xs text-slate-400">Billed at $4.99/month. Cancel anytime.</p>
+              <p className="mt-4 text-xs text-gray-400">Billed at $4.99/month. Cancel anytime.</p>
             </div>
           )}
 
@@ -985,15 +1046,15 @@ function CreateCardContent() {
             {/* Left Panel - Card Settings */}
             <div className="lg:col-span-4 space-y-6">
               {/* Basic Info */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                   <span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">1</span>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                   <span className="w-8 h-8 rounded-lg bg-blue-50 text-[#007AFF] flex items-center justify-center">1</span>
                    Card Details
                 </h2>
 
                 <div className="space-y-5">
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Card Title <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1006,27 +1067,27 @@ function CreateCardContent() {
                         }
                       }}
                       placeholder="e.g., Wedding Bingo"
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder:text-slate-400"
+                      className="w-full px-4 py-3 bg-[#f2f2f7] border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] outline-none transition-all duration-200 placeholder:text-gray-400"
                       disabled={showPreview}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Description <span className="font-normal text-slate-500">(optional)</span>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Description <span className="font-normal text-gray-500">(optional)</span>
                     </label>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Add some instructions for your players..."
                       rows={3}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all duration-200 placeholder:text-slate-400 resize-none"
+                      className="w-full px-4 py-3 bg-[#f2f2f7] border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] outline-none transition-all duration-200 placeholder:text-gray-400 resize-none"
                       disabled={showPreview}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Grid Size
                     </label>
                     <div className="grid grid-cols-3 gap-3">
@@ -1042,10 +1103,10 @@ function CreateCardContent() {
                               disabled={showPreview || !isAllowed}
                               className={`w-full py-2.5 rounded-xl border transition-all duration-200 font-medium text-sm ${
                                 size === s
-                                  ? "border-indigo-600 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600"
+                                  ? "border-[#007AFF] bg-blue-50 text-[#007AFF] ring-1 ring-[#007AFF]"
                                   : isAllowed
-                                  ? "border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:bg-slate-50"
-                                  : "border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed"
+                                  ? "border-gray-200 bg-white text-gray-600 hover:border-[#007AFF]/30 hover:bg-gray-50"
+                                  : "border-gray-200 bg-[#f2f2f7] text-gray-300 cursor-not-allowed"
                               }`}
                             >
                               {s}×{s}
@@ -1063,32 +1124,46 @@ function CreateCardContent() {
                   </div>
 
                   <div className="space-y-3 pt-2">
-                     <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                     <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
                       <div className="relative flex items-center">
                         <input
                             type="checkbox"
                             checked={freeSpace}
                             onChange={(e) => setFreeSpace(e.target.checked)}
                             disabled={showPreview}
-                            className="w-5 h-5 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                            className="w-5 h-5 text-[#007AFF] border-gray-300 rounded focus:ring-[#007AFF]"
                         />
                       </div>
-                      <span className="text-sm font-medium text-slate-700">Include free space</span>
+                      <span className="text-sm font-medium text-gray-700">Include free space</span>
                     </label>
 
-                    <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                    <button
+                      type="button"
+                      onClick={handleShuffleCells}
+                      disabled={showPreview}
+                      className="flex items-center gap-3 p-3 w-full border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="w-5 h-5 flex items-center justify-center text-[#007AFF]">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      </div>
+                      <span className="text-sm font-medium text-gray-700">Shuffle cells</span>
+                    </button>
+
+                    <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
                       <div className="relative flex items-center">
                          <input
                             type="checkbox"
                             checked={isPublic}
                             onChange={(e) => setIsPublic(e.target.checked)}
                             disabled={showPreview}
-                            className="w-5 h-5 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                            className="w-5 h-5 text-[#007AFF] border-gray-300 rounded focus:ring-[#007AFF]"
                         />
                       </div>
                       <div>
-                          <div className="text-sm font-medium text-slate-700">Make Public</div>
-                          <div className="text-xs text-slate-500">Allow anyone with the link to view</div>
+                          <div className="text-sm font-medium text-gray-700">Make Public</div>
+                          <div className="text-xs text-gray-500">Allow anyone with the link to view</div>
                       </div>
                     </label>
                   </div>
@@ -1096,16 +1171,16 @@ function CreateCardContent() {
               </div>
 
               {/* Style Customization */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                <h2 className="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
-                   <span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">2</span>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+                   <span className="w-8 h-8 rounded-lg bg-blue-50 text-[#007AFF] flex items-center justify-center">2</span>
                    Style & Colors
                 </h2>
 
                 <div className="space-y-5">
                   {/* Theme Presets */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
                       Quick Themes
                     </label>
                     <div className="grid grid-cols-4 gap-2">
@@ -1131,8 +1206,8 @@ function CreateCardContent() {
                           disabled={showPreview}
                           className={`group relative flex flex-col items-center gap-1.5 p-2 rounded-xl border-2 transition-all duration-200 hover:scale-105 ${
                             style.backgroundColor === theme.bg && style.textColor === theme.text
-                              ? "border-indigo-500 ring-2 ring-indigo-500/20"
-                              : "border-slate-200 hover:border-slate-300"
+                              ? "border-[#007AFF] ring-2 ring-[#007AFF]/20"
+                              : "border-gray-200 hover:border-gray-300"
                           }`}
                         >
                           <div
@@ -1141,7 +1216,7 @@ function CreateCardContent() {
                           >
                             <span className="text-[10px] font-bold" style={{ color: theme.text }}>B I N G O</span>
                           </div>
-                          <span className="text-[10px] font-medium text-slate-600">{theme.name}</span>
+                          <span className="text-[10px] font-medium text-gray-600">{theme.name}</span>
                         </button>
                       ))}
                     </div>
@@ -1149,7 +1224,7 @@ function CreateCardContent() {
 
                   {/* Custom Colors (collapsed by default) */}
                   <details className="group">
-                    <summary className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-500 uppercase tracking-wide select-none hover:text-indigo-600 transition-colors">
+                    <summary className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-500 uppercase tracking-wide select-none hover:text-[#007AFF] transition-colors">
                       <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
@@ -1167,11 +1242,11 @@ function CreateCardContent() {
                             value={style[key]}
                             onChange={(e) => setStyle({ ...style, [key]: e.target.value })}
                             disabled={showPreview}
-                            className="w-9 h-9 rounded-lg cursor-pointer border border-slate-200 p-0.5 bg-white flex-shrink-0"
+                            className="w-9 h-9 rounded-lg cursor-pointer border border-gray-200 p-0.5 bg-white flex-shrink-0"
                           />
-                          <span className="text-sm text-slate-600 w-20">{label}</span>
+                          <span className="text-sm text-gray-600 w-20">{label}</span>
                           <div
-                            className="flex-1 h-6 rounded-md border border-slate-200"
+                            className="flex-1 h-6 rounded-md border border-gray-200"
                             style={{ backgroundColor: style[key] }}
                           ></div>
                         </div>
@@ -1182,14 +1257,14 @@ function CreateCardContent() {
                   {/* Font Controls */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                         Font
                       </label>
                       <select
                         value={style.fontFamily}
                         onChange={(e) => setStyle({ ...style, fontFamily: e.target.value })}
                         disabled={showPreview}
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        className="w-full px-3 py-2.5 bg-[#f2f2f7] border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF]"
                         style={{ fontFamily: style.fontFamily }}
                       >
                         <option value="Arial" style={{ fontFamily: "Arial" }}>Arial</option>
@@ -1201,10 +1276,10 @@ function CreateCardContent() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                         Text Size
                       </label>
-                      <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-1">
+                      <div className="flex items-center gap-1 bg-[#f2f2f7] border border-gray-200 rounded-xl p-1">
                         {[
                           { value: "12px", label: "S" },
                           { value: "14px", label: "M" },
@@ -1217,8 +1292,8 @@ function CreateCardContent() {
                             disabled={showPreview}
                             className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
                               style.fontSize === s.value
-                                ? "bg-white text-indigo-600 shadow-sm"
-                                : "text-slate-500 hover:text-slate-700"
+                                ? "bg-white text-[#007AFF] shadow-sm"
+                                : "text-gray-500 hover:text-gray-700"
                             }`}
                           >
                             {s.label}
@@ -1232,29 +1307,29 @@ function CreateCardContent() {
               </div>
 
               {/* Batch Generation */}
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                   <span className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">3</span>
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                   <span className="w-8 h-8 rounded-lg bg-blue-50 text-[#007AFF] flex items-center justify-center">3</span>
                    Batch Generate
                 </h2>
 
-                <label className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors mb-4">
+                <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors mb-4">
                   <input
                     type="checkbox"
                     checked={batchMode}
                     onChange={(e) => { setBatchMode(e.target.checked); setBatchResult(null); }}
-                    className="w-5 h-5 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                    className="w-5 h-5 text-[#007AFF] border-gray-300 rounded focus:ring-[#007AFF]"
                   />
                   <div>
-                    <div className="text-sm font-medium text-slate-700">Enable batch mode</div>
-                    <div className="text-xs text-slate-500">Generate multiple unique cards from the same items</div>
+                    <div className="text-sm font-medium text-gray-700">Enable batch mode</div>
+                    <div className="text-xs text-gray-500">Generate multiple unique cards from the same items</div>
                   </div>
                 </label>
 
                 {batchMode && (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                         Number of Cards
                       </label>
                       <div className="grid grid-cols-4 gap-2">
@@ -1264,13 +1339,13 @@ function CreateCardContent() {
                             onClick={() => setBatchCount(n)}
                             className={`py-2 rounded-lg border text-sm font-medium transition-all ${
                               batchCount === n
-                                ? "border-indigo-600 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600"
-                                : "border-slate-200 bg-white text-slate-600 hover:border-indigo-300"
+                                ? "border-[#007AFF] bg-blue-50 text-[#007AFF] ring-1 ring-[#007AFF]"
+                                : "border-gray-200 bg-white text-gray-600 hover:border-[#007AFF]/30"
                             }`}
                           >
                             <div className="font-semibold">{n}</div>
                             {!isPremiumBatchUser && (
-                              <div className="mt-0.5 text-[11px] font-medium text-slate-500">
+                              <div className="mt-0.5 text-[11px] font-medium text-gray-500">
                                 {BATCH_PACKS[n].label}
                               </div>
                             )}
@@ -1297,12 +1372,12 @@ function CreateCardContent() {
                     )}
 
                     {isPremiumBatchUser ? (
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-gray-500">
                         Each card will have a unique random arrangement of your items. Premium batch generation is included in your plan.
                       </p>
                     ) : (
                       <div className="space-y-2">
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-gray-500">
                           Free accounts can buy one-time batch packs. Premium stays unchanged and still includes batch generation.
                         </p>
                         {availableBatchSummary && (
@@ -1366,7 +1441,7 @@ function CreateCardContent() {
                         </div>
                         <button
                           onClick={() => router.push("/dashboard/cards")}
-                          className="w-full py-2 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                          className="w-full py-2 text-sm text-[#007AFF] hover:text-[#007AFF] font-medium"
                         >
                           View all cards in dashboard
                         </button>
@@ -1377,7 +1452,7 @@ function CreateCardContent() {
                       <button
                         onClick={handleBatchPrimaryAction}
                         disabled={batchActionDisabled}
-                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 font-bold text-sm"
+                        className="w-full bg-[#007AFF] text-white px-4 py-3 rounded-xl hover:shadow-sm transition-all disabled:opacity-50 font-bold text-sm"
                       >
                         {batchActionLabel}
                       </button>
@@ -1389,28 +1464,28 @@ function CreateCardContent() {
 
             {/* Right Panel - Bingo Grid */}
             <div className="lg:col-span-8">
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 lg:p-8 h-full flex flex-col">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 lg:p-8 h-full flex flex-col">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold text-slate-900">
+                  <h2 className="text-xl font-bold text-gray-900">
                     {showPreview ? "Card Preview" : "Edit Content"}
                   </h2>
                   {!showPreview && (
-                    <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider bg-slate-100 px-3 py-1 rounded-full">
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-100 px-3 py-1 rounded-full">
                       {size}×{size} grid • {size * size} cells
                     </span>
                   )}
                 </div>
 
                 {/* Bingo Grid */}
-                <div className="flex-grow flex items-center justify-center bg-slate-50 rounded-xl border border-slate-100 p-3 md:p-6 mb-8">
+                <div className="flex-grow flex items-center justify-center bg-[#f2f2f7] rounded-xl border border-gray-200 p-3 md:p-6 mb-8">
                    <div className="w-full">
                       {/* Grid Header - matches grid columns */}
                       <div
-                        className="grid mb-1.5 md:mb-2 text-center font-black tracking-widest text-slate-900 opacity-90"
+                        className="grid mb-1.5 md:mb-2 text-center font-bold tracking-widest text-gray-900 opacity-90"
                         style={{ gridTemplateColumns: `repeat(${size}, 1fr)`, gap: size === 5 ? "4px" : "8px" }}
                       >
                          <div
-                           className="py-1.5 text-sm font-bold text-center text-transparent bg-clip-text bg-gradient-to-br from-violet-600 to-indigo-600 truncate px-2"
+                           className="py-1.5 text-sm font-bold text-center text-[#007AFF] truncate px-2"
                            style={{ gridColumn: "1 / -1" }}
                          >
                            {title || "My Bingo Card"}
@@ -1426,12 +1501,14 @@ function CreateCardContent() {
                       >
                         {cells.map((cell, index) => {
                           const isFreeSpace = freeSpace && index === getFreeSpaceIndex();
+                          const cellIsImage = isImageCell(cell);
+                          const imageData = cellIsImage ? parseImageCell(cell) : null;
 
                           return (
                             <div
                               key={index}
                               className={`aspect-square relative group transition-all duration-200 ${
-                                showPreview ? "shadow-sm" : "focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-1"
+                                showPreview ? "shadow-sm" : "focus-within:ring-2 focus-within:ring-[#007AFF] focus-within:ring-offset-1"
                               }`}
                               style={{
                                 backgroundColor: style.backgroundColor,
@@ -1452,30 +1529,78 @@ function CreateCardContent() {
                                   FREE
                                 </div>
                               ) : showPreview ? (
+                                <BingoCell cell={cell} style={style} size={size} />
+                              ) : cellIsImage && imageData ? (
+                                /* Image cell in edit mode — shows image with swap/remove buttons */
                                 <div
-                                  className="w-full h-full flex items-center justify-center border border-opacity-50 rounded-lg md:rounded-xl p-1.5 text-center break-words overflow-hidden shadow-sm"
-                                  style={{
-                                    color: style.textColor,
-                                    fontSize: size === 5 ? "12px" : style.fontSize,
-                                    fontFamily: style.fontFamily,
-                                    borderColor: style.borderColor,
-                                    backgroundColor: style.backgroundColor,
-                                  }}
+                                  className="w-full h-full flex flex-col items-center justify-center border rounded-lg md:rounded-xl p-1 overflow-hidden transition-colors"
+                                  style={{ borderColor: style.borderColor, backgroundColor: style.backgroundColor }}
                                 >
-                                  {cell || <span className="text-slate-300 italic text-xs">Empty</span>}
+                                  <img
+                                    src={imageData.imageUrl}
+                                    alt={imageData.label || ""}
+                                    className="max-w-full max-h-[60%] object-contain"
+                                  />
+                                  {imageData.label && (
+                                    <span className="text-[9px] md:text-[10px] font-medium text-gray-700 mt-0.5 line-clamp-1 w-full text-center">
+                                      {imageData.label}
+                                    </span>
+                                  )}
+                                  {/* Hover overlay with swap & remove */}
+                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-lg md:rounded-xl flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100">
+                                    <button
+                                      onClick={() => openImagePicker(index)}
+                                      className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+                                      title="Change image"
+                                    >
+                                      <svg className="w-3.5 h-3.5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={() => handleClearImageCell(index)}
+                                      className="w-7 h-7 bg-red-500 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+                                      title="Remove image"
+                                    >
+                                      <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                      </svg>
+                                    </button>
+                                  </div>
                                 </div>
                               ) : (
-                                <textarea
-                                  value={cell}
-                                  onChange={(e) => handleCellChange(index, e.target.value)}
-                                  placeholder={`${index + 1}`}
-                                  className={`w-full h-full p-1.5 border rounded-lg md:rounded-xl resize-none focus:outline-none text-center bg-transparent transition-colors hover:bg-slate-50/50 focus:bg-white placeholder:text-slate-300 ${size === 5 ? "text-xs md:text-sm" : "text-sm"}`}
-                                  style={{
-                                    color: style.textColor,
-                                    fontFamily: style.fontFamily,
-                                    borderColor: style.borderColor,
-                                  }}
-                                />
+                                /* Text cell in edit mode — has camera button to add image */
+                                <div className="relative w-full h-full flex flex-col">
+                                  <div className="flex-1 flex items-center justify-center border rounded-lg md:rounded-xl overflow-hidden transition-colors hover:bg-gray-50/50 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#007AFF] focus-within:ring-offset-1"
+                                    style={{ borderColor: style.borderColor }}
+                                  >
+                                    <textarea
+                                      value={cell}
+                                      onChange={(e) => handleCellChange(index, e.target.value)}
+                                      placeholder={`${index + 1}`}
+                                      rows={1}
+                                      className={`w-full text-center bg-transparent resize-none focus:outline-none placeholder:text-gray-300 leading-tight p-1 ${size === 5 ? "text-xs md:text-sm" : "text-sm"}`}
+                                      style={{
+                                        color: style.textColor,
+                                        fontFamily: style.fontFamily,
+                                        height: "auto",
+                                        maxHeight: "100%",
+                                      }}
+                                    />
+                                  </div>
+                                  {/* Camera button — always visible at bottom of cell */}
+                                  <button
+                                    onClick={() => openImagePicker(index)}
+                                    className="absolute bottom-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-gray-200/80 hover:bg-[#007AFF] text-gray-400 hover:text-white flex items-center justify-center transition-all"
+                                    title="Add image"
+                                    type="button"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                  </button>
+                                </div>
                               )}
                             </div>
                           );
@@ -1485,12 +1610,12 @@ function CreateCardContent() {
                 </div>
 
                 {/* Action Buttons - Hidden on mobile (replaced by sticky bar) */}
-                <div className="hidden md:flex flex-col sm:flex-row gap-4 pt-4 border-t border-slate-100">
+                <div className="hidden md:flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-200">
                   <Link
                     href="/templates"
-                    className="px-6 py-3.5 bg-white text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all font-semibold flex items-center justify-center gap-2"
+                    className="px-6 py-3.5 bg-white text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-semibold flex items-center justify-center gap-2"
                   >
-                    <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
                     Browse Templates
@@ -1499,7 +1624,7 @@ function CreateCardContent() {
                   {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
                     <button
                       onClick={redirectToCheckout}
-                      className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-6 py-3.5 rounded-xl hover:shadow-lg hover:shadow-orange-500/20 hover:-translate-y-0.5 transition-all font-bold text-lg shadow-md shadow-orange-200 text-center"
+                      className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-6 py-3.5 rounded-xl hover:shadow-sm hover:shadow-orange-500/20 transition-all font-bold text-lg shadow-md shadow-orange-200 text-center"
                     >
                       Limit Reached — Upgrade Plan
                     </button>
@@ -1511,7 +1636,7 @@ function CreateCardContent() {
                       showPreview ||
                       isLoadingCard
                     }
-                    className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-6 py-3.5 rounded-xl hover:shadow-lg hover:shadow-indigo-500/20 hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-lg shadow-md shadow-indigo-200"
+                    className="flex-1 bg-[#007AFF] text-white px-6 py-3.5 rounded-xl hover:shadow-sm transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-lg shadow-sm"
                   >
                     {loading ? "Saving..." : isEditingExistingCard ? "Save & Go to Dashboard" : "Create & Save Card"}
                   </button>
@@ -1524,12 +1649,12 @@ function CreateCardContent() {
         </div>
 
         {/* Mobile sticky bottom action bar */}
-        {editorUnlocked && !isLoadingCard && (<div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg z-50">
+        {editorUnlocked && !isLoadingCard && (<div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
           <div className="container mx-auto px-4 py-3">
             <div className="flex gap-2">
               <Link
                 href="/templates"
-                className="px-4 py-3 bg-white text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all font-semibold text-sm flex items-center justify-center"
+                className="px-4 py-3 bg-white text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all font-semibold text-sm flex items-center justify-center"
               >
                 📋 Templates
               </Link>
@@ -1544,7 +1669,7 @@ function CreateCardContent() {
               <button
                 onClick={handleSave}
                 disabled={loading || showPreview || isLoadingCard}
-                className="flex-1 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-3 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed font-bold text-sm shadow-md"
+                className="flex-1 bg-[#007AFF] text-white px-4 py-3 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed font-bold text-sm shadow-md"
               >
                 {loading ? "Saving..." : isEditingExistingCard ? "Save" : "Create & Save"}
               </button>
@@ -1681,13 +1806,19 @@ function CreateCardContent() {
       )}
 
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+      <ImagePickerModal
+        open={imagePickerCellIndex !== null}
+        onClose={() => setImagePickerCellIndex(null)}
+        onPick={handleImagePicked}
+        isPremium={permissionStatus?.planType === "PREMIUM"}
+      />
     </div>
   );
 }
 
 export default function CreateCardPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center text-indigo-600">Loading editor...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#f2f2f7] flex items-center justify-center text-[#007AFF]">Loading editor...</div>}>
       <CreateCardContent />
     </Suspense>
   );

@@ -4,23 +4,12 @@ import { getCardById } from "@/lib/db/cards";
 import { getUserByEmail } from "@/lib/db/users";
 import puppeteer from "puppeteer";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
-
-function shuffleArray<T>(arr: T[], seed: number): T[] {
-  const array = [...arr];
-  // Seeded Fisher-Yates shuffle
-  let s = seed;
-  for (let i = array.length - 1; i > 0; i--) {
-    s = (s * 1664525 + 1013904223) & 0xffffffff;
-    const j = Math.abs(s) % (i + 1);
-    [array[i], array[j]] = [array[j]!, array[i]!];
-  }
-  return array;
-}
+import { seededShuffle } from "@/lib/shuffle";
 
 function generateShuffledCells(cells: string[], size: number, cardIndex: number): string[] {
   const freeSpaceIndex = Math.floor((size * size) / 2);
   const nonFreeCells = cells.filter((_, i) => i !== freeSpaceIndex);
-  const shuffled = shuffleArray(nonFreeCells, cardIndex * 31337 + 42);
+  const shuffled = seededShuffle(nonFreeCells, cardIndex * 31337 + 42);
   const result = [...shuffled];
   result.splice(freeSpaceIndex, 0, "FREE");
   return result;
@@ -57,7 +46,7 @@ function generateCardPageHTML(card: any, cardCells: string[], cardNum: number, t
               border-color: ${style.borderColor || "#e2e8f0"};
               font-size: ${style.fontSize || "14px"};
               font-family: ${style.fontFamily || "Arial"}, sans-serif;
-            ">${isFreeSpace ? "FREE" : escapeHtml(cell)}</div>`;
+            ">${isFreeSpace ? "FREE" : cell.startsWith("__IMG__:") ? (() => { try { const d = JSON.parse(cell.slice(8)); const u = d.imageUrl?.startsWith("/") ? "https://mybingocard.com" + d.imageUrl : d.imageUrl; return `<img src="${u}" style="max-width:90%;max-height:${d.label ? '65%' : '85%'};object-fit:contain;" />${d.label ? `<div style="font-size:0.65em;margin-top:2px;">${escapeHtml(d.label)}</div>` : ""}`; } catch { return escapeHtml(cell); } })() : escapeHtml(cell)}</div>`;
           }).join("")}
         </div>
         <div class="footer">MyBingoCard.com</div>

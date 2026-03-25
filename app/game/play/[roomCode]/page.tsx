@@ -6,6 +6,7 @@ import Link from "next/link";
 import Confetti from "@/components/Confetti";
 import SoundToggle from "@/components/SoundToggle";
 import { playDabSound, playUndabSound, playBingoSound, playDingSound } from "@/lib/sounds";
+import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
 
 interface PlayerData {
   playerId: string;
@@ -270,7 +271,12 @@ export default function PlayGamePage() {
           <div className={`mb-4 bg-white rounded-2xl shadow-sm border border-slate-100 p-4 text-center transition-all ${showNewCall ? "ring-2 ring-indigo-400 shadow-lg" : ""}`}>
             <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Current Call</div>
             <div className={`text-2xl font-black text-indigo-600 transition-all ${showNewCall ? "scale-110" : ""}`}>
-              {lastCalledItem}
+              {lastCalledItem && isImageCell(lastCalledItem) ? (
+                <span className="flex flex-col items-center gap-1">
+                  <img src={parseImageCell(lastCalledItem)?.imageUrl} alt="" className="w-16 h-16 object-contain" />
+                  {getCellDisplayText(lastCalledItem) && <span className="text-sm">{getCellDisplayText(lastCalledItem)}</span>}
+                </span>
+              ) : lastCalledItem}
             </div>
             <div className="text-xs text-slate-400 mt-1">
               {calledItems.length} called &bull; Tap matching cells to mark them
@@ -338,7 +344,16 @@ export default function PlayGamePage() {
                   ) : isMarked ? (
                     <span className="flex flex-col items-center gap-0.5">
                       <span className="text-base leading-none">&#10003;</span>
-                      <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: "0.55em" }}>{cell}</span>
+                      {isImageCell(cell) ? (
+                        <img src={parseImageCell(cell)?.imageUrl} alt="" className="max-w-[60%] max-h-[40%] object-contain opacity-60" />
+                      ) : (
+                        <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: "0.55em" }}>{cell}</span>
+                      )}
+                    </span>
+                  ) : isImageCell(cell) ? (
+                    <span className="flex flex-col items-center gap-0.5 w-full h-full justify-center p-0.5">
+                      <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-full max-h-[70%] object-contain" loading="lazy" />
+                      {getCellDisplayText(cell) && <span className="text-[0.5em] leading-tight text-center w-full truncate">{getCellDisplayText(cell)}</span>}
                     </span>
                   ) : (
                     <span className="break-words leading-tight text-center">{cell}</span>

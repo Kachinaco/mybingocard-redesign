@@ -6,6 +6,7 @@ import Link from "next/link";
 import Confetti from "@/components/Confetti";
 import SoundToggle from "@/components/SoundToggle";
 import { playDingSound, playBingoSound } from "@/lib/sounds";
+import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
 
 interface Player {
   playerId: string;
@@ -266,7 +267,14 @@ export default function HostGamePage() {
                     <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Current Call</div>
                     {lastCalledItem ? (
                       <div className={`inline-block px-8 py-6 bg-gradient-to-br from-indigo-600 to-violet-600 text-white rounded-2xl shadow-lg transition-all duration-500 ${showCalledAnimation ? "animate-bounce shadow-xl shadow-indigo-200" : ""}`}>
-                        <div className="text-3xl font-black">{lastCalledItem}</div>
+                        <div className="text-3xl font-black">
+                          {isImageCell(lastCalledItem!) ? (
+                            <span className="flex flex-col items-center gap-1">
+                              <img src={parseImageCell(lastCalledItem!)?.imageUrl} alt="" className="w-20 h-20 object-contain" />
+                              {getCellDisplayText(lastCalledItem!) && <span className="text-lg">{getCellDisplayText(lastCalledItem!)}</span>}
+                            </span>
+                          ) : lastCalledItem}
+                        </div>
                         <div className="text-indigo-200 text-sm mt-1">
                           Call #{gameState.calledItems.length} of {gameState.wordListCount}
                         </div>
@@ -348,13 +356,18 @@ export default function HostGamePage() {
                   {[...gameState.calledItems].reverse().map((item, i) => (
                     <span
                       key={i}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium inline-flex items-center gap-1 ${
                         i === 0
                           ? "bg-indigo-100 text-indigo-700 ring-2 ring-indigo-300"
                           : "bg-slate-100 text-slate-600"
                       }`}
                     >
-                      {item}
+                      {isImageCell(item) ? (
+                        <>
+                          <img src={parseImageCell(item)?.imageUrl} alt="" className="w-6 h-6 object-contain" />
+                          {getCellDisplayText(item) && <span>{getCellDisplayText(item)}</span>}
+                        </>
+                      ) : item}
                     </span>
                   ))}
                 </div>

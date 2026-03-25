@@ -1,6 +1,7 @@
 "use client";
 
 import SocialShare from "@/components/SocialShare";
+import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -8,6 +9,8 @@ import AdUnit from "@/components/AdUnit";
 import ConfettiComponent from "@/components/Confetti";
 import SoundToggle from "@/components/SoundToggle";
 import { playDabSound, playUndabSound, playBingoSound } from "@/lib/sounds";
+import { trackClientActivity, getAnonymousId } from "@/lib/activity-client";
+import { shuffleBingoCells } from "@/lib/shuffle";
 
 interface Card {
   _id: string;
@@ -78,6 +81,10 @@ export default function SharedCardPage() {
   const [passwordError, setPasswordError] = useState("");
   const [passwordTitle, setPasswordTitle] = useState("");
   const [expired, setExpired] = useState(false);
+  const [shuffleEnabled, setShuffleEnabled] = useState(false);
+  const [adFree, setAdFree] = useState(false);
+  const [displayCells, setDisplayCells] = useState<string[]>([]);
+  const gameStartTime = useRef(Date.now());
 
   useEffect(() => { fetchCard(); }, [shareLink]);
 
@@ -104,6 +111,17 @@ export default function SharedCardPage() {
     setStateRestored(true);
   }, [card, stateRestored]);
 
+  // Compute display cells — shuffle per viewer if Premium, otherwise show original order
+  useEffect(() => {
+    if (!card) return;
+    if (shuffleEnabled) {
+      const viewerId = getAnonymousId() || "fallback";
+      setDisplayCells(shuffleBingoCells(card.cells, card.size, card.freeSpace, viewerId, card._id));
+    } else {
+      setDisplayCells(card.cells);
+    }
+  }, [card, shuffleEnabled]);
+
   const fetchCard = async () => {
     try {
       setLoading(true);
@@ -124,6 +142,8 @@ export default function SharedCardPage() {
       }
 
       setCard(data.card);
+      setShuffleEnabled(data.shuffleEnabled || false);
+      setAdFree(data.adFree || false);
     } catch (err: any) {
       setError(err.message || "Failed to load card");
     } finally {
@@ -157,6 +177,8 @@ export default function SharedCardPage() {
 
       setRequiresPassword(false);
       setCard(data.card);
+      setShuffleEnabled(data.shuffleEnabled || false);
+      setAdFree(data.adFree || false);
     } catch (err: any) {
       setPasswordError(err.message || "Failed to verify password");
     }
@@ -207,9 +229,29 @@ export default function SharedCardPage() {
           navigator.vibrate([100, 50, 100, 50, 200]);
         }
         setTimeout(() => setShowConfetti(false), 4000);
+        // Track bingo achieved
+        const duration = Math.round((Date.now() - gameStartTime.current) / 1000);
+        trackClientActivity("bingo_achieved", {
+          cardId: card._id,
+          cardTitle: card.title,
+          gridSize: card.size,
+          markedCount: next.size,
+          totalCells: card.size * card.size,
+          timeToBingoSeconds: duration,
+          context: "shared_card",
+        });
       } else if (!hasBingo) {
         setBingo(false);
       }
+      // Track cell toggle
+      trackClientActivity("cell_toggled", {
+        cardId: card._id,
+        cellIndex: index,
+        action: next.has(index) ? "marked" : "unmarked",
+        markedCount: next.size,
+        totalCells: card.size * card.size,
+        context: "shared_card",
+      });
       // Persist game state
       saveLocalState(card._id, next, hasBingo);
       return next;
@@ -398,7 +440,7 @@ export default function SharedCardPage() {
             className="grid gap-1.5 md:gap-2 w-full bingo-grid-print"
             style={{ gridTemplateColumns: `repeat(${card.size}, 1fr)` }}
           >
-            {card.cells.map((cell, index) => {
+            {displayCells.map((cell, index) => {
               const isFreeSpace = card.freeSpace && index === freeSpaceIdx;
               const isMarked = marked.has(index);
 
@@ -427,7 +469,16 @@ export default function SharedCardPage() {
                   ) : isMarked ? (
                     <span className="flex flex-col items-center gap-0.5">
                       <span className="text-base leading-none">✓</span>
-                      <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: "0.6em" }}>{cell}</span>
+                      {isImageCell(cell) ? (
+                        <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-[60%] max-h-[40%] object-contain opacity-60" />
+                      ) : (
+                        <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: "0.6em" }}>{cell}</span>
+                      )}
+                    </span>
+                  ) : isImageCell(cell) ? (
+                    <span className="flex flex-col items-center gap-0.5 w-full h-full justify-center p-1">
+                      <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-full max-h-[70%] object-contain" loading="lazy" />
+                      {getCellDisplayText(cell) && <span className="text-[0.55em] leading-tight text-center w-full truncate">{getCellDisplayText(cell)}</span>}
                     </span>
                   ) : (
                     <span className="break-words leading-tight text-center">{cell}</span>
@@ -508,10 +559,21 @@ export default function SharedCardPage() {
           </div>
         )}
 
-        {/* Ad placement on shared cards */}
-        {!isFullscreen && (
+        {/* Ad placement on shared cards (hidden for Premium card owners) */}
+        {!isFullscreen && !adFree && (
           <div className="mb-6 print:hidden">
             <AdUnit slot="shared-card" format="horizontal" className="rounded-xl overflow-hidden" />
+          </div>
+        )}
+
+        {/* Upgrade CTA for non-shuffled cards */}
+        {!isFullscreen && !shuffleEnabled && (
+          <div className="mb-6 text-center text-sm text-slate-400 print:hidden">
+            <p>Everyone sees the same card layout.</p>
+            <Link href="/pricing" className="text-indigo-500 hover:underline font-medium">
+              Upgrade to Premium
+            </Link>{" "}
+            for unique cards per viewer.
           </div>
         )}
 
