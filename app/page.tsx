@@ -68,11 +68,11 @@ function FeatureCard({ icon, title, description, delay = "" }: { icon: React.Rea
 
 function StatCard({ number, label }: { number: string; label: string }) {
   return (
-    <div className="text-center p-6 rounded-2xl bg-white/50 backdrop-blur border border-slate-100 hover:bg-white hover:shadow-lg transition-all duration-300">
-      <div className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+    <div className="text-center p-8 rounded-2xl bg-white shadow-sm border border-slate-100 hover:shadow-lg transition-all duration-300">
+      <div className="text-5xl md:text-5xl font-extrabold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent mb-3">
         {number}
       </div>
-      <div className="text-slate-600 font-medium text-sm uppercase tracking-wide">{label}</div>
+      <div className="text-slate-600 font-semibold text-base uppercase tracking-wide">{label}</div>
     </div>
   );
 }
@@ -176,9 +176,9 @@ export default function Home() {
         </section>
 
         {/* Stats Section */}
-        <section className="py-10 border-y border-slate-200 bg-white/50 backdrop-blur-sm">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
+        <section className="py-12 border-y border-slate-200 bg-slate-50/50">
+          <div className="container mx-auto px-6 lg:px-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-12">
               <StatCard number="50K+" label="Active Users" />
               <StatCard number="1M+" label="Cards Generated" />
               <StatCard number="200+" label="Premium Templates" />

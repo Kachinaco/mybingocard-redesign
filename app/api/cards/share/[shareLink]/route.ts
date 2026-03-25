@@ -1,6 +1,27 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
 import bcrypt from "bcryptjs";
+import { trackActivity } from "@/lib/activity";
+import { getRequestActivityContext } from "@/lib/activity";
+import { PLANS } from "@/lib/stripe/config";
+import { notifySharedCardViewed } from "@/lib/discord";
+
+async function getOwnerFlags(db: any, userId: string) {
+  try {
+    const owner = await db.collection("users").findOne(
+      { _id: new ObjectId(userId) },
+      { projection: { planType: 1 } }
+    );
+    const plan = PLANS[(owner?.planType as keyof typeof PLANS) || "FREE"] || PLANS.FREE;
+    return {
+      shuffleEnabled: !!(plan.limits as any).canShuffleSharedCards,
+      adFree: !!plan.limits.adFree,
+    };
+  } catch {
+    return { shuffleEnabled: false, adFree: false };
+  }
+}
 
 export async function GET(
   request: Request,
@@ -41,7 +62,43 @@ export async function GET(
       { $inc: { views: 1 } }
     );
 
-    return NextResponse.json({ card });
+    // Look up card owner's plan for feature flags
+    const flags = await getOwnerFlags(db, card.userId);
+
+    // Track shared card view with viewer context
+    const reqCtx = getRequestActivityContext(request);
+    const url = new URL(request.url);
+    const newViewCount = (card.views || 0) + 1;
+    trackActivity({
+      event: "shared_card_viewed",
+      source: "server",
+      userId: null,
+      email: null,
+      pathname: `/share/${shareLink}`,
+      domain: reqCtx.domain,
+      ipAddress: reqCtx.ipAddress,
+      userAgent: reqCtx.userAgent,
+      metadata: {
+        cardId: card._id.toString(),
+        cardTitle: card.title,
+        cardOwnerId: card.userId,
+        shareLink,
+        referrer: request.headers.get("referer") || null,
+        utm_source: url.searchParams.get("utm_source") || null,
+        utm_medium: url.searchParams.get("utm_medium") || null,
+        utm_campaign: url.searchParams.get("utm_campaign") || null,
+      },
+    }).catch(() => {});
+
+    // Discord notify on milestone views
+    notifySharedCardViewed(
+      card.title,
+      card.userId || null,
+      request.headers.get("referer") || null,
+      newViewCount
+    ).catch(() => {});
+
+    return NextResponse.json({ card, ...flags });
   } catch (error) {
     console.error("Get shared card error:", error);
     return NextResponse.json(
@@ -78,9 +135,12 @@ export async function POST(
       );
     }
 
+    // Look up card owner's plan for feature flags
+    const flags = await getOwnerFlags(db, card.userId);
+
     // If no password set, return the card directly
     if (!card.sharePassword) {
-      return NextResponse.json({ card });
+      return NextResponse.json({ card, ...flags });
     }
 
     const valid = await bcrypt.compare(password, card.sharePassword);
@@ -98,7 +158,28 @@ export async function POST(
       { $inc: { views: 1 } }
     );
 
-    return NextResponse.json({ card });
+    // Track shared card view (password-protected)
+    const reqCtx = getRequestActivityContext(request);
+    trackActivity({
+      event: "shared_card_viewed",
+      source: "server",
+      userId: null,
+      email: null,
+      pathname: `/share/${shareLink}`,
+      domain: reqCtx.domain,
+      ipAddress: reqCtx.ipAddress,
+      userAgent: reqCtx.userAgent,
+      metadata: {
+        cardId: card._id.toString(),
+        cardTitle: card.title,
+        cardOwnerId: card.userId,
+        shareLink,
+        passwordProtected: true,
+        referrer: request.headers.get("referer") || null,
+      },
+    }).catch(() => {});
+
+    return NextResponse.json({ card, ...flags });
   } catch (error) {
     console.error("Verify share password error:", error);
     return NextResponse.json(

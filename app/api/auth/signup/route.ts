@@ -73,6 +73,13 @@ export async function POST(request: Request) {
       utm_content,
       utm_term,
       referrer,
+      last_utm_source: utm_source,
+      last_utm_medium: utm_medium,
+      last_utm_campaign: utm_campaign,
+      last_utm_content: utm_content,
+      last_utm_term: utm_term,
+      last_referrer: referrer,
+      signupMethod: "credentials",
     });
 
     // Store the IP for rate limiting tracking

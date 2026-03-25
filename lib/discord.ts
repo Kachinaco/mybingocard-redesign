@@ -374,3 +374,103 @@ export async function notifyAccountDeleted(
     timestamp: new Date().toISOString(),
   }]);
 }
+
+export async function notifyBingoAchieved(
+  cardTitle: string,
+  gridSize: number,
+  timeToBingoSeconds: number,
+  context: string
+) {
+  const minutes = Math.floor(timeToBingoSeconds / 60);
+  const seconds = timeToBingoSeconds % 60;
+  const timeStr = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+
+  await sendDiscordNotification("", [{
+    title: "🎯 BINGO! Someone won!",
+    color: 0xeab308,
+    fields: [
+      { name: "Card", value: cardTitle || "Untitled", inline: true },
+      { name: "Grid", value: `${gridSize}x${gridSize}`, inline: true },
+      { name: "Time to Bingo", value: timeStr, inline: true },
+      { name: "Context", value: context === "shared_card" ? "Shared card" : context === "owner_card" ? "Owner playing" : context, inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyGameStarted(
+  hostEmail: string,
+  gameTitle: string,
+  roomCode: string,
+  playerCount: number,
+  gridSize: number
+) {
+  await sendDiscordNotification("", [{
+    title: "🕹️ Live Game Started!",
+    color: 0x8b5cf6,
+    fields: [
+      { name: "Host", value: hostEmail, inline: true },
+      { name: "Game", value: gameTitle || "Untitled", inline: true },
+      { name: "Room Code", value: `\`${roomCode}\``, inline: true },
+      { name: "Players", value: String(playerCount), inline: true },
+      { name: "Grid", value: `${gridSize}x${gridSize}`, inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyCheckoutCompleted(
+  email: string,
+  mode: string,
+  amount: number | null | undefined,
+  currency: string | null | undefined
+) {
+  await sendStripeEventEmbed(
+    "💰 Checkout Completed",
+    "A customer completed payment.",
+    0x22c55e,
+    [
+      { name: "Email", value: email || "Unknown", inline: true },
+      { name: "Type", value: mode === "subscription" ? "Subscription" : "One-Time", inline: true },
+      { name: "Amount", value: formatMoney(amount, currency), inline: true },
+    ]
+  );
+}
+
+export async function notifySharedCardViewed(
+  cardTitle: string,
+  cardOwnerEmail: string | null,
+  referrer: string | null,
+  viewCount: number
+) {
+  // Only notify on milestone views to avoid spam
+  const milestones = [1, 10, 25, 50, 100, 250, 500, 1000];
+  if (!milestones.includes(viewCount)) return;
+
+  await sendDiscordNotification("", [{
+    title: `👀 Shared card hit ${viewCount} view${viewCount === 1 ? "" : "s"}!`,
+    color: 0x06b6d4,
+    fields: [
+      { name: "Card", value: cardTitle || "Untitled", inline: true },
+      { name: "Owner", value: cardOwnerEmail || "Unknown", inline: true },
+      { name: "Views", value: String(viewCount), inline: true },
+      ...(referrer ? [{ name: "Referrer", value: referrer.substring(0, 100), inline: false }] : []),
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyUpgradeDismissed(
+  email: string | null,
+  source: string
+) {
+  await sendDiscordNotification("", [{
+    title: "👋 Upgrade Dismissed",
+    color: 0xf97316,
+    fields: [
+      { name: "User", value: email || "Anonymous", inline: true },
+      { name: "Source", value: source === "modal" ? "Upgrade Modal" : "Upgrade Banner", inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}

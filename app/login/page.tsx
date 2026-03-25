@@ -83,6 +83,7 @@ function LoginContent() {
       });
       await signIn("nodemailer", {
         email: magicLinkEmail,
+        callbackUrl,
         redirect: false,
       });
       setMagicLinkSent(true);

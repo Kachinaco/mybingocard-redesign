@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { notifyBingoAchieved, notifyUpgradeDismissed } from "@/lib/discord";
 
 export async function POST(request: Request) {
   try {
@@ -13,6 +14,7 @@ export async function POST(request: Request) {
 
     const session = await auth();
     const requestContext = getRequestActivityContext(request);
+    const metadata = body?.metadata && typeof body.metadata === "object" ? body.metadata : {};
 
     await trackActivity({
       event,
@@ -25,8 +27,25 @@ export async function POST(request: Request) {
       domain: requestContext.domain,
       ipAddress: requestContext.ipAddress,
       userAgent: requestContext.userAgent,
-      metadata: body?.metadata && typeof body.metadata === "object" ? body.metadata : {},
+      metadata,
     });
+
+    // Fire Discord notifications for high-signal client events
+    if (event === "bingo_achieved") {
+      notifyBingoAchieved(
+        metadata.cardTitle || "Untitled",
+        metadata.gridSize || 5,
+        metadata.timeToBingoSeconds || 0,
+        metadata.context || "unknown"
+      ).catch(() => {});
+    }
+
+    if (event === "upgrade_dismissed") {
+      notifyUpgradeDismissed(
+        session?.user?.email || null,
+        metadata.source || "unknown"
+      ).catch(() => {});
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

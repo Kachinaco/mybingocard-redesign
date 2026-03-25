@@ -35,9 +35,9 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#4f46e5",
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
+  width: 750,
+  initialScale: 0.5,
+  maximumScale: 5,
 };
 
 const adsenseId = process.env.NEXT_PUBLIC_ADSENSE_ID;

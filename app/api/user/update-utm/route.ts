@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { updateUserAttribution } from "@/lib/db/users";
+import { updateUserAttribution, updateUserLastAttribution } from "@/lib/db/users";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -17,14 +17,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  await updateUserAttribution(session.user.id, {
+  const attribution = {
     ...(utm_source && { utm_source }),
     ...(utm_medium && { utm_medium }),
     ...(utm_campaign && { utm_campaign }),
     ...(utm_content && { utm_content }),
     ...(utm_term && { utm_term }),
     ...(referrer && { referrer }),
-  });
+  };
+
+  await Promise.all([
+    updateUserAttribution(session.user.id, attribution),
+    updateUserLastAttribution(session.user.id, attribution),
+  ]);
 
   return NextResponse.json({ ok: true });
 }

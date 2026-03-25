@@ -17,6 +17,7 @@ import type Stripe from "stripe";
 import { trackActivity } from "@/lib/activity";
 import {
   notifyCheckoutActivated,
+  notifyCheckoutCompleted,
   notifyCheckoutExpired,
   notifyDisputeUpdate,
   notifyRefundIssued,
@@ -132,6 +133,29 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+
+        // Track checkout completion for funnel analysis
+        await trackActivity({
+          event: "checkout_completed",
+          source: "webhook",
+          userId: null,
+          email: session.customer_details?.email || session.customer_email || null,
+          metadata: {
+            mode: session.mode,
+            purchaseType: session.metadata?.purchaseType || session.mode,
+            amount: session.amount_total,
+            currency: (session.currency || "usd").toUpperCase(),
+            stripeSessionId: session.id,
+          },
+        });
+
+        notifyCheckoutCompleted(
+          session.customer_details?.email || (typeof session.customer_email === "string" ? session.customer_email : null) || "Unknown",
+          session.mode || "unknown",
+          session.amount_total,
+          session.currency
+        ).catch(console.error);
+
         if (session.mode === "subscription") {
           const userId = session.metadata?.userId || session.client_reference_id;
           const subscriptionId = session.subscription as string;
@@ -509,6 +533,9 @@ export async function POST(request: Request) {
                 amount: invoice.amount_due || invoice.amount_paid || 0,
                 currency: (invoice.currency || "usd").toUpperCase(),
                 status: subscription.status,
+                attemptCount: invoice.attempt_count ?? null,
+                nextPaymentAttempt: toDate(invoice.next_payment_attempt),
+                billingReason: invoice.billing_reason,
               },
             });
 

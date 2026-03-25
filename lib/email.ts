@@ -99,6 +99,16 @@ function formatDate(date: Date): string {
   }).format(date);
 }
 
+export function trackableUrl(url: string, email: string, campaignId: string, linkId?: string): string {
+  const params = new URLSearchParams({
+    e: email,
+    c: campaignId,
+    u: url,
+  });
+  if (linkId) params.set("l", linkId);
+  return `${appUrl}/api/track/click?${params.toString()}`;
+}
+
 function renderButton(label: string, url: string, color: string): string {
   return `
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0;">

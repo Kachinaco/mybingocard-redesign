@@ -8,7 +8,7 @@ import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "./lib/mongodb";
 import bcrypt from "bcryptjs";
 import { ATTRIBUTION_COOKIE_NAME, parseAttributionCookie } from "@/lib/attribution";
-import { ensureUserDefaults, getUserByEmail, getUserById, updateUserAttribution } from "./lib/db/users";
+import { ensureUserDefaults, getUserByEmail, getUserById, updateUserAttribution, updateUserLastAttribution, updateUserSignupMethod } from "./lib/db/users";
 import { sendMagicLinkEmail, sendWelcomeEmail } from "./lib/email";
 import { trackActivity } from "./lib/activity";
 import { IMPERSONATION_COOKIE_NAME, parseImpersonationCookie } from "@/lib/impersonation";
@@ -121,6 +121,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       from: process.env.EMAIL_FROM!,
       async sendVerificationRequest(params: { identifier: string; url: string }) {
+        await trackActivity({
+          event: "magic_link_requested",
+          source: "auth",
+          email: params.identifier,
+          metadata: {
+            provider: "nodemailer",
+          },
+        });
         await sendMagicLinkEmail(params.identifier, params.url);
         notifyMagicLink(params.identifier).catch(console.error);
       },
@@ -138,24 +146,76 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return;
       }
 
+      const provider = event.account?.provider || "unknown";
+      let attribution: Record<string, string> = {};
+
+      if (event.user.id) {
+        try {
+          const cookieStore = await cookies();
+          attribution = parseAttributionCookie(
+            cookieStore.get(ATTRIBUTION_COOKIE_NAME)?.value
+          );
+
+          if (Object.keys(attribution).length > 0) {
+            await updateUserLastAttribution(event.user.id, attribution);
+            if (event.isNewUser) {
+              await updateUserAttribution(event.user.id, attribution);
+            }
+          }
+
+          if (event.isNewUser) {
+            const signupMethod =
+              provider === "google"
+                ? "google"
+                : provider === "nodemailer"
+                  ? "magic_link"
+                  : provider === "credentials"
+                    ? "credentials"
+                    : null;
+
+            if (signupMethod) {
+              await updateUserSignupMethod(event.user.id, signupMethod);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to capture sign-in attribution:", error);
+        }
+      }
+
       await trackActivity({
         event: "login_succeeded",
         source: "auth",
         userId: event.user.id || null,
         email: event.user.email,
         metadata: {
-          provider: event.account?.provider || "unknown",
+          provider,
           isNewUser: Boolean(event.isNewUser),
+          ...attribution,
         },
       });
 
+      if (provider === "nodemailer") {
+        await trackActivity({
+          event: "magic_link_opened",
+          source: "auth",
+          userId: event.user.id || null,
+          email: event.user.email,
+          metadata: {
+            provider,
+            isNewUser: Boolean(event.isNewUser),
+            ...attribution,
+          },
+        });
+      }
+
       // Skip Discord alert for new users (they get the signup notification)
       if (!event.isNewUser) {
-        notifySignIn((event.user as any).name || "", event.user.email, event.account?.provider || "unknown").catch(console.error);
+        notifySignIn((event.user as any).name || "", event.user.email, provider).catch(console.error);
       }
     },
     async createUser({ user }) {
       let fullUser = null;
+      let signupAttribution: Record<string, string> = {};
 
       if (user.id) {
         try {
@@ -163,6 +223,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const attribution = parseAttributionCookie(
             cookieStore.get(ATTRIBUTION_COOKIE_NAME)?.value
           );
+
+          signupAttribution = attribution;
 
           if (Object.keys(attribution).length > 0) {
             fullUser = await updateUserAttribution(user.id, attribution);
@@ -184,6 +246,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         fullUser = await getUserByEmail(user.email);
       }
 
+      if (Object.keys(signupAttribution).length === 0 && fullUser) {
+        signupAttribution = {
+          ...(fullUser.utm_source ? { utm_source: fullUser.utm_source } : {}),
+          ...(fullUser.utm_medium ? { utm_medium: fullUser.utm_medium } : {}),
+          ...(fullUser.utm_campaign ? { utm_campaign: fullUser.utm_campaign } : {}),
+          ...(fullUser.utm_content ? { utm_content: fullUser.utm_content } : {}),
+          ...(fullUser.utm_term ? { utm_term: fullUser.utm_term } : {}),
+          ...(fullUser.referrer ? { referrer: fullUser.referrer } : {}),
+        };
+      }
+
       notifySignup(user.name || fullUser?.name || "Google User", user.email, fullUser || undefined).catch(console.error);
       await trackActivity({
         event: "signup_completed",
@@ -192,6 +265,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: user.email,
         metadata: {
           provider: fullUser?.password ? "credentials" : "oauth_or_magic_link",
+          ...signupAttribution,
         },
       });
     },

@@ -1,13 +1,21 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { redirectToCheckout } from "@/lib/upgrade";
+import { trackClientActivity } from "@/lib/activity-client";
 
 export default function UpgradeModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (isOpen) {
+      trackClientActivity("upgrade_prompt_shown", { source: "modal" });
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleUpgrade = async () => {
+    trackClientActivity("upgrade_prompt_clicked", { source: "modal" });
     setLoading(true);
     try {
       await redirectToCheckout();
@@ -16,10 +24,15 @@ export default function UpgradeModal({ isOpen, onClose }: { isOpen: boolean; onC
     }
   };
 
+  const handleClose = () => {
+    trackClientActivity("upgrade_dismissed", { source: "modal" });
+    onClose();
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={handleClose}>
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-fade-in-up" onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
+        <button onClick={handleClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>

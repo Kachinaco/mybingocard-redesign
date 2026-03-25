@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { joinGameRoom } from "@/lib/db/games";
+import { trackActivity } from "@/lib/activity";
+import { getRequestActivityContext } from "@/lib/activity";
 
 export async function POST(
   request: Request,
@@ -17,6 +19,26 @@ export async function POST(
     if (!result) {
       return NextResponse.json({ error: "Room not found or game has ended" }, { status: 404 });
     }
+
+    // Track player join
+    const reqCtx = getRequestActivityContext(request);
+    trackActivity({
+      event: "game_player_joined",
+      source: "server",
+      userId: null,
+      email: null,
+      pathname: `/game/play/${roomCode}`,
+      domain: reqCtx.domain,
+      ipAddress: reqCtx.ipAddress,
+      userAgent: reqCtx.userAgent,
+      metadata: {
+        roomCode,
+        playerId: result.player.playerId,
+        playerName: result.player.playerName,
+        gameTitle: result.room.title,
+        playerCount: result.room.players?.length || 1,
+      },
+    }).catch(() => {});
 
     return NextResponse.json({
       playerId: result.player.playerId,

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { claimBingo, markCell, unmarkCell, getGameRoom } from "@/lib/db/games";
+import { trackActivity } from "@/lib/activity";
 
 export async function POST(
   request: Request,
@@ -24,6 +25,26 @@ export async function POST(
     // Claim bingo
     if (action === "claim" && playerId) {
       const result = await claimBingo(roomCode, playerId);
+
+      if (result && (result as any).success) {
+        const room = await getGameRoom(roomCode);
+        trackActivity({
+          event: "game_bingo_claimed",
+          source: "server",
+          userId: null,
+          email: null,
+          pathname: `/game/play/${roomCode}`,
+          metadata: {
+            roomCode,
+            playerId,
+            winnerName: room?.winnerName || null,
+            playerCount: room?.players?.length || 0,
+            calledItemCount: room?.calledItems?.length || 0,
+            gameTitle: room?.title || null,
+          },
+        }).catch(() => {});
+      }
+
       return NextResponse.json(result);
     }
 

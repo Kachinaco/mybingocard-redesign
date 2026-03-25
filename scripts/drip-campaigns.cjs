@@ -106,8 +106,14 @@ function wrap(headline, preheader, bodyHtml) {
 </table></td></tr></table></body></html>`;
 }
 
-function btn(label, url) {
-  return `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:16px 0;"><tr><td style="border-radius:10px;background:#4f46e5;"><a href="${escapeHtml(url)}" style="display:inline-block;padding:12px 24px;font-size:15px;font-weight:700;color:#fff;text-decoration:none;border-radius:10px;">${escapeHtml(label)}</a></td></tr></table>`;
+function trackClickUrl(url, linkId) {
+  const params = `e=%%EMAIL%%&c=%%CAMPAIGN%%&u=${encodeURIComponent(url)}${linkId ? `&l=${encodeURIComponent(linkId)}` : ''}`;
+  return `${appUrl}/api/track/click?${params}`;
+}
+
+function btn(label, url, linkId) {
+  const trackedUrl = trackClickUrl(url, linkId || 'cta');
+  return `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:16px 0;"><tr><td style="border-radius:10px;background:#4f46e5;"><a href="${escapeHtml(trackedUrl)}" style="display:inline-block;padding:12px 24px;font-size:15px;font-weight:700;color:#fff;text-decoration:none;border-radius:10px;">${escapeHtml(label)}</a></td></tr></table>`;
 }
 
 function buildCreateFirstCardEmail(user) {

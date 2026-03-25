@@ -12,7 +12,7 @@ const FREE_FEATURES = [
   "3x3 and 4x4 grids",
   "5 starter templates",
   "Standard PDF export (with watermark)",
-  "Share links",
+  "Share links (same card for all viewers)",
   "Includes ads",
 ];
 
@@ -23,7 +23,8 @@ const PREMIUM_FEATURES = [
   "HD PDF & PNG export",
   "Custom colors & fonts",
   "Up to 100 cards per batch",
-  "Ad-free experience",
+  "Unique shuffled card per viewer",
+  "Ad-free shared cards",
   "Priority support",
 ];
 

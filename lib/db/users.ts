@@ -28,6 +28,13 @@ export interface User {
   utm_content?: string;
   utm_term?: string;
   referrer?: string;
+  last_utm_source?: string;
+  last_utm_medium?: string;
+  last_utm_campaign?: string;
+  last_utm_content?: string;
+  last_utm_term?: string;
+  last_referrer?: string;
+  signupMethod?: "google" | "credentials" | "magic_link";
 }
 
 export type UserAttributionFields = Pick<
@@ -64,6 +71,13 @@ export async function createUser(data: {
   utm_content?: string;
   utm_term?: string;
   referrer?: string;
+  last_utm_source?: string;
+  last_utm_medium?: string;
+  last_utm_campaign?: string;
+  last_utm_content?: string;
+  last_utm_term?: string;
+  last_referrer?: string;
+  signupMethod?: "google" | "credentials" | "magic_link";
 }): Promise<User> {
   const client = await clientPromise;
   const db = client.db("mybingocard");
@@ -87,6 +101,13 @@ export async function createUser(data: {
     ...(data.utm_content && { utm_content: data.utm_content }),
     ...(data.utm_term && { utm_term: data.utm_term }),
     ...(data.referrer && { referrer: data.referrer }),
+    ...(data.last_utm_source && { last_utm_source: data.last_utm_source }),
+    ...(data.last_utm_medium && { last_utm_medium: data.last_utm_medium }),
+    ...(data.last_utm_campaign && { last_utm_campaign: data.last_utm_campaign }),
+    ...(data.last_utm_content && { last_utm_content: data.last_utm_content }),
+    ...(data.last_utm_term && { last_utm_term: data.last_utm_term }),
+    ...(data.last_referrer && { last_referrer: data.last_referrer }),
+    ...(data.signupMethod && { signupMethod: data.signupMethod }),
   };
 
   const result = await db.collection<User>("users").insertOne(user as User);
@@ -147,6 +168,33 @@ export async function updateUserAttribution(
   }
 
   return updateUser(id, updates);
+}
+
+export async function updateUserLastAttribution(
+  id: string,
+  data: Partial<UserAttributionFields>
+): Promise<User | null> {
+  const updates: Partial<User> = {
+    ...(data.utm_source ? { last_utm_source: data.utm_source } : {}),
+    ...(data.utm_medium ? { last_utm_medium: data.utm_medium } : {}),
+    ...(data.utm_campaign ? { last_utm_campaign: data.utm_campaign } : {}),
+    ...(data.utm_content ? { last_utm_content: data.utm_content } : {}),
+    ...(data.utm_term ? { last_utm_term: data.utm_term } : {}),
+    ...(data.referrer ? { last_referrer: data.referrer } : {}),
+  };
+
+  if (Object.keys(updates).length === 0) {
+    return getUserById(id);
+  }
+
+  return updateUser(id, updates);
+}
+
+export async function updateUserSignupMethod(
+  id: string,
+  signupMethod: NonNullable<User["signupMethod"]>
+): Promise<User | null> {
+  return updateUser(id, { signupMethod });
 }
 
 export async function ensureUserDefaults(id: string): Promise<User | null> {

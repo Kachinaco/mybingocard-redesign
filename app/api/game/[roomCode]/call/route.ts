@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { callRandomItem, callItem, startGame } from "@/lib/db/games";
+import { callRandomItem, callItem, startGame, getGameRoom } from "@/lib/db/games";
+import { trackActivity } from "@/lib/activity";
+import { notifyGameStarted } from "@/lib/discord";
 
 export async function POST(
   request: Request,
@@ -22,6 +24,31 @@ export async function POST(
       if (!started) {
         return NextResponse.json({ error: "Failed to start game" }, { status: 400 });
       }
+
+      const room = await getGameRoom(roomCode);
+      trackActivity({
+        event: "game_started",
+        source: "server",
+        userId: session.user.id,
+        email: session.user.email || null,
+        pathname: `/game/host/${roomCode}`,
+        metadata: {
+          roomCode,
+          playerCount: room?.players?.length || 0,
+          wordListSize: room?.wordList?.length || 0,
+          gridSize: room?.size || null,
+          gameTitle: room?.title || null,
+        },
+      }).catch(() => {});
+
+      notifyGameStarted(
+        session.user.email || "Unknown",
+        room?.title || "Untitled",
+        roomCode,
+        room?.players?.length || 0,
+        room?.size || 5
+      ).catch(() => {});
+
       return NextResponse.json({ success: true, action: "started" });
     }
 
