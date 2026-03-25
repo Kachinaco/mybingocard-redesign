@@ -1,6 +1,6 @@
 import Script from "next/script";
 import type { Metadata, Viewport } from "next";
-import { Inter, Poppins } from "next/font/google";
+import { Inter, Poppins, Satisfy } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import VisitorTracker from "@/components/VisitorTracker";
@@ -19,6 +19,12 @@ const poppins = Poppins({
   weight: ["400", "500", "600", "700", "800"],
   subsets: ["latin"],
   variable: "--font-poppins",
+});
+
+const satisfy = Satisfy({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-satisfy",
 });
 
 export const metadata: Metadata = {
@@ -48,7 +54,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${poppins.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${poppins.variable} ${satisfy.variable}`} suppressHydrationWarning>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>

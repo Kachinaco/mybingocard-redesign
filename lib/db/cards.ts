@@ -15,6 +15,7 @@ export interface BingoCard {
     borderColor?: string;
     fontSize?: string;
     fontFamily?: string;
+    theme?: string; // optional themed card design e.g. "hannah-montana"
   };
   templateId?: ObjectId; // If created from template
   isPublic: boolean;

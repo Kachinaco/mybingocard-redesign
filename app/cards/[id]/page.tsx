@@ -2,6 +2,7 @@
 
 import { trackCardPrinted } from "@/lib/analytics";
 import SocialShare from "@/components/SocialShare";
+import ThemedCardWrapper from "@/components/ThemedCardWrapper";
 import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -31,6 +32,7 @@ interface Card {
     borderColor?: string;
     fontSize?: string;
     fontFamily?: string;
+    theme?: string;
   };
   isPublic: boolean;
   shareLink?: string;
@@ -860,6 +862,7 @@ export default function CardViewPage() {
 
           {/* Card grid */}
           <div className={isFullscreen ? "bingo-container w-full max-w-2xl mx-auto" : "lg:col-span-2"}>
+           <ThemedCardWrapper theme={card.style?.theme} title={card.title}>
             <div className={`rounded-2xl shadow-sm border p-3 md:p-6 print-card ${"bg-white border-slate-100"}`} ref={cardRef}>
               <div className="text-center mb-3 md:mb-6">
                 <div className="flex flex-wrap items-center justify-center gap-2 mb-3 print:hidden">
@@ -971,6 +974,7 @@ export default function CardViewPage() {
                 </div>
               )}
             </div>
+           </ThemedCardWrapper>
           </div>
         </div>
 

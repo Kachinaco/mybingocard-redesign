@@ -1,6 +1,7 @@
 "use client";
 
 import SocialShare from "@/components/SocialShare";
+import ThemedCardWrapper from "@/components/ThemedCardWrapper";
 import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
@@ -27,6 +28,7 @@ interface Card {
     fontFamily?: string;
     headerText?: string;
     footerText?: string;
+    theme?: string;
   };
   views: number;
   createdAt: string;
@@ -425,6 +427,7 @@ export default function SharedCardPage() {
         )}
 
         {/* Card */}
+        <ThemedCardWrapper theme={card.style?.theme} title={card.title}>
         <div className={`rounded-2xl shadow-lg p-4 md:p-6 mb-4 print-card ${
           "bg-white"
         }`}>
@@ -527,6 +530,7 @@ export default function SharedCardPage() {
             <p className="text-xs text-slate-400 mt-1">{currentUrl}</p>
           </div>
         </div>
+        </ThemedCardWrapper>
 
         {/* Action buttons */}
         {!isFullscreen && (
