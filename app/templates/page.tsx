@@ -138,12 +138,7 @@ export default function TemplatesPage() {
   const handleUseTemplate = async (template: Template) => {
     // Check if template is premium and user has access
     if (template.isPremium) {
-      if (status !== "authenticated") {
-        router.push("/login?callbackUrl=/templates");
-        return;
-      }
-
-      if (!userPlan?.canAccessAllTemplates) {
+      if (status !== "authenticated" || !userPlan?.canAccessAllTemplates) {
         setShowUpgradeModal(true);
         return;
       }
