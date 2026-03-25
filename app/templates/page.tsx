@@ -3,6 +3,7 @@
 import { trackTemplateUsed } from "@/lib/analytics";
 import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
 import ThemedCardWrapper from "@/components/ThemedCardWrapper";
+import UpgradeModal from "@/components/UpgradeModal";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -63,6 +64,7 @@ export default function TemplatesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showPremiumOnly, setShowPremiumOnly] = useState(false);
   const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   useEffect(() => {
     fetchTemplates();
@@ -137,15 +139,12 @@ export default function TemplatesPage() {
     // Check if template is premium and user has access
     if (template.isPremium) {
       if (status !== "authenticated") {
-        alert("Please sign in to use premium templates");
         router.push("/login?callbackUrl=/templates");
         return;
       }
 
       if (!userPlan?.canAccessAllTemplates) {
-        if (confirm("This is a premium template. Upgrade to Premium to access all templates.")) {
-          redirectToCheckout();
-        }
+        setShowUpgradeModal(true);
         return;
       }
     }
@@ -459,6 +458,7 @@ export default function TemplatesPage() {
           ) : null}
         </div>
       </main>
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
     </div>
   );
 }
