@@ -65,6 +65,7 @@ export default function TemplatesPage() {
   const [showPremiumOnly, setShowPremiumOnly] = useState(false);
   const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showSignInModal, setShowSignInModal] = useState(false);
 
   useEffect(() => {
     fetchTemplates();
@@ -138,7 +139,11 @@ export default function TemplatesPage() {
   const handleUseTemplate = async (template: Template) => {
     // Check if template is premium and user has access
     if (template.isPremium) {
-      if (status !== "authenticated" || !userPlan?.canAccessAllTemplates) {
+      if (status !== "authenticated") {
+        setShowSignInModal(true);
+        return;
+      }
+      if (!userPlan?.canAccessAllTemplates) {
         setShowUpgradeModal(true);
         return;
       }
@@ -454,6 +459,44 @@ export default function TemplatesPage() {
         </div>
       </main>
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+
+      {/* Sign-in modal for unauthenticated users */}
+      {showSignInModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowSignInModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-fade-in-up" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowSignInModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-[#007AFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold text-slate-900">Sign in to continue</h2>
+              <p className="text-slate-500 mt-2">This is a premium template. Create a free account or sign in to get started.</p>
+            </div>
+
+            <div className="space-y-3">
+              <Link
+                href="/signup?callbackUrl=/templates"
+                className="block w-full py-3.5 bg-[#007AFF] text-white rounded-xl font-bold text-center hover:bg-blue-600 transition-colors"
+              >
+                Create Free Account
+              </Link>
+              <Link
+                href="/login?callbackUrl=/templates"
+                className="block w-full py-3.5 bg-slate-100 text-slate-700 rounded-xl font-semibold text-center hover:bg-slate-200 transition-colors"
+              >
+                I already have an account
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
