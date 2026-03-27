@@ -48,13 +48,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             "unknown";
 
           if (ip !== "unknown") {
-            const windowStart = new Date(Date.now() - 60 * 60 * 1000); // 1 hour window
+            const windowStart = new Date(Date.now() - 15 * 60 * 1000); // 15-minute window
             const failures = await db.collection("login_attempts").countDocuments({
               ip,
               success: false,
               createdAt: { $gte: windowStart },
             });
-            if (failures >= 10) {
+            if (failures >= 5) {
               throw new Error("TOO_MANY_ATTEMPTS");
             }
           }
@@ -160,6 +160,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             await updateUserLastAttribution(event.user.id, attribution);
             if (event.isNewUser) {
               await updateUserAttribution(event.user.id, attribution);
+            }
+          }
+
+          // Auto-verify email for OAuth and magic link users
+          if (provider === "google" || provider === "nodemailer") {
+            const existingUser = await getUserById(event.user.id);
+            if (existingUser && !existingUser.emailVerified) {
+              const client = await clientPromise;
+              const db = client.db("mybingocard");
+              await db.collection("users").updateOne(
+                { _id: new (await import("mongodb")).ObjectId(event.user.id) },
+                { $set: { emailVerified: new Date(), updatedAt: new Date() } }
+              );
             }
           }
 

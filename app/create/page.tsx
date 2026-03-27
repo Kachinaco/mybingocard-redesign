@@ -19,6 +19,7 @@ import {
   type BatchCount,
 } from "@/lib/batchPacks";
 import { redirectToCheckout } from "@/lib/upgrade";
+import { t } from "@/lib/i18n";
 
 type GridSize = 3 | 4 | 5;
 type PlanType = "FREE" | "PREMIUM";
@@ -98,8 +99,12 @@ function CreateCardContent() {
     planType?: PlanType;
   } | null>(null);
   const [checkingPermission, setCheckingPermission] = useState(true);
+  const [mobileToast, setMobileToast] = useState("");
+  const [mobileToastKey, setMobileToastKey] = useState(0);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState<"card_limit" | "image_picker">("card_limit");
   const [imagePickerCellIndex, setImagePickerCellIndex] = useState<number | null>(null);
+  const [showNewUserTip, setShowNewUserTip] = useState(false);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedSnapshotRef = useRef("");
   const currentCardIdRef = useRef<string | null>(cardIdFromUrl);
@@ -108,6 +113,14 @@ function CreateCardContent() {
   useEffect(() => {
     currentCardIdRef.current = currentCardId;
   }, [currentCardId]);
+
+  // Show new user tip if they have 0 cards and haven't dismissed it
+  useEffect(() => {
+    if (!checkingPermission && permissionStatus?.cardsCreated === 0 && !cardIdFromUrl) {
+      const dismissed = typeof window !== "undefined" && localStorage.getItem("new_user_tip_dismissed");
+      if (!dismissed) setShowNewUserTip(true);
+    }
+  }, [checkingPermission, permissionStatus, cardIdFromUrl]);
 
   // Check permissions on mount
   useEffect(() => {
@@ -320,28 +333,53 @@ function CreateCardContent() {
       loadDraftOrTemplate();
     }
 
-    // If user just signed in and has a pending draft, auto-save it
-    const hasDraft = !!localStorage.getItem("mybingo_card_draft");
-    if (session?.user && hasDraft && !cardIdFromUrl) {
-      // Delay to let React state settle after draft load
-      setTimeout(async () => {
-        const stillHasDraft = !!localStorage.getItem("mybingo_card_draft");
-        if (stillHasDraft) {
-          const saved = await saveCard({ redirectAfterSave: false, suppressValidationErrors: false });
-          if (saved) {
-            localStorage.removeItem("mybingo_card_draft");
-            router.replace("/dashboard");
+    // If user just signed in and has a pending draft, save it directly from localStorage
+    // (avoids race condition where React state hasn't settled yet)
+    const draftRaw = localStorage.getItem("mybingo_card_draft");
+    if (session?.user && draftRaw && !cardIdFromUrl) {
+      (async () => {
+        try {
+          const draft = JSON.parse(draftRaw);
+          if (draft.title && draft.cells?.some((c: string) => c?.trim())) {
+            const response = await fetch("/api/cards", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title: draft.title,
+                description: draft.description || "",
+                size: draft.size || 3,
+                cells: draft.cells,
+                freeSpace: draft.freeSpace ?? true,
+                isPublic: draft.isPublic ?? false,
+                style: draft.style || {},
+              }),
+            });
+            if (response.ok) {
+              localStorage.removeItem("mybingo_card_draft");
+              router.replace("/dashboard");
+              return;
+            }
           }
-        } else if (searchParams.get("new") === "1") {
+        } catch (e) {
+          console.error("Failed to save draft after sign-in:", e);
+        }
+        // If draft had no content or save failed, still redirect new users
+        if (searchParams.get("new") === "1") {
           router.replace("/dashboard");
         }
-      }, 800);
+      })();
     }
 
     return () => {
       cancelled = true;
     };
   }, [cardIdFromUrl, searchParamsKey, session?.user]);
+
+  const showMobileToast = (msg: string) => {
+    setMobileToast(msg);
+    setMobileToastKey((k) => k + 1);
+    setTimeout(() => setMobileToast(""), 3500);
+  };
 
   const hasSavableContent = () => {
     if (!title.trim()) {
@@ -374,9 +412,10 @@ function CreateCardContent() {
         setAutoSaveState("idle");
         setAutoSaveError("");
       } else {
-        setError("Card title is required");
+        setError(t("error.title_required"));
         setAutoSaveState("error");
-        setAutoSaveError("Add a title to save");
+        setAutoSaveError(t("autosave.add_title"));
+        showMobileToast(t("error.title_required"));
       }
       return false;
     }
@@ -386,9 +425,10 @@ function CreateCardContent() {
         setAutoSaveState("idle");
         setAutoSaveError("");
       } else {
-        setError("Please fill in at least one cell");
+        setError(t("error.fill_cell"));
         setAutoSaveState("error");
-        setAutoSaveError("Add at least one filled cell to save");
+        setAutoSaveError(t("autosave.add_cell"));
+        showMobileToast(t("error.fill_cell"));
       }
       return false;
     }
@@ -432,6 +472,7 @@ function CreateCardContent() {
         }
         if (response.status === 403 && !currentCardIdRef.current) {
           setError(data.error || "Card limit reached. Please upgrade your plan.");
+          setUpgradeReason("card_limit");
           setShowUpgradeModal(true);
           track("card_limit_reached", { plan_type: permissionStatus?.planType || "FREE" });
         } else {
@@ -470,9 +511,9 @@ function CreateCardContent() {
       return true;
     } catch (saveError) {
       console.error("Save error:", saveError);
-      setError("An error occurred while saving the card");
+      setError(t("error.save_failed"));
       setAutoSaveState("error");
-      setAutoSaveError("Autosave failed");
+      setAutoSaveError(t("autosave.failed"));
       return false;
     } finally {
       createInFlightRef.current = false;
@@ -547,6 +588,7 @@ function CreateCardContent() {
 
   const openImagePicker = (index: number) => {
     if (permissionStatus?.planType !== "PREMIUM") {
+      setUpgradeReason("image_picker");
       setShowUpgradeModal(true);
       return;
     }
@@ -617,6 +659,25 @@ function CreateCardContent() {
     }
   };
 
+  // Auto-save draft to localStorage on every change (debounced)
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    // Don't auto-save if editing an existing saved card or still loading
+    if (currentCardId || isLoadingCard) return;
+    // Only save if user has started entering content
+    const hasContent = title.trim() || cells.some((c) => c.trim());
+    if (!hasContent) return;
+
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      persistDraft();
+    }, 1000);
+
+    return () => {
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+  }, [title, description, size, cells, freeSpace, isPublic, style, currentCardId, isLoadingCard]);
+
   const redirectToSignupForCreation = () => {
     persistDraft();
     setShowAuthModal(true);
@@ -658,42 +719,13 @@ function CreateCardContent() {
     setError("");
 
     try {
-      const response = await fetch("/api/stripe/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          purchaseType: "batch_pack",
-          batchCount,
-          successPath: `/create?batchPurchase=success&batchCount=${batchCount}`,
-          cancelPath: `/create?batchPurchase=canceled&batchCount=${batchCount}`,
-        }),
+      // Open embedded checkout via global modal
+      await redirectToCheckout({
+        purchaseType: "batch_pack",
+        batchCount,
+        label: `${batchCount} Card Batch`,
+        successPath: `/create?batchPurchase=success&batchCount=${batchCount}`,
       });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (response.status === 401) {
-        redirectToSignupForCreation();
-        return;
-      }
-
-      if (!response.ok) {
-        setError(data.error || "Failed to start batch checkout");
-        return;
-      }
-
-      // Free tier: no Stripe redirect needed, redirect with success params
-      if (data.free) {
-        setBatchCheckoutLoading(false);
-        window.location.href = `/create?batchPurchase=success&batchCount=${batchCount}${currentCardId ? `&cardId=${currentCardId}` : ""}`;
-        return;
-      }
-
-      if (!data.url) {
-        setError("Failed to start batch checkout");
-        return;
-      }
-
-      window.location.href = data.url;
     } catch (checkoutError) {
       console.error("Batch checkout error:", checkoutError);
       setError("Failed to start batch checkout");
@@ -1002,7 +1034,7 @@ function CreateCardContent() {
           {isLoadingCard && (
             <div className="mb-8 p-4 bg-white border border-gray-200 rounded-xl text-gray-600 flex items-center gap-3">
               <div className="w-5 h-5 border-2 border-gray-300 border-t-[#007AFF] rounded-full animate-spin"></div>
-              Loading saved card...
+              {t("label.loading")}
             </div>
           )}
 
@@ -1038,6 +1070,39 @@ function CreateCardContent() {
           {(!permissionStatus?.planType || permissionStatus.planType === "FREE") && (
             <div className="mb-6">
               <AdUnit slot="create-page" format="horizontal" className="rounded-xl overflow-hidden" />
+            </div>
+          )}
+
+          {showNewUserTip && (
+            <div className="mb-6 bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in-up">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900">First time? Start with a template!</p>
+                  <p className="text-sm text-slate-500">Pick a ready-made design, or type a title above and fill in the squares.</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/templates"
+                  className="whitespace-nowrap px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all"
+                >
+                  Browse Templates
+                </Link>
+                <button
+                  onClick={() => { setShowNewUserTip(false); localStorage.setItem("new_user_tip_dismissed", "1"); }}
+                  className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+                  title="Dismiss"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
           )}
 
@@ -1571,12 +1636,23 @@ function CreateCardContent() {
                               ) : (
                                 /* Text cell in edit mode — has camera button to add image */
                                 <div className="relative w-full h-full flex flex-col">
-                                  <div className="flex-1 flex items-center justify-center border rounded-lg md:rounded-xl overflow-hidden transition-colors hover:bg-gray-50/50 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#007AFF] focus-within:ring-offset-1"
+                                  <div className="flex-1 flex items-center justify-center border rounded-lg md:rounded-xl overflow-y-auto transition-colors hover:bg-gray-50/50 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#007AFF] focus-within:ring-offset-1"
                                     style={{ borderColor: style.borderColor }}
                                   >
                                     <textarea
                                       value={cell}
-                                      onChange={(e) => handleCellChange(index, e.target.value)}
+                                      onChange={(e) => {
+                                        handleCellChange(index, e.target.value);
+                                        // Auto-resize textarea to fit content
+                                        const el = e.target;
+                                        el.style.height = "auto";
+                                        el.style.height = el.scrollHeight + "px";
+                                      }}
+                                      onFocus={(e) => {
+                                        const el = e.target;
+                                        el.style.height = "auto";
+                                        el.style.height = el.scrollHeight + "px";
+                                      }}
                                       placeholder={`${index + 1}`}
                                       rows={1}
                                       className={`w-full text-center bg-transparent resize-none focus:outline-none placeholder:text-gray-300 leading-tight p-1 ${size === 5 ? "text-xs md:text-sm" : "text-sm"}`}
@@ -1584,7 +1660,8 @@ function CreateCardContent() {
                                         color: style.textColor,
                                         fontFamily: style.fontFamily,
                                         height: "auto",
-                                        maxHeight: "100%",
+                                        overflow: "hidden",
+                                        wordBreak: "break-word",
                                       }}
                                     />
                                   </div>
@@ -1618,7 +1695,7 @@ function CreateCardContent() {
                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
-                    Browse Templates
+                    {t("btn.browse_templates")}
                   </Link>
 
                   {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
@@ -1626,7 +1703,7 @@ function CreateCardContent() {
                       onClick={redirectToCheckout}
                       className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-6 py-3.5 rounded-xl hover:shadow-sm hover:shadow-orange-500/20 transition-all font-bold text-lg shadow-md shadow-orange-200 text-center"
                     >
-                      Limit Reached — Upgrade Plan
+                      {t("btn.limit_reached")}
                     </button>
                   ) : (
                   <button
@@ -1638,7 +1715,7 @@ function CreateCardContent() {
                     }
                     className="flex-1 bg-[#007AFF] text-white px-6 py-3.5 rounded-xl hover:shadow-sm transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-lg shadow-sm"
                   >
-                    {loading ? "Saving..." : isEditingExistingCard ? "Save & Go to Dashboard" : "Create & Save Card"}
+                    {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save_dashboard") : t("btn.create_save_full")}
                   </button>
                   )}
                 </div>
@@ -1649,31 +1726,48 @@ function CreateCardContent() {
         </div>
 
         {/* Mobile sticky bottom action bar */}
-        {editorUnlocked && !isLoadingCard && (<div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-          <div className="container mx-auto px-4 py-3">
-            <div className="flex gap-2">
-              <Link
-                href="/templates"
-                className="px-4 py-3 bg-white text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all font-semibold text-sm flex items-center justify-center"
-              >
-                📋 Templates
-              </Link>
-              {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
-                <button
-                  onClick={redirectToCheckout}
-                  className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-4 py-3 rounded-lg font-bold text-sm shadow-md text-center"
+        {editorUnlocked && !isLoadingCard && (<div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
+          {/* Mobile toast for validation errors */}
+          {mobileToast && (
+            <div
+              key={mobileToastKey}
+              className="mx-4 mb-2 p-3 bg-red-600 text-white rounded-xl text-sm font-semibold text-center shadow-lg animate-[slideUp_0.25s_ease-out,fadeOut_0.4s_ease-in_3s_forwards]"
+              style={{ animation: "slideUp 0.25s ease-out, fadeOut 0.4s ease-in 3s forwards" }}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {mobileToast}
+              </div>
+            </div>
+          )}
+          <div className="bg-white border-t border-gray-200 shadow-lg">
+            <div className="container mx-auto px-4 py-3">
+              <div className="flex gap-2">
+                <Link
+                  href="/templates"
+                  className="px-4 py-3 bg-white text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all font-semibold text-sm flex items-center justify-center"
                 >
-                  Upgrade to Create
+                  {`📋 ${t("btn.templates")}`}
+                </Link>
+                {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
+                  <button
+                    onClick={redirectToCheckout}
+                    className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-4 py-3 rounded-lg font-bold text-sm shadow-md text-center"
+                  >
+                    {t("btn.upgrade")}
+                  </button>
+                ) : (
+                <button
+                  onClick={handleSave}
+                  disabled={loading || showPreview || isLoadingCard}
+                  className="flex-1 bg-[#007AFF] text-white px-4 py-3 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed font-bold text-sm shadow-md"
+                >
+                  {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save") : t("btn.create_save")}
                 </button>
-              ) : (
-              <button
-                onClick={handleSave}
-                disabled={loading || showPreview || isLoadingCard}
-                className="flex-1 bg-[#007AFF] text-white px-4 py-3 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed font-bold text-sm shadow-md"
-              >
-                {loading ? "Saving..." : isEditingExistingCard ? "Save" : "Create & Save"}
-              </button>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -1805,7 +1899,7 @@ function CreateCardContent() {
         </div>
       )}
 
-      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} reason={upgradeReason} triggerContext={{ cards_created: permissionStatus?.cardsCreated ?? null, cards_limit: permissionStatus?.cardsLimit ?? null }} />
       <ImagePickerModal
         open={imagePickerCellIndex !== null}
         onClose={() => setImagePickerCellIndex(null)}
