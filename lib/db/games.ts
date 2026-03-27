@@ -98,8 +98,36 @@ export async function createGameRoom(
 export async function getGameRoom(roomCode: string): Promise<GameRoom | null> {
   const client = await clientPromise;
   const db = client.db("mybingocard");
-  return db.collection<GameRoom>("game_rooms").findOne({ roomCode });
+  const room = await db.collection<GameRoom>("game_rooms").findOne({ roomCode });
+
+  // Auto-expire stale rooms on read
+  if (room && room.status !== "finished") {
+    const ageMs = Date.now() - new Date(room.updatedAt).getTime();
+    if (ageMs > 24 * 60 * 60 * 1000) {
+      await db.collection<GameRoom>("game_rooms").updateOne(
+        { _id: room._id },
+        { $set: { status: "finished", updatedAt: new Date() } }
+      );
+      return { ...room, status: "finished" };
+    }
+  }
+
+  return room;
 }
+
+export async function cleanupStaleRooms(): Promise<number> {
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  const result = await db.collection<GameRoom>("game_rooms").updateMany(
+    { status: { $in: ["waiting", "active"] }, updatedAt: { $lt: cutoff } },
+    { $set: { status: "finished", updatedAt: new Date() } }
+  );
+  return result.modifiedCount;
+}
+
+const MAX_PLAYERS_PER_ROOM = 50;
 
 export async function joinGameRoom(
   roomCode: string,
@@ -110,6 +138,20 @@ export async function joinGameRoom(
 
   const room = await db.collection<GameRoom>("game_rooms").findOne({ roomCode });
   if (!room || room.status === "finished") return null;
+
+  // Enforce player cap
+  if (room.players.length >= MAX_PLAYERS_PER_ROOM) return null;
+
+  // Deduplicate player names
+  const existingNames = new Set(room.players.map(p => p.playerName.toLowerCase()));
+  let finalName = playerName.trim();
+  if (existingNames.has(finalName.toLowerCase())) {
+    let counter = 2;
+    while (existingNames.has(`${finalName} ${counter}`.toLowerCase())) {
+      counter++;
+    }
+    finalName = `${finalName} ${counter}`;
+  }
 
   const totalCells = room.size * room.size;
   const neededCells = room.freeSpace ? totalCells - 1 : totalCells;
@@ -137,7 +179,7 @@ export async function joinGameRoom(
   const playerId = new ObjectId().toString();
   const player: GamePlayer = {
     playerId,
-    playerName: playerName.trim(),
+    playerName: finalName,
     cells,
     marked: room.freeSpace ? [Math.floor(totalCells / 2)] : [],
     hasBingo: false,
