@@ -19,7 +19,7 @@ export async function POST(
 
     const finalName = playerName?.trim() || session.user.name || session.user.email?.split("@")[0] || "Player";
 
-    const result = await joinGameRoom(roomCode, finalName);
+    const result = await joinGameRoom(roomCode, finalName, session.user.id, session.user.email || undefined);
     if (!result) {
       return NextResponse.json({ error: "Room not found, full, or game has ended" }, { status: 404 });
     }

@@ -1,11 +1,24 @@
 import clientPromise from "../mongodb";
 import { ObjectId } from "mongodb";
 
+export interface CalledItem {
+  item: string;
+  calledAt: Date;
+}
+
+export interface MarkEvent {
+  cellIndex: number;
+  markedAt: Date;
+}
+
 export interface GamePlayer {
   playerId: string;
+  userId?: string;
+  email?: string;
   playerName: string;
   cells: string[];
   marked: number[];
+  markHistory: MarkEvent[];
   hasBingo: boolean;
   joinedAt: Date;
 }
@@ -14,14 +27,19 @@ export interface GameRoom {
   _id: ObjectId;
   roomCode: string;
   hostUserId: string;
+  hostName?: string;
+  hostEmail?: string;
   sourceCardId: string;
   title: string;
   wordList: string[];
   size: 3 | 4 | 5;
   freeSpace: boolean;
   calledItems: string[];
+  callHistory: CalledItem[];
   players: GamePlayer[];
   status: "waiting" | "active" | "finished";
+  startedAt?: Date;
+  endedAt?: Date;
   winnerId?: string;
   winnerName?: string;
   style: {
@@ -62,7 +80,9 @@ export async function createGameRoom(
   wordList: string[],
   size: 3 | 4 | 5,
   freeSpace: boolean,
-  style: GameRoom["style"]
+  style: GameRoom["style"],
+  hostName?: string,
+  hostEmail?: string
 ): Promise<GameRoom> {
   const client = await clientPromise;
   const db = client.db("mybingocard");
@@ -78,12 +98,15 @@ export async function createGameRoom(
   const room: Omit<GameRoom, "_id"> = {
     roomCode,
     hostUserId,
+    hostName: hostName || undefined,
+    hostEmail: hostEmail || undefined,
     sourceCardId,
     title,
     wordList: wordList.filter(w => w.trim()),
     size,
     freeSpace,
     calledItems: [],
+    callHistory: [],
     players: [],
     status: "waiting",
     style,
@@ -131,7 +154,9 @@ const MAX_PLAYERS_PER_ROOM = 50;
 
 export async function joinGameRoom(
   roomCode: string,
-  playerName: string
+  playerName: string,
+  userId?: string,
+  email?: string
 ): Promise<{ player: GamePlayer; room: GameRoom } | null> {
   const client = await clientPromise;
   const db = client.db("mybingocard");
@@ -179,9 +204,12 @@ export async function joinGameRoom(
   const playerId = new ObjectId().toString();
   const player: GamePlayer = {
     playerId,
+    userId: userId || undefined,
+    email: email || undefined,
     playerName: finalName,
     cells,
     marked: room.freeSpace ? [Math.floor(totalCells / 2)] : [],
+    markHistory: [],
     hasBingo: false,
     joinedAt: new Date(),
   };
@@ -202,9 +230,10 @@ export async function startGame(roomCode: string, hostUserId: string): Promise<b
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
+  const now = new Date();
   const result = await db.collection<GameRoom>("game_rooms").updateOne(
     { roomCode, hostUserId, status: "waiting" },
-    { $set: { status: "active", updatedAt: new Date() } }
+    { $set: { status: "active", startedAt: now, updatedAt: now } }
   );
   return result.modifiedCount > 0;
 }
@@ -216,12 +245,16 @@ export async function callItem(
 ): Promise<GameRoom | null> {
   const client = await clientPromise;
   const db = client.db("mybingocard");
+  const now = new Date();
 
   const result = await db.collection<GameRoom>("game_rooms").findOneAndUpdate(
     { roomCode, hostUserId, status: "active" },
     {
-      $push: { calledItems: item } as any,
-      $set: { updatedAt: new Date() },
+      $push: {
+        calledItems: item,
+        callHistory: { item, calledAt: now },
+      } as any,
+      $set: { updatedAt: now },
     },
     { returnDocument: "after" }
   );
@@ -250,11 +283,15 @@ export async function callRandomItem(
 
   const item = uncalled[Math.floor(Math.random() * uncalled.length)]!;
 
+  const now = new Date();
   const updated = await db.collection<GameRoom>("game_rooms").findOneAndUpdate(
     { _id: room._id },
     {
-      $push: { calledItems: item } as any,
-      $set: { updatedAt: new Date() },
+      $push: {
+        calledItems: item,
+        callHistory: { item, calledAt: now },
+      } as any,
+      $set: { updatedAt: now },
     },
     { returnDocument: "after" }
   );
@@ -269,12 +306,14 @@ export async function markCell(
 ): Promise<boolean> {
   const client = await clientPromise;
   const db = client.db("mybingocard");
+  const now = new Date();
 
   const result = await db.collection<GameRoom>("game_rooms").updateOne(
     { roomCode, "players.playerId": playerId },
     {
       $addToSet: { "players.$.marked": cellIndex } as any,
-      $set: { updatedAt: new Date() },
+      $push: { "players.$.markHistory": { cellIndex, markedAt: now } } as any,
+      $set: { updatedAt: now },
     }
   );
   return result.modifiedCount > 0;
@@ -343,15 +382,17 @@ export async function claimBingo(
   if (!checkBingoWin(player.marked, room.size)) return { valid: false };
 
   // Valid bingo!
+  const now = new Date();
   await db.collection<GameRoom>("game_rooms").updateOne(
     { _id: room._id, "players.playerId": playerId },
     {
       $set: {
         "players.$.hasBingo": true,
         status: "finished",
+        endedAt: now,
         winnerId: playerId,
         winnerName: player.playerName,
-        updatedAt: new Date(),
+        updatedAt: now,
       },
     }
   );
@@ -363,9 +404,10 @@ export async function endGame(roomCode: string, hostUserId: string): Promise<boo
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
+  const now = new Date();
   const result = await db.collection<GameRoom>("game_rooms").updateOne(
     { roomCode, hostUserId },
-    { $set: { status: "finished", updatedAt: new Date() } }
+    { $set: { status: "finished", endedAt: now, updatedAt: now } }
   );
   return result.modifiedCount > 0;
 }

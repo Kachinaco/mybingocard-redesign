@@ -49,7 +49,9 @@ export async function POST(request: Request) {
       wordList,
       card.size,
       card.freeSpace,
-      card.style || {}
+      card.style || {},
+      session.user.name || undefined,
+      session.user.email || undefined
     );
 
     await trackActivity({
