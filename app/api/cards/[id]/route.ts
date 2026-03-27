@@ -2,6 +2,7 @@ import { sanitizeCells, sanitizeText } from "@/lib/sanitize";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getCardById, updateCard } from "@/lib/db/cards";
+import { getUserById } from "@/lib/db/users";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 export async function GET(
@@ -108,6 +109,11 @@ export async function PUT(
     const sanitizedTitle = sanitizeText(title.trim(), 100);
     const sanitizedDescription = sanitizeText(description?.trim() || "", 500);
     const sanitizedCells = sanitizeCells(cells);
+    // Sharing is a premium feature — force isPublic to false for free users
+    const cardOwner = await getUserById(session.user.id);
+    const ownerPlan = cardOwner?.planType || "FREE";
+    const finalIsPublic = ownerPlan === "FREE" ? false : !!isPublic;
+
     // Update the card
     const updatedCard = await updateCard(id, {
       title: sanitizedTitle,
@@ -115,7 +121,7 @@ export async function PUT(
       size,
       cells: sanitizedCells,
       freeSpace: !!freeSpace,
-      isPublic: !!isPublic,
+      isPublic: finalIsPublic,
       style: style || {},
     });
 

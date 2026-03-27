@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { createCard, getUserCards, updateCard, deleteCard, getCardById } from "@/lib/db/cards";
 import { canCreateCard } from "@/lib/db/subscriptions";
 import { generateShareLink } from "@/lib/db/cards";
+import { getUserById } from "@/lib/db/users";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyCardCreated } from "@/lib/discord";
 
@@ -88,6 +89,13 @@ export async function POST(request: Request) {
     data.title = sanitizeText(data.title, 100);
     data.description = sanitizeText(data.description || '', 500);
     data.cells = sanitizeCells(data.cells);
+
+    // Sharing is a premium feature — force isPublic to false for free users
+    const user = await getUserById(session.user.id);
+    const userPlan = user?.planType || "FREE";
+    if (userPlan === "FREE" && data.isPublic) {
+      data.isPublic = false;
+    }
 
     // Generate share link if card is public
     const shareLink = data.isPublic ? generateShareLink() : undefined;

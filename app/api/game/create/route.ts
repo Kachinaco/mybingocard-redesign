@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getCardById } from "@/lib/db/cards";
+import { getUserById } from "@/lib/db/users";
 import { createGameRoom } from "@/lib/db/games";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
@@ -10,6 +11,16 @@ export async function POST(request: Request) {
     const requestContext = getRequestActivityContext(request);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Only premium users can host live games
+    const user = await getUserById(session.user.id);
+    const planType = user?.planType || "FREE";
+    if (planType === "FREE") {
+      return NextResponse.json(
+        { error: "Upgrade to Premium to host live games" },
+        { status: 403 }
+      );
     }
 
     const { cardId } = await request.json();

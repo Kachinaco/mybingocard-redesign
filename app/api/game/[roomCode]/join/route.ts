@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { joinGameRoom } from "@/lib/db/games";
 import { trackActivity } from "@/lib/activity";
 import { getRequestActivityContext } from "@/lib/activity";
@@ -8,16 +9,19 @@ export async function POST(
   { params }: { params: Promise<{ roomCode: string }> }
 ) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Sign in to join a live game" }, { status: 401 });
+    }
+
     const { roomCode } = await params;
     const { playerName } = await request.json();
 
-    if (!playerName?.trim()) {
-      return NextResponse.json({ error: "Player name required" }, { status: 400 });
-    }
+    const finalName = playerName?.trim() || session.user.name || session.user.email?.split("@")[0] || "Player";
 
-    const result = await joinGameRoom(roomCode, playerName.trim());
+    const result = await joinGameRoom(roomCode, finalName);
     if (!result) {
-      return NextResponse.json({ error: "Room not found or game has ended" }, { status: 404 });
+      return NextResponse.json({ error: "Room not found, full, or game has ended" }, { status: 404 });
     }
 
     // Track player join
@@ -25,8 +29,8 @@ export async function POST(
     trackActivity({
       event: "game_player_joined",
       source: "server",
-      userId: null,
-      email: null,
+      userId: session.user.id,
+      email: session.user.email || null,
       pathname: `/game/play/${roomCode}`,
       domain: reqCtx.domain,
       ipAddress: reqCtx.ipAddress,
