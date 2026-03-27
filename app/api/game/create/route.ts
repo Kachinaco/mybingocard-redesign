@@ -13,10 +13,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Only premium users can host live games
+    // Only premium users (or whitelisted users) can host live games
     const user = await getUserById(session.user.id);
     const planType = user?.planType || "FREE";
-    if (planType === "FREE") {
+    if (planType === "FREE" && !(user as any)?.canHostGames) {
       return NextResponse.json(
         { error: "Upgrade to Premium to host live games" },
         { status: 403 }
