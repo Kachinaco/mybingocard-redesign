@@ -8,8 +8,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 const FREE_FEATURES = [
-  "3 bingo cards",
-  "3x3 and 4x4 grids",
+  "1 bingo card",
+  "All grid sizes (3x3, 4x4, 5x5)",
   "5 starter templates",
   "Standard PDF export (with watermark)",
   "Share links (same card for all viewers)",
@@ -69,26 +69,9 @@ function PricingContent() {
     setLoading(true);
 
     try {
-      const body = {
-        priceId: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_PRICE_ID!,
-      };
-
-      const response = await fetch("/api/stripe/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create checkout session");
-      }
-
-      if (data.url) {
-        trackPremiumPurchase("premium_monthly");
-        window.location.href = data.url;
-      }
+      trackPremiumPurchase("premium_monthly");
+      const { redirectToCheckout } = await import("@/lib/upgrade");
+      await redirectToCheckout();
     } catch (error: any) {
       console.error("Upgrade error:", error);
       alert(error.message || "Failed to start checkout");
@@ -290,9 +273,9 @@ function PricingContent() {
               </thead>
               <tbody className="text-sm">
                 {[
-                  ["Bingo cards", "3 cards", "Unlimited"],
-                  ["Grid sizes", "3x3, 4x4", "3x3, 4x4, 5x5"],
-                  ["Templates", "5 starter", "All 24 templates"],
+                  ["Bingo cards", "1 card", "Unlimited"],
+                  ["Grid sizes", "3x3, 4x4, 5x5", "3x3, 4x4, 5x5"],
+                  ["Templates", "5 starter", "All 30+ templates"],
                   ["PDF export", "With watermark", "HD, no watermark"],
                   ["PNG export", "-", "Yes"],
                   ["Custom colors & fonts", "-", "Yes"],
@@ -350,7 +333,7 @@ function PricingContent() {
                 What can I do on the free plan?
               </h3>
               <p className="text-slate-600 leading-relaxed">
-                The free plan lets you create up to 3 bingo cards with 5 starter templates. Free exports include a small watermark. Upgrade to Premium for unlimited cards, all templates, HD exports, and watermark-free downloads.
+                The free plan lets you create 1 bingo card with 5 starter templates. Free exports include a small watermark. Upgrade to Premium for unlimited cards, all templates, HD exports, and watermark-free downloads.
               </p>
             </div>
           </div>

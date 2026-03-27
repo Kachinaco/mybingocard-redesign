@@ -38,7 +38,7 @@ export const PLANS = {
     price: 0,
     priceId: null,
     features: [
-      "3 bingo cards",
+      "1 bingo card",
       "All grid sizes (3x3, 4x4, 5x5)",
       "5 starter templates",
       "Standard PDF export",

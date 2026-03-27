@@ -181,7 +181,7 @@ export default function Home() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-12">
               <StatCard number="50K+" label="Active Users" />
               <StatCard number="1M+" label="Cards Generated" />
-              <StatCard number="200+" label="Premium Templates" />
+              <StatCard number="30+" label="Premium Templates" />
               <StatCard number="4.9/5" label="Customer Rating" />
             </div>
           </div>

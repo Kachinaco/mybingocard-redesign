@@ -88,7 +88,22 @@ export default function DashboardEngagement() {
     try {
       const stored = localStorage.getItem("mybingo_recently_played");
       if (stored) {
-        setRecentlyPlayed(JSON.parse(stored));
+        const items: RecentlyPlayedItem[] = JSON.parse(stored);
+        // Validate each card still exists, remove stale entries
+        Promise.all(
+          items.map((item) =>
+            fetch(`/api/cards/${item.cardId}`)
+              .then((r) => (r.ok ? item : null))
+              .catch(() => null)
+          )
+        ).then((results) => {
+          const valid = results.filter(Boolean) as RecentlyPlayedItem[];
+          setRecentlyPlayed(valid);
+          // Update localStorage to remove stale entries
+          if (valid.length !== items.length) {
+            localStorage.setItem("mybingo_recently_played", JSON.stringify(valid));
+          }
+        });
       }
     } catch {}
   }, []);

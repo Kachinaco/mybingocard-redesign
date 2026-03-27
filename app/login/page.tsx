@@ -144,7 +144,7 @@ function LoginContent() {
         </div>
 
         <div className="relative z-10 text-sm text-indigo-200">
-          © 2025 MyBingoCard. All rights reserved.
+          © {new Date().getFullYear()} MyBingoCard. All rights reserved.
         </div>
       </div>
 

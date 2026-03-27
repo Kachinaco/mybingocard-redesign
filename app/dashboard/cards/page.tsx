@@ -37,6 +37,50 @@ export default function MyCardsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [batchDeleting, setBatchDeleting] = useState(false);
+
+  const toggleSelect = (cardId: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(cardId)) next.delete(cardId);
+      else next.add(cardId);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selected.size === cards.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(cards.map((c) => c._id)));
+    }
+  };
+
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelected(new Set());
+  };
+
+  const handleBatchDelete = async () => {
+    if (selected.size === 0) return;
+    setBatchDeleting(true);
+    try {
+      const promises = Array.from(selected).map((cardId) =>
+        fetch(`/api/cards?cardId=${cardId}`, { method: "DELETE" })
+      );
+      await Promise.all(promises);
+      cleanUpLocalStorage(Array.from(selected));
+      setCards((prev) => prev.filter((c) => !selected.has(c._id)));
+      exitSelectMode();
+    } catch (err: any) {
+      console.error("Batch delete error:", err);
+      alert("Some cards failed to delete. Please try again.");
+    } finally {
+      setBatchDeleting(false);
+    }
+  };
 
   useEffect(() => {
     fetchCards();
@@ -61,6 +105,21 @@ export default function MyCardsPage() {
     }
   };
 
+  const cleanUpLocalStorage = (deletedIds: string[]) => {
+    try {
+      const stored = localStorage.getItem("mybingo_recently_played");
+      if (stored) {
+        const items = JSON.parse(stored);
+        const filtered = items.filter((item: any) => !deletedIds.includes(item.cardId));
+        localStorage.setItem("mybingo_recently_played", JSON.stringify(filtered));
+      }
+      // Also clean up saved game states
+      deletedIds.forEach((id) => {
+        localStorage.removeItem(`mybingo_state_${id}`);
+      });
+    } catch {}
+  };
+
   const handleDelete = async (cardId: string) => {
     try {
       const response = await fetch(`/api/cards?cardId=${cardId}`, {
@@ -72,9 +131,10 @@ export default function MyCardsPage() {
         throw new Error(data.error || "Failed to delete card");
       }
 
-      // Refresh cards list
+      // Refresh cards list and clean localStorage
       setCards(cards.filter((card) => card._id !== cardId));
       setDeleteConfirm(null);
+      cleanUpLocalStorage([cardId]);
     } catch (err: any) {
       console.error("Delete error:", err);
       alert(err.message || "Failed to delete card");
@@ -180,10 +240,63 @@ export default function MyCardsPage() {
                     Manage and share your created cards.
                 </p>
              </div>
-             <div className="text-sm font-medium text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
-                {cards.length} card{cards.length !== 1 ? "s" : ""} total
+             <div className="flex items-center gap-3">
+                {cards.length > 0 && (
+                  <button
+                    onClick={() => selectMode ? exitSelectMode() : setSelectMode(true)}
+                    className={`text-sm font-semibold px-4 py-2 rounded-lg border transition-colors ${
+                      selectMode
+                        ? "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
+                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    {selectMode ? "Cancel" : "Select"}
+                  </button>
+                )}
+                <div className="text-sm font-medium text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                   {cards.length} card{cards.length !== 1 ? "s" : ""} total
+                </div>
              </div>
           </div>
+
+          {/* Batch action toolbar */}
+          {selectMode && (
+            <div className="mb-6 flex items-center justify-between bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-3 animate-fade-in-up">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={selectAll}
+                  className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+                >
+                  {selected.size === cards.length ? "Deselect All" : "Select All"}
+                </button>
+                <span className="text-sm text-slate-500">
+                  {selected.size} of {cards.length} selected
+                </span>
+              </div>
+              <button
+                onClick={handleBatchDelete}
+                disabled={selected.size === 0 || batchDeleting}
+                className="text-sm font-bold px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {batchDeleting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete Selected ({selected.size})
+                  </>
+                )}
+              </button>
+            </div>
+          )}
 
           {error && (
             <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 flex items-center gap-3">
@@ -230,8 +343,26 @@ export default function MyCardsPage() {
                   className="group bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-100 transition-all duration-300 overflow-hidden flex flex-col"
                 >
                   {/* Card Preview */}
-                  <div className="p-6 bg-slate-50 border-b border-slate-100 relative overflow-hidden">
+                  <div
+                    className={`p-6 bg-slate-50 border-b border-slate-100 relative overflow-hidden ${selectMode ? "cursor-pointer" : ""}`}
+                    onClick={selectMode ? () => toggleSelect(card._id) : undefined}
+                  >
                      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-white opacity-50"></div>
+                     {selectMode && (
+                       <div className="absolute top-3 left-3 z-20">
+                         <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                           selected.has(card._id)
+                             ? "bg-indigo-600 border-indigo-600"
+                             : "bg-white border-slate-300 hover:border-indigo-400"
+                         }`}>
+                           {selected.has(card._id) && (
+                             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                             </svg>
+                           )}
+                         </div>
+                       </div>
+                     )}
                      <div className="relative z-10">
                         {renderCardPreview(card)}
                      </div>

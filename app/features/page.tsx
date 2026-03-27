@@ -24,8 +24,8 @@ const features = [
       </svg>
     ),
     title: "Theme Library",
-    description: "Choose from 200+ professionally designed templates for any occasion — weddings, birthdays, baby showers, holidays, classrooms, team events, and more.",
-    highlights: ["200+ premium templates", "Holiday & seasonal themes", "Classroom & education", "Custom occasion themes"],
+    description: "Choose from 30+ professionally designed templates for any occasion — weddings, birthdays, baby showers, holidays, classrooms, team events, and more.",
+    highlights: ["30+ premium templates", "Holiday & seasonal themes", "Classroom & education", "Custom occasion themes"],
   },
   {
     icon: (
@@ -140,7 +140,7 @@ export default function FeaturesPage() {
           {[
             { value: "50K+", label: "Active Users" },
             { value: "1M+", label: "Cards Generated" },
-            { value: "200+", label: "Premium Templates" },
+            { value: "30+", label: "Premium Templates" },
             { value: "4.9/5", label: "Customer Rating" },
           ].map((stat) => (
             <div key={stat.label}>

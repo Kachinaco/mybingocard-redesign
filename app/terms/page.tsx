@@ -55,7 +55,7 @@ export default function TermsPage() {
               <div>
                 <h2 className="text-xl font-bold text-slate-900 mb-3">Free and Premium Plans</h2>
                 <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-slate-600">Free accounts can create up to 3 bingo cards with limited features</li>
+                  <li className="text-slate-600">Free accounts can create 1 bingo card with limited features</li>
                   <li className="text-slate-600">Premium subscriptions are billed monthly at $4.99/month through Stripe</li>
                   <li className="text-slate-600">You can cancel your subscription anytime from your Settings page</li>
                   <li className="text-slate-600">Cancellations take effect at the end of the current billing period</li>

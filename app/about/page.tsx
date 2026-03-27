@@ -43,7 +43,7 @@ export default function AboutPage() {
                 <h2 className="text-xl font-bold text-slate-900 mb-3">What We Offer</h2>
                 <ul className="space-y-2 list-disc list-inside">
                   <li className="text-slate-600">A simple card editor that anyone can use in minutes</li>
-                  <li className="text-slate-600">24 professionally designed templates for every occasion</li>
+                  <li className="text-slate-600">30+ professionally designed templates for every occasion</li>
                   <li className="text-slate-600">Live multiplayer bingo rooms for real-time games</li>
                   <li className="text-slate-600">PDF and PNG exports for printing or sharing digitally</li>
                   <li className="text-slate-600">Batch generation for creating up to 100 unique cards at once</li>
@@ -59,7 +59,7 @@ export default function AboutPage() {
 
               <div>
                 <h2 className="text-xl font-bold text-slate-900 mb-3">Get Started</h2>
-                <p className="text-slate-600 leading-relaxed">Create your first card for free at mybingocard.com/create or browse our templates at mybingocard.com/templates.</p>
+                <p className="text-slate-600 leading-relaxed">Create your first card for free at <Link href="/create" className="text-indigo-600 hover:text-indigo-700 font-medium underline">mybingocard.com/create</Link> or browse our templates at <Link href="/templates" className="text-indigo-600 hover:text-indigo-700 font-medium underline">mybingocard.com/templates</Link>.</p>
               </div>
 
           </div>
