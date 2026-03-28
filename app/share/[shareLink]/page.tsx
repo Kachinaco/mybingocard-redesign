@@ -3,6 +3,7 @@
 import SocialShare from "@/components/SocialShare";
 import ThemedCardWrapper from "@/components/ThemedCardWrapper";
 import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
+import { useTextFit } from "@/lib/useTextFit";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -87,6 +88,13 @@ export default function SharedCardPage() {
   const [adFree, setAdFree] = useState(false);
   const [displayCells, setDisplayCells] = useState<string[]>([]);
   const gameStartTime = useRef(Date.now());
+  const shareGridRef = useRef<HTMLDivElement>(null);
+  const fittedSizes = useTextFit(shareGridRef, {
+    cells: displayCells.length > 0 ? displayCells : (card?.cells ?? []),
+    gridSize: (card?.size ?? 5) as 3 | 4 | 5,
+    fontFamily: card?.style.fontFamily || "sans-serif",
+    freeSpaceIndex: card?.freeSpace ? Math.floor(((card?.size ?? 5) * (card?.size ?? 5)) / 2) : null,
+  });
 
   useEffect(() => { fetchCard(); }, [shareLink]);
 
@@ -446,6 +454,7 @@ export default function SharedCardPage() {
 
           {/* Grid */}
           <div
+            ref={shareGridRef}
             className="grid gap-1.5 md:gap-2 w-full bingo-grid-print"
             style={{ gridTemplateColumns: `repeat(${card.size}, 1fr)` }}
           >
@@ -481,7 +490,7 @@ export default function SharedCardPage() {
                       {isImageCell(cell) ? (
                         <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-[60%] max-h-[40%] object-contain opacity-60" />
                       ) : (
-                        <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: "0.6em" }}>{cell}</span>
+                        <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: fittedSizes.has(index) ? `${fittedSizes.get(index)! * 0.55}px` : "0.6em" }}>{cell}</span>
                       )}
                     </span>
                   ) : isImageCell(cell) ? (
@@ -490,7 +499,7 @@ export default function SharedCardPage() {
                       {getCellDisplayText(cell) && <span className="text-[0.55em] leading-tight text-center w-full truncate">{getCellDisplayText(cell)}</span>}
                     </span>
                   ) : (
-                    <span className="break-words leading-tight text-center">{cell}</span>
+                    <span className="break-words leading-tight text-center" style={fittedSizes.has(index) ? { fontSize: `${fittedSizes.get(index)}px` } : undefined}>{cell}</span>
                   )}
                 </button>
               );

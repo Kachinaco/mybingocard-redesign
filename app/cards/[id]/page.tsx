@@ -4,6 +4,7 @@ import { trackCardPrinted } from "@/lib/analytics";
 import SocialShare from "@/components/SocialShare";
 import ThemedCardWrapper from "@/components/ThemedCardWrapper";
 import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
+import { useTextFit } from "@/lib/useTextFit";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -81,6 +82,13 @@ export default function CardViewPage() {
   const status = sessionData?.status || "loading";
   const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const gameStartTime = useRef(Date.now());
+  const gridRef = useRef<HTMLDivElement>(null);
+  const fittedSizes = useTextFit(gridRef, {
+    cells: card?.cells ?? [],
+    gridSize: (card?.size ?? 5) as 3 | 4 | 5,
+    fontFamily: card?.style.fontFamily || "sans-serif",
+    freeSpaceIndex: card?.freeSpace ? Math.floor(((card?.size ?? 5) * (card?.size ?? 5)) / 2) : null,
+  });
 
   useEffect(() => { fetchCard(); }, [cardId]);
   useEffect(() => {
@@ -881,7 +889,7 @@ export default function CardViewPage() {
                 </div>
               </div>
 
-              <div className="grid gap-1.5 md:gap-2 w-full bingo-grid-print" style={{ gridTemplateColumns: `repeat(${card.size}, 1fr)` }}>
+              <div ref={gridRef} className="grid gap-1.5 md:gap-2 w-full bingo-grid-print" style={{ gridTemplateColumns: `repeat(${card.size}, 1fr)` }}>
                 {card.cells.map((cell, index) => {
                   const isFreeSpace = card.freeSpace && index === freeSpaceIdx;
                   const isMarked = marked.has(index);
@@ -919,7 +927,7 @@ export default function CardViewPage() {
                           {isImageCell(cell) ? (
                             <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-[60%] max-h-[40%] object-contain opacity-60" />
                           ) : (
-                            <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: "0.6em" }}>{cell}</span>
+                            <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: fittedSizes.has(index) ? `${fittedSizes.get(index)! * 0.55}px` : "0.6em" }}>{cell}</span>
                           )}
                         </span>
                       ) : isImageCell(cell) ? (
@@ -928,7 +936,7 @@ export default function CardViewPage() {
                           {getCellDisplayText(cell) && <span className="text-[0.55em] leading-tight text-center w-full truncate">{getCellDisplayText(cell)}</span>}
                         </span>
                       ) : (
-                        <span className="break-words leading-tight text-center">{cell}</span>
+                        <span className="break-words leading-tight text-center" style={fittedSizes.has(index) ? { fontSize: `${fittedSizes.get(index)}px` } : undefined}>{cell}</span>
                       )}
                     </button>
                   );

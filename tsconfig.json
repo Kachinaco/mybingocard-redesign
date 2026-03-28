@@ -18,6 +18,7 @@
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     // Path aliases for Next.js
     "baseUrl": ".",
     "paths": {

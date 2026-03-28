@@ -7,6 +7,7 @@ import Confetti from "@/components/Confetti";
 import SoundToggle from "@/components/SoundToggle";
 import { playDabSound, playUndabSound, playBingoSound, playDingSound } from "@/lib/sounds";
 import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
+import { useTextFit } from "@/lib/useTextFit";
 
 interface PlayerData {
   playerId: string;
@@ -46,6 +47,13 @@ export default function PlayGamePage() {
 
   const prevCalledCountRef = useRef(0);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const multiGridRef = useRef<HTMLDivElement>(null);
+  const fittedSizes = useTextFit(multiGridRef, {
+    cells: player?.cells ?? [],
+    gridSize: size as 3 | 4 | 5,
+    fontFamily: style.fontFamily || "sans-serif",
+    freeSpaceIndex: freeSpace ? Math.floor((size * size) / 2) : null,
+  });
 
   // Load player data from sessionStorage
   useEffect(() => {
@@ -305,6 +313,7 @@ export default function PlayGamePage() {
           </div>
 
           <div
+            ref={multiGridRef}
             className="grid gap-1.5 w-full"
             style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}
           >
@@ -347,7 +356,7 @@ export default function PlayGamePage() {
                       {isImageCell(cell) ? (
                         <img src={parseImageCell(cell)?.imageUrl} alt="" className="max-w-[60%] max-h-[40%] object-contain opacity-60" />
                       ) : (
-                        <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: "0.55em" }}>{cell}</span>
+                        <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: fittedSizes.has(index) ? `${fittedSizes.get(index)! * 0.55}px` : "0.55em" }}>{cell}</span>
                       )}
                     </span>
                   ) : isImageCell(cell) ? (
@@ -356,7 +365,7 @@ export default function PlayGamePage() {
                       {getCellDisplayText(cell) && <span className="text-[0.5em] leading-tight text-center w-full truncate">{getCellDisplayText(cell)}</span>}
                     </span>
                   ) : (
-                    <span className="break-words leading-tight text-center">{cell}</span>
+                    <span className="break-words leading-tight text-center" style={fittedSizes.has(index) ? { fontSize: `${fittedSizes.get(index)}px` } : undefined}>{cell}</span>
                   )}
                 </button>
               );
