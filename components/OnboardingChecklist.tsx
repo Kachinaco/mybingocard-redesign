@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { trackClientActivity } from "@/lib/activity-client";
 
 interface OnboardingData {
   show: boolean;
@@ -99,7 +100,10 @@ export default function OnboardingChecklist() {
 
           if (!isCompleted && step.href) {
             return (
-              <Link key={step.key} href={step.href} onClick={() => trackStep(step.key)}>
+              <Link key={step.key} href={step.href} onClick={() => {
+                trackStep(step.key);
+                trackClientActivity("onboarding_step_clicked", { step: step.key, completed: false });
+              }}>
                 {content}
               </Link>
             );

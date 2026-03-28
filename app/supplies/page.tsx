@@ -1,4 +1,5 @@
 import Link from "next/link";
+import SuppliesTracker from "./SuppliesTracker";
 
 const supplies = [
   {
@@ -136,6 +137,7 @@ const supplies = [
 export default function SuppliesPage() {
   return (
     <div className="min-h-screen bg-slate-50">
+      <SuppliesTracker />
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
         <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">

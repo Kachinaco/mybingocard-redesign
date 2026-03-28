@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { trackClientActivity } from "@/lib/activity-client";
 
 export default function NpsWidget() {
   const [show, setShow] = useState(false);
@@ -36,6 +37,7 @@ export default function NpsWidget() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ score: s, comment: "" }),
       });
+      trackClientActivity("nps_submitted", { score: s, has_followup: false });
     }
   };
 
@@ -46,12 +48,14 @@ export default function NpsWidget() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ score, comment }),
     });
+    trackClientActivity("nps_submitted", { score, has_followup: true });
     setStep("done");
     setSubmitting(false);
     setTimeout(() => setShow(false), 3000);
   };
 
   const dismiss = () => {
+    trackClientActivity("nps_dismissed", { step });
     setShow(false);
     // Still mark as shown so it doesn't appear again
     fetch("/api/nps", {

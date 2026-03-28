@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
+import { trackActivity } from "@/lib/activity";
 
 const STEPS = ["createAccount", "createCard", "exportCard", "tryGame", "exploreTemplates"] as const;
 
@@ -73,6 +74,16 @@ export async function POST(request: Request) {
       { email: session.user.email },
       { $set: { onboardingDismissed: true } }
     );
+
+    trackActivity({
+      event: "onboarding_dismissed",
+      source: "server",
+      userId: session.user.id || null,
+      email: session.user.email,
+      pathname: "/api/onboarding",
+      metadata: {},
+    }).catch(() => {});
+
     return NextResponse.json({ success: true });
   }
 
@@ -81,6 +92,17 @@ export async function POST(request: Request) {
       { email: session.user.email },
       { $set: { [`onboardingCompleted.${step}`]: true } }
     );
+
+    trackActivity({
+      event: "onboarding_step_completed",
+      source: "server",
+      userId: session.user.id || null,
+      email: session.user.email,
+      pathname: "/api/onboarding",
+      metadata: {
+        step,
+      },
+    }).catch(() => {});
   }
 
   return NextResponse.json({ success: true });

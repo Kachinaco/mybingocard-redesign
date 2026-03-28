@@ -43,7 +43,8 @@ export async function POST(request: Request) {
     if (event === "upgrade_dismissed") {
       notifyUpgradeDismissed(
         session?.user?.email || null,
-        metadata.source || "unknown"
+        metadata.source || "unknown",
+        metadata
       ).catch(() => {});
     }
 

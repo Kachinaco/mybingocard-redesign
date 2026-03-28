@@ -1,12 +1,28 @@
 export interface CheckoutOptions {
   successPath?: string;
   cancelPath?: string;
+  purchaseType?: string;
+  batchCount?: number;
+  label?: string;
 }
 
 type CheckoutInvocation = CheckoutOptions | Pick<Event, "preventDefault">;
 
 function isEventLike(value: CheckoutInvocation | undefined): value is Pick<Event, "preventDefault"> {
   return Boolean(value && typeof value === "object" && "preventDefault" in value);
+}
+
+// Global checkout opener — set by CheckoutModalProvider
+let _globalCheckoutOpener: ((options?: {
+  priceId?: string;
+  purchaseType?: string;
+  batchCount?: number;
+  label?: string;
+  returnPath?: string;
+}) => Promise<void>) | null = null;
+
+export function registerCheckoutOpener(opener: typeof _globalCheckoutOpener) {
+  _globalCheckoutOpener = opener;
 }
 
 export async function redirectToCheckout(invocation?: CheckoutInvocation): Promise<void> {
@@ -16,6 +32,20 @@ export async function redirectToCheckout(invocation?: CheckoutInvocation): Promi
 
   const options = isEventLike(invocation) ? {} : (invocation ?? {});
   const priceId = process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_PRICE_ID;
+
+  // Use embedded checkout modal if available
+  if (_globalCheckoutOpener) {
+    await _globalCheckoutOpener({
+      priceId: priceId || undefined,
+      purchaseType: options.purchaseType,
+      batchCount: options.batchCount,
+      label: options.label,
+      returnPath: options.successPath,
+    });
+    return;
+  }
+
+  // Fallback: redirect to Stripe (should not happen if provider is mounted)
   if (!priceId) {
     window.alert("Checkout is temporarily unavailable. Please try again in a moment.");
     return;

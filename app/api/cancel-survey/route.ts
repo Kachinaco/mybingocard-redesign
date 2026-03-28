@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
+import { trackActivity } from "@/lib/activity";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -28,6 +29,18 @@ export async function POST(request: Request) {
     details: details || "",
     createdAt: new Date(),
   });
+
+  trackActivity({
+    event: "cancellation_survey_submitted",
+    source: "server",
+    userId: session.user.id || null,
+    email: session.user.email,
+    pathname: "/api/cancel-survey",
+    metadata: {
+      reason,
+      details: details || "",
+    },
+  }).catch(() => {});
 
   return NextResponse.json({ success: true });
 }

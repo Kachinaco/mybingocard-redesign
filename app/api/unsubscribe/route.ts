@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
+import { trackActivity, getRequestActivityContext } from "@/lib/activity";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,6 +23,22 @@ export async function POST(req: NextRequest) {
       },
       { upsert: true }
     );
+
+    const reqCtx = getRequestActivityContext(req as unknown as Request);
+    trackActivity({
+      event: "email_unsubscribed",
+      source: "server",
+      userId: null,
+      email: email.toLowerCase().trim(),
+      pathname: "/api/unsubscribe",
+      domain: reqCtx.domain,
+      ipAddress: reqCtx.ipAddress,
+      userAgent: reqCtx.userAgent,
+      metadata: {
+        email: email.toLowerCase().trim(),
+        type: "marketing",
+      },
+    }).catch(() => {});
 
     return NextResponse.json({ success: true });
   } catch (err) {

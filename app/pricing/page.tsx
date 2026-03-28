@@ -1,8 +1,9 @@
 "use client";
 
 import { trackPremiumPurchase } from "@/lib/analytics";
+import { trackClientActivity } from "@/lib/activity-client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -36,7 +37,7 @@ function PricingContent() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<string>("FREE");
-  
+  const hasTrackedView = useRef(false);
 
   const success = searchParams.get("success");
   const canceled = searchParams.get("canceled");
@@ -46,6 +47,37 @@ function PricingContent() {
       fetchCurrentPlan();
     }
   }, [session]);
+
+  // Track pricing page view once plan state is resolved
+  useEffect(() => {
+    if (hasTrackedView.current) return;
+    // Wait until auth status is resolved (not "loading")
+    if (status === "loading") return;
+    hasTrackedView.current = true;
+
+    const referrerPath = typeof document !== "undefined" && document.referrer
+      ? new URL(document.referrer).pathname
+      : "direct";
+
+    trackClientActivity("pricing_page_viewed", {
+      source: referrerPath,
+      has_account: status === "authenticated",
+      current_plan: currentPlan,
+    });
+  }, [status, currentPlan]);
+
+  // Track checkout cancel when user returns from Stripe with ?canceled=true
+  const hasTrackedCancel = useRef(false);
+  useEffect(() => {
+    if (!canceled || hasTrackedCancel.current) return;
+    hasTrackedCancel.current = true;
+
+    trackClientActivity("checkout_cancel_clicked", {
+      plan: "PREMIUM",
+      session_id: searchParams.get("session_id") || null,
+      source: "stripe_redirect",
+    });
+  }, [canceled, searchParams]);
 
   const fetchCurrentPlan = async () => {
     try {
@@ -70,6 +102,11 @@ function PricingContent() {
 
     try {
       trackPremiumPurchase("premium_monthly");
+      trackClientActivity("plan_selected", {
+        plan: "premium",
+        price: 4.99,
+        source: "pricing_page",
+      });
       const { redirectToCheckout } = await import("@/lib/upgrade");
       await redirectToCheckout();
     } catch (error: any) {

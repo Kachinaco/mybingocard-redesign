@@ -294,11 +294,13 @@ export default function SharedCardPage() {
 
   const toggleFullscreen = async () => {
     try {
-      if (!document.fullscreenElement) {
+      const entering = !document.fullscreenElement;
+      if (entering) {
         await cardContainerRef.current?.requestFullscreen();
       } else {
         await document.exitFullscreen();
       }
+      trackClientActivity("fullscreen_toggled", { entered: entering });
     } catch {}
   };
 
@@ -421,8 +423,12 @@ export default function SharedCardPage() {
       <main className="container mx-auto px-3 md:px-4 py-6 md:py-8 max-w-2xl">
         {/* Bingo Banner */}
         {bingo && !isFullscreen && (
-          <div className="mb-6 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl p-4 text-center font-black text-2xl shadow-lg animate-pulse print:hidden">
-            🎉 BINGO! You won! 🎉
+          <div className="mb-6 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl p-6 text-center shadow-lg print:hidden">
+            <div className="font-black text-2xl animate-pulse mb-3">🎉 BINGO! You won! 🎉</div>
+            <p className="text-yellow-100 text-sm mb-3">Want to make your own bingo cards for your next event?</p>
+            <Link href="/create" className="inline-block px-5 py-2 bg-white text-orange-600 rounded-xl font-bold text-sm hover:bg-orange-50 transition shadow-md">
+              Create Your Own Card — Free
+            </Link>
           </div>
         )}
 

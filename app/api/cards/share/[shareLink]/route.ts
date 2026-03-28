@@ -144,6 +144,24 @@ export async function POST(
     }
 
     const valid = await bcrypt.compare(password, card.sharePassword);
+    const reqCtxPost = getRequestActivityContext(request);
+
+    trackActivity({
+      event: "shared_card_password_attempt",
+      source: "server",
+      userId: null,
+      email: null,
+      pathname: `/share/${shareLink}`,
+      domain: reqCtxPost.domain,
+      ipAddress: reqCtxPost.ipAddress,
+      userAgent: reqCtxPost.userAgent,
+      metadata: {
+        correct: valid,
+        ip_address: reqCtxPost.ipAddress,
+        cardId: card._id.toString(),
+        shareLink,
+      },
+    }).catch(() => {});
 
     if (!valid) {
       return NextResponse.json(

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Database from "better-sqlite3";
 import path from "path";
+import { trackActivity, getRequestActivityContext } from "@/lib/activity";
 
 const DB_PATH = path.join(process.cwd(), "bingo.db");
 
@@ -30,12 +31,30 @@ export async function POST(request: Request) {
     }
 
     const db = getDb();
+    let duplicate = false;
     try {
       const stmt = db.prepare("INSERT OR IGNORE INTO email_subscribers (email, source) VALUES (?, ?)");
-      stmt.run(email.toLowerCase().trim(), source || "popup");
+      const result = stmt.run(email.toLowerCase().trim(), source || "popup");
+      duplicate = result.changes === 0;
     } finally {
       db.close();
     }
+
+    const reqCtx = getRequestActivityContext(request);
+    trackActivity({
+      event: "email_captured",
+      source: "server",
+      userId: null,
+      email: email.toLowerCase().trim(),
+      pathname: "/api/email-capture",
+      domain: reqCtx.domain,
+      ipAddress: reqCtx.ipAddress,
+      userAgent: reqCtx.userAgent,
+      metadata: {
+        source: source || "popup",
+        duplicate,
+      },
+    }).catch(() => {});
 
     return NextResponse.json({ success: true, message: "Thanks! Check your email for your free templates." });
   } catch (error) {

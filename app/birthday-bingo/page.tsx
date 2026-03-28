@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LandingPageTracker from "@/components/LandingPageTracker";
 
 export const metadata: Metadata = {
   title: "Birthday Bingo Cards Printable — Free Birthday Bingo Generator | MyBingoCard",
@@ -76,6 +77,7 @@ function BingoGrid({ squares }: { squares: string[] }) {
 export default function BirthdayBingoPage() {
   return (
     <>
+      <LandingPageTracker templateCategory="birthday-bingo" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}

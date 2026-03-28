@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LandingPageTracker from "@/components/LandingPageTracker";
 
 export const metadata: Metadata = {
   title: "Baby Shower Bingo Cards Generator — MyBingoCard",
@@ -67,6 +68,7 @@ function BingoGrid({ squares, label, gradient }: { squares: string[]; label: str
 export default function BabyShowerBingoPage() {
   return (
     <>
+      <LandingPageTracker templateCategory="baby-shower-bingo" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}

@@ -22,19 +22,21 @@ const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 
 function getSignupSourceLabel(user) {
-  if (user.utm_source) {
-    return user.utm_source;
-  }
-
+  if (user.utm_source) return user.utm_source;
   if (user.referrer) {
-    try {
-      return new URL(user.referrer).hostname.replace(/^www\./, '');
-    } catch (e) {
-      return user.referrer;
-    }
+    try { return new URL(user.referrer).hostname.replace(/^www\./, ''); } catch (e) { return user.referrer; }
   }
-
   return 'direct';
+}
+
+async function sendDiscord(payload) {
+  const res = await fetch(WEBHOOK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) console.error('Discord webhook failed:', res.status, await res.text());
+  return res.ok;
 }
 
 async function run() {
@@ -48,26 +50,25 @@ async function run() {
     const lastWeek = new Date(now.getTime() - 7 * 86400000);
     const lastMonth = new Date(now.getTime() - 30 * 86400000);
 
+    // =============================================
+    // EMBED 1: Overview (existing metrics + retention)
+    // =============================================
+
     // --- User Metrics ---
     const totalUsers = await db.collection('users').countDocuments();
     const newUsers24h = await db.collection('users').countDocuments({ createdAt: { $gte: yesterday } });
     const newUsers7d = await db.collection('users').countDocuments({ createdAt: { $gte: lastWeek } });
     const newUsers30d = await db.collection('users').countDocuments({ createdAt: { $gte: lastMonth } });
     const newUsersWithSource = await db.collection('users')
-      .find(
-        { createdAt: { $gte: yesterday } },
-        { projection: { utm_source: 1, referrer: 1 } }
-      )
+      .find({ createdAt: { $gte: yesterday } }, { projection: { utm_source: 1, referrer: 1 } })
       .toArray();
 
     // --- Subscription Metrics ---
     const paidUsers = await db.collection('users').countDocuments({
-      planType: { $ne: 'FREE' },
-      subscriptionStatus: 'active'
+      planType: { $ne: 'FREE' }, subscriptionStatus: 'active'
     });
     const freeUsers = totalUsers - paidUsers;
 
-    // Plan breakdown
     const planBreakdown = await db.collection('users').aggregate([
       { $group: { _id: '$planType', count: { $sum: 1 } } }
     ]).toArray();
@@ -79,8 +80,6 @@ async function run() {
     const newCards24h = await db.collection('cards').countDocuments({ createdAt: { $gte: yesterday } });
     const newCards7d = await db.collection('cards').countDocuments({ createdAt: { $gte: lastWeek } });
     const publicCards = await db.collection('cards').countDocuments({ isPublic: true });
-
-    // --- Template Metrics ---
     const totalTemplates = await db.collection('templates').countDocuments();
 
     // --- Game Metrics ---
@@ -90,33 +89,51 @@ async function run() {
       games24h = await db.collection('gameHistory').countDocuments({ completedAt: { $gte: yesterday } });
       games7d = await db.collection('gameHistory').countDocuments({ completedAt: { $gte: lastWeek } });
       totalWins = await db.collection('gameHistory').countDocuments({ result: 'won' });
-    } catch (e) { /* gameHistory may not exist yet */ }
+    } catch (e) {}
 
-    // --- Recent signups (last 5) ---
+    // --- Ghost Users (signed up, 0 cards) ---
+    const allUserIds = await db.collection('users').find({}, { projection: { _id: 1 } }).toArray();
+    const usersWithCards = new Set(await db.collection('cards').distinct('userId'));
+    const ghostCount = allUserIds.filter(u => !usersWithCards.has(u._id.toString())).length;
+    const ghostPct = totalUsers > 0 ? ((ghostCount / totalUsers) * 100).toFixed(0) : '0';
+
+    // --- Retention (came back after signup day) ---
+    const allUsersForRetention = await db.collection('users').find(
+      { createdAt: { $lte: yesterday } },
+      { projection: { email: 1, createdAt: 1 } }
+    ).toArray();
+    let returnedCount = 0;
+    for (const u of allUsersForRetention) {
+      if (!u.email || !u.createdAt) continue;
+      const dayAfter = new Date(new Date(u.createdAt).getTime() + 86400000);
+      const came_back = await db.collection('activity_events').countDocuments({
+        email: u.email, createdAt: { $gte: dayAfter }
+      });
+      if (came_back > 0) returnedCount++;
+    }
+    const retentionPct = allUsersForRetention.length > 0
+      ? ((returnedCount / allUsersForRetention.length) * 100).toFixed(0) : '0';
+
+    // --- Recent signups ---
     const recentSignups = await db.collection('users')
       .find({}, { projection: { name: 1, email: 1, createdAt: 1, planType: 1, utm_source: 1, referrer: 1 } })
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .toArray();
-
+      .sort({ createdAt: -1 }).limit(5).toArray();
     const recentList = recentSignups.map(u => {
       const name = u.name || 'Anonymous';
       const plan = u.planType || 'FREE';
       const ago = Math.round((now - new Date(u.createdAt)) / 3600000);
       const timeStr = ago < 24 ? ago + 'h ago' : Math.round(ago / 24) + 'd ago';
-      const source = getSignupSourceLabel(u);
-      return name + ' (' + plan + ', ' + source + ') - ' + timeStr;
+      return name + ' (' + plan + ', ' + getSignupSourceLabel(u) + ') - ' + timeStr;
     }).join('\n');
 
     const sourceCounts = {};
-    newUsersWithSource.forEach((user) => {
-      const source = getSignupSourceLabel(user);
-      sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+    newUsersWithSource.forEach(u => {
+      const src = getSignupSourceLabel(u);
+      sourceCounts[src] = (sourceCounts[src] || 0) + 1;
     });
     const signupSources = Object.entries(sourceCounts)
       .sort((a, b) => b[1] - a[1])
-      .map(([source, count]) => source + ': **' + count + '**')
-      .join(' | ');
+      .map(([s, c]) => s + ': **' + c + '**').join(' | ');
 
     // --- Email / Drip Stats ---
     const totalSent = await db.collection('drip_log').countDocuments();
@@ -133,12 +150,11 @@ async function run() {
     ]).toArray();
     const opensByCampaign = {};
     campaignOpens.forEach(c => { opensByCampaign[c._id] = c.opens; });
-
     const campaignLabels = {
-      create_first_card: '📝 Create First Card',
-      how_are_you_liking: '💬 How Are You Liking It',
-      reengage_inactive: '🔄 Re-engagement',
-      upgrade_nudge: '⭐ Upgrade Nudge',
+      create_first_card: 'Create First Card',
+      how_are_you_liking: 'How Are You Liking It',
+      reengage_inactive: 'Re-engagement',
+      upgrade_nudge: 'Upgrade Nudge',
     };
     const campaignLines = campaignLogs.map(c => {
       const label = campaignLabels[c._id] || c._id;
@@ -146,68 +162,50 @@ async function run() {
       const rate = c.sent > 0 ? ((opens / c.sent) * 100).toFixed(0) : '0';
       return label + ': **' + opens + '/' + c.sent + '** (' + rate + '%)';
     }).join('\n');
-
     const overallOpenRate = totalSent > 0 ? ((totalOpens / totalSent) * 100).toFixed(1) : '0';
 
-        // --- Most popular cards ---
+    // --- Top Cards ---
     const topCards = await db.collection('cards')
       .find({}, { projection: { title: 1, views: 1 } })
-      .sort({ views: -1 })
-      .limit(5)
-      .toArray();
+      .sort({ views: -1 }).limit(5).toArray();
+    const topCardsList = topCards.map((c, i) =>
+      (i + 1) + '. ' + (c.title || 'Untitled') + ' (' + (c.views || 0) + ' views)'
+    ).join('\n');
 
-    const topCardsList = topCards.map((c, i) => {
-      return (i + 1) + '. ' + (c.title || 'Untitled') + ' (' + (c.views || 0) + ' views)';
-    }).join('\n');
-
-    // --- Build embed ---
     const winRate = totalGames > 0 ? Math.round((totalWins / totalGames) * 100) : 0;
     const conversionRate = totalUsers > 0 ? ((paidUsers / totalUsers) * 100).toFixed(1) : '0';
-
     const dateStr = now.toLocaleDateString('en-US', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-      timeZone: 'America/Phoenix'
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Phoenix'
     });
 
-    const embed = {
-      title: 'MyBingoCard Daily Summary',
+    const embed1 = {
+      title: 'MyBingoCard Morning Brief',
       description: dateStr,
       color: 0x6366f1,
       fields: [
         {
           name: 'Users',
           value: [
-            'Total: **' + totalUsers + '**',
+            'Total: **' + totalUsers + '** | Paid: **' + paidUsers + '** | Free: **' + freeUsers + '**',
             'New (24h): **' + newUsers24h + '** | (7d): **' + newUsers7d + '** | (30d): **' + newUsers30d + '**',
-            'Paid: **' + paidUsers + '** | Free: **' + freeUsers + '**',
-            'Conversion: **' + conversionRate + '%**',
+            'Conversion: **' + conversionRate + '%** | Retention: **' + retentionPct + '%**',
+            'Ghost users (0 cards): **' + ghostCount + '** (' + ghostPct + '%)',
           ].join('\n'),
           inline: false,
         },
         {
           name: 'Plans',
-          value: Object.entries(planMap).map(([plan, count]) => plan + ': **' + count + '**').join(' | ') || 'No data',
+          value: Object.entries(planMap).map(([p, c]) => p + ': **' + c + '**').join(' | ') || 'No data',
           inline: false,
         },
         {
           name: 'Cards',
-          value: [
-            'Total: **' + totalCards + '** | Public: **' + publicCards + '**',
-            'New (24h): **' + newCards24h + '** | (7d): **' + newCards7d + '**',
-          ].join('\n'),
+          value: 'Total: **' + totalCards + '** | Public: **' + publicCards + '** | Templates: **' + totalTemplates + '**\nNew (24h): **' + newCards24h + '** | (7d): **' + newCards7d + '**',
           inline: true,
         },
         {
           name: 'Games',
-          value: [
-            'Total: **' + totalGames + '** | Wins: **' + totalWins + '** (' + winRate + '%)',
-            'Played (24h): **' + games24h + '** | (7d): **' + games7d + '**',
-          ].join('\n'),
-          inline: true,
-        },
-        {
-          name: 'Templates',
-          value: 'Total: **' + totalTemplates + '**',
+          value: 'Total: **' + totalGames + '** | Wins: **' + totalWins + '** (' + winRate + '%)\nPlayed (24h): **' + games24h + '** | (7d): **' + games7d + '**',
           inline: true,
         },
         {
@@ -221,41 +219,184 @@ async function run() {
           inline: false,
         },
         {
-          name: '📧 Email Drip Stats',
+          name: 'Email Drip Stats',
           value: [
-            'Sent (24h): **' + sent24h + '** | Total: **' + totalSent + '**',
-            'Opened (24h): **' + opens24h + '** | Overall rate: **' + overallOpenRate + '%**',
-            'Unsubscribes: **' + totalUnsubs + '**',
+            'Sent (24h): **' + sent24h + '** | Total: **' + totalSent + '** | Opens (24h): **' + opens24h + '**',
+            'Overall open rate: **' + overallOpenRate + '%** | Unsubs: **' + totalUnsubs + '**',
+            campaignLines,
           ].join('\n'),
           inline: false,
         },
         {
-          name: '📊 Open Rate by Campaign',
-          value: campaignLines || 'No data yet',
-          inline: false,
-        },
-                {
           name: 'Top Cards by Views',
           value: topCardsList || 'No cards yet',
           inline: false,
         },
       ],
-      footer: { text: 'MyBingoCard.com - Daily Report' },
+      footer: { text: 'MyBingoCard.com - Morning Brief' },
       timestamp: now.toISOString(),
     };
 
-    // Send to Discord
-    const res = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ embeds: [embed] }),
+    // Send embed 1
+    await sendDiscord({ embeds: [embed1] });
+
+    // =============================================
+    // EMBED 2: Activity Deep Dive (new)
+    // =============================================
+
+    // --- Activity Events (24h) ---
+    const totalEvents24h = await db.collection('activity_events').countDocuments({ createdAt: { $gte: yesterday } });
+    const pageViews24h = await db.collection('activity_events').countDocuments({ createdAt: { $gte: yesterday }, event: 'page_view' });
+    const uniqueAnon24h = (await db.collection('activity_events').distinct('anonymousId', { createdAt: { $gte: yesterday }, anonymousId: { $ne: null } })).length;
+    const uniqueLogged24h = (await db.collection('activity_events').distinct('userId', { createdAt: { $gte: yesterday }, userId: { $ne: null } })).length;
+    const signups24h = await db.collection('activity_events').countDocuments({ createdAt: { $gte: yesterday }, event: 'signup_completed' });
+    const logins24h = await db.collection('activity_events').countDocuments({ createdAt: { $gte: yesterday }, event: 'login_succeeded' });
+
+    // --- Conversion Funnel (24h) ---
+    const funnelEvents = ['page_view', 'card_title_entered', 'card_cells_added', 'card_save_attempted', 'card_created', 'upgrade_prompt_shown', 'checkout_started'];
+    const funnelLines = [];
+    for (const evt of funnelEvents) {
+      const count = await db.collection('activity_events').countDocuments({ createdAt: { $gte: yesterday }, event: evt });
+      const users = (await db.collection('activity_events').distinct('anonymousId', { createdAt: { $gte: yesterday }, event: evt })).length;
+      if (count > 0) funnelLines.push(evt.replace(/_/g, ' ') + ': **' + count + '** (' + users + ' users)');
+    }
+
+    // --- ChatGPT Referral (24h) ---
+    const chatgptEvents = await db.collection('activity_events').countDocuments({
+      createdAt: { $gte: yesterday }, pathname: { $regex: 'chatgpt' }
+    });
+    const chatgptVisitors = (await db.collection('activity_events').distinct('anonymousId', {
+      createdAt: { $gte: yesterday }, pathname: { $regex: 'chatgpt' }
+    })).length;
+
+    // ChatGPT 7-day trend
+    const chatgpt7d = [];
+    for (let i = 6; i >= 0; i--) {
+      const dayStart = new Date(now.getTime() - (i + 1) * 86400000);
+      const dayEnd = new Date(now.getTime() - i * 86400000);
+      const visitors = (await db.collection('activity_events').distinct('anonymousId', {
+        createdAt: { $gte: dayStart, $lt: dayEnd }, pathname: { $regex: 'chatgpt' }
+      })).length;
+      const label = dayStart.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'America/Phoenix' });
+      chatgpt7d.push(label + ': **' + visitors + '**');
+    }
+
+    // --- Shared Card Engagement (24h) ---
+    const sharedViews24h = await db.collection('activity_events').countDocuments({
+      createdAt: { $gte: yesterday }, event: 'shared_card_viewed'
+    });
+    const topShared = await db.collection('activity_events').aggregate([
+      { $match: { createdAt: { $gte: yesterday }, pathname: { $regex: '^/share/' } } },
+      { $group: { _id: '$pathname', events: { $sum: 1 } } },
+      { $sort: { events: -1 } },
+      { $limit: 3 }
+    ]).toArray();
+    const sharedLines = topShared.map(s => s._id + ': **' + s.events + '** events').join('\n');
+
+    // --- Feature Usage (24h) ---
+    const featureList = ['export_pdf', 'export_png', 'batch_pdf_exported', 'template_used',
+      'card_share_link_copied', 'game_created', 'image_uploaded'];
+    const featureLines = [];
+    for (const f of featureList) {
+      const count = await db.collection('activity_events').countDocuments({ createdAt: { $gte: yesterday }, event: f });
+      if (count > 0) featureLines.push(f.replace(/_/g, ' ') + ': **' + count + '**');
+    }
+
+    // --- Upgrade Prompt Performance (24h) ---
+    const upgradeShown24h = await db.collection('activity_events').countDocuments({ createdAt: { $gte: yesterday }, event: 'upgrade_prompt_shown' });
+    const upgradeDismissed24h = await db.collection('activity_events').countDocuments({ createdAt: { $gte: yesterday }, event: 'upgrade_dismissed' });
+    const upgradeClicked24h = await db.collection('activity_events').countDocuments({ createdAt: { $gte: yesterday }, event: 'upgrade_prompt_clicked' });
+    const checkoutsStarted24h = await db.collection('activity_events').countDocuments({ createdAt: { $gte: yesterday }, event: 'checkout_started' });
+    const checkoutsAbandoned24h = await db.collection('activity_events').countDocuments({ createdAt: { $gte: yesterday }, event: 'checkout_abandoned' });
+
+    // --- Login Security (24h) ---
+    const loginFails24h = await db.collection('activity_events').countDocuments({ createdAt: { $gte: yesterday }, event: 'login_failed' });
+    const loginFailIPs = (await db.collection('activity_events').distinct('ipAddress', { createdAt: { $gte: yesterday }, event: 'login_failed' })).length;
+
+    // --- Device Split (24h page views) ---
+    const recentUAs = await db.collection('activity_events').find(
+      { event: 'page_view', createdAt: { $gte: yesterday }, 'metadata.userAgent': { $ne: null } },
+      { projection: { 'metadata.userAgent': 1 } }
+    ).limit(500).toArray();
+    let mobile = 0, desktop = 0;
+    recentUAs.forEach(r => {
+      const ua = r.metadata?.userAgent || '';
+      if (/Mobile|iPhone|Android/i.test(ua) && !/iPad|Tablet/i.test(ua)) mobile++;
+      else desktop++;
+    });
+    const deviceTotal = mobile + desktop || 1;
+
+    // --- Bounced Emails (24h) ---
+    const bouncedEmails24h = await db.collection('support_tickets').countDocuments({
+      subject: /Undelivered Mail/i
     });
 
-    if (res.ok) {
-      console.log('Daily summary sent to Discord at', now.toISOString());
-    } else {
-      console.error('Discord webhook failed:', res.status, await res.text());
-    }
+    const embed2 = {
+      title: 'Activity Deep Dive (24h)',
+      color: 0x10b981,
+      fields: [
+        {
+          name: 'Traffic',
+          value: [
+            'Events: **' + totalEvents24h + '** | Page views: **' + pageViews24h + '**',
+            'Visitors: **' + uniqueAnon24h + '** anon + **' + uniqueLogged24h + '** logged in',
+            'Signups: **' + signups24h + '** | Logins: **' + logins24h + '**',
+            'Desktop: **' + Math.round(desktop / deviceTotal * 100) + '%** | Mobile: **' + Math.round(mobile / deviceTotal * 100) + '%**',
+          ].join('\n'),
+          inline: false,
+        },
+        {
+          name: 'Conversion Funnel',
+          value: funnelLines.join('\n') || 'No activity',
+          inline: false,
+        },
+        {
+          name: 'Upgrade & Checkout',
+          value: [
+            'Upgrade shown: **' + upgradeShown24h + '** | Dismissed: **' + upgradeDismissed24h + '** | Clicked: **' + upgradeClicked24h + '**',
+            'Checkouts started: **' + checkoutsStarted24h + '** | Abandoned: **' + checkoutsAbandoned24h + '**',
+          ].join('\n'),
+          inline: false,
+        },
+        {
+          name: 'ChatGPT Referrals',
+          value: [
+            'Today: **' + chatgptVisitors + '** visitors (' + chatgptEvents + ' events)',
+            '7-day trend: ' + chatgpt7d.join(' | '),
+          ].join('\n'),
+          inline: false,
+        },
+        {
+          name: 'Shared Cards',
+          value: [
+            'Card views: **' + sharedViews24h + '**',
+            sharedLines || 'No shared card activity',
+          ].join('\n'),
+          inline: true,
+        },
+        {
+          name: 'Feature Usage',
+          value: featureLines.join('\n') || 'None',
+          inline: true,
+        },
+        {
+          name: 'Security',
+          value: [
+            'Login failures: **' + loginFails24h + '** from **' + loginFailIPs + '** IPs',
+            bouncedEmails24h > 0 ? 'Bounced emails: **' + bouncedEmails24h + '** (in support queue)' : '',
+          ].filter(Boolean).join('\n') || 'All clear',
+          inline: false,
+        },
+      ],
+      footer: { text: 'MyBingoCard.com - Deep Dive' },
+      timestamp: now.toISOString(),
+    };
+
+    // Discord rate limit: wait 1s between webhook calls
+    await new Promise(r => setTimeout(r, 1500));
+    await sendDiscord({ embeds: [embed2] });
+
+    console.log('Morning brief sent to Discord at', now.toISOString());
   } catch (err) {
     console.error('Daily summary error:', err);
   } finally {

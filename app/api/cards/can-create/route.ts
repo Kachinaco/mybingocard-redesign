@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { getUserByEmail } from "@/lib/db/users";
 import { PLANS } from "@/lib/stripe/config";
 import clientPromise from "@/lib/mongodb";
+import { trackActivity } from "@/lib/activity";
 
 export async function GET() {
   try {
@@ -38,6 +39,20 @@ export async function GET() {
 
     const maxCards = plan.limits.maxCards;
     const allowed = maxCards === -1 || totalCards < maxCards;
+
+    trackActivity({
+      event: "card_creation_check",
+      source: "server",
+      userId: user._id.toString(),
+      email: session.user.email,
+      pathname: "/api/cards/can-create",
+      metadata: {
+        allowed,
+        cards_created: totalCards,
+        cards_limit: maxCards,
+        plan_type: planType,
+      },
+    }).catch(() => {});
 
     return NextResponse.json({
       allowed,

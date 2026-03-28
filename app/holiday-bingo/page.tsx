@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LandingPageTracker from "@/components/LandingPageTracker";
 
 export const metadata: Metadata = {
   title: "Christmas Holiday Bingo Card Maker — Free Printable | MyBingoCard",
@@ -76,6 +77,7 @@ function BingoGrid({ squares }: { squares: string[] }) {
 export default function HolidayBingoPage() {
   return (
     <>
+      <LandingPageTracker templateCategory="holiday-bingo" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}

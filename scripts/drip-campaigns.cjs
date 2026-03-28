@@ -106,8 +106,28 @@ function wrap(headline, preheader, bodyHtml) {
 </table></td></tr></table></body></html>`;
 }
 
+function appendUtmParams(url, campaignId) {
+  try {
+    const parsed = new URL(url);
+    // Only add UTM params to mybingocard.com links
+    if (!parsed.hostname.includes('mybingocard.com') && parsed.hostname !== 'localhost') return url;
+    parsed.searchParams.set('utm_source', 'mybingocard');
+    parsed.searchParams.set('utm_medium', 'email');
+    parsed.searchParams.set('utm_campaign', campaignId || 'drip');
+    return parsed.toString();
+  } catch (_) {
+    // If URL parsing fails, append manually
+    const sep = url.includes('?') ? '&' : '?';
+    return `${url}${sep}utm_source=mybingocard&utm_medium=email&utm_campaign=${encodeURIComponent(campaignId || 'drip')}`;
+  }
+}
+
+// Module-level variable set during email build to pass campaign context
+let _currentCampaignId = 'drip';
+
 function trackClickUrl(url, linkId) {
-  const params = `e=%%EMAIL%%&c=%%CAMPAIGN%%&u=${encodeURIComponent(url)}${linkId ? `&l=${encodeURIComponent(linkId)}` : ''}`;
+  const utmUrl = appendUtmParams(url, _currentCampaignId);
+  const params = `e=%%EMAIL%%&c=%%CAMPAIGN%%&u=${encodeURIComponent(utmUrl)}${linkId ? `&l=${encodeURIComponent(linkId)}` : ''}`;
   return `${appUrl}/api/track/click?${params}`;
 }
 
@@ -136,7 +156,7 @@ function buildCreateFirstCardEmail(user) {
   `;
   return {
     html: wrap('Ready to make your first card?', 'Create your first bingo card in minutes.', body),
-    text: `Hey ${name},\n\nWe noticed you signed up but haven't created a bingo card yet. It only takes about 2 minutes!\n\nCreate your first card: ${appUrl}/create\nBrowse templates: ${appUrl}/templates\n\nNeed help? Reply to this email.`,
+    text: `Hey ${name},\n\nWe noticed you signed up but haven't created a bingo card yet. It only takes about 2 minutes!\n\nCreate your first card: ${appendUtmParams(appUrl + '/create', 'create_first_card')}\nBrowse templates: ${appendUtmParams(appUrl + '/templates', 'create_first_card')}\n\nNeed help? Reply to this email.`,
   };
 }
 
@@ -160,7 +180,7 @@ function buildHowAreYouLikingEmail(user) {
   `;
   return {
     html: wrap(`How are you liking MyBingoCard?`, `We'd love to hear how things are going, ${name}.`, body),
-    text: `Hey ${name},\n\nIt's been a few days since you joined MyBingoCard and we'd love to know how things are going.\n\n${cardLine}\n\nHow has your experience been? Just hit reply and let us know. We read every response.\n\nDashboard: ${appUrl}/dashboard\n\nNeed help? Reply to this email.`,
+    text: `Hey ${name},\n\nIt's been a few days since you joined MyBingoCard and we'd love to know how things are going.\n\n${cardLine}\n\nHow has your experience been? Just hit reply and let us know. We read every response.\n\nDashboard: ${appendUtmParams(appUrl + '/dashboard', 'how_are_you_liking')}\n\nNeed help? Reply to this email.`,
   };
 }
 
@@ -183,7 +203,7 @@ function buildReengageEmail(user) {
   `;
   return {
     html: wrap('We miss you!', `Your bingo cards are waiting for you, ${name}.`, body),
-    text: `Hey ${name},\n\nIt's been a while since we've seen you on MyBingoCard. Your cards are still here and ready to play!\n\nCome back and check it out: ${appUrl}/dashboard\n\nNeed help? Reply to this email.`,
+    text: `Hey ${name},\n\nIt's been a while since we've seen you on MyBingoCard. Your cards are still here and ready to play!\n\nCome back and check it out: ${appendUtmParams(appUrl + '/dashboard', 'reengage_inactive')}\n\nNeed help? Reply to this email.`,
   };
 }
 
@@ -210,7 +230,7 @@ function buildUpgradeNudgeEmail(user) {
   `;
   return {
     html: wrap('Unlock the full experience', 'See what MyBingoCard paid plans can do for you.', body),
-    text: `Hey ${name},\n\nYou've been using MyBingoCard for about a month now. Did you know Premium unlocks the full experience?\n\n- Unlimited bingo cards\n- All grid sizes (3x3, 4x4, 5x5)\n- HD PDF & PNG export\n- Custom colors & fonts\n- Batch generate up to 100 cards\n- Ad-free experience\n\nUpgrade: ${appUrl}/pricing\n\nNo pressure — free plan is always available.`,
+    text: `Hey ${name},\n\nYou've been using MyBingoCard for about a month now. Did you know Premium unlocks the full experience?\n\n- Unlimited bingo cards\n- All grid sizes (3x3, 4x4, 5x5)\n- HD PDF & PNG export\n- Custom colors & fonts\n- Batch generate up to 100 cards\n- Ad-free experience\n\nUpgrade: ${appendUtmParams(appUrl + '/pricing', 'upgrade_nudge')}\n\nNo pressure — free plan is always available.`,
   };
 }
 
@@ -236,7 +256,7 @@ function buildWinbackEmail(user) {
   `;
   return {
     html: wrap("We'd love to have you back", `${name}, your bingo cards are waiting for you.`, body),
-    text: `Hey ${name},\n\nWe noticed you recently canceled your MyBingoCard subscription. We're sorry to see you go.\n\nYour account and all your bingo cards are still here. If you'd like to give it another try, we'd love to have you back.\n\nReactivate: ${appUrl}/pricing\n\nIf there's anything we could do better, just reply to this email.`,
+    text: `Hey ${name},\n\nWe noticed you recently canceled your MyBingoCard subscription. We're sorry to see you go.\n\nYour account and all your bingo cards are still here. If you'd like to give it another try, we'd love to have you back.\n\nReactivate: ${appendUtmParams(appUrl + '/pricing', 'winback_canceled')}\n\nIf there's anything we could do better, just reply to this email.`,
   };
 }
 
@@ -253,6 +273,8 @@ async function run() {
 
     // Ensure drip_log collection and index
     await db.collection('drip_log').createIndex({ userId: 1, campaignId: 1 }, { unique: true });
+    // Ensure drip_progression collection and index
+    await db.collection('drip_progression').createIndex({ userId: 1 }, { unique: true });
 
     const now = new Date();
 
@@ -316,6 +338,7 @@ async function run() {
         if (alreadySent) continue;
 
         // Build and send
+        _currentCampaignId = campaign.id;
         const name = firstName(user.name);
         const email = campaign.build({ ...user, _cardCount: cardCount });
         const subject = campaign.subject(name);
@@ -342,6 +365,35 @@ async function run() {
             status: 'sent',
             messageId: sendResult.messageId || null,
           });
+
+          // Update campaign progression tracking
+          try {
+            const allCampaignIds = CAMPAIGNS.map(c => c.id);
+            const sentCampaigns = await db.collection('drip_log')
+              .find({ userId: user._id, status: 'sent' })
+              .project({ campaignId: 1 })
+              .toArray();
+            const campaignsReceived = [...new Set(sentCampaigns.map(s => s.campaignId))];
+            // Determine next eligible campaign (first one not yet sent)
+            const nextEligible = allCampaignIds.find(id => !campaignsReceived.includes(id)) || null;
+
+            await db.collection('drip_progression').updateOne(
+              { userId: user._id },
+              {
+                $set: {
+                  email: user.email,
+                  campaignsReceived,
+                  lastCampaignSentAt: now,
+                  nextEligibleCampaign: nextEligible,
+                  updatedAt: now,
+                },
+                $setOnInsert: { createdAt: now },
+              },
+              { upsert: true }
+            );
+          } catch (progErr) {
+            console.error(`[WARN] Failed to update drip_progression for ${user.email}: ${progErr.message}`);
+          }
 
           sentCount++;
           console.log(`[SENT] ${campaign.id} -> ${user.email} (${sendResult.messageId})`);

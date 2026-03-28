@@ -21,8 +21,50 @@ function LoginContent() {
 
   const handleCredentialsLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
+
+    // Client-side validation
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail) {
+      const msg = "Email address is required.";
+      setError(msg);
+      trackClientActivity("validation_error", {
+        form: "login",
+        field: "email",
+        rule: "required",
+        message: msg,
+      });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      const msg = "Please enter a valid email address.";
+      setError(msg);
+      trackClientActivity("validation_error", {
+        form: "login",
+        field: "email",
+        rule: "invalid_format",
+        message: msg,
+      });
+      return;
+    }
+
+    if (!trimmedPassword) {
+      const msg = "Password is required.";
+      setError(msg);
+      trackClientActivity("validation_error", {
+        form: "login",
+        field: "password",
+        rule: "required",
+        message: msg,
+      });
+      return;
+    }
+
+    setIsLoading(true);
     trackClientActivity("login_attempted", {
       method: "credentials",
       callbackUrl,
@@ -30,30 +72,51 @@ function LoginContent() {
 
     try {
       const result = await signIn("credentials", {
-        email,
+        email: trimmedEmail,
         password,
         callbackUrl,
         redirect: false,
       });
 
       if (result?.error) {
+        let errorMsg: string;
+        let rule: string;
+
         if (result.error === "CallbackRouteError" || result.error.includes("EMAIL_NOT_VERIFIED")) {
-          setError("Please verify your email address before signing in. Check your inbox for a verification link.");
+          errorMsg = "Please verify your email address before signing in. Check your inbox for a verification link.";
+          rule = "email_not_verified";
         } else if (result.error.includes("TOO_MANY_ATTEMPTS")) {
-          setError("Too many failed login attempts. Please wait an hour before trying again.");
+          errorMsg = "Too many failed login attempts. Please wait an hour before trying again.";
+          rule = "rate_limited";
         } else {
-          setError("Invalid email or password");
+          errorMsg = "Invalid email or password";
+          rule = "invalid_credentials";
         }
+
+        setError(errorMsg);
+        trackClientActivity("validation_error", {
+          form: "login",
+          field: "general",
+          rule,
+          message: errorMsg,
+        });
         trackClientActivity("login_failed", {
           method: "credentials",
           callbackUrl,
-          reason: result.error.includes("TOO_MANY_ATTEMPTS") ? "rate_limited" : result.error === "CallbackRouteError" ? "email_not_verified" : "invalid_credentials",
+          reason: rule,
         });
       } else {
         window.location.href = callbackUrl;
       }
     } catch (error) {
-      setError("An error occurred. Please try again.");
+      const errorMsg = "An error occurred. Please try again.";
+      setError(errorMsg);
+      trackClientActivity("validation_error", {
+        form: "login",
+        field: "general",
+        rule: "unexpected_error",
+        message: errorMsg,
+      });
       trackClientActivity("login_failed", {
         method: "credentials",
         callbackUrl,
@@ -74,21 +137,56 @@ function LoginContent() {
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
+
+    const trimmedMagicEmail = magicLinkEmail.trim();
+
+    if (!trimmedMagicEmail) {
+      const msg = "Email address is required.";
+      setError(msg);
+      trackClientActivity("validation_error", {
+        form: "login",
+        field: "email",
+        rule: "required",
+        message: msg,
+      });
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedMagicEmail)) {
+      const msg = "Please enter a valid email address.";
+      setError(msg);
+      trackClientActivity("validation_error", {
+        form: "login",
+        field: "email",
+        rule: "invalid_format",
+        message: msg,
+      });
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
       trackClientActivity("magic_link_requested", {
         callbackUrl,
       });
       await signIn("nodemailer", {
-        email: magicLinkEmail,
+        email: trimmedMagicEmail,
         callbackUrl,
         redirect: false,
       });
       setMagicLinkSent(true);
     } catch (error) {
-      setError("Failed to send magic link. Please try again.");
+      const errorMsg = "Failed to send magic link. Please try again.";
+      setError(errorMsg);
+      trackClientActivity("validation_error", {
+        form: "login",
+        field: "general",
+        rule: "magic_link_failed",
+        message: errorMsg,
+      });
     } finally {
       setIsLoading(false);
     }

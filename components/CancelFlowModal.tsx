@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { trackClientActivity } from "@/lib/activity-client";
 
 type Step = "pause" | "survey" | "offer" | "redirecting";
 type Reason = "too_expensive" | "not_using" | "missing_feature" | "other";
@@ -24,10 +25,39 @@ export default function CancelFlowModal({ isOpen, onClose }: CancelFlowModalProp
   const [loading, setLoading] = useState(false);
   const [offerApplied, setOfferApplied] = useState(false);
   const [error, setError] = useState("");
+  const prevOpenRef = useRef(false);
+  const initialStepTrackedRef = useRef(false);
+
+  // Track cancel_flow_started when modal first opens
+  useEffect(() => {
+    if (isOpen && !prevOpenRef.current) {
+      trackClientActivity("cancel_flow_started");
+      trackClientActivity("cancel_flow_step_viewed", { step: "pause" });
+      initialStepTrackedRef.current = true;
+    }
+    if (!isOpen) {
+      initialStepTrackedRef.current = false;
+    }
+    prevOpenRef.current = isOpen;
+  }, [isOpen]);
+
+  // Track step changes (skip initial "pause" which is tracked above)
+  useEffect(() => {
+    if (!isOpen || step === "redirecting") return;
+    if (step === "pause" && initialStepTrackedRef.current) {
+      initialStepTrackedRef.current = false;
+      return;
+    }
+    trackClientActivity("cancel_flow_step_viewed", { step });
+  }, [step, isOpen]);
 
   if (!isOpen) return null;
 
   const resetAndClose = () => {
+    // If the user accepted the retention offer, this is not an abandonment
+    if (!offerApplied) {
+      trackClientActivity("cancel_flow_abandoned", { last_step: step });
+    }
     setStep("pause");
     setReason(null);
     setDetails("");
@@ -76,6 +106,7 @@ export default function CancelFlowModal({ isOpen, onClose }: CancelFlowModalProp
   const proceedToStripePortal = async () => {
     setLoading(true);
     setStep("redirecting");
+    trackClientActivity("cancel_flow_completed");
     try {
       const res = await fetch("/api/stripe/portal", { method: "POST" });
       const data = await res.json();

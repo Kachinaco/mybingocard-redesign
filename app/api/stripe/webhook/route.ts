@@ -577,6 +577,23 @@ export async function POST(request: Request) {
           const abandonedUser = await getUserByEmail(email);
           const userName = abandonedUser?.name || email;
 
+          // Track checkout_abandoned as a distinct analytics event
+          await trackActivity({
+            event: "checkout_abandoned",
+            source: "webhook",
+            userId: abandonedUser?._id?.toString() || null,
+            email,
+            pathname: "/api/stripe/webhook",
+            domain: "mybingocard.com",
+            metadata: {
+              purchaseType,
+              batchCount: batchCount || null,
+              checkoutSessionId: expiredSession.id,
+              amountTotal: expiredSession.amount_total || null,
+              currency: expiredSession.currency || null,
+            },
+          }).catch(console.error);
+
           // Only send if this is a real purchase type we track
           if (purchaseType === "subscription" || purchaseType === "batch_pack") {
             await sendAbandonedCheckoutEmail(email, userName, purchaseType, batchCount).catch(console.error);

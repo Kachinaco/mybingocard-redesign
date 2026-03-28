@@ -7,6 +7,7 @@ import Confetti from "@/components/Confetti";
 import SoundToggle from "@/components/SoundToggle";
 import { playDingSound, playBingoSound } from "@/lib/sounds";
 import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
+import { trackClientActivity } from "@/lib/activity-client";
 
 interface Player {
   playerId: string;
@@ -299,7 +300,15 @@ export default function HostGamePage() {
                     <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-100">
                       <label className="text-sm text-slate-600 font-medium whitespace-nowrap">Auto-Call</label>
                       <button
-                        onClick={() => setAutoCalling(!autoCalling)}
+                        onClick={() => {
+                          const newValue = !autoCalling;
+                          setAutoCalling(newValue);
+                          trackClientActivity("game_auto_call_toggled", {
+                            enabled: newValue,
+                            interval_seconds: autoInterval,
+                            roomCode,
+                          });
+                        }}
                         className={`relative w-12 h-6 rounded-full transition-colors ${autoCalling ? "bg-green-500" : "bg-slate-300"}`}
                       >
                         <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${autoCalling ? "translate-x-6" : "translate-x-0.5"}`} />

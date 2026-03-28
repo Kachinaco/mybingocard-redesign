@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { trackClientActivity } from "@/lib/activity-client";
 
 interface UploadedImage {
   imageId: string;
@@ -100,6 +101,8 @@ export default function ImageLibraryPanel({
   const handleUpload = async (file: File) => {
     setUploading(true);
     setUploadError("");
+    const fileSizeKb = Math.round(file.size / 1024);
+    const fileType = file.type;
 
     try {
       const formData = new FormData();
@@ -113,12 +116,26 @@ export default function ImageLibraryPanel({
       const data = await res.json();
 
       if (!res.ok) {
-        setUploadError(data.error || "Upload failed");
+        const errorMsg = data.error || "Upload failed";
+        setUploadError(errorMsg);
+        trackClientActivity("image_upload_failed", {
+          context: "cell_image",
+          error: errorMsg,
+          file_size_kb: fileSizeKb,
+          file_type: fileType,
+        });
         return;
       }
 
       // Refresh the list
       await loadMyImages();
+
+      trackClientActivity("image_uploaded", {
+        context: "cell_image",
+        file_size_kb: fileSizeKb,
+        file_type: fileType,
+        ...(selectedCellIndex != null ? { cell_index: selectedCellIndex } : {}),
+      });
 
       // Auto-select if a cell is targeted
       if (selectedCellIndex !== null) {
@@ -126,6 +143,12 @@ export default function ImageLibraryPanel({
       }
     } catch (e) {
       setUploadError("Upload failed. Please try again.");
+      trackClientActivity("image_upload_failed", {
+        context: "cell_image",
+        error: "Upload failed. Please try again.",
+        file_size_kb: fileSizeKb,
+        file_type: fileType,
+      });
     } finally {
       setUploading(false);
     }

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { trackClientActivity } from "@/lib/activity-client";
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
@@ -64,7 +65,11 @@ export default function MobileNav() {
             {isLoggedIn ? "Dashboard" : "Sign In"}
           </Link>
           <button
-            onClick={() => setOpen(!open)}
+            onClick={() => {
+              const nextOpen = !open;
+              setOpen(nextOpen);
+              trackClientActivity("mobile_menu_toggled", { opened: nextOpen });
+            }}
             className="p-2 text-slate-600 hover:text-slate-900 transition-colors"
             aria-label="Menu"
           >

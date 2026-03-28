@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { trackEmailSignup } from "@/lib/analytics";
+import { trackClientActivity } from "@/lib/activity-client";
 
 export function EmailCapturePopup() {
   const [show, setShow] = useState(false);
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const shownAtRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Don't show if already dismissed or subscribed
@@ -15,7 +17,10 @@ export function EmailCapturePopup() {
     if (dismissed) return;
 
     // Show after 8 seconds
-    const timer = setTimeout(() => setShow(true), 8000);
+    const timer = setTimeout(() => {
+      setShow(true);
+      shownAtRef.current = Date.now();
+    }, 8000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -34,6 +39,7 @@ export function EmailCapturePopup() {
       if (!res.ok) throw new Error(data.error || "Failed to subscribe");
       setStatus("success");
       trackEmailSignup("popup");
+      trackClientActivity("email_capture_submitted", { source: "popup" });
       localStorage.setItem("email_popup_dismissed", "subscribed");
     } catch (err: any) {
       setStatus("error");
@@ -42,6 +48,10 @@ export function EmailCapturePopup() {
   };
 
   const dismiss = () => {
+    const timeShownSeconds = shownAtRef.current
+      ? Math.round((Date.now() - shownAtRef.current) / 1000)
+      : 0;
+    trackClientActivity("email_capture_dismissed", { time_shown_seconds: timeShownSeconds });
     setShow(false);
     localStorage.setItem("email_popup_dismissed", "dismissed");
   };

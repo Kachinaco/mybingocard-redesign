@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { joinGameRoom } from "@/lib/db/games";
-import { trackActivity } from "@/lib/activity";
-import { getRequestActivityContext } from "@/lib/activity";
+import { joinGameRoom, getGameRoom } from "@/lib/db/games";
+import { trackActivity, getRequestActivityContext } from "@/lib/activity";
 
 export async function POST(
   request: Request,
@@ -21,6 +20,34 @@ export async function POST(
 
     const result = await joinGameRoom(roomCode, finalName, session.user.id, session.user.email || undefined);
     if (!result) {
+      // Determine specific failure reason
+      const existingRoom = await getGameRoom(roomCode);
+      let failureReason = "room_not_found";
+      if (existingRoom) {
+        if (existingRoom.status === "finished") {
+          failureReason = "game_ended";
+        } else if (existingRoom.players.length >= 50) {
+          failureReason = "room_full";
+        }
+      }
+
+      const reqCtx = getRequestActivityContext(request);
+      trackActivity({
+        event: "game_join_failed",
+        source: "server",
+        userId: session.user.id,
+        email: session.user.email || null,
+        pathname: `/game/play/${roomCode}`,
+        domain: reqCtx.domain,
+        ipAddress: reqCtx.ipAddress,
+        userAgent: reqCtx.userAgent,
+        metadata: {
+          roomCode,
+          failureReason,
+          playerName: finalName,
+        },
+      }).catch(() => {});
+
       return NextResponse.json({ error: "Room not found, full, or game has ended" }, { status: 404 });
     }
 

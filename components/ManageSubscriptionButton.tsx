@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackClientActivity } from "@/lib/activity-client";
 
 export default function ManageSubscriptionButton() {
   const [loading, setLoading] = useState(false);
@@ -8,6 +9,7 @@ export default function ManageSubscriptionButton() {
   const handleManageSubscription = async () => {
     try {
       setLoading(true);
+      trackClientActivity("manage_subscription_clicked");
       const response = await fetch("/api/stripe/portal", {
         method: "POST",
       });

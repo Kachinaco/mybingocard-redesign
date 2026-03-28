@@ -84,6 +84,8 @@ export async function POST(request: Request) {
       userAgent: requestContext.userAgent,
       metadata: {
         templateId: data.templateId,
+        template_name: data.templateTitle || null,
+        template_category: data.templateCategory || null,
       },
     });
 

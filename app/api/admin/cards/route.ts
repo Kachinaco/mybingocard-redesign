@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { requireAdmin } from "@/lib/admin";
+import { getAdminSessionEmail, requireAdmin } from "@/lib/admin";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 export async function GET(request: Request) {
   try {
@@ -9,6 +10,9 @@ export async function GET(request: Request) {
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const requestContext = getRequestActivityContext(request);
+    const adminEmail = getAdminSessionEmail(session);
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1", 10);
@@ -72,6 +76,20 @@ export async function GET(request: Request) {
       updatedAt: card.updatedAt,
       owner: userMap.get(card.userId) || { name: "Unknown", email: "Unknown" },
     }));
+
+    await trackActivity({
+      event: "admin_cards_accessed",
+      source: "server",
+      email: adminEmail,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        admin_email: adminEmail,
+        result_count: cardsWithOwner.length,
+      },
+    });
 
     return NextResponse.json({
       cards: cardsWithOwner,

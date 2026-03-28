@@ -1,5 +1,6 @@
 import clientPromise from "../mongodb";
 import { ObjectId } from "mongodb";
+import { trackActivity } from "@/lib/activity";
 
 export interface CalledItem {
   item: string;
@@ -143,10 +144,36 @@ export async function cleanupStaleRooms(): Promise<number> {
   const db = client.db("mybingocard");
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
+  // Fetch stale rooms before updating so we can track each one
+  const staleRooms = await db.collection<GameRoom>("game_rooms")
+    .find({ status: { $in: ["waiting", "active"] }, updatedAt: { $lt: cutoff } })
+    .toArray();
+
+  if (staleRooms.length === 0) return 0;
+
   const result = await db.collection<GameRoom>("game_rooms").updateMany(
     { status: { $in: ["waiting", "active"] }, updatedAt: { $lt: cutoff } },
     { $set: { status: "finished", updatedAt: new Date() } }
   );
+
+  // Track each auto-ended room
+  for (const room of staleRooms) {
+    const inactivityMinutes = Math.round((Date.now() - new Date(room.updatedAt).getTime()) / 60000);
+    trackActivity({
+      event: "game_auto_ended",
+      source: "server",
+      userId: null,
+      email: null,
+      pathname: null,
+      metadata: {
+        roomCode: room.roomCode,
+        playerCount: room.players?.length || 0,
+        calledItemCount: room.calledItems?.length || 0,
+        inactivityMinutes,
+      },
+    }).catch(() => {});
+  }
+
   return result.modifiedCount;
 }
 
@@ -353,6 +380,34 @@ function checkBingoWin(marked: number[], size: number): boolean {
   if (Array.from({ length: size }, (_, i) => grid[i]?.[i] ?? false).every(Boolean)) return true;
   if (Array.from({ length: size }, (_, i) => grid[i]?.[size - 1 - i] ?? false).every(Boolean)) return true;
   return false;
+}
+
+export function detectWinPattern(marked: number[], size: number): string | null {
+  const grid = Array.from({ length: size }, (_, r) =>
+    Array.from({ length: size }, (_, c) => marked.includes(r * size + c))
+  );
+  // Check rows
+  for (let r = 0; r < size; r++) {
+    if (grid[r]?.every(Boolean)) return "row";
+  }
+  // Check columns
+  for (let c = 0; c < size; c++) {
+    if (grid.map(row => row[c] ?? false).every(Boolean)) return "column";
+  }
+  // Check main diagonal (top-left to bottom-right)
+  if (Array.from({ length: size }, (_, i) => grid[i]?.[i] ?? false).every(Boolean)) return "diagonal";
+  // Check anti-diagonal (top-right to bottom-left)
+  if (Array.from({ length: size }, (_, i) => grid[i]?.[size - 1 - i] ?? false).every(Boolean)) return "diagonal";
+  // Check four corners
+  if (
+    grid[0]?.[0] &&
+    grid[0]?.[size - 1] &&
+    grid[size - 1]?.[0] &&
+    grid[size - 1]?.[size - 1]
+  ) {
+    return "four_corners";
+  }
+  return null;
 }
 
 export async function claimBingo(

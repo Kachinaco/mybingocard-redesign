@@ -24,13 +24,22 @@ const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || '';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 
 let mongoClient = null;
+let dbIndexesCreated = false;
 async function getDb() {
   if (!mongoClient) {
     mongoClient = new MongoClient(MONGODB_URI);
     await mongoClient.connect();
     console.log('[' + new Date().toISOString() + '] Connected to MongoDB');
   }
-  return mongoClient.db('mybingocard');
+  const db = mongoClient.db('mybingocard');
+  if (!dbIndexesCreated) {
+    dbIndexesCreated = true;
+    try {
+      await db.collection('email_bounces').createIndex({ email: 1 });
+      await db.collection('email_bounces').createIndex({ detectedAt: 1 });
+    } catch (_) { /* indexes may already exist */ }
+  }
+  return db;
 }
 
 const IMAP_CONFIG = {
@@ -104,6 +113,59 @@ function processEmails(criteria) {
           const date = parsed.date;
           const isReply = !!(parsed.inReplyTo || (subject && subject.toLowerCase().startsWith('re:')));
           const threadId = parsed.inReplyTo || parsed.messageId || '';
+
+          // Skip system/bounce emails — not real support tickets
+          const fromLower = from.toLowerCase();
+          const isBounce = fromLower.includes('mailer-daemon') ||
+            fromLower.includes('postmaster') ||
+            (subject && /undelivered|delivery.*(failed|status|notification)|returned to sender|failure notice/i.test(subject));
+
+          if (isBounce) {
+            console.log('[' + new Date().toISOString() + '] Bounce detected: ' + subject);
+
+            // Track bounce in email_bounces collection
+            try {
+              const db = await getDb();
+
+              // Determine bounce type: hard (permanent) vs soft (temporary)
+              const subjectLower = (subject || '').toLowerCase();
+              const previewLower = (preview || '').toLowerCase();
+              const isHard = /unknown user|user unknown|does not exist|no such user|invalid address|address rejected|mailbox not found|recipient rejected|account disabled|account has been disabled/i.test(subjectLower + ' ' + previewLower);
+              const bounceType = isHard ? 'hard' : 'soft';
+
+              // Try to extract the original recipient email from the bounce body
+              const emailMatch = (preview || '').match(/(?:to|recipient|address)[:\s]*<?([^\s<>]+@[^\s<>,>]+)/i)
+                || (preview || '').match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+              const bouncedEmail = emailMatch ? emailMatch[1].toLowerCase().trim() : null;
+
+              // Try to extract campaign ID from bounce body (our emails include campaign id in tracking pixels)
+              const campaignMatch = (preview || '').match(/[?&]c=([a-z_]+)/);
+              const originalCampaignId = campaignMatch ? campaignMatch[1] : null;
+
+              // Build a reason string from the subject/preview
+              const reason = (subject || '').substring(0, 200);
+
+              await db.collection('email_bounces').insertOne({
+                email: bouncedEmail,
+                bounceType,
+                reason,
+                originalCampaignId,
+                rawFrom: from,
+                rawSubject: subject,
+                detectedAt: new Date(),
+              });
+
+              // Log count of recent bounces
+              const recentBounceCount = await db.collection('email_bounces').countDocuments({
+                detectedAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+              });
+              console.log('[' + new Date().toISOString() + '] Bounce recorded (' + bounceType + '): ' + (bouncedEmail || 'unknown') + ' | 24h bounce count: ' + recentBounceCount);
+            } catch (bounceErr) {
+              console.error('[' + new Date().toISOString() + '] Failed to record bounce:', bounceErr.message);
+            }
+
+            return;
+          }
 
           await sendToDiscord(from, subject, preview, date, isReply);
 

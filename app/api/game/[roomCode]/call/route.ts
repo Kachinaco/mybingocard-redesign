@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { callRandomItem, callItem, startGame, getGameRoom } from "@/lib/db/games";
+import { callRandomItem, callItem, startGame, getGameRoom, type GameRoom } from "@/lib/db/games";
 import { trackActivity } from "@/lib/activity";
 import { notifyGameStarted } from "@/lib/discord";
 
@@ -52,12 +52,35 @@ export async function POST(
       return NextResponse.json({ success: true, action: "started" });
     }
 
+    // Helper to track item called events
+    const userId = session.user.id;
+    const userEmail = session.user.email || null;
+    const trackItemCalled = (calledItem: string, room: GameRoom) => {
+      const startedAt = room.startedAt ? new Date(room.startedAt).getTime() : null;
+      const timeSinceStartSeconds = startedAt ? Math.round((Date.now() - startedAt) / 1000) : null;
+      trackActivity({
+        event: "game_item_called",
+        source: "server",
+        userId,
+        email: userEmail,
+        pathname: `/game/host/${roomCode}`,
+        metadata: {
+          roomCode,
+          item: calledItem,
+          callNumber: room.calledItems.length,
+          totalItems: room.wordList.length,
+          timeSinceStartSeconds,
+        },
+      }).catch(() => {});
+    };
+
     // Call a specific item
     if (action === "call" && item) {
       const result = await callItem(roomCode, session.user.id, item);
       if (!result) {
         return NextResponse.json({ error: "Failed to call item" }, { status: 400 });
       }
+      trackItemCalled(item, result);
       return NextResponse.json({ success: true, item, calledItems: result.calledItems });
     }
 
@@ -66,6 +89,8 @@ export async function POST(
     if (!result) {
       return NextResponse.json({ error: "No more items to call or game not active" }, { status: 400 });
     }
+
+    trackItemCalled(result.item, result.room);
 
     return NextResponse.json({
       success: true,

@@ -1,7 +1,18 @@
 "use client";
 import { redirectToCheckout } from "@/lib/upgrade";
+import { trackClientActivity } from "@/lib/activity-client";
 
 export default function UpgradeBanner() {
+  const handleClick = () => {
+    trackClientActivity("banner_upgrade_clicked", { source: "banner" });
+    trackClientActivity("plan_selected", {
+      plan: "premium",
+      price: 4.99,
+      source: "banner",
+    });
+    redirectToCheckout();
+  };
+
   return (
     <div className="mb-8 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in-up">
       <div className="flex items-center gap-3">
@@ -16,7 +27,7 @@ export default function UpgradeBanner() {
         </div>
       </div>
       <button
-        onClick={() => redirectToCheckout()}
+        onClick={handleClick}
         className="whitespace-nowrap px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all"
       >
         Upgrade &mdash; $4.99/mo

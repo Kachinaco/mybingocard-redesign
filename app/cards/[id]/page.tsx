@@ -267,11 +267,13 @@ export default function CardViewPage() {
 
   const toggleFullscreen = async () => {
     try {
-      if (!document.fullscreenElement) {
+      const entering = !document.fullscreenElement;
+      if (entering) {
         await cardContainerRef.current?.requestFullscreen();
       } else {
         await document.exitFullscreen();
       }
+      trackClientActivity("fullscreen_toggled", { entered: entering });
     } catch {}
   };
 
@@ -383,22 +385,12 @@ export default function CardViewPage() {
     if (!session?.user) return;
     setBatchCheckoutLoading(true);
     try {
-      const response = await fetch("/api/stripe/create-checkout-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          purchaseType: "batch_pack",
-          batchCount,
-          successPath: `/cards/${cardId}?batchPurchase=success&batchCount=${batchCount}`,
-          cancelPath: `/cards/${cardId}?batchPurchase=canceled`,
-        }),
+      await redirectToCheckout({
+        purchaseType: "batch_pack",
+        batchCount,
+        label: `${batchCount} Card Batch`,
+        successPath: `/cards/${cardId}?batchPurchase=success&batchCount=${batchCount}`,
       });
-      const data = await response.json();
-      if (data.free) {
-        window.location.href = `/cards/${cardId}?batchPurchase=success&batchCount=${batchCount}`;
-        return;
-      }
-      if (data.url) window.location.href = data.url;
     } catch {
     } finally {
       setBatchCheckoutLoading(false);

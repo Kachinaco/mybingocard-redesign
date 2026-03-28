@@ -2,11 +2,23 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef } from "react";
+import { trackClientActivity } from "@/lib/activity-client";
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+  const hasFiredFunnelView = useRef(false);
+
+  useEffect(() => {
+    if (!hasFiredFunnelView.current) {
+      hasFiredFunnelView.current = true;
+      trackClientActivity("funnel_email_verification_page_viewed", {
+        hasError: !!error,
+        errorType: error || undefined,
+      });
+    }
+  }, [error]);
 
   const errorMessages: Record<string, string> = {
     missing_token: "No verification token found. Please check your email for the verification link.",

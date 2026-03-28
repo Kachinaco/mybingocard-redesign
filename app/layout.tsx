@@ -9,6 +9,9 @@ import UtmFlusher from "@/components/UtmFlusher";
 import Analytics from "@/components/Analytics";
 import SessionHeartbeat from "@/components/SessionHeartbeat";
 import NamePromptModal from "@/components/NamePromptModal";
+import ErrorCapture from "@/components/ErrorCapture";
+import PerformanceTracker from "@/components/PerformanceTracker";
+import { CheckoutModalProvider } from "@/components/CheckoutModal";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -83,10 +86,14 @@ export default function RootLayout({
         <Analytics />
         <ServiceWorkerRegistration />
         <Providers>
+          <CheckoutModalProvider>
+          <ErrorCapture />
           <UtmFlusher />
           <SessionHeartbeat />
           <NamePromptModal />
+          <PerformanceTracker />
           {children}
+          </CheckoutModalProvider>
         </Providers>
       </body>
     </html>

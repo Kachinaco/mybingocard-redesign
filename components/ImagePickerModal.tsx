@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { trackClientActivity } from "@/lib/activity-client";
 
 interface ImageItem {
   imageId: string;
@@ -15,6 +16,10 @@ interface ImagePickerModalProps {
   onClose: () => void;
   onPick: (imageId: string, imageUrl: string, label: string) => void;
   isPremium: boolean;
+  /** Tracking context: where the image picker was opened from */
+  context?: "card_background" | "cell_image" | "header_image";
+  /** Cell index when context is cell_image */
+  cellIndex?: number;
 }
 
 export default function ImagePickerModal({
@@ -22,6 +27,8 @@ export default function ImagePickerModal({
   onClose,
   onPick,
   isPremium,
+  context = "cell_image",
+  cellIndex,
 }: ImagePickerModalProps) {
   const [tab, setTab] = useState<"library" | "upload">("library");
   const [images, setImages] = useState<ImageItem[]>([]);
@@ -43,6 +50,10 @@ export default function ImagePickerModal({
       setUploadError("");
       loadLibrary();
       if (isPremium) loadMyImages();
+      trackClientActivity("image_picker_opened", {
+        context,
+        ...(cellIndex != null ? { cell_index: cellIndex } : {}),
+      });
     }
   }, [open]);
 
@@ -91,13 +102,22 @@ export default function ImagePickerModal({
   const handleUpload = async (file: File) => {
     setUploading(true);
     setUploadError("");
+    const fileSizeKb = Math.round(file.size / 1024);
+    const fileType = file.type;
     try {
       const formData = new FormData();
       formData.append("image", file);
       const res = await fetch("/api/images/upload", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) {
-        setUploadError(data.error || "Upload failed");
+        const errorMsg = data.error || "Upload failed";
+        setUploadError(errorMsg);
+        trackClientActivity("image_upload_failed", {
+          context,
+          error: errorMsg,
+          file_size_kb: fileSizeKb,
+          file_type: fileType,
+        });
         return;
       }
       const newImg: ImageItem = {
@@ -108,8 +128,20 @@ export default function ImagePickerModal({
       };
       setMyImages((prev) => [newImg, ...prev]);
       setSelectedImage(newImg);
+      trackClientActivity("image_uploaded", {
+        context,
+        file_size_kb: fileSizeKb,
+        file_type: fileType,
+        ...(cellIndex != null ? { cell_index: cellIndex } : {}),
+      });
     } catch {
       setUploadError("Upload failed");
+      trackClientActivity("image_upload_failed", {
+        context,
+        error: "Upload failed",
+        file_size_kb: fileSizeKb,
+        file_type: fileType,
+      });
     } finally {
       setUploading(false);
     }

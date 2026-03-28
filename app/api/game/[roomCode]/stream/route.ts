@@ -1,4 +1,5 @@
 import { getGameRoom } from "@/lib/db/games";
+import { trackActivity } from "@/lib/activity";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +74,22 @@ export async function GET(
       request.signal.addEventListener("abort", () => {
         closed = true;
         try { controller.close(); } catch {}
+
+        // Determine role from Referer header
+        const referer = request.headers.get("referer") || "";
+        const role = referer.includes("/game/host/") ? "host" : "player";
+
+        trackActivity({
+          event: "game_stream_disconnected",
+          source: "server",
+          userId: null,
+          email: null,
+          pathname: `/api/game/${roomCode}/stream`,
+          metadata: {
+            roomCode,
+            role,
+          },
+        }).catch(() => {});
       });
     },
   });

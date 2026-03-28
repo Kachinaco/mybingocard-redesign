@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
-import { requireAdmin } from "@/lib/admin";
+import { getAdminSessionEmail, requireAdmin } from "@/lib/admin";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await requireAdmin().catch(() => null);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const requestContext = getRequestActivityContext(request);
+    const adminEmail = getAdminSessionEmail(session);
 
     const client = await clientPromise;
     const db = client.db("mybingocard");
@@ -26,6 +30,19 @@ export async function GET() {
     ]);
 
     const revenueEstimate = paidUsers * 4.99;
+
+    await trackActivity({
+      event: "admin_dashboard_accessed",
+      source: "server",
+      email: adminEmail,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        admin_email: adminEmail,
+      },
+    });
 
     return NextResponse.json({
       totalUsers,

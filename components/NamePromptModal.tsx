@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { trackClientActivity } from "@/lib/activity-client";
 
 export default function NamePromptModal() {
   const { data: session, update: updateSession } = useSession();
@@ -49,6 +50,7 @@ export default function NamePromptModal() {
 
       // Refresh session so name appears everywhere
       await updateSession({ name: trimmed });
+      trackClientActivity("name_prompt_completed");
       localStorage.setItem("name_prompt_dismissed", "1");
       setShow(false);
     } catch {
@@ -58,6 +60,7 @@ export default function NamePromptModal() {
   };
 
   const handleSkip = () => {
+    trackClientActivity("name_prompt_skipped");
     localStorage.setItem("name_prompt_dismissed", "1");
     setShow(false);
   };

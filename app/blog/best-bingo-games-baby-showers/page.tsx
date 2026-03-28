@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import BlogLayout from "@/components/BlogLayout";
+import BlogPostTracker from "../BlogPostTracker";
 
 export const metadata: Metadata = {
   title: "The 7 Best Bingo Games for Baby Showers (2026 Guide)",
@@ -30,6 +31,7 @@ const schema = {
 export default function BestBingoGamesBabyShowers() {
   return (
     <>
+      <BlogPostTracker slug="best-bingo-games-baby-showers" title="The 7 Best Bingo Games for Baby Showers" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <BlogLayout
         title="The 7 Best Bingo Games for Baby Showers"

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ContactTracker from "./ContactTracker";
 
 export const metadata: Metadata = {
   title: "Contact Us — MyBingoCard",
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-slate-50">
+      <ContactTracker />
       <header className="bg-white border-b border-slate-200">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">

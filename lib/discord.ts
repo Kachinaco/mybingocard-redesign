@@ -462,15 +462,32 @@ export async function notifySharedCardViewed(
 
 export async function notifyUpgradeDismissed(
   email: string | null,
-  source: string
+  source: string,
+  metadata?: Record<string, unknown>
 ) {
+  const reasonLabels: Record<string, string> = {
+    card_limit: "Card Limit Hit",
+    premium_template: "Premium Template",
+    image_picker: "Image Picker",
+    modal: "Upgrade Modal",
+  };
+  const fields = [
+    { name: "User", value: email || "Anonymous", inline: true },
+    { name: "Reason", value: reasonLabels[source] || source, inline: true },
+  ];
+  if (metadata?.dismiss_method) {
+    fields.push({ name: "Method", value: String(metadata.dismiss_method), inline: true });
+  }
+  if (typeof metadata?.duration_seconds === "number") {
+    fields.push({ name: "Time on Modal", value: `${metadata.duration_seconds}s`, inline: true });
+  }
+  if (typeof metadata?.session_dismiss_count === "number") {
+    fields.push({ name: "Session Dismissals", value: String(metadata.session_dismiss_count), inline: true });
+  }
   await sendDiscordNotification("", [{
     title: "👋 Upgrade Dismissed",
     color: 0xf97316,
-    fields: [
-      { name: "User", value: email || "Anonymous", inline: true },
-      { name: "Source", value: source === "modal" ? "Upgrade Modal" : "Upgrade Banner", inline: true },
-    ],
+    fields,
     timestamp: new Date().toISOString(),
   }]);
 }

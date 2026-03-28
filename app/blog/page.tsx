@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import BlogTracker, { BlogPostLink } from "./BlogTracker";
 
 export const metadata: Metadata = {
   title: "Blog — Bingo Card Ideas, Tips & Guides",
@@ -77,6 +78,7 @@ const posts = [
 export default function BlogPage() {
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
+      <BlogTracker />
       {/* Navbar */}
       <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
         <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
@@ -118,10 +120,12 @@ export default function BlogPage() {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {posts.map((post) => (
-                <Link
+              {posts.map((post, index) => (
+                <BlogPostLink
                   key={post.slug}
                   href={`/blog/${post.slug}`}
+                  slug={post.slug}
+                  position={index}
                   className="group bg-white rounded-2xl overflow-hidden border border-slate-100 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300 hover:-translate-y-1"
                 >
                   <div className={`h-48 bg-gradient-to-br ${post.gradient} flex items-center justify-center`}>
@@ -148,7 +152,7 @@ export default function BlogPage() {
                     </p>
                     <div className="text-xs text-slate-400">{post.date}</div>
                   </div>
-                </Link>
+                </BlogPostLink>
               ))}
             </div>
           </div>

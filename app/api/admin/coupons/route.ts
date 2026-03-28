@@ -1,15 +1,34 @@
 import { NextResponse } from "next/server";
 import { createCoupon, getAllCoupons } from "@/lib/db/coupons";
 import { getStripe } from "@/lib/stripe/config";
-import { requireAdmin } from "@/lib/admin";
+import { getAdminSessionEmail, requireAdmin } from "@/lib/admin";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await requireAdmin().catch(() => null);
   if (!session) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const requestContext = getRequestActivityContext(request);
+  const adminEmail = getAdminSessionEmail(session);
+
   const coupons = await getAllCoupons();
+
+  await trackActivity({
+    event: "admin_coupons_accessed",
+    source: "server",
+    email: adminEmail,
+    pathname: requestContext.pathname,
+    domain: requestContext.domain,
+    ipAddress: requestContext.ipAddress,
+    userAgent: requestContext.userAgent,
+    metadata: {
+      admin_email: adminEmail,
+      result_count: coupons.length,
+    },
+  });
+
   return NextResponse.json({ coupons });
 }
 
@@ -18,6 +37,9 @@ export async function POST(request: Request) {
   if (!session) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+
+  const requestContext = getRequestActivityContext(request);
+  const adminEmail = getAdminSessionEmail(session);
 
   const { code, discountPercent, discountAmount, maxUses, expiresAt } =
     await request.json();
@@ -70,6 +92,23 @@ export async function POST(request: Request) {
     expiresAt: expiresAt ? new Date(expiresAt) : undefined,
     stripePromotionCodeId: promoCode.id,
     stripeCouponId: stripeCoupon.id,
+  });
+
+  await trackActivity({
+    event: "coupon_created",
+    source: "server",
+    email: adminEmail,
+    pathname: requestContext.pathname,
+    domain: requestContext.domain,
+    ipAddress: requestContext.ipAddress,
+    userAgent: requestContext.userAgent,
+    metadata: {
+      admin_email: adminEmail,
+      coupon_code: code.toUpperCase(),
+      discount_percent: discountPercent || null,
+      discount_amount: discountAmount || null,
+      max_uses: maxUses || 0,
+    },
   });
 
   return NextResponse.json({ coupon }, { status: 201 });

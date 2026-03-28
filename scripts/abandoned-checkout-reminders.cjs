@@ -68,6 +68,20 @@ function planName(planType) {
     .join(' ');
 }
 
+function appendUtmParams(url, campaignId) {
+  try {
+    const parsed = new URL(url);
+    if (!parsed.hostname.includes('mybingocard.com') && parsed.hostname !== 'localhost') return url;
+    parsed.searchParams.set('utm_source', 'mybingocard');
+    parsed.searchParams.set('utm_medium', 'email');
+    parsed.searchParams.set('utm_campaign', campaignId || 'abandoned_checkout');
+    return parsed.toString();
+  } catch (_) {
+    const sep = url.includes('?') ? '&' : '?';
+    return `${url}${sep}utm_source=mybingocard&utm_medium=email&utm_campaign=${encodeURIComponent(campaignId || 'abandoned_checkout')}`;
+  }
+}
+
 function button(label, url, color) {
   return `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:18px 0 0;"><tr><td style="border-radius:12px;background:${color};"><a href="${escapeHtml(url)}" style="display:inline-block;padding:13px 22px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:12px;">${escapeHtml(label)}</a></td></tr></table>`;
 }
@@ -132,7 +146,7 @@ function buildTwoHourReminder({ email, name, planType }) {
   const displayPlan = planName(planType);
   const userFirstName = firstName(name);
   const campaignId = 'abandoned_checkout_2h';
-  const ctaUrl = `${APP_URL}/pricing`;
+  const ctaUrl = appendUtmParams(`${APP_URL}/pricing`, campaignId);
   const bodyHtml = `
     ${panel(
       `<p style="margin:0 0 10px;font-size:14px;"><strong>Plan:</strong> ${escapeHtml(displayPlan)}</p>
@@ -175,7 +189,7 @@ function buildTwoDayReminder({ email, name, planType }) {
   const displayPlan = planName(planType);
   const userFirstName = firstName(name);
   const campaignId = 'abandoned_checkout_2d';
-  const ctaUrl = `${APP_URL}/pricing`;
+  const ctaUrl = appendUtmParams(`${APP_URL}/pricing`, campaignId);
   const bodyHtml = `
     ${panel(
       `<p style="margin:0 0 10px;font-size:14px;"><strong>${escapeHtml(displayPlan)} unlocks:</strong></p>

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getEmailForValidResetToken, markResetTokenUsed } from "@/lib/db/password-resets";
 import { updateUserPassword } from "@/lib/db/users";
+import { trackActivity } from "@/lib/activity";
+import { trackApiError } from "@/lib/api-error-tracking";
 
 export async function POST(request: Request) {
   try {
@@ -28,9 +30,21 @@ export async function POST(request: Request) {
 
     await markResetTokenUsed(token);
 
+    trackActivity({
+      event: "password_reset_completed",
+      source: "server",
+      email: email,
+      pathname: "/api/auth/reset-password",
+    }).catch(() => {});
+
     return NextResponse.json({ message: "Password reset successful" });
   } catch (error) {
     console.error("Reset password error:", error);
+    await trackApiError(error, {
+      route: "/api/auth/reset-password",
+      method: "POST",
+      statusCode: 500,
+    });
     return NextResponse.json({ error: "Failed to reset password" }, { status: 500 });
   }
 }

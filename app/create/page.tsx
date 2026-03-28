@@ -2,6 +2,7 @@
 
 import { trackCardCreated } from "@/lib/analytics";
 import { useAnalytics } from "@/lib/analytics/client";
+import { trackClientActivity } from "@/lib/activity-client";
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
@@ -110,6 +111,14 @@ function CreateCardContent() {
   const currentCardIdRef = useRef<string | null>(cardIdFromUrl);
   const createInFlightRef = useRef(false);
 
+  // Tracking refs
+  const firstCellAddedAtRef = useRef<number | null>(null);
+  const pageLoadedAtRef = useRef<number>(Date.now());
+  const styleChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevStyleRef = useRef<CellStyle>(style);
+  const draftLoadTrackedRef = useRef(false);
+  const batchCancelTrackedRef = useRef(false);
+
   useEffect(() => {
     currentCardIdRef.current = currentCardId;
   }, [currentCardId]);
@@ -204,6 +213,21 @@ function CreateCardContent() {
     loadBatchPurchases(isBatchCount(batchCountFromUrl) ? batchCountFromUrl : undefined);
   }, [session?.user, checkingPermission, permissionStatus?.planType, searchParamsKey]);
 
+  // Track batch checkout cancel when user returns with ?batchPurchase=canceled
+  useEffect(() => {
+    if (batchCancelTrackedRef.current) return;
+    if (searchParams.get("batchPurchase") !== "canceled") return;
+    batchCancelTrackedRef.current = true;
+
+    const batchCountFromUrl = Number(searchParams.get("batchCount"));
+    trackClientActivity("checkout_cancel_clicked", {
+      plan: "batch_pack",
+      batch_count: isBatchCount(batchCountFromUrl) ? batchCountFromUrl : null,
+      session_id: searchParams.get("session_id") || null,
+      source: "stripe_redirect",
+    });
+  }, [searchParams]);
+
   // Update cells array when grid size changes
   useEffect(() => {
     const totalCells = size * size;
@@ -277,19 +301,25 @@ function CreateCardContent() {
     };
 
     const loadDraftOrTemplate = () => {
+      let draftSource: "localStorage" | "url_params" | "template" | "empty" = "empty";
+      let draftCells: string[] = [];
+      let draftHasTitle = false;
+      let draftTemplateId: string | undefined;
+
       try {
         const saved = localStorage.getItem("mybingo_card_draft");
         if (saved) {
           const draft = JSON.parse(saved);
-          if (draft.title) setTitle(draft.title);
+          if (draft.title) { setTitle(draft.title); draftHasTitle = true; }
           if (draft.description) setDescription(draft.description);
           if (draft.size) setSize(draft.size as GridSize);
-          if (draft.cells) setCells(draft.cells);
+          if (draft.cells) { setCells(draft.cells); draftCells = draft.cells; }
           if (typeof draft.freeSpace === "boolean") setFreeSpace(draft.freeSpace);
           if (typeof draft.isPublic === "boolean") setIsPublic(draft.isPublic);
           if (draft.style) {
             setStyle((prev) => ({ ...prev, ...draft.style }));
           }
+          draftSource = "localStorage";
           // Draft kept in localStorage until successfully saved
         }
       } catch (draftError) {
@@ -301,12 +331,15 @@ function CreateCardContent() {
       const urlCells = searchParams.get("cells");
       const urlFreeSpace = searchParams.get("freeSpace");
       const urlStyle = searchParams.get("style");
+      const templateId = searchParams.get("templateId");
 
-      if (urlTitle) setTitle(urlTitle);
+      if (urlTitle) { setTitle(urlTitle); draftHasTitle = true; }
       if (urlSize) setSize(parseInt(urlSize) as GridSize);
       if (urlCells) {
         try {
-          setCells(JSON.parse(urlCells));
+          const parsedCells = JSON.parse(urlCells);
+          setCells(parsedCells);
+          draftCells = parsedCells;
         } catch (cellsError) {
           console.error("Failed to parse cells from URL:", cellsError);
         }
@@ -318,6 +351,26 @@ function CreateCardContent() {
         } catch (styleError) {
           console.error("Failed to parse style from URL:", styleError);
         }
+      }
+
+      // Determine draft source for tracking
+      if (templateId) {
+        draftSource = "template";
+        draftTemplateId = templateId;
+      } else if (urlTitle || urlCells) {
+        draftSource = "url_params";
+      }
+
+      // Track card_draft_loaded
+      if (!draftLoadTrackedRef.current) {
+        draftLoadTrackedRef.current = true;
+        const filledCount = (draftCells.length > 0 ? draftCells : []).filter((c: string) => c?.trim()).length;
+        trackClientActivity("card_draft_loaded", {
+          source: draftSource,
+          cells_filled: filledCount,
+          has_title: draftHasTitle,
+          ...(draftTemplateId ? { templateId: draftTemplateId } : {}),
+        });
       }
 
       setCurrentCardId(null);
@@ -337,6 +390,8 @@ function CreateCardContent() {
     // (avoids race condition where React state hasn't settled yet)
     const draftRaw = localStorage.getItem("mybingo_card_draft");
     if (session?.user && draftRaw && !cardIdFromUrl) {
+      // Prevent auto-save from also firing a duplicate POST
+      createInFlightRef.current = true;
       (async () => {
         try {
           const draft = JSON.parse(draftRaw);
@@ -355,6 +410,10 @@ function CreateCardContent() {
               }),
             });
             if (response.ok) {
+              const data = await response.json();
+              if (data.card?._id) {
+                currentCardIdRef.current = data.card._id;
+              }
               localStorage.removeItem("mybingo_card_draft");
               router.replace("/dashboard");
               return;
@@ -362,6 +421,8 @@ function CreateCardContent() {
           }
         } catch (e) {
           console.error("Failed to save draft after sign-in:", e);
+        } finally {
+          createInFlightRef.current = false;
         }
         // If draft had no content or save failed, still redirect new users
         if (searchParams.get("new") === "1") {
@@ -407,11 +468,19 @@ function CreateCardContent() {
 
     const payload = getCardPayload();
 
+    const cellsFilledCount = cells.filter((c) => c.trim()).length;
+
     if (!payload.title) {
       if (options?.suppressValidationErrors) {
         setAutoSaveState("idle");
         setAutoSaveError("");
       } else {
+        trackClientActivity("card_save_blocked", {
+          reason: "no_title",
+          title: payload.title,
+          size: payload.size,
+          cells_filled: cellsFilledCount,
+        });
         setError(t("error.title_required"));
         setAutoSaveState("error");
         setAutoSaveError(t("autosave.add_title"));
@@ -425,6 +494,12 @@ function CreateCardContent() {
         setAutoSaveState("idle");
         setAutoSaveError("");
       } else {
+        trackClientActivity("card_save_blocked", {
+          reason: "empty_cells",
+          title: payload.title,
+          size: payload.size,
+          cells_filled: cellsFilledCount,
+        });
         setError(t("error.fill_cell"));
         setAutoSaveState("error");
         setAutoSaveError(t("autosave.add_cell"));
@@ -467,15 +542,33 @@ function CreateCardContent() {
 
       if (!response.ok) {
         if (response.status === 401) {
+          trackClientActivity("card_save_blocked", {
+            reason: "not_logged_in",
+            title: payload.title,
+            size: payload.size,
+            cells_filled: cellsFilledCount,
+          });
           redirectToSignupForCreation();
           return false;
         }
         if (response.status === 403 && !currentCardIdRef.current) {
+          trackClientActivity("card_save_blocked", {
+            reason: "card_limit_reached",
+            title: payload.title,
+            size: payload.size,
+            cells_filled: cellsFilledCount,
+          });
           setError(data.error || "Card limit reached. Please upgrade your plan.");
           setUpgradeReason("card_limit");
           setShowUpgradeModal(true);
           track("card_limit_reached", { plan_type: permissionStatus?.planType || "FREE" });
         } else {
+          trackClientActivity("card_save_blocked", {
+            reason: "validation_error",
+            title: payload.title,
+            size: payload.size,
+            cells_filled: cellsFilledCount,
+          });
           setError(data.error || "Failed to save card");
         }
         setAutoSaveState("error");
@@ -484,6 +577,7 @@ function CreateCardContent() {
       }
 
       const savedCard = data.card;
+      const isNewCard = !currentCardIdRef.current;
       // Clean up draft from localStorage on successful save
       try { localStorage.removeItem("mybingo_card_draft"); } catch (e) {}
       if (savedCard?._id && !currentCardIdRef.current) {
@@ -500,6 +594,19 @@ function CreateCardContent() {
         nextUrl.searchParams.delete("style");
         window.history.replaceState({}, "", nextUrl.toString());
       }
+
+      // Track card_save_succeeded
+      const timeToSave = firstCellAddedAtRef.current
+        ? Math.round((Date.now() - firstCellAddedAtRef.current) / 1000)
+        : 0;
+      trackClientActivity("card_save_succeeded", {
+        cardId: savedCard?._id || currentCardIdRef.current || "",
+        title: payload.title,
+        size: payload.size,
+        cells_filled: cellsFilledCount,
+        is_new: isNewCard,
+        time_to_save_seconds: timeToSave,
+      });
 
       lastSavedSnapshotRef.current = JSON.stringify(payload);
       setAutoSaveState("saved");
@@ -581,6 +688,10 @@ function CreateCardContent() {
     newCells[index] = value;
     setCells(newCells);
     if (value.trim()) {
+      // Record the first time a cell is filled (for time_to_save_seconds)
+      if (!firstCellAddedAtRef.current) {
+        firstCellAddedAtRef.current = Date.now();
+      }
       const filledCount = newCells.filter((c) => c.trim()).length;
       trackOnce("card_cells_added", { filled_count: filledCount, grid_size: size });
     }
@@ -659,6 +770,41 @@ function CreateCardContent() {
     }
   };
 
+  // Track style_changed with 2-second debounce
+  useEffect(() => {
+    const prev = prevStyleRef.current;
+    const changedProps: Array<{ property: string; from?: string; to: string }> = [];
+
+    for (const key of Object.keys(style) as Array<keyof CellStyle>) {
+      if (style[key] !== prev[key]) {
+        changedProps.push({
+          property: key,
+          from: prev[key] || undefined,
+          to: style[key] || "",
+        });
+      }
+    }
+
+    if (changedProps.length === 0) return;
+
+    if (styleChangeTimerRef.current) {
+      clearTimeout(styleChangeTimerRef.current);
+    }
+
+    styleChangeTimerRef.current = setTimeout(() => {
+      for (const change of changedProps) {
+        trackClientActivity("style_changed", change);
+      }
+      prevStyleRef.current = { ...style };
+    }, 2000);
+
+    return () => {
+      if (styleChangeTimerRef.current) {
+        clearTimeout(styleChangeTimerRef.current);
+      }
+    };
+  }, [style]);
+
   // Auto-save draft to localStorage on every change (debounced)
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
@@ -677,6 +823,28 @@ function CreateCardContent() {
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     };
   }, [title, description, size, cells, freeSpace, isPublic, style, currentCardId, isLoadingCard]);
+
+  // Track card_draft_lost on beforeunload (navigating away with unsaved changes)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const hasContent = title.trim() || cells.some((c) => c.trim());
+      if (!hasContent) return;
+
+      // If already saved and no changes, don't fire
+      const snapshot = JSON.stringify(getCardPayload());
+      if (snapshot === lastSavedSnapshotRef.current) return;
+
+      const timeSpent = Math.round((Date.now() - pageLoadedAtRef.current) / 1000);
+      trackClientActivity("card_draft_lost", {
+        cells_filled: cells.filter((c) => c.trim()).length,
+        has_title: Boolean(title.trim()),
+        time_spent_seconds: timeSpent,
+      }, { keepalive: true });
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [title, cells, size, freeSpace, isPublic, style, description]);
 
   const redirectToSignupForCreation = () => {
     persistDraft();
@@ -941,7 +1109,11 @@ function CreateCardContent() {
           
           <div className="flex gap-4 items-center">
             <button
-              onClick={() => setShowPreview(!showPreview)}
+              onClick={() => {
+                const nextPreview = !showPreview;
+                setShowPreview(nextPreview);
+                trackClientActivity("preview_toggled", { enabled: nextPreview });
+              }}
               className="text-sm font-medium text-gray-600 hover:text-[#007AFF] transition-colors"
             >
               {showPreview ? "Back to Edit" : "Preview Card"}
@@ -1164,7 +1336,16 @@ function CreateCardContent() {
                         return (
                           <div key={s} className="relative group">
                             <button
-                              onClick={() => isAllowed && setSize(gridSize)}
+                              onClick={() => {
+                                if (isAllowed && gridSize !== size) {
+                                  trackClientActivity("grid_size_changed", {
+                                    from: size,
+                                    to: gridSize,
+                                    cells_filled_before: cells.filter((c) => c.trim()).length,
+                                  });
+                                  setSize(gridSize);
+                                }
+                              }}
                               disabled={showPreview || !isAllowed}
                               className={`w-full py-2.5 rounded-xl border transition-all duration-200 font-medium text-sm ${
                                 size === s
@@ -1194,7 +1375,10 @@ function CreateCardContent() {
                         <input
                             type="checkbox"
                             checked={freeSpace}
-                            onChange={(e) => setFreeSpace(e.target.checked)}
+                            onChange={(e) => {
+                              setFreeSpace(e.target.checked);
+                              trackClientActivity("free_space_toggled", { enabled: e.target.checked });
+                            }}
                             disabled={showPreview}
                             className="w-5 h-5 text-[#007AFF] border-gray-300 rounded focus:ring-[#007AFF]"
                         />
@@ -1715,7 +1899,7 @@ function CreateCardContent() {
                     }
                     className="flex-1 bg-[#007AFF] text-white px-6 py-3.5 rounded-xl hover:shadow-sm transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-lg shadow-sm"
                   >
-                    {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save_dashboard") : t("btn.create_save_full")}
+                    {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save_dashboard") : session?.user ? t("btn.create_save_full") : t("btn.signup_to_save_full")}
                   </button>
                   )}
                 </div>
@@ -1764,7 +1948,7 @@ function CreateCardContent() {
                   disabled={loading || showPreview || isLoadingCard}
                   className="flex-1 bg-[#007AFF] text-white px-4 py-3 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed font-bold text-sm shadow-md"
                 >
-                  {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save") : t("btn.create_save")}
+                  {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save") : session?.user ? t("btn.create_save") : t("btn.signup_to_save")}
                 </button>
                 )}
               </div>
@@ -1905,6 +2089,8 @@ function CreateCardContent() {
         onClose={() => setImagePickerCellIndex(null)}
         onPick={handleImagePicked}
         isPremium={permissionStatus?.planType === "PREMIUM"}
+        context="cell_image"
+        cellIndex={imagePickerCellIndex ?? undefined}
       />
     </div>
   );

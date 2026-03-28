@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { isSoundEnabled, setSoundEnabled } from "@/lib/sounds";
+import { trackClientActivity } from "@/lib/activity-client";
 
 export default function SoundToggle() {
   const [enabled, setEnabled] = useState(true);
@@ -14,6 +15,7 @@ export default function SoundToggle() {
     const next = !enabled;
     setEnabled(next);
     setSoundEnabled(next);
+    trackClientActivity("sound_toggled", { enabled: next });
   };
 
   return (

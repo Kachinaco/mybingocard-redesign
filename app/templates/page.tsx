@@ -4,11 +4,12 @@ import { trackTemplateUsed } from "@/lib/analytics";
 import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
 import ThemedCardWrapper from "@/components/ThemedCardWrapper";
 import UpgradeModal from "@/components/UpgradeModal";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { redirectToCheckout } from "@/lib/upgrade";
+import { trackClientActivity } from "@/lib/activity-client";
 
 interface Template {
   _id: string;
@@ -65,7 +66,17 @@ export default function TemplatesPage() {
   const [showPremiumOnly, setShowPremiumOnly] = useState(false);
   const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeTemplateContext, setUpgradeTemplateContext] = useState<Record<string, unknown>>({});
   const [showSignInModal, setShowSignInModal] = useState(false);
+  const hasFiredPageView = useRef(false);
+
+  // Track templates page viewed (fire once)
+  useEffect(() => {
+    if (!hasFiredPageView.current) {
+      hasFiredPageView.current = true;
+      trackClientActivity("templates_page_viewed");
+    }
+  }, []);
 
   useEffect(() => {
     fetchTemplates();
@@ -137,6 +148,13 @@ export default function TemplatesPage() {
   };
 
   const handleUseTemplate = async (template: Template) => {
+    trackClientActivity("template_clicked", {
+      template_id: template._id,
+      template_name: template.title,
+      template_category: template.category,
+      is_premium: template.isPremium,
+    });
+
     // Check if template is premium and user has access
     if (template.isPremium) {
       if (status !== "authenticated") {
@@ -144,6 +162,7 @@ export default function TemplatesPage() {
         return;
       }
       if (!userPlan?.canAccessAllTemplates) {
+        setUpgradeTemplateContext({ template_name: template.title, template_id: template._id, template_category: template.category });
         setShowUpgradeModal(true);
         return;
       }
@@ -154,7 +173,7 @@ export default function TemplatesPage() {
       await fetch("/api/templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ templateId: template._id }),
+        body: JSON.stringify({ templateId: template._id, templateTitle: template.title, templateCategory: template.category }),
       });
 
       trackTemplateUsed(template._id, template.title, template.isPremium);
@@ -458,7 +477,7 @@ export default function TemplatesPage() {
           ) : null}
         </div>
       </main>
-      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} />
+      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} reason="premium_template" triggerContext={upgradeTemplateContext} />
 
       {/* Sign-in modal for unauthenticated users */}
       {showSignInModal && (

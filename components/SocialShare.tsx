@@ -58,6 +58,10 @@ export default function SocialShare({ url, title, cardId }: SocialShareProps) {
       platform: platform.toLowerCase(),
       destination: "external_social",
     });
+    trackClientActivity("social_share_clicked", {
+      platform: platform.toLowerCase(),
+      cardId,
+    });
     window.open(href, "_blank", "noopener,noreferrer,width=600,height=400");
   };
 

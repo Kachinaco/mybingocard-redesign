@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import clientPromise from "@/lib/mongodb";
 import { getUserReferrals, getReferralStats, generateReferralCode } from "@/lib/db/referrals";
+import { trackActivity } from "@/lib/activity";
 
 export async function GET() {
   const session = await auth();
@@ -26,6 +27,18 @@ export async function GET() {
   const referrals = await getUserReferrals(session.user.id);
   const stats = await getReferralStats(session.user.id);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://mybingocard.com";
+
+  trackActivity({
+    event: "referral_dashboard_accessed",
+    source: "server",
+    userId: session.user.id,
+    email: session.user.email,
+    pathname: "/api/referrals",
+    metadata: {
+      referral_code: user?.referralCode || null,
+      total_referrals: stats?.total || 0,
+    },
+  }).catch(() => {});
 
   return NextResponse.json({
     referralCode: user?.referralCode,

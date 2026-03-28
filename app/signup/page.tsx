@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { trackClientActivity } from "@/lib/activity-client";
@@ -40,6 +40,17 @@ function SignupForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState("");
+  const hasFiredFunnelView = useRef(false);
+
+  // Track funnel: signup page viewed (fire once)
+  useEffect(() => {
+    if (!hasFiredFunnelView.current) {
+      hasFiredFunnelView.current = true;
+      trackClientActivity("funnel_signup_page_viewed", {
+        callbackUrl: searchParams.get("callbackUrl") || "/dashboard",
+      });
+    }
+  }, [searchParams]);
 
   // Persist UTM params to localStorage so Google OAuth flow can pick them up too
   useEffect(() => {
@@ -59,14 +70,83 @@ function SignupForm() {
     setIsLoading(true);
     setError("");
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
+    // Client-side validation with tracking
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!name.trim()) {
+      const msg = "Name is required";
+      setError(msg);
+      trackClientActivity("validation_error", {
+        form: "signup",
+        field: "name",
+        rule: "required",
+        message: msg,
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (!email.trim()) {
+      const msg = "Email is required";
+      setError(msg);
+      trackClientActivity("validation_error", {
+        form: "signup",
+        field: "email",
+        rule: "required",
+        message: msg,
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (!emailRegex.test(email)) {
+      const msg = "Please enter a valid email address";
+      setError(msg);
+      trackClientActivity("validation_error", {
+        form: "signup",
+        field: "email",
+        rule: "invalid_format",
+        message: msg,
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (!password) {
+      const msg = "Password is required";
+      setError(msg);
+      trackClientActivity("validation_error", {
+        form: "signup",
+        field: "password",
+        rule: "required",
+        message: msg,
+      });
       setIsLoading(false);
       return;
     }
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+      const msg = "Password must be at least 8 characters";
+      setError(msg);
+      trackClientActivity("validation_error", {
+        form: "signup",
+        field: "password",
+        rule: "too_short",
+        message: msg,
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      const msg = "Passwords do not match";
+      setError(msg);
+      trackClientActivity("validation_error", {
+        form: "signup",
+        field: "password",
+        rule: "mismatch",
+        message: msg,
+      });
       setIsLoading(false);
       return;
     }
@@ -97,7 +177,36 @@ function SignupForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Failed to create account");
+        const serverError = data.error || "Failed to create account";
+        setError(serverError);
+
+        // Classify server error into field + rule for validation_error tracking
+        let field = "general";
+        let rule = "server_error";
+        if (/already exists/i.test(serverError)) {
+          field = "email";
+          rule = "already_exists";
+        } else if (/missing required/i.test(serverError)) {
+          field = "general";
+          rule = "required";
+        } else if (/password.*characters/i.test(serverError)) {
+          field = "password";
+          rule = "too_short";
+        } else if (/real name/i.test(serverError)) {
+          field = "name";
+          rule = "invalid_format";
+        } else if (/too many/i.test(serverError)) {
+          field = "general";
+          rule = "rate_limited";
+        }
+
+        trackClientActivity("validation_error", {
+          form: "signup",
+          field,
+          rule,
+          message: serverError,
+        });
+
         trackClientActivity("signup_failed", {
           method: "credentials",
           reason: data.error || "signup_failed",
@@ -109,7 +218,14 @@ function SignupForm() {
       // Redirect to verify-email page — user must confirm email before logging in
       router.push("/verify-email");
     } catch (error) {
-      setError("An error occurred. Please try again.");
+      const msg = "An error occurred. Please try again.";
+      setError(msg);
+      trackClientActivity("validation_error", {
+        form: "signup",
+        field: "general",
+        rule: "unexpected_error",
+        message: msg,
+      });
       trackClientActivity("signup_failed", {
         method: "credentials",
         reason: "unexpected_error",

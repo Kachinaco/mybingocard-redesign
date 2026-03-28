@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { requireAdmin } from "@/lib/admin";
+import { getAdminSessionEmail, requireAdmin } from "@/lib/admin";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 export async function GET(
   request: Request,
@@ -12,6 +13,9 @@ export async function GET(
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const requestContext = getRequestActivityContext(request);
+    const adminEmail = getAdminSessionEmail(session);
 
     const { id } = await params;
 
@@ -41,6 +45,20 @@ export async function GET(
       .find({ userId: id })
       .sort({ createdAt: -1 })
       .toArray();
+
+    await trackActivity({
+      event: "admin_user_details_accessed",
+      source: "server",
+      email: adminEmail,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        admin_email: adminEmail,
+        target_user_id: id,
+      },
+    });
 
     return NextResponse.json({
       user,

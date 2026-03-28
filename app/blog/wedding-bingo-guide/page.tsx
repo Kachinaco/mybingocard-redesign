@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import BlogLayout from "@/components/BlogLayout";
+import BlogPostTracker from "../BlogPostTracker";
 
 export const metadata: Metadata = {
   title: "The Ultimate Wedding Bingo Guide for 2026",
@@ -30,6 +31,7 @@ const schema = {
 export default function WeddingBingoGuide() {
   return (
     <>
+      <BlogPostTracker slug="wedding-bingo-guide" title="The Ultimate Wedding Bingo Guide for 2026" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <BlogLayout
         title="The Ultimate Wedding Bingo Guide for 2026"

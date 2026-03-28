@@ -82,13 +82,29 @@ export async function POST(request: Request) {
       signupMethod: "credentials",
     });
 
-    // Store the IP for rate limiting tracking
-    if (requestContext.ipAddress) {
+    // Normalize referrer domain from the Referer header or body referrer
+    let referrerDomain = "direct";
+    try {
+      const refererHeader = request.headers.get("referer") || referrer;
+      if (refererHeader) {
+        const refUrl = new URL(refererHeader);
+        referrerDomain = refUrl.hostname.replace(/^www\./, "");
+      }
+    } catch {
+      // Invalid URL or missing — keep as 'direct'
+    }
+
+    // Store the IP and referrerDomain on the user record
+    {
       const { default: clientPromiseIp } = await import("@/lib/mongodb");
       const dbIp = (await clientPromiseIp).db("mybingocard");
+      const updateFields: Record<string, unknown> = { referrerDomain };
+      if (requestContext.ipAddress) {
+        updateFields.createdByIp = requestContext.ipAddress;
+      }
       await dbIp.collection("users").updateOne(
         { _id: user._id },
-        { $set: { createdByIp: requestContext.ipAddress } }
+        { $set: updateFields }
       );
     }
 
@@ -140,6 +156,7 @@ export async function POST(request: Request) {
         utm_content,
         utm_term,
         referrer,
+        referrerDomain,
       },
     });
 

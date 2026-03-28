@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LandingPageTracker from "@/components/LandingPageTracker";
 
 export const metadata: Metadata = {
   title: "Bridal Shower Bingo Cards Printable — Free Bridal Shower Bingo Generator | MyBingoCard",
@@ -58,6 +59,7 @@ function BingoGrid({ squares }: { squares: string[] }) {
 export default function BridalShowerBingoPage() {
   return (
     <>
+      <LandingPageTracker templateCategory="bridal-shower-bingo" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50">
         <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">

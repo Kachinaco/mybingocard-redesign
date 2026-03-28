@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LandingPageTracker from "@/components/LandingPageTracker";
 
 export const metadata: Metadata = {
   title: "Halloween Bingo Cards Printable — Free Halloween Bingo Generator | MyBingoCard",
@@ -58,6 +59,7 @@ function BingoGrid({ squares }: { squares: string[] }) {
 export default function HalloweenBingoPage() {
   return (
     <>
+      <LandingPageTracker templateCategory="halloween-bingo" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-purple-50">
         <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">

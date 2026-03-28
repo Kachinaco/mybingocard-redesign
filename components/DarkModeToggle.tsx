@@ -1,13 +1,19 @@
 "use client";
 
 import { useDarkMode } from "./DarkModeProvider";
+import { trackClientActivity } from "@/lib/activity-client";
 
 export default function DarkModeToggle({ className = "" }: { className?: string }) {
   const { dark, toggle } = useDarkMode();
 
+  const handleToggle = () => {
+    toggle();
+    trackClientActivity("dark_mode_toggled", { enabled: !dark });
+  };
+
   return (
     <button
-      onClick={toggle}
+      onClick={handleToggle}
       className={`p-2 rounded-lg transition-colors ${
         dark
           ? "bg-slate-700 text-yellow-400 hover:bg-slate-600"

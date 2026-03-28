@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { toggleCoupon } from "@/lib/db/coupons";
-import { requireAdmin } from "@/lib/admin";
+import { getAdminSessionEmail, requireAdmin } from "@/lib/admin";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 export async function PUT(
   request: Request,
@@ -11,10 +12,28 @@ export async function PUT(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const requestContext = getRequestActivityContext(request);
+  const adminEmail = getAdminSessionEmail(session);
+
   const { id } = await params;
   const { active } = await request.json();
 
   await toggleCoupon(id, active);
+
+  await trackActivity({
+    event: "coupon_toggled",
+    source: "server",
+    email: adminEmail,
+    pathname: requestContext.pathname,
+    domain: requestContext.domain,
+    ipAddress: requestContext.ipAddress,
+    userAgent: requestContext.userAgent,
+    metadata: {
+      admin_email: adminEmail,
+      coupon_id: id,
+      active_status: active,
+    },
+  });
 
   return NextResponse.json({ success: true });
 }
