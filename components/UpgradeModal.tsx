@@ -31,7 +31,7 @@ function hasSessionDismissed(): boolean {
   return sessionStorage.getItem(HAS_DISMISSED_KEY) === "1";
 }
 
-export type UpgradeReason = "card_limit" | "premium_template" | "image_picker" | "modal";
+export type UpgradeReason = "card_limit" | "premium_template" | "image_picker" | "ai_generate" | "batch_generate" | "modal";
 
 interface UpgradeModalProps {
   isOpen: boolean;
@@ -43,6 +43,7 @@ interface UpgradeModalProps {
 export default function UpgradeModal({ isOpen, onClose, reason = "modal", triggerContext }: UpgradeModalProps) {
   const [loading, setLoading] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [checkoutType, setCheckoutType] = useState<"subscription" | "lifetime">("subscription");
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [error, setError] = useState("");
   const openedAt = useRef<number | null>(null);
@@ -113,12 +114,84 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
       description: "This template is part of our Premium collection. Get instant access to all templates and more.",
       features: ["All premium templates included", "Unlimited bingo cards", "All grid sizes (3x3, 4x4, 5x5)", "HD PDF & PNG export", "Custom colors & fonts", "Ad-free experience"],
     },
+    ai_generate: {
+      title: "Unlock AI Generation",
+      description: "Let AI create your bingo card cells instantly. Describe your theme and get a perfect card in seconds.",
+      features: ["AI-powered cell generation", "Describe any theme or topic", "Unlimited bingo cards", "HD PDF & PNG export", "All premium templates", "Ad-free experience"],
+    },
+    batch_generate: {
+      title: "Generate Cards in Bulk",
+      description: "Create up to 500 unique shuffled cards at once. Perfect for classrooms, events, and parties.",
+      features: ["Up to 500 unique cards per batch", "Print-ready PDF export", "Every card uniquely shuffled", "Unlimited bingo cards", "AI-powered generation", "Ad-free experience"],
+    },
     modal: {
       title: "Upgrade to Premium",
       description: "Get the most out of MyBingoCard with unlimited cards, templates, and export options.",
       features: ["Unlimited bingo cards", "All grid sizes (3x3, 4x4, 5x5)", "HD PDF & PNG export", "All premium templates", "Custom colors & fonts", "Ad-free experience"],
     },
   }[reason];
+
+  const handleLifetime = async () => {
+    const previouslyDismissed = hasSessionDismissed();
+    const durationMs = openedAt.current ? Date.now() - openedAt.current : 0;
+    const durationSeconds = Math.round(durationMs / 1000);
+
+    trackClientActivity("upgrade_prompt_clicked", {
+      source: reason,
+      duration_seconds: durationSeconds,
+      converted_after_dismiss: previouslyDismissed,
+      purchase_type: "lifetime",
+      ...triggerContext,
+    });
+
+    trackClientActivity("plan_selected", {
+      plan: "lifetime",
+      price: 14.99,
+      source: "upgrade_modal",
+    });
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/stripe/embedded-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ purchaseType: "lifetime" }),
+      });
+
+      if (res.status === 401) {
+        window.location.href = `/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`;
+        return;
+      }
+
+      if (res.status === 409) {
+        window.location.href = "/dashboard?success=true";
+        return;
+      }
+
+      const data = await res.json();
+
+      if (!res.ok || !data.clientSecret) {
+        setError(data.error || "Failed to start checkout.");
+        return;
+      }
+
+      setClientSecret(data.clientSecret);
+      setCheckoutType("lifetime");
+      setShowCheckout(true);
+
+      trackClientActivity("checkout_loaded", {
+        plan: "lifetime",
+        price: 14.99,
+        session_id: data.sessionId || "",
+      });
+    } catch {
+      setError("Failed to start checkout. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleUpgrade = async () => {
     const previouslyDismissed = hasSessionDismissed();
@@ -202,7 +275,7 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
           <div>
             <div className="text-center mb-4">
               <h2 className="text-xl font-bold text-slate-900">Complete Your Upgrade</h2>
-              <p className="text-slate-500 text-sm mt-1">Premium — $4.99/mo · Cancel anytime</p>
+              <p className="text-slate-500 text-sm mt-1">{checkoutType === "lifetime" ? "Premium Lifetime — $14.99 one-time" : "Premium — $4.99/mo · Cancel anytime"}</p>
             </div>
             <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret }}>
               <EmbeddedCheckout />
@@ -235,14 +308,23 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
               <p className="text-red-500 text-sm text-center mb-3">{error}</p>
             )}
 
-            <button
-              onClick={handleUpgrade}
-              disabled={loading}
-              className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-indigo-200 transition-all disabled:opacity-70"
-            >
-              {loading ? "Loading..." : "Upgrade Now \u2014 $4.99/mo"}
-            </button>
-            <p className="text-center text-xs text-slate-400 mt-3">Cancel anytime. No long-term commitment.</p>
+            <div className="space-y-3">
+              <button
+                onClick={handleLifetime}
+                disabled={loading}
+                className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-indigo-200 transition-all disabled:opacity-70"
+              >
+                {loading ? "Loading..." : "Get Lifetime Access \u2014 $14.99"}
+              </button>
+              <button
+                onClick={handleUpgrade}
+                disabled={loading}
+                className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-all disabled:opacity-70 border border-slate-200"
+              >
+                {loading ? "Loading..." : "Subscribe Monthly \u2014 $4.99/mo"}
+              </button>
+            </div>
+            <p className="text-center text-xs text-slate-400 mt-3">Lifetime: one payment, forever. Monthly: cancel anytime.</p>
           </>
         )}
       </div>

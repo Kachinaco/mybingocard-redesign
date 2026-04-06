@@ -20,6 +20,8 @@ const FREE_FEATURES = [
 const PREMIUM_FEATURES = [
   "Unlimited bingo cards",
   "All grid sizes (3x3, 4x4, 5x5)",
+  "AI-powered card generation",
+  "Image bingo cards",
   "All premium templates",
   "HD PDF & PNG export",
   "Custom colors & fonts",
@@ -36,6 +38,7 @@ function PricingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const [lifetimeLoading, setLifetimeLoading] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<string>("FREE");
   const hasTrackedView = useRef(false);
 
@@ -114,6 +117,31 @@ function PricingContent() {
       alert(error.message || "Failed to start checkout");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleLifetimeUpgrade = async () => {
+    if (status !== "authenticated") {
+      router.push("/login?callbackUrl=/pricing");
+      return;
+    }
+
+    setLifetimeLoading(true);
+
+    try {
+      trackClientActivity("plan_selected", {
+        plan: "lifetime",
+        price: 14.99,
+        source: "pricing_page",
+      });
+
+      const { redirectToCheckout } = await import("@/lib/upgrade");
+      await redirectToCheckout({ purchaseType: "lifetime" });
+    } catch (error: any) {
+      console.error("Lifetime upgrade error:", error);
+      alert(error.message || "Failed to start checkout");
+    } finally {
+      setLifetimeLoading(false);
     }
   };
 
@@ -198,22 +226,22 @@ function PricingContent() {
             Simple, Transparent Pricing
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-            Upgrade to <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Premium</span> for $4.99/month.
+            Upgrade to <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Premium</span>
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Pay securely in Stripe to unlock Premium instantly. You’ll be billed $4.99/month and can cancel anytime.
+            Subscribe monthly or pay once for lifetime access. All plans include unlimited cards, AI generation, HD exports, and more.
           </p>
         </div>
 
         {/* Pricing Cards */}
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 px-4">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6 px-4">
           {/* Free Plan */}
           <div className="relative bg-white rounded-3xl border border-slate-200 shadow-xl hover:shadow-2xl hover:border-indigo-200 transition-all duration-300 flex flex-col">
-            <div className="p-8 md:p-10 flex-grow">
+            <div className="p-8 flex-grow">
               <h3 className="text-2xl font-bold text-slate-900 mb-2">Free</h3>
               <div className="flex items-baseline gap-1 mb-8">
                 <span className="text-5xl font-black text-slate-900 tracking-tight">$0</span>
-                <span className="text-slate-500 font-medium">build free</span>
+                <span className="text-slate-500 font-medium">forever</span>
               </div>
               <ul className="space-y-4 mb-8">
                 {FREE_FEATURES.map((feature, i) => (
@@ -228,7 +256,7 @@ function PricingContent() {
                 ))}
               </ul>
             </div>
-            <div className="p-8 md:p-10 pt-0 mt-auto">
+            <div className="p-8 pt-0 mt-auto">
               {isPremium ? (
                 <button disabled className="w-full py-4 px-6 bg-slate-100 text-slate-500 rounded-xl font-bold cursor-not-allowed border border-slate-200">
                   Your Previous Plan
@@ -241,25 +269,17 @@ function PricingContent() {
             </div>
           </div>
 
-          {/* Premium Plan */}
-          <div className="relative bg-white rounded-3xl ring-2 ring-indigo-600 shadow-2xl shadow-indigo-500/20 transition-all duration-300 flex flex-col">
-            <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg">
-              Best Value
-            </div>
-
-            <div className="p-8 md:p-10 flex-grow">
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">Premium</h3>
+          {/* Premium Monthly */}
+          <div className="relative bg-white rounded-3xl border border-slate-200 shadow-xl hover:shadow-2xl hover:border-indigo-200 transition-all duration-300 flex flex-col">
+            <div className="p-8 flex-grow">
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">Monthly</h3>
 
               <div className="flex items-baseline gap-1 mb-2">
-                <span className="text-5xl font-black text-slate-900 tracking-tight">
-                  $4.99
-                </span>
-                <span className="text-slate-500 font-medium">
-                  /month
-                </span>
+                <span className="text-5xl font-black text-slate-900 tracking-tight">$4.99</span>
+                <span className="text-slate-500 font-medium">/month</span>
               </div>
               <p className="text-sm text-slate-500 mb-8">
-                Clean, watermark-free bingo cards for any event. Unlimited cards, HD exports, all templates, and custom styling. Cancel anytime.
+                All Premium features. Cancel anytime.
               </p>
 
               <ul className="space-y-4 mb-8">
@@ -276,7 +296,7 @@ function PricingContent() {
               </ul>
             </div>
 
-            <div className="p-8 md:p-10 pt-0 mt-auto">
+            <div className="p-8 pt-0 mt-auto">
               {isPremium ? (
                 <button disabled className="w-full py-4 px-6 bg-slate-100 text-slate-500 rounded-xl font-bold cursor-not-allowed border border-slate-200">
                   Current Plan
@@ -289,7 +309,57 @@ function PricingContent() {
                     loading ? "opacity-70 cursor-wait" : ""
                   }`}
                 >
-                  {loading ? "Processing..." : "Upgrade to Premium"}
+                  {loading ? "Processing..." : "Subscribe Monthly"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Premium Lifetime */}
+          <div className="relative bg-white rounded-3xl ring-2 ring-indigo-600 shadow-2xl shadow-indigo-500/20 transition-all duration-300 flex flex-col">
+            <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg">
+              Best Value
+            </div>
+
+            <div className="p-8 flex-grow">
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">Lifetime</h3>
+
+              <div className="flex items-baseline gap-1 mb-2">
+                <span className="text-5xl font-black text-slate-900 tracking-tight">$14.99</span>
+                <span className="text-slate-500 font-medium">once</span>
+              </div>
+              <p className="text-sm text-slate-500 mb-8">
+                Pay once, get Premium forever. No subscription, no renewals.
+              </p>
+
+              <ul className="space-y-4 mb-8">
+                {[...PREMIUM_FEATURES, "Lifetime access — never pay again"].map((feature, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-indigo-50 flex items-center justify-center flex-shrink-0 mt-0.5 text-indigo-600">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span className={`font-medium leading-tight ${i === PREMIUM_FEATURES.length ? "text-indigo-600" : "text-slate-600"}`}>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="p-8 pt-0 mt-auto">
+              {isPremium ? (
+                <button disabled className="w-full py-4 px-6 bg-slate-100 text-slate-500 rounded-xl font-bold cursor-not-allowed border border-slate-200">
+                  Current Plan
+                </button>
+              ) : (
+                <button
+                  onClick={handleLifetimeUpgrade}
+                  disabled={lifetimeLoading}
+                  className={`w-full py-4 px-6 rounded-xl font-bold transition-all duration-200 bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-indigo-500/30 ${
+                    lifetimeLoading ? "opacity-70 cursor-wait" : ""
+                  }`}
+                >
+                  {lifetimeLoading ? "Processing..." : "Get Lifetime Access"}
                 </button>
               )}
             </div>
@@ -305,25 +375,28 @@ function PricingContent() {
                 <tr className="border-b border-slate-100">
                   <th className="text-left p-4 text-sm font-semibold text-slate-700">Feature</th>
                   <th className="text-center p-4 text-sm font-semibold text-slate-700">Free</th>
-                  <th className="text-center p-4 text-sm font-semibold text-indigo-600">Premium</th>
+                  <th className="text-center p-4 text-sm font-semibold text-slate-700">Monthly</th>
+                  <th className="text-center p-4 text-sm font-semibold text-indigo-600">Lifetime</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
                 {[
-                  ["Bingo cards", "1 card", "Unlimited"],
-                  ["Grid sizes", "3x3, 4x4, 5x5", "3x3, 4x4, 5x5"],
-                  ["Templates", "5 starter", "All 30+ templates"],
-                  ["PDF export", "With watermark", "HD, no watermark"],
-                  ["PNG export", "-", "Yes"],
-                  ["Custom colors & fonts", "-", "Yes"],
-                  ["Batch generation", "-", "Up to 100"],
-                  ["Ads", "Yes", "Ad-free"],
-                  ["Support", "Community", "Priority"],
-                ].map(([feature, free, premium], i) => (
+                  ["Bingo cards", "1 card", "Unlimited", "Unlimited"],
+                  ["Grid sizes", "3x3, 4x4, 5x5", "3x3, 4x4, 5x5", "3x3, 4x4, 5x5"],
+                  ["Templates", "5 starter", "All 30+", "All 30+"],
+                  ["PDF export", "With watermark", "HD, no watermark", "HD, no watermark"],
+                  ["PNG export", "-", "Yes", "Yes"],
+                  ["Custom colors & fonts", "-", "Yes", "Yes"],
+                  ["Batch generation", "-", "Up to 100", "Up to 100"],
+                  ["Ads", "Yes", "Ad-free", "Ad-free"],
+                  ["Support", "Community", "Priority", "Priority"],
+                  ["Billing", "-", "$4.99/mo", "One-time $14.99"],
+                ].map(([feature, free, monthly, lifetime], i) => (
                   <tr key={i} className={i % 2 === 0 ? "bg-slate-50/50" : ""}>
                     <td className="p-4 text-slate-700 font-medium">{feature}</td>
                     <td className="p-4 text-center text-slate-500">{free}</td>
-                    <td className="p-4 text-center text-indigo-600 font-semibold">{premium}</td>
+                    <td className="p-4 text-center text-slate-600">{monthly}</td>
+                    <td className="p-4 text-center text-indigo-600 font-semibold">{lifetime}</td>
                   </tr>
                 ))}
               </tbody>
@@ -332,6 +405,23 @@ function PricingContent() {
         </div>
 
         {/* FAQ Section */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              "mainEntity": [
+                { "@type": "Question", "name": "Why choose monthly premium?", "acceptedAnswer": { "@type": "Answer", "text": "Monthly premium gives you unlimited bingo cards, all premium templates, HD exports, custom styles, and an ad-free experience for one flat monthly price." }},
+                { "@type": "Question", "name": "Can I cancel anytime?", "acceptedAnswer": { "@type": "Answer", "text": "Absolutely. Monthly subscriptions can be canceled anytime from your settings, and you'll keep premium access until the end of your current billing period." }},
+                { "@type": "Question", "name": "What payment methods do you accept?", "acceptedAnswer": { "@type": "Answer", "text": "We accept all major credit cards including Visa, Mastercard, and American Express through Stripe, our secure payment processor." }},
+                { "@type": "Question", "name": "What can I do on the free plan?", "acceptedAnswer": { "@type": "Answer", "text": "The free plan lets you create 1 bingo card with 5 starter templates. Free exports include a small watermark. Upgrade to Premium for unlimited cards, all templates, HD exports, and watermark-free downloads." }},
+                { "@type": "Question", "name": "What is the Lifetime plan?", "acceptedAnswer": { "@type": "Answer", "text": "The Lifetime plan is a one-time payment of $14.99 that gives you permanent Premium access. No subscription, no renewals. You pay once and get all Premium features forever." }},
+                { "@type": "Question", "name": "Do you offer a free trial?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Every new account gets a 7-day free trial of Premium with full access to unlimited cards, AI generation, HD exports, and all templates. No credit card required." }},
+              ],
+            }),
+          }}
+        />
         <div className="max-w-3xl mx-auto mt-20">
           <h2 className="text-3xl font-bold text-slate-900 text-center mb-12">
             Frequently Asked Questions
@@ -371,6 +461,24 @@ function PricingContent() {
               </h3>
               <p className="text-slate-600 leading-relaxed">
                 The free plan lets you create 1 bingo card with 5 starter templates. Free exports include a small watermark. Upgrade to Premium for unlimited cards, all templates, HD exports, and watermark-free downloads.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-100 p-8 shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-lg text-slate-900 mb-3">
+                What is the Lifetime plan?
+              </h3>
+              <p className="text-slate-600 leading-relaxed">
+                The Lifetime plan is a one-time payment of $14.99 that gives you permanent Premium access. No subscription, no renewals. You pay once and get all Premium features forever.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-100 p-8 shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="font-bold text-lg text-slate-900 mb-3">
+                Do you offer a free trial?
+              </h3>
+              <p className="text-slate-600 leading-relaxed">
+                Yes. Every new account gets a 7-day free trial of Premium with full access to unlimited cards, AI generation, HD exports, and all templates. No credit card required.
               </p>
             </div>
           </div>

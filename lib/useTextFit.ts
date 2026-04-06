@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, type RefObject } from "react";
+import { useState, useEffect, useCallback, useRef, type RefObject } from "react";
 import { isImageCell } from "@/lib/cellContent";
 
 interface TextFitOptions {
@@ -67,24 +67,30 @@ export function useTextFit(
 ): Map<number, number> {
   const [sizes, setSizes] = useState<Map<number, number>>(() => new Map());
   const { cells, gridSize, fontFamily = "sans-serif", freeSpaceIndex } = options;
+  const mountedRef = useRef(true);
 
   const measure = useCallback(() => {
     const el = gridRef.current;
-    if (!el) return;
+    if (!el || !mountedRef.current) return;
 
     const containerWidth = el.clientWidth;
     const gap = parseFloat(getComputedStyle(el).gap) || 6;
     const cellWidth = (containerWidth - gap * (gridSize - 1)) / gridSize;
 
-    computeSizes(cells, gridSize, fontFamily, freeSpaceIndex, cellWidth).then(setSizes);
+    computeSizes(cells, gridSize, fontFamily, freeSpaceIndex, cellWidth).then((result) => {
+      if (mountedRef.current) setSizes(result);
+    });
   }, [gridRef, cells, gridSize, fontFamily, freeSpaceIndex]);
 
   useEffect(() => {
+    mountedRef.current = true;
     const el = gridRef.current;
     if (!el) return;
 
     // Wait for fonts then measure
-    document.fonts.ready.then(measure);
+    document.fonts.ready.then(() => {
+      if (mountedRef.current) measure();
+    });
 
     // Re-measure on resize
     let timer: ReturnType<typeof setTimeout>;
@@ -95,9 +101,10 @@ export function useTextFit(
     observer.observe(el);
 
     return () => {
+      mountedRef.current = false;
       observer.disconnect();
       clearTimeout(timer);
-      import("@chenglou/pretext").then(({ clearCache }) => clearCache());
+      import("@chenglou/pretext").then(({ clearCache }) => clearCache()).catch(() => {});
     };
   }, [measure]);
 

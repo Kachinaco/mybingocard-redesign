@@ -405,6 +405,26 @@ export default async function DashboardPage() {
             </div>
           )}
 
+          {/* Referral Section */}
+          {(user as any)?.referralCode && (
+            <div className="mb-8 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 md:p-8 text-white shadow-lg">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold mb-1">Share MyBingoCard</h2>
+                  <p className="text-white/80 text-sm">Share your link with friends. When they sign up, you both win.</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <code className="px-4 py-2 bg-white/20 rounded-lg text-sm font-mono select-all">
+                    mybingocard.com/r/{(user as any).referralCode}
+                  </code>
+                  <Link href="/dashboard/referrals" className="px-5 py-2.5 bg-white text-emerald-700 font-bold rounded-xl text-sm hover:shadow-lg transition-all shrink-0">
+                    View Referrals
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Live Games Section */}
           <div className="mb-8 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-6 md:p-8 text-white shadow-lg">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

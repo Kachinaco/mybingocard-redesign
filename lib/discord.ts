@@ -460,6 +460,27 @@ export async function notifySharedCardViewed(
   }]);
 }
 
+export async function notifyBatchSelected(
+  email: string | null,
+  batchCount: number,
+  price: string,
+  planType: string,
+  isGuest: boolean
+) {
+  await sendDiscordNotification("", [{
+    title: "📦 Batch Size Selected",
+    color: 0x3b82f6,
+    fields: [
+      { name: "User", value: email || "Anonymous (not signed in)", inline: true },
+      { name: "Plan", value: planType || "GUEST", inline: true },
+      { name: "Batch Size", value: `${batchCount} cards`, inline: true },
+      { name: "Price", value: price, inline: true },
+      { name: "Guest?", value: isGuest ? "Yes" : "No", inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
 export async function notifyUpgradeDismissed(
   email: string | null,
   source: string,

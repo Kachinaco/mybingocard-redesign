@@ -11,6 +11,7 @@ export interface ImageCellData {
   imageId: string;
   imageUrl: string;
   label?: string;
+  fit?: "contain" | "cover";
 }
 
 /**

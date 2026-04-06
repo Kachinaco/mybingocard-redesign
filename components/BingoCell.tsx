@@ -47,22 +47,40 @@ export default function BingoCell({
       }}
     >
       {imageData ? (
-        <>
-          <img
-            src={imageData.imageUrl}
-            alt={imageData.label || "Bingo cell image"}
-            className="max-w-full max-h-[70%] object-contain"
-            loading="lazy"
-          />
-          {imageData.label && (
-            <span
-              className="mt-0.5 text-[10px] md:text-xs font-medium leading-tight line-clamp-2 w-full"
-              style={{ color: style.textColor }}
-            >
-              {imageData.label}
-            </span>
-          )}
-        </>
+        imageData.fit === "cover" ? (
+          <>
+            <img
+              src={imageData.imageUrl}
+              alt={imageData.label || "Bingo cell image"}
+              className="absolute inset-0 w-full h-full object-cover rounded-lg md:rounded-xl"
+              loading="lazy"
+            />
+            {imageData.label && (
+              <span
+                className="relative z-10 mt-auto mb-1 text-[10px] md:text-xs font-medium leading-tight line-clamp-2 w-full bg-black/40 text-white px-1 py-0.5 rounded text-center"
+              >
+                {imageData.label}
+              </span>
+            )}
+          </>
+        ) : (
+          <>
+            <img
+              src={imageData.imageUrl}
+              alt={imageData.label || "Bingo cell image"}
+              className="max-w-full max-h-[70%] object-contain"
+              loading="lazy"
+            />
+            {imageData.label && (
+              <span
+                className="mt-0.5 text-[10px] md:text-xs font-medium leading-tight line-clamp-2 w-full"
+                style={{ color: style.textColor }}
+              >
+                {imageData.label}
+              </span>
+            )}
+          </>
+        )
       ) : (
         cell || <span className="text-gray-300 italic text-xs">Empty</span>
       )}

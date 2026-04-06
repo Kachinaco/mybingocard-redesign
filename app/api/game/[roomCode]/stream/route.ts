@@ -1,4 +1,4 @@
-import { getGameRoom } from "@/lib/db/games";
+import { getGameRoom, DEFAULT_SETTINGS } from "@/lib/db/games";
 import { trackActivity } from "@/lib/activity";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +37,8 @@ export async function GET(
             return;
           }
 
-          const hash = `${room.status}-${room.calledItems.length}-${room.players.length}-${room.players.map(p => `${p.playerId}:${p.marked.length}:${p.hasBingo}`).join(",")}`;
+          const winnersLen = (room.winners ?? []).length;
+          const hash = `${room.status}-${room.calledItems.length}-${room.players.length}-${winnersLen}-${room.players.map(p => `${p.playerId}:${p.marked.length}:${p.hasBingo}`).join(",")}`;
 
           if (hash !== lastHash) {
             lastHash = hash;
@@ -53,6 +54,11 @@ export async function GET(
               winnerId: room.winnerId,
               winnerName: room.winnerName,
               wordListCount: room.wordList.length,
+              settings: room.settings ?? DEFAULT_SETTINGS,
+              winners: (room.winners ?? []).map(w => ({
+                playerId: w.playerId,
+                playerName: w.playerName,
+              })),
             });
           }
         } catch (err) {

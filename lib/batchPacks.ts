@@ -11,7 +11,7 @@ export const BATCH_PACKS: Record<
     label: string;
   }
 > = {
-  30: { count: 30, amount: 0, currency: "usd", label: "Free" },
+  30: { count: 30, amount: 199, currency: "usd", label: "$1.99" },
   100: { count: 100, amount: 999, currency: "usd", label: "$9.99" },
   250: { count: 250, amount: 1999, currency: "usd", label: "$19.99" },
   500: { count: 500, amount: 2999, currency: "usd", label: "$29.99" },

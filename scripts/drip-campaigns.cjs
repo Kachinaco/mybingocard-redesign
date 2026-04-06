@@ -99,7 +99,7 @@ function wrap(headline, preheader, bodyHtml) {
   ${bodyHtml}
   <div style="margin-top:28px;padding-top:18px;border-top:1px solid #e2e8f0;">
     <p style="margin:0;font-size:13px;color:#64748b;">Need help? Reply to this email or contact <a href="mailto:support@mybingocard.com" style="color:#4f46e5;">support@mybingocard.com</a></p>
-    <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;"><a href="${escapeHtml(appUrl)}/unsubscribe?email=%%EMAIL%%" style="color:#94a3b8;">Unsubscribe</a> from these emails.</p>
+    <p style="margin:8px 0 0;font-size:13px;color:#94a3b8;"><a href="${escapeHtml(appUrl)}/unsubscribe?email=%%EMAIL%%" style="color:#64748b;text-decoration:underline;">Unsubscribe</a> from these emails.</p>
   </div>
   <img src="${escapeHtml(appUrl)}/api/track/open?e=%%EMAIL%%&c=%%CAMPAIGN%%" width="1" height="1" style="display:none;" alt="" />
 </td></tr>

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
-import { notifyBingoAchieved, notifyUpgradeDismissed } from "@/lib/discord";
+import { notifyBingoAchieved, notifyUpgradeDismissed, notifyBatchSelected } from "@/lib/discord";
 
 export async function POST(request: Request) {
   try {
@@ -45,6 +45,16 @@ export async function POST(request: Request) {
         session?.user?.email || null,
         metadata.source || "unknown",
         metadata
+      ).catch(() => {});
+    }
+
+    if (event === "batch_tier_selected") {
+      notifyBatchSelected(
+        session?.user?.email || null,
+        metadata.batch_count || 0,
+        metadata.price || "$0",
+        metadata.plan_type || "GUEST",
+        !session?.user
       ).catch(() => {});
     }
 

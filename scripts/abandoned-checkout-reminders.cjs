@@ -127,8 +127,8 @@ function wrapEmail({ email, campaignId, headline, preheader, intro, bodyHtml, ct
                     Need help? Reply to this email or contact <a href="mailto:${SUPPORT_ADDRESS}" style="color:${accent.button};text-decoration:none;">${SUPPORT_ADDRESS}</a>.
                   </p>
                   ${footerNote ? `<p style="margin:14px 0 0;font-size:13px;color:#64748b;">${escapeHtml(footerNote)}</p>` : ''}
-                  <p style="margin:14px 0 0;font-size:12px;color:#94a3b8;">
-                    <a href="${escapeHtml(unsubscribeUrl)}" style="color:#94a3b8;text-decoration:none;">Unsubscribe</a> from reminder emails.
+                  <p style="margin:14px 0 0;font-size:13px;color:#94a3b8;">
+                    <a href="${escapeHtml(unsubscribeUrl)}" style="color:#64748b;text-decoration:underline;">Unsubscribe</a> from reminder emails.
                   </p>
                 </div>
                 <img src="${escapeHtml(openPixelUrl)}" width="1" height="1" style="display:none;" alt="" />

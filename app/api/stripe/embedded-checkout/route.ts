@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { stripe, PLANS, getPlanByPriceId } from "@/lib/stripe/config";
+import { stripe, PLANS, getPlanByPriceId, LIFETIME_PRICE_ID } from "@/lib/stripe/config";
 import { getUserByEmail } from "@/lib/db/users";
 import { getBatchPack, isBatchCount } from "@/lib/batchPacks";
 import { upsertBatchPurchaseFromCheckout } from "@/lib/db/batchPurchases";
@@ -134,6 +134,63 @@ export async function POST(request: Request) {
       notifyCheckoutStarted(
         session.user.email, session.user.name || "", "one_time",
         `${batchPack.count} Card Batch`, batchPack.amount, batchPack.currency, checkoutSession.id
+      ).catch(console.error);
+
+      return NextResponse.json({ clientSecret: checkoutSession.client_secret, sessionId: checkoutSession.id });
+    }
+
+    // ---- LIFETIME PREMIUM CHECKOUT ----
+    if (purchaseType === "lifetime") {
+      // Check if user already has premium
+      if (user?.planType === "PREMIUM") {
+        return NextResponse.json({ error: "You already have Premium access." }, { status: 409 });
+      }
+
+      const lifetimeReturnUrl = `${appUrl}${returnPath || "/dashboard?checkout=complete"}&session_id={CHECKOUT_SESSION_ID}`;
+
+      const checkoutParams: Stripe.Checkout.SessionCreateParams = {
+        ui_mode: "embedded",
+        mode: "payment",
+        payment_method_types: ["card"],
+        line_items: [{ price: LIFETIME_PRICE_ID, quantity: 1 }],
+        return_url: lifetimeReturnUrl,
+        client_reference_id: session.user.id,
+        metadata: {
+          purchaseType: "lifetime",
+          userId: session.user.id,
+          userEmail: session.user.email,
+          planType: "PREMIUM",
+        },
+      };
+
+      if (customerId) {
+        checkoutParams.customer = customerId;
+      } else {
+        checkoutParams.customer_email = session.user.email;
+      }
+
+      const checkoutSession = await stripe.checkout.sessions.create(checkoutParams);
+
+      await trackActivity({
+        event: "checkout_started",
+        source: "server",
+        userId: session.user.id,
+        email: session.user.email,
+        pathname: requestContext.pathname,
+        domain: requestContext.domain,
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+        metadata: {
+          purchaseType: "lifetime",
+          amount: 1499,
+          checkoutSessionId: checkoutSession.id,
+          checkoutMode: "embedded",
+        },
+      });
+
+      notifyCheckoutStarted(
+        session.user.email, session.user.name || "", "one_time",
+        "Premium Lifetime", 1499, "usd", checkoutSession.id
       ).catch(console.error);
 
       return NextResponse.json({ clientSecret: checkoutSession.client_secret, sessionId: checkoutSession.id });

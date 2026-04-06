@@ -4,6 +4,7 @@ import { getUserByEmail } from "@/lib/db/users";
 import { PLANS } from "@/lib/stripe/config";
 import clientPromise from "@/lib/mongodb";
 import { trackActivity } from "@/lib/activity";
+import { sendCardLimitEmail } from "@/lib/email";
 
 export async function GET() {
   try {
@@ -53,6 +54,25 @@ export async function GET() {
         plan_type: planType,
       },
     }).catch(() => {});
+
+    // Send card-limit upsell email (once per user)
+    if (!allowed && planType === "FREE") {
+      const alreadySent = await db.collection("drip_log").findOne({
+        userId: user._id,
+        campaignId: "card_limit_hit",
+      });
+      if (!alreadySent) {
+        sendCardLimitEmail(session.user.email, user.name || "there").catch(() => {});
+        db.collection("drip_log").insertOne({
+          userId: user._id,
+          campaignId: "card_limit_hit",
+          email: session.user.email,
+          subject: "You hit your card limit",
+          sentAt: new Date(),
+          status: "sent",
+        }).catch(() => {});
+      }
+    }
 
     return NextResponse.json({
       allowed,

@@ -50,7 +50,7 @@ function generateBatchHTML(
                   border: 1.5px solid ${borderClr};
                   font-size: ${cellFontSize};
                 ">
-                  ${isFreeSpace ? '<span class="free">FREE</span>' : cell.startsWith("__IMG__:") ? (() => { try { const d = JSON.parse(cell.slice(8)); const u = d.imageUrl?.startsWith("/") ? "https://mybingocard.com" + d.imageUrl : d.imageUrl; return `<img src="${u}" style="max-width:90%;max-height:${d.label ? '65%' : '85%'};object-fit:contain;" />${d.label ? `<div style="font-size:0.6em;margin-top:1px;text-align:center;">${escapeHtml(d.label)}</div>` : ""}`; } catch { return escapeHtml(cell); } })() : escapeHtml(cell)}
+                  ${isFreeSpace ? '<span class="free">FREE</span>' : cell.startsWith("__IMG__:") ? (() => { try { const d = JSON.parse(cell.slice(8)); const u = d.imageUrl?.startsWith("/") ? "https://mybingocard.com" + d.imageUrl : d.imageUrl; const lblStyle = d.fit === 'cover' ? 'position:relative;z-index:1;background:rgba(0,0,0,0.4);color:#fff;border-radius:3px;padding:1px 3px;' : ''; const lbl = d.label ? `<div style="font-size:0.6em;margin-top:1px;text-align:center;${lblStyle}">${escapeHtml(d.label)}</div>` : ""; if (d.fit === "cover") { return `<img src="${u}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;" />${lbl}`; } return `<img src="${u}" style="max-width:90%;max-height:${d.label ? '65%' : '85%'};object-fit:contain;" />${lbl}`; } catch { return escapeHtml(cell); } })() : escapeHtml(cell)}
                 </div>
               `;
             })

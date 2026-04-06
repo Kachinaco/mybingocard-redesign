@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getGameRoom } from "@/lib/db/games";
+import { getGameRoom, DEFAULT_SETTINGS } from "@/lib/db/games";
 
 export async function GET(
   request: Request,
@@ -30,7 +30,10 @@ export async function GET(
         winnerId: room.winnerId,
         winnerName: room.winnerName,
         style: room.style,
+        settings: room.settings ?? DEFAULT_SETTINGS,
+        wordList: room.wordList,
         wordListCount: room.wordList.length,
+        winners: (room.winners ?? []).map(w => ({ playerId: w.playerId, playerName: w.playerName })),
         createdAt: room.createdAt,
       },
     });

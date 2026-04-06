@@ -76,9 +76,13 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
     label?: string;
     returnPath?: string;
   }) => {
-    const priceId = options?.priceId || process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_PRICE_ID;
     const purchaseType = options?.purchaseType || "subscription";
-    const label = options?.label || "Premium — $4.99/mo · Cancel anytime";
+    const priceId = options?.priceId || (purchaseType === "lifetime"
+      ? process.env.NEXT_PUBLIC_STRIPE_PREMIUM_ONETIME_PRICE_ID
+      : process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_PRICE_ID);
+    const label = options?.label || (purchaseType === "lifetime"
+      ? "Premium Lifetime — $14.99 one-time"
+      : "Premium — $4.99/mo · Cancel anytime");
 
     if (!priceId && purchaseType === "subscription") {
       setState(s => ({ ...s, isOpen: true, error: "Checkout is temporarily unavailable." }));
@@ -88,9 +92,14 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
     setState({ isOpen: true, clientSecret: null, loading: true, error: "", label });
 
     try {
-      const body: Record<string, unknown> = purchaseType === "batch_pack"
-        ? { purchaseType: "batch_pack", batchCount: options?.batchCount, returnPath: options?.returnPath }
-        : { priceId, returnPath: options?.returnPath };
+      let body: Record<string, unknown>;
+      if (purchaseType === "batch_pack") {
+        body = { purchaseType: "batch_pack", batchCount: options?.batchCount, returnPath: options?.returnPath };
+      } else if (purchaseType === "lifetime") {
+        body = { purchaseType: "lifetime", returnPath: options?.returnPath };
+      } else {
+        body = { priceId, returnPath: options?.returnPath };
+      }
 
       const res = await fetch("/api/stripe/embedded-checkout", {
         method: "POST",

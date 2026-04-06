@@ -1,6 +1,7 @@
 import Link from "next/link";
 import MobileNav from "@/components/MobileNav";
 import AdUnit from "@/components/AdUnit";
+import { EmailCaptureInline } from "@/components/EmailCapture";
 
 // Sample bingo card data for the visual demo
 const demoBingoItems = [
@@ -150,7 +151,11 @@ export default function Home() {
                 </div>
 
 
-                <div className="mt-10 flex items-center justify-center lg:justify-start gap-4 text-sm text-slate-500">
+                <p className="mt-4 text-sm text-slate-500 text-center lg:text-left">
+                  7-day free Premium trial. No credit card required.
+                </p>
+
+                <div className="mt-8 flex items-center justify-center lg:justify-start gap-4 text-sm text-slate-500">
                   <div className="flex -space-x-3">
                     {[
                       { bg: "bg-violet-400", emoji: "😊" },
@@ -208,9 +213,9 @@ export default function Home() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               <FeatureCard
-                icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>}
-                title="Smart Editor"
-                description="Drag, drop, and customize every aspect of your card. Change fonts, colors, and images in seconds."
+                icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
+                title="Image Bingo Cards"
+                description="Add photos and images to any cell. Perfect for kids, vocabulary games, or picture-based bingo nights."
                 delay="animation-delay-200"
               />
               <FeatureCard
@@ -238,9 +243,9 @@ export default function Home() {
                 delay="animation-delay-400"
               />
               <FeatureCard
-                icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                title="Privacy First"
-                description="We don't track your players. Your data is secure and your games are private."
+                icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>}
+                title="AI Card Generator"
+                description="Describe your theme, pick a tone, and AI fills in every cell instantly. Dating bingo, office meetings, baby showers — done in seconds."
                 delay=""
               />
             </div>
@@ -304,6 +309,13 @@ export default function Home() {
         </section>
 
 
+        {/* Email Capture Section */}
+        <section className="py-16 bg-slate-50">
+          <div className="container mx-auto px-4 lg:px-8 max-w-2xl">
+            <EmailCaptureInline />
+          </div>
+        </section>
+
         {/* Ad placement - above CTA */}
         <section className="py-6 bg-slate-50">
           <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
@@ -321,8 +333,11 @@ export default function Home() {
              <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 tracking-tight">
                Ready to host the best bingo game ever?
              </h2>
-             <p className="text-xl text-slate-300 mb-12 max-w-2xl mx-auto">
+             <p className="text-xl text-slate-300 mb-4 max-w-2xl mx-auto">
                Join 50,000+ happy users and create your first card in less than 2 minutes. No design skills required.
+             </p>
+             <p className="text-indigo-300 mb-12">
+               Start with a 7-day free trial, then just $14.99 for lifetime access.
              </p>
              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link

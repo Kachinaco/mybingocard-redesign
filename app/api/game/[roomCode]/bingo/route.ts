@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { claimBingo, markCell, unmarkCell, getGameRoom, detectWinPattern } from "@/lib/db/games";
+import { claimBingo, markCell, unmarkCell, getGameRoom, detectWinPattern, DEFAULT_SETTINGS } from "@/lib/db/games";
 import { trackActivity } from "@/lib/activity";
 
 export async function POST(
@@ -61,31 +61,35 @@ export async function POST(
           metadata: {
             roomCode,
             playerId,
-            winnerName: room?.winnerName || null,
+            winnerName: result.playerName || null,
             playerCount: room?.players?.length || 0,
             calledItemCount: room?.calledItems?.length || 0,
             gameTitle: room?.title || null,
             win_pattern: winPattern,
+            gameEnded: result.gameEnded,
           },
         }).catch(() => {});
 
-        // Track game completion
-        const startedAt = roomBeforeClaim?.startedAt ? new Date(roomBeforeClaim.startedAt).getTime() : null;
-        const gameDurationSeconds = startedAt ? Math.round((Date.now() - startedAt) / 1000) : null;
-        trackActivity({
-          event: "game_completed",
-          source: "server",
-          userId: null,
-          email: null,
-          pathname: `/game/play/${roomCode}`,
-          metadata: {
-            roomCode,
-            winnerName: room?.winnerName || null,
-            playerCount: room?.players?.length || 0,
-            totalCallsMade: room?.calledItems?.length || 0,
-            gameDurationSeconds,
-          },
-        }).catch(() => {});
+        // Track game completion only when game actually ended
+        if (result.gameEnded !== false) {
+          const startedAt = roomBeforeClaim?.startedAt ? new Date(roomBeforeClaim.startedAt).getTime() : null;
+          const gameDurationSeconds = startedAt ? Math.round((Date.now() - startedAt) / 1000) : null;
+          trackActivity({
+            event: "game_completed",
+            source: "server",
+            userId: null,
+            email: null,
+            pathname: `/game/play/${roomCode}`,
+            metadata: {
+              roomCode,
+              winnerName: room?.winnerName || null,
+              playerCount: room?.players?.length || 0,
+              totalCallsMade: room?.calledItems?.length || 0,
+              gameDurationSeconds,
+              winnersCount: (room?.winners ?? []).length,
+            },
+          }).catch(() => {});
+        }
       } else {
         // Track invalid bingo claim
         let rejectionReason = "unknown";
@@ -132,6 +136,8 @@ export async function POST(
         status: room.status,
         winnerId: room.winnerId,
         winnerName: room.winnerName,
+        settings: room.settings ?? DEFAULT_SETTINGS,
+        winners: (room.winners ?? []).map(w => ({ playerId: w.playerId, playerName: w.playerName })),
         players: room.players.map(p => ({
           playerId: p.playerId,
           playerName: p.playerName,

@@ -265,10 +265,16 @@ function generateCardHTML(card: any, removeBranding: boolean, isHD: boolean): st
                     const imgUrl = imgData.imageUrl?.startsWith("/")
                       ? "https://mybingocard.com" + imgData.imageUrl
                       : imgData.imageUrl;
-                    const label = imgData.label ? '<div style="font-size:0.65em;margin-top:4px;text-align:center;">' + escapeHtml(imgData.label) + '</div>' : "";
-                    const maxH = label ? "65%" : "85%";
-                    cellContent = '<img src="' + imgUrl + '" style="max-width:90%;max-height:' + maxH + ';object-fit:contain;" />' + label;
-                    extraStyle = "flex-direction:column;";
+                    const labelStyle = imgData.fit === 'cover' ? 'position:relative;z-index:1;background:rgba(0,0,0,0.4);color:#fff;border-radius:3px;padding:1px 3px;' : '';
+                    const label = imgData.label ? '<div style="font-size:0.65em;margin-top:4px;text-align:center;' + labelStyle + '">' + escapeHtml(imgData.label) + '</div>' : "";
+                    if (imgData.fit === "cover") {
+                      cellContent = '<img src="' + imgUrl + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;" />' + label;
+                      extraStyle = "position:relative;overflow:hidden;";
+                    } else {
+                      const maxH = label ? "65%" : "85%";
+                      cellContent = '<img src="' + imgUrl + '" style="max-width:90%;max-height:' + maxH + ';object-fit:contain;" />' + label;
+                      extraStyle = "flex-direction:column;";
+                    }
                   } catch { /* fall through to text */ }
                 }
                 return '<div class="cell ' + (isFreeSpace ? "free-space" : "") + '" style="' + extraStyle + '">'

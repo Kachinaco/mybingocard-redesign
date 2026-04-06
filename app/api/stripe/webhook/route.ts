@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { stripe, STRIPE_CONFIG, getPlanByPriceId, PLANS, getStripe } from "@/lib/stripe/config";
-import { updateUserSubscription, getUserByEmail } from "@/lib/db/users";
+import { updateUserSubscription, getUserByEmail, createUser } from "@/lib/db/users";
 import { getBatchPack, isBatchCount } from "@/lib/batchPacks";
 import { upsertBatchPurchaseFromCheckout } from "@/lib/db/batchPurchases";
 import {
@@ -254,14 +254,112 @@ export async function POST(request: Request) {
           }
         } else if (
           session.mode === "payment" &&
-          session.metadata?.purchaseType === "batch_pack"
+          session.metadata?.purchaseType === "lifetime"
         ) {
           const userId = session.metadata?.userId || session.client_reference_id;
           const userEmail =
             session.metadata?.userEmail ||
             session.customer_details?.email ||
             (typeof session.customer_email === "string" ? session.customer_email : null);
+
+          if (session.payment_status === "paid" && userEmail) {
+            await updateUserSubscription(userEmail, {
+              planType: "PREMIUM",
+              stripeCustomerId: session.customer as string,
+              stripeSubscriptionId: null,
+              stripePriceId: null,
+              status: "lifetime",
+              currentPeriodStart: new Date(),
+              currentPeriodEnd: null,
+              cancelAtPeriodEnd: false,
+              cancelAt: null,
+            });
+
+            // Also upsert subscription record
+            try {
+              const userRecord = await getUserByEmail(userEmail);
+              if (userRecord?._id) {
+                const existingSub = await getSubscriptionByUserId(userRecord._id.toString());
+                if (existingSub) {
+                  await updateSubscription(userRecord._id.toString(), {
+                    plan: "unlimited" as any,
+                    status: "active",
+                    stripeCustomerId: session.customer as string,
+                    stripeSubscriptionId: undefined,
+                    stripePriceId: undefined,
+                    limits: PLAN_LIMITS.unlimited,
+                  });
+                } else {
+                  await createSubscription({
+                    userId: userRecord._id.toString(),
+                    plan: "unlimited" as any,
+                    stripeCustomerId: session.customer as string,
+                  });
+                }
+              }
+            } catch (subErr) {
+              console.error("Failed to upsert subscription record for lifetime:", subErr);
+            }
+
+            await trackActivity({
+              event: "lifetime_purchase_activated",
+              source: "webhook",
+              userId: userId || null,
+              email: userEmail,
+              metadata: {
+                purchaseType: "lifetime",
+                amount: session.amount_total,
+                currency: (session.currency || "usd").toUpperCase(),
+                stripeSessionId: session.id,
+              },
+            });
+
+            console.log(`Lifetime Premium activated for user ${userEmail}`);
+
+            const user = await getUserByEmail(userEmail);
+            if (user) {
+              fireAndForget(
+                sendSubscriptionActivatedEmail(userEmail, user.name || userEmail, "Premium Lifetime"),
+                `sendSubscriptionActivatedEmail(${userEmail})`
+              );
+              notifyCheckoutActivated(
+                userEmail,
+                user.name || userEmail,
+                "one_time",
+                "Premium Lifetime",
+                session.amount_total,
+                session.currency,
+                session.id
+              ).catch(console.error);
+            }
+          }
+        } else if (
+          session.mode === "payment" &&
+          session.metadata?.purchaseType === "batch_pack"
+        ) {
+          let userId = session.metadata?.userId || session.client_reference_id;
+          const userEmail =
+            session.metadata?.userEmail ||
+            session.customer_details?.email ||
+            (typeof session.customer_email === "string" ? session.customer_email : null);
           const batchCount = Number(session.metadata?.batchCount);
+          const isGuestCheckout = session.metadata?.guestCheckout === "true";
+
+          // Guest checkout: auto-create user if none exists
+          if (isGuestCheckout && userEmail && !userId) {
+            const existingUser = await getUserByEmail(userEmail);
+            if (existingUser) {
+              userId = existingUser._id?.toString() || null;
+            } else {
+              const newUser = await createUser({
+                email: userEmail,
+                name: session.customer_details?.name || undefined,
+                signupMethod: "magic_link",
+              });
+              userId = newUser._id?.toString() || null;
+              console.log(`Auto-created user for guest batch purchase: ${userEmail}`);
+            }
+          }
 
           if (session.payment_status === "paid" && userId && userEmail && isBatchCount(batchCount)) {
             const batchPack = getBatchPack(batchCount);
@@ -352,6 +450,8 @@ export async function POST(request: Request) {
             currentPeriodEnd: toDate(subscription.items.data[0]?.current_period_end),
             cancelAtPeriodEnd: subscription.cancel_at_period_end,
             cancelAt: toDate(subscription.cancel_at),
+            cancellationReason: subscription.cancellation_details?.reason ?? null,
+            cancellationFeedback: subscription.cancellation_details?.feedback ?? null,
           });
 
           await trackActivity({
@@ -363,6 +463,9 @@ export async function POST(request: Request) {
               planType,
               status: subscription.status,
               cancelAtPeriodEnd: subscription.cancel_at_period_end,
+              cancelAt: toDate(subscription.cancel_at),
+              cancellationReason: subscription.cancellation_details?.reason ?? null,
+              cancellationFeedback: subscription.cancellation_details?.feedback ?? null,
               currentPeriodEnd: toDate(subscription.items.data[0]?.current_period_end),
             },
           });
@@ -377,6 +480,13 @@ export async function POST(request: Request) {
         const userId = subscription.metadata?.userId;
 
         if (userId) {
+          // Never downgrade lifetime users
+          const existingUser = await getUserByEmail(userId);
+          if (existingUser?.subscriptionStatus === "lifetime") {
+            console.log(`Ignored subscription deletion for lifetime user ${userId}`);
+            break;
+          }
+
           const replacement = await findAlternateActiveSubscription(userId, subscription.id);
 
           if (replacement) {
@@ -414,6 +524,8 @@ export async function POST(request: Request) {
             currentPeriodEnd: null,
             cancelAtPeriodEnd: false,
             cancelAt: toDate(subscription.canceled_at),
+            cancellationReason: subscription.cancellation_details?.reason ?? null,
+            cancellationFeedback: subscription.cancellation_details?.feedback ?? null,
           });
 
           await trackActivity({
@@ -424,6 +536,8 @@ export async function POST(request: Request) {
             metadata: {
               status: subscription.status,
               canceledAt: toDate(subscription.canceled_at),
+              cancellationReason: subscription.cancellation_details?.reason ?? null,
+              cancellationFeedback: subscription.cancellation_details?.feedback ?? null,
             },
           });
 

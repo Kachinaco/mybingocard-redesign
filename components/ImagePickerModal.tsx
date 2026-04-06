@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { trackClientActivity } from "@/lib/activity-client";
+import { compressImage } from "@/lib/compress-image";
 
 interface ImageItem {
   imageId: string;
@@ -102,11 +103,13 @@ export default function ImagePickerModal({
   const handleUpload = async (file: File) => {
     setUploading(true);
     setUploadError("");
-    const fileSizeKb = Math.round(file.size / 1024);
     const fileType = file.type;
+    let fileSizeKb = Math.round(file.size / 1024);
     try {
+      const compressed = await compressImage(file);
+      fileSizeKb = Math.round(compressed.size / 1024);
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("image", compressed);
       const res = await fetch("/api/images/upload", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok) {

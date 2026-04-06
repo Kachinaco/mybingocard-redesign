@@ -925,16 +925,27 @@ export default function CardViewPage() {
                         <span className="flex flex-col items-center gap-0.5">
                           <span className="text-base leading-none">✓</span>
                           {isImageCell(cell) ? (
-                            <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-[60%] max-h-[40%] object-contain opacity-60" />
+                            parseImageCell(cell)?.fit === "cover" ? (
+                              <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="absolute inset-0 w-full h-full object-cover rounded-lg md:rounded-xl opacity-60" />
+                            ) : (
+                              <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-[60%] max-h-[40%] object-contain opacity-60" />
+                            )
                           ) : (
                             <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: fittedSizes.has(index) ? `${fittedSizes.get(index)! * 0.55}px` : "0.6em" }}>{cell}</span>
                           )}
                         </span>
                       ) : isImageCell(cell) ? (
-                        <span className="flex flex-col items-center gap-0.5 w-full h-full justify-center p-1">
-                          <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-full max-h-[70%] object-contain" loading="lazy" />
-                          {getCellDisplayText(cell) && <span className="text-[0.55em] leading-tight text-center w-full truncate">{getCellDisplayText(cell)}</span>}
-                        </span>
+                        parseImageCell(cell)?.fit === "cover" ? (
+                          <span className="w-full h-full relative">
+                            <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="absolute inset-0 w-full h-full object-cover rounded-lg md:rounded-xl" loading="lazy" />
+                            {getCellDisplayText(cell) && <span className="absolute bottom-1 left-1 right-1 text-[0.55em] leading-tight text-center truncate bg-black/40 text-white px-1 py-0.5 rounded">{getCellDisplayText(cell)}</span>}
+                          </span>
+                        ) : (
+                          <span className="flex flex-col items-center gap-0.5 w-full h-full justify-center p-1">
+                            <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-full max-h-[70%] object-contain" loading="lazy" />
+                            {getCellDisplayText(cell) && <span className="text-[0.55em] leading-tight text-center w-full truncate">{getCellDisplayText(cell)}</span>}
+                          </span>
+                        )
                       ) : (
                         <span className="break-words leading-tight text-center" style={fittedSizes.has(index) ? { fontSize: `${fittedSizes.get(index)}px` } : undefined}>{cell}</span>
                       )}

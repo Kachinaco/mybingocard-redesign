@@ -35,6 +35,7 @@
     "@types/better-sqlite3": "^7.6.13",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.6.2",
+    "browser-image-compression": "^2.0.2",
     "html2canvas": "^1.4.1",
     "imap": "^0.8.19",
     "jspdf": "^3.0.4",

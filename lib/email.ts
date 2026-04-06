@@ -569,3 +569,32 @@ export async function sendAbandonedCheckoutEmail(
       : `Hi ${firstName},\n\nYou were close to generating ${batchCount ? `${batchCount} unique bingo cards` : "your card batch"}.\n\nHead back to finish: ${appUrl}/create\n\nQuestions? Reply to this email.`,
   });
 }
+
+export async function sendCardLimitEmail(to: string, name: string) {
+  const firstName = escapeHtml((name || "there").split(/\s/)[0] || "there");
+
+  return sendEmail({
+    to,
+    subject: `${firstName}, you hit your free card limit`,
+    html: renderLayout({
+      theme: "violet",
+      preheader: "Upgrade to Premium for unlimited bingo cards.",
+      headline: "You've used your free card",
+      intro: `Hey ${firstName}, you tried to create another bingo card but hit the free plan limit of 1 card.`,
+      bodyHtml: `
+        ${renderPanel(renderBulletList([
+          "Unlimited bingo cards",
+          "AI-powered card generation",
+          "HD PDF and PNG export",
+          "Custom image uploads",
+          "Batch generate up to 500 cards",
+          "Ad-free experience",
+        ]), "violet")}
+        <p style="margin:0;font-size:15px;color:#334155;">Upgrade takes 30 seconds and you can start creating right away.</p>`,
+      ctaLabel: "Upgrade to Premium →",
+      ctaUrl: `${appUrl}/pricing?utm_source=mybingocard&utm_medium=email&utm_campaign=card_limit_hit`,
+      ctaHint: "Just reply to this email if you have questions.",
+    }),
+    text: `Hey ${firstName},\n\nYou tried to create another bingo card but hit the free plan limit.\n\nPremium includes unlimited cards, AI generation, HD export, custom images, and batch generation.\n\nUpgrade here: ${appUrl}/pricing\n\nQuestions? Reply to this email.`,
+  });
+}

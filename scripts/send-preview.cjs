@@ -106,7 +106,7 @@ const html = `<!doctype html><html><head><meta charset="utf-8"/><meta name="view
 
   <div style="margin-top:28px;padding-top:18px;border-top:1px solid #e2e8f0;">
     <p style="margin:0;font-size:13px;color:#64748b;">Questions? Just reply to this email — we read every one.</p>
-    <p style="margin:8px 0 0;font-size:12px;color:#94a3b8;"><a href="${appUrl}/unsubscribe?email=${encodeURIComponent(email)}" style="color:#94a3b8;">Unsubscribe</a> from product updates.</p>
+    <p style="margin:8px 0 0;font-size:13px;color:#94a3b8;"><a href="${appUrl}/unsubscribe?email=${encodeURIComponent(email)}" style="color:#64748b;text-decoration:underline;">Unsubscribe</a> from product updates.</p>
   </div>
 </td></tr>
 </table></td></tr></table></body></html>`;

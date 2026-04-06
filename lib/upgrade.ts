@@ -31,15 +31,18 @@ export async function redirectToCheckout(invocation?: CheckoutInvocation): Promi
   }
 
   const options = isEventLike(invocation) ? {} : (invocation ?? {});
-  const priceId = process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_PRICE_ID;
+  const isLifetime = options.purchaseType === "lifetime";
+  const priceId = isLifetime
+    ? process.env.NEXT_PUBLIC_STRIPE_PREMIUM_ONETIME_PRICE_ID
+    : process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_PRICE_ID;
 
   // Use embedded checkout modal if available
   if (_globalCheckoutOpener) {
     await _globalCheckoutOpener({
       priceId: priceId || undefined,
-      purchaseType: options.purchaseType,
+      purchaseType: isLifetime ? "lifetime" : options.purchaseType,
       batchCount: options.batchCount,
-      label: options.label,
+      label: isLifetime ? "Premium Lifetime — $14.99 one-time" : options.label,
       returnPath: options.successPath,
     });
     return;

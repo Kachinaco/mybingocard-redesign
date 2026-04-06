@@ -24,6 +24,28 @@ export interface GamePlayer {
   joinedAt: Date;
 }
 
+export type CallMode = "random" | "manual" | "auto" | "sequential";
+export type WinCondition = "standard" | "four_corners" | "blackout";
+
+export interface GameSettings {
+  callMode: CallMode;
+  winCondition: WinCondition;
+  allowMultipleWinners: boolean;
+  autoCallInterval?: number;
+}
+
+export const DEFAULT_SETTINGS: GameSettings = {
+  callMode: "random",
+  winCondition: "standard",
+  allowMultipleWinners: false,
+};
+
+export interface GameWinner {
+  playerId: string;
+  playerName: string;
+  claimedAt: Date;
+}
+
 export interface GameRoom {
   _id: ObjectId;
   roomCode: string;
@@ -39,6 +61,8 @@ export interface GameRoom {
   callHistory: CalledItem[];
   players: GamePlayer[];
   status: "waiting" | "active" | "finished";
+  settings: GameSettings;
+  winners: GameWinner[];
   startedAt?: Date;
   endedAt?: Date;
   winnerId?: string;
@@ -110,6 +134,8 @@ export async function createGameRoom(
     callHistory: [],
     players: [],
     status: "waiting",
+    settings: { ...DEFAULT_SETTINGS },
+    winners: [],
     style,
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -177,6 +203,30 @@ export async function cleanupStaleRooms(): Promise<number> {
   return result.modifiedCount;
 }
 
+function generateCardCells(wordList: string[], size: number, freeSpace: boolean): string[] {
+  const totalCells = size * size;
+  const neededCells = freeSpace ? totalCells - 1 : totalCells;
+
+  const shuffled = shuffleArray(wordList);
+  let cells: string[];
+  if (shuffled.length >= neededCells) {
+    cells = shuffled.slice(0, neededCells);
+  } else {
+    cells = [];
+    for (let i = 0; i < neededCells; i++) {
+      cells.push(shuffled[i % shuffled.length]!);
+    }
+    cells = shuffleArray(cells);
+  }
+
+  if (freeSpace) {
+    const center = Math.floor(totalCells / 2);
+    cells.splice(center, 0, "FREE");
+  }
+
+  return cells;
+}
+
 const MAX_PLAYERS_PER_ROOM = 50;
 
 export async function joinGameRoom(
@@ -206,27 +256,7 @@ export async function joinGameRoom(
   }
 
   const totalCells = room.size * room.size;
-  const neededCells = room.freeSpace ? totalCells - 1 : totalCells;
-
-  // Shuffle word list and pick cells for this player
-  const shuffled = shuffleArray(room.wordList);
-  let cells: string[];
-  if (shuffled.length >= neededCells) {
-    cells = shuffled.slice(0, neededCells);
-  } else {
-    // If not enough words, repeat some
-    cells = [];
-    for (let i = 0; i < neededCells; i++) {
-      cells.push(shuffled[i % shuffled.length]!);
-    }
-    cells = shuffleArray(cells);
-  }
-
-  // Insert free space in center
-  if (room.freeSpace) {
-    const center = Math.floor(totalCells / 2);
-    cells.splice(center, 0, "FREE");
-  }
+  const cells = generateCardCells(room.wordList, room.size, room.freeSpace);
 
   const playerId = new ObjectId().toString();
   const player: GamePlayer = {
@@ -253,16 +283,54 @@ export async function joinGameRoom(
   return { player, room: updatedRoom! };
 }
 
-export async function startGame(roomCode: string, hostUserId: string): Promise<boolean> {
+export async function startGame(
+  roomCode: string,
+  hostUserId: string,
+  hostPlaysAlong?: boolean
+): Promise<{ started: boolean; hostPlayer?: GamePlayer }> {
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
+  const room = await db.collection<GameRoom>("game_rooms").findOne({
+    roomCode, hostUserId, status: "waiting",
+  });
+  if (!room) return { started: false };
+
   const now = new Date();
-  const result = await db.collection<GameRoom>("game_rooms").updateOne(
-    { roomCode, hostUserId, status: "waiting" },
-    { $set: { status: "active", startedAt: now, updatedAt: now } }
-  );
-  return result.modifiedCount > 0;
+  let hostPlayer: GamePlayer | undefined;
+
+  if (hostPlaysAlong) {
+    const cells = generateCardCells(room.wordList, room.size, room.freeSpace);
+    const totalCells = room.size * room.size;
+    hostPlayer = {
+      playerId: new ObjectId().toString(),
+      userId: hostUserId,
+      email: room.hostEmail || undefined,
+      playerName: (room.hostName || "Host") + " (Host)",
+      cells,
+      marked: room.freeSpace ? [Math.floor(totalCells / 2)] : [],
+      markHistory: [],
+      hasBingo: false,
+      joinedAt: now,
+    };
+
+    const result = await db.collection<GameRoom>("game_rooms").updateOne(
+      { _id: room._id, status: "waiting" },
+      {
+        $set: { status: "active", startedAt: now, updatedAt: now },
+        $push: { players: hostPlayer } as any,
+      }
+    );
+    if (result.modifiedCount === 0) return { started: false };
+  } else {
+    const result = await db.collection<GameRoom>("game_rooms").updateOne(
+      { _id: room._id, status: "waiting" },
+      { $set: { status: "active", startedAt: now, updatedAt: now } }
+    );
+    if (result.modifiedCount === 0) return { started: false };
+  }
+
+  return { started: true, hostPlayer };
 }
 
 export async function callItem(
@@ -326,6 +394,62 @@ export async function callRandomItem(
   return updated ? { item, room: updated } : null;
 }
 
+export async function callSequentialItem(
+  roomCode: string,
+  hostUserId: string
+): Promise<{ item: string; room: GameRoom } | null> {
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+
+  const room = await db.collection<GameRoom>("game_rooms").findOne({
+    roomCode,
+    hostUserId,
+    status: "active",
+  });
+  if (!room) return null;
+
+  const calledSet = new Set(room.calledItems);
+  const nextItem = room.wordList.find(w => !calledSet.has(w));
+  if (!nextItem) return null;
+
+  const now = new Date();
+  const updated = await db.collection<GameRoom>("game_rooms").findOneAndUpdate(
+    { _id: room._id },
+    {
+      $push: {
+        calledItems: nextItem,
+        callHistory: { item: nextItem, calledAt: now },
+      } as any,
+      $set: { updatedAt: now },
+    },
+    { returnDocument: "after" }
+  );
+
+  return updated ? { item: nextItem, room: updated } : null;
+}
+
+export async function updateGameSettings(
+  roomCode: string,
+  hostUserId: string,
+  settings: Partial<GameSettings>
+): Promise<boolean> {
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+
+  const setFields: Record<string, any> = { updatedAt: new Date() };
+  for (const [key, value] of Object.entries(settings)) {
+    if (value !== undefined) {
+      setFields[`settings.${key}`] = value;
+    }
+  }
+
+  const result = await db.collection<GameRoom>("game_rooms").updateOne(
+    { roomCode, hostUserId, status: "waiting" },
+    { $set: setFields }
+  );
+  return result.modifiedCount > 0;
+}
+
 export async function markCell(
   roomCode: string,
   playerId: string,
@@ -364,22 +488,36 @@ export async function unmarkCell(
   return result.modifiedCount > 0;
 }
 
-function checkBingoWin(marked: number[], size: number): boolean {
+function checkStandardBingo(marked: number[], size: number): boolean {
   const grid = Array.from({ length: size }, (_, r) =>
     Array.from({ length: size }, (_, c) => marked.includes(r * size + c))
   );
-  // Rows
   for (let r = 0; r < size; r++) {
     if (grid[r]?.every(Boolean)) return true;
   }
-  // Cols
   for (let c = 0; c < size; c++) {
     if (grid.map(row => row[c] ?? false).every(Boolean)) return true;
   }
-  // Diagonals
   if (Array.from({ length: size }, (_, i) => grid[i]?.[i] ?? false).every(Boolean)) return true;
   if (Array.from({ length: size }, (_, i) => grid[i]?.[size - 1 - i] ?? false).every(Boolean)) return true;
   return false;
+}
+
+function checkFourCorners(marked: number[], size: number): boolean {
+  const corners = [0, size - 1, size * (size - 1), size * size - 1];
+  return corners.every(idx => marked.includes(idx));
+}
+
+function checkBlackout(marked: number[], size: number): boolean {
+  return marked.length >= size * size;
+}
+
+export function checkWinByCondition(marked: number[], size: number, winCondition: WinCondition): boolean {
+  switch (winCondition) {
+    case "four_corners": return checkFourCorners(marked, size);
+    case "blackout": return checkBlackout(marked, size);
+    default: return checkStandardBingo(marked, size);
+  }
 }
 
 export function detectWinPattern(marked: number[], size: number): string | null {
@@ -413,7 +551,7 @@ export function detectWinPattern(marked: number[], size: number): string | null 
 export async function claimBingo(
   roomCode: string,
   playerId: string
-): Promise<{ valid: boolean; playerName?: string }> {
+): Promise<{ valid: boolean; playerName?: string; gameEnded?: boolean }> {
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
@@ -422,6 +560,11 @@ export async function claimBingo(
 
   const player = room.players.find(p => p.playerId === playerId);
   if (!player) return { valid: false };
+
+  // Don't allow double-claiming
+  if (player.hasBingo) return { valid: false };
+
+  const settings = room.settings ?? DEFAULT_SETTINGS;
 
   // Verify that all marked cells correspond to called items or free space
   const calledSet = new Set(room.calledItems);
@@ -433,26 +576,53 @@ export async function claimBingo(
     if (!calledSet.has(cellValue)) return { valid: false };
   }
 
-  // Check if marked cells form a bingo
-  if (!checkBingoWin(player.marked, room.size)) return { valid: false };
+  // Check win by configured condition
+  if (!checkWinByCondition(player.marked, room.size, settings.winCondition)) return { valid: false };
 
-  // Valid bingo!
   const now = new Date();
-  await db.collection<GameRoom>("game_rooms").updateOne(
-    { _id: room._id, "players.playerId": playerId },
-    {
-      $set: {
-        "players.$.hasBingo": true,
-        status: "finished",
-        endedAt: now,
-        winnerId: playerId,
-        winnerName: player.playerName,
-        updatedAt: now,
-      },
-    }
-  );
+  const winner: GameWinner = { playerId, playerName: player.playerName, claimedAt: now };
+  const isFirstWinner = (room.winners ?? []).length === 0;
 
-  return { valid: true, playerName: player.playerName };
+  if (settings.allowMultipleWinners) {
+    // Game continues — mark player as won but don't finish
+    const updateFields: Record<string, any> = {
+      "players.$.hasBingo": true,
+      updatedAt: now,
+    };
+    // Set winnerId/winnerName for the first winner only
+    if (isFirstWinner) {
+      updateFields.winnerId = playerId;
+      updateFields.winnerName = player.playerName;
+    }
+
+    await db.collection<GameRoom>("game_rooms").updateOne(
+      { _id: room._id, "players.playerId": playerId },
+      {
+        $set: updateFields,
+        $push: { winners: winner } as any,
+      }
+    );
+
+    return { valid: true, playerName: player.playerName, gameEnded: false };
+  } else {
+    // Single winner — end the game
+    await db.collection<GameRoom>("game_rooms").updateOne(
+      { _id: room._id, "players.playerId": playerId },
+      {
+        $set: {
+          "players.$.hasBingo": true,
+          status: "finished",
+          endedAt: now,
+          winnerId: playerId,
+          winnerName: player.playerName,
+          updatedAt: now,
+        },
+        $push: { winners: winner } as any,
+      }
+    );
+
+    return { valid: true, playerName: player.playerName, gameEnded: true };
+  }
 }
 
 export async function endGame(roomCode: string, hostUserId: string): Promise<boolean> {

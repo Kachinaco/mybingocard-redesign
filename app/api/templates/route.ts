@@ -21,6 +21,32 @@ export async function GET(request: Request) {
 
     let templates;
 
+    // Community cards (popular public user-created cards)
+    if (searchParams.get("community") === "true") {
+      const clientPromise = (await import("@/lib/mongodb")).default;
+      const client = await clientPromise;
+      const db = client.db("mybingocard");
+      const communityCards = await db.collection("cards").find(
+        { isPublic: true, views: { $gte: 3 } },
+        { projection: { userId: 0, sharePassword: 0 } }
+      ).sort({ views: -1 }).limit(limit ? parseInt(limit) : 20).toArray();
+
+      return NextResponse.json({ templates: communityCards.map(c => ({
+        _id: c._id,
+        title: c.title,
+        description: c.description || "",
+        category: "community",
+        size: c.size,
+        cells: c.cells,
+        freeSpace: c.freeSpace,
+        style: c.style,
+        isPremium: false,
+        isFeatured: false,
+        uses: c.views || 0,
+        isCommunitCard: true,
+      })) });
+    }
+
     // Search query
     if (search) {
       templates = await searchTemplates(search);

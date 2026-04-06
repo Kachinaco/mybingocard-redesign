@@ -8,9 +8,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import AdUnit from "@/components/AdUnit";
-import ConfettiComponent from "@/components/Confetti";
-import SoundToggle from "@/components/SoundToggle";
-import { playDabSound, playUndabSound, playBingoSound } from "@/lib/sounds";
 import { trackClientActivity, getAnonymousId } from "@/lib/activity-client";
 import { shuffleBingoCells } from "@/lib/shuffle";
 

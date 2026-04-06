@@ -1,5 +1,6 @@
 import clientPromise from "../mongodb";
 import { ObjectId } from "mongodb";
+import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import type { PlanType } from "@/lib/stripe/config";
 
@@ -14,11 +15,13 @@ export interface User {
   stripeCustomerId?: string | null;
   stripeSubscriptionId?: string | null;
   stripePriceId?: string | null;
-  subscriptionStatus?: "active" | "inactive" | "past_due" | "canceled";
+  subscriptionStatus?: "active" | "inactive" | "past_due" | "canceled" | "lifetime";
   currentPeriodStart?: Date | null;
   currentPeriodEnd?: Date | null;
   cancelAtPeriodEnd?: boolean;
   cancelAt?: Date | null;
+  trialEndsAt?: Date | null;
+  referralCode?: string;
   createdAt: Date;
   updatedAt: Date;
   // UTM / referral tracking
@@ -86,13 +89,17 @@ export async function createUser(data: {
     ? await bcrypt.hash(data.password, 10)
     : undefined;
 
+  const trialEndsAt = new Date();
+  trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+
   const user: Partial<User> = {
     email: data.email,
     name: data.name,
     image: data.image,
     password: hashedPassword,
-    planType: "FREE",
+    planType: "PREMIUM",
     subscriptionStatus: "inactive",
+    trialEndsAt,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...(data.utm_source && { utm_source: data.utm_source }),
@@ -108,6 +115,7 @@ export async function createUser(data: {
     ...(data.last_utm_term && { last_utm_term: data.last_utm_term }),
     ...(data.last_referrer && { last_referrer: data.last_referrer }),
     ...(data.signupMethod && { signupMethod: data.signupMethod }),
+    referralCode: crypto.randomBytes(4).toString("hex"),
   };
 
   const result = await db.collection<User>("users").insertOne(user as User);
@@ -213,7 +221,11 @@ export async function ensureUserDefaults(id: string): Promise<User | null> {
   }
 
   if (current.planType === undefined) {
-    updates.planType = "FREE";
+    // New user via OAuth/magic link — start 7-day trial
+    const trialEnd = new Date();
+    trialEnd.setDate(trialEnd.getDate() + 7);
+    updates.planType = "PREMIUM";
+    updates.trialEndsAt = trialEnd;
   }
 
   if (current.subscriptionStatus === undefined) {
@@ -226,6 +238,10 @@ export async function ensureUserDefaults(id: string): Promise<User | null> {
 
   if (current.cancelAt === undefined) {
     updates.cancelAt = null;
+  }
+
+  if (!(current as any).referralCode) {
+    (updates as any).referralCode = crypto.randomBytes(4).toString("hex");
   }
 
   if (Object.keys(updates).length === 0) {
@@ -245,11 +261,13 @@ export async function updateUserSubscription(
     stripeCustomerId?: string | null;
     stripeSubscriptionId?: string | null;
     stripePriceId?: string | null;
-    status?: "active" | "inactive" | "past_due" | "canceled";
+    status?: "active" | "inactive" | "past_due" | "canceled" | "lifetime";
     currentPeriodStart?: Date | null;
     currentPeriodEnd?: Date | null;
       cancelAtPeriodEnd?: boolean;
     cancelAt?: Date | null;
+    cancellationReason?: string | null;
+    cancellationFeedback?: string | null;
   }
 ): Promise<User | null> {
   const client = await clientPromise;
@@ -293,6 +311,14 @@ export async function updateUserSubscription(
 
   if (subscriptionData.cancelAt !== undefined) {
     updateData.cancelAt = subscriptionData.cancelAt;
+  }
+
+  if (subscriptionData.cancellationReason !== undefined) {
+    updateData.cancellationReason = subscriptionData.cancellationReason;
+  }
+
+  if (subscriptionData.cancellationFeedback !== undefined) {
+    updateData.cancellationFeedback = subscriptionData.cancellationFeedback;
   }
 
   const result = await db.collection<User>("users").findOneAndUpdate(

@@ -179,8 +179,12 @@ function generateCardHTML(
                 const imgUrl = imgData.imageUrl?.startsWith("/")
                   ? `https://mybingocard.com${imgData.imageUrl}`
                   : imgData.imageUrl;
-                const label = imgData.label ? `<div style="font-size:0.7em;margin-top:2px;text-align:center;">${escapeHtml(imgData.label)}</div>` : "";
-                cellContent = `<img src="${imgUrl}" style="max-width:90%;max-height:${label ? '65%' : '85%'};object-fit:contain;" />${label}`;
+                const label = imgData.label ? `<div style="font-size:0.7em;margin-top:2px;text-align:center;${imgData.fit === 'cover' ? 'position:relative;z-index:1;background:rgba(0,0,0,0.4);color:#fff;border-radius:3px;padding:1px 3px;' : ''}">${escapeHtml(imgData.label)}</div>` : "";
+                if (imgData.fit === "cover") {
+                  cellContent = `<img src="${imgUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;" />${label}`;
+                } else {
+                  cellContent = `<img src="${imgUrl}" style="max-width:90%;max-height:${label ? '65%' : '85%'};object-fit:contain;" />${label}`;
+                }
               } catch { /* fall through to text */ }
             }
             return `

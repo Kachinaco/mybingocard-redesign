@@ -57,6 +57,7 @@ export const PLANS = {
       canShuffleSharedCards: false,
       canUploadImages: false,
       maxImageUploads: 0,
+      canUseAiGenerate: false,
       adFree: false,
     },
   },
@@ -69,6 +70,7 @@ export const PLANS = {
       "Unlimited bingo cards",
       "All grid sizes (3x3, 4x4, 5x5)",
       "All premium templates",
+      "AI-powered card generation",
       "HD PDF & PNG export",
       "Custom colors & fonts",
       "Up to 500 cards per batch",
@@ -87,10 +89,14 @@ export const PLANS = {
       canShuffleSharedCards: true,
       canUploadImages: true,
       maxImageUploads: 500,
+      canUseAiGenerate: true,
       adFree: true,
     },
   },
 } as const;
+
+export const LIFETIME_PRICE_ID = process.env.STRIPE_PREMIUM_ONETIME_PRICE_ID || "price_1TIDDjGk2tmTlW8Zak5xV69e";
+export const LIFETIME_PRICE = 14.99;
 
 export type PlanType = keyof typeof PLANS;
 

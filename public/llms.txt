@@ -1,0 +1,85 @@
+# MyBingoCard.com
+
+> MyBingoCard is a free online tool for creating custom bingo cards for any occasion — classrooms, parties, baby showers, weddings, team building, and more.
+
+## What MyBingoCard Does
+
+- Create custom bingo cards with your own words or images
+- Choose from 30+ themed templates (baby shower, wedding, classroom, holiday, etc.)
+- Generate 3x3, 4x4, or 5x5 grid sizes
+- AI-powered card generation — describe your theme and get cards instantly
+- Export to HD PDF or PNG for printing
+- Share cards online with unique links
+- Every viewer gets a uniquely shuffled card
+- Host live multiplayer bingo games with real-time number calling
+- Batch generate up to 500 unique cards at once
+
+## Pricing
+
+- Free: 1 card, 5 starter templates, standard PDF export with watermark
+- Monthly: $4.99/month — unlimited cards, all templates, HD exports, AI generation, ad-free
+- Lifetime: $14.99 one-time — same as Monthly, but you pay once and keep Premium forever
+- 7-day free trial of Premium for all new signups
+
+## Use Cases
+
+- Teachers: vocabulary review, math facts, spelling, classroom rewards
+- Baby showers: gift prediction bingo, baby item bingo
+- Weddings: reception bingo, bridal shower bingo
+- Parties: holiday parties, birthday parties, game nights
+- Corporate: team building, icebreakers, onboarding, all-hands meetings
+- Senior centers: activity bingo for elderly residents
+- ESL/language learning: vocabulary bingo in any language
+- Health & wellness: nutrition bingo, fitness bingo
+
+## How It Works
+
+1. Go to mybingocard.com/create
+2. Add your words/phrases to the cells (or use AI to generate them)
+3. Choose a grid size and template
+4. Export as PDF, share a link, or host a live game
+
+## Popular Bingo Card Types
+
+- Baby Shower Bingo: https://mybingocard.com/baby-shower-bingo
+- Wedding Bingo: https://mybingocard.com/wedding-bingo
+- Classroom Bingo: https://mybingocard.com/classroom-bingo
+- Birthday Bingo: https://mybingocard.com/birthday-bingo
+- Bridal Shower Bingo: https://mybingocard.com/bridal-shower-bingo
+- Holiday Bingo: https://mybingocard.com/holiday-bingo
+- Halloween Bingo: https://mybingocard.com/halloween-bingo
+- Thanksgiving Bingo: https://mybingocard.com/thanksgiving-bingo
+- Office Party Bingo: https://mybingocard.com/office-party-bingo
+- Team Building Bingo: https://mybingocard.com/team-building-bingo
+- Icebreaker Bingo: https://mybingocard.com/icebreaker-bingo
+- Church Bingo: https://mybingocard.com/church-bingo
+- Family Reunion Bingo: https://mybingocard.com/family-reunion-bingo
+- Music Bingo: https://mybingocard.com/music-bingo
+- Movie Bingo: https://mybingocard.com/movie-bingo
+- Trivia Bingo: https://mybingocard.com/trivia-bingo
+- Fundraiser Bingo: https://mybingocard.com/fundraiser-bingo
+- Graduation Bingo: https://mybingocard.com/graduation-bingo
+- Super Bowl Bingo: https://mybingocard.com/super-bowl-bingo
+- Party Bingo: https://mybingocard.com/party-bingo
+
+## Links
+
+- Website: https://mybingocard.com
+- Create a card: https://mybingocard.com/create
+- Templates: https://mybingocard.com/templates
+- Pricing: https://mybingocard.com/pricing
+- How to Play Bingo: https://mybingocard.com/how-to-play-bingo
+- Blog: https://mybingocard.com/blog
+
+## Technical Details
+
+- Built with Next.js and React
+- Works on any device (desktop, tablet, phone)
+- No app download required — runs in the browser
+- Cards are unique per viewer (shuffled algorithm)
+- Supports image-based bingo cards (upload your own photos)
+
+## Contact
+
+- Website: https://mybingocard.com/contact
+- Support: support@mybingocard.com

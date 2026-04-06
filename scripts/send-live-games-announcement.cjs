@@ -73,8 +73,8 @@ function buildHtml(firstName) {
         <p style="color:#94a3b8;font-size:14px;text-align:center;margin:0;">See you Friday 🎉</p>
       </div>
       <div style="background:#f8fafc;padding:20px 32px;border-top:1px solid #e2e8f0;text-align:center;">
-        <p style="color:#94a3b8;font-size:12px;margin:0;">You're receiving this because you have a MyBingoCard account.<br>
-        <a href="https://mybingocard.com/unsubscribe" style="color:#94a3b8;">Unsubscribe</a></p>
+        <p style="color:#94a3b8;font-size:13px;margin:0;">You're receiving this because you have a MyBingoCard account.<br>
+        <a href="https://mybingocard.com/unsubscribe" style="color:#64748b;text-decoration:underline;">Unsubscribe</a></p>
       </div>
     </div>
   </div>

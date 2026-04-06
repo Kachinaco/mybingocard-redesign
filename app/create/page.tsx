@@ -12,6 +12,7 @@ import UpgradeModal from "@/components/UpgradeModal";
 import CardUsageBadge from "@/components/CardUsageBadge";
 import ImagePickerModal from "@/components/ImagePickerModal";
 import BingoCell from "@/components/BingoCell";
+import AiGenerateSection from "@/components/AiGenerateSection";
 import { isImageCell, parseImageCell, encodeImageCell } from "@/lib/cellContent";
 import {
   BATCH_PACKS,
@@ -103,7 +104,7 @@ function CreateCardContent() {
   const [mobileToast, setMobileToast] = useState("");
   const [mobileToastKey, setMobileToastKey] = useState(0);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [upgradeReason, setUpgradeReason] = useState<"card_limit" | "image_picker">("card_limit");
+  const [upgradeReason, setUpgradeReason] = useState<"card_limit" | "image_picker" | "ai_generate" | "batch_generate">("card_limit");
   const [imagePickerCellIndex, setImagePickerCellIndex] = useState<number | null>(null);
   const [showNewUserTip, setShowNewUserTip] = useState(false);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -212,6 +213,18 @@ function CreateCardContent() {
     const batchCountFromUrl = Number(searchParams.get("batchCount"));
     loadBatchPurchases(isBatchCount(batchCountFromUrl) ? batchCountFromUrl : undefined);
   }, [session?.user, checkingPermission, permissionStatus?.planType, searchParamsKey]);
+
+  // Auto-show auth modal for guest users returning from successful batch checkout
+  useEffect(() => {
+    if (
+      searchParams.get("batchPurchase") === "success" &&
+      searchParams.get("guest") === "true" &&
+      !session?.user
+    ) {
+      setBatchMode(true);
+      setShowAuthModal(true);
+    }
+  }, [searchParams, session?.user]);
 
   // Track batch checkout cancel when user returns with ?batchPurchase=canceled
   useEffect(() => {
@@ -489,24 +502,6 @@ function CreateCardContent() {
       return false;
     }
 
-    if (!hasSavableContent()) {
-      if (options?.suppressValidationErrors) {
-        setAutoSaveState("idle");
-        setAutoSaveError("");
-      } else {
-        trackClientActivity("card_save_blocked", {
-          reason: "empty_cells",
-          title: payload.title,
-          size: payload.size,
-          cells_filled: cellsFilledCount,
-        });
-        setError(t("error.fill_cell"));
-        setAutoSaveState("error");
-        setAutoSaveError(t("autosave.add_cell"));
-        showMobileToast(t("error.fill_cell"));
-      }
-      return false;
-    }
 
     setError("");
     setAutoSaveError("");
@@ -697,6 +692,11 @@ function CreateCardContent() {
     }
   };
 
+  const handleAiCellsGenerated = (newCells: string[]) => {
+    setCells(newCells);
+    trackOnce("ai_cells_applied", { size, cell_count: newCells.filter(c => c.trim()).length });
+  };
+
   const openImagePicker = (index: number) => {
     if (permissionStatus?.planType !== "PREMIUM") {
       setUpgradeReason("image_picker");
@@ -711,6 +711,15 @@ function CreateCardContent() {
     const encoded = encodeImageCell({ imageId, imageUrl, label });
     handleCellChange(imagePickerCellIndex, encoded);
     setImagePickerCellIndex(null);
+  };
+
+  const handleToggleImageFit = (index: number) => {
+    const cellValue = cells[index];
+    if (!cellValue) return;
+    const data = parseImageCell(cellValue);
+    if (!data) return;
+    const newFit = data.fit === "cover" ? "contain" : "cover";
+    handleCellChange(index, encodeImageCell({ ...data, fit: newFit }));
   };
 
   const handleClearImageCell = (index: number) => {
@@ -878,16 +887,28 @@ function CreateCardContent() {
   };
 
   const handleBatchCheckout = async () => {
-    if (!session?.user) {
-      redirectToSignupForCreation();
-      return;
-    }
-
     setBatchCheckoutLoading(true);
     setError("");
 
     try {
-      // Open embedded checkout via global modal
+      if (!session?.user) {
+        // Guest checkout: redirect to Stripe directly (no auth needed)
+        persistDraft();
+        const res = await fetch("/api/stripe/guest-batch-checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ batchCount }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.url) {
+          setError(data.error || "Failed to start checkout");
+          return;
+        }
+        window.location.href = data.url;
+        return;
+      }
+
+      // Authenticated checkout: use embedded modal
       await redirectToCheckout({
         purchaseType: "batch_pack",
         batchCount,
@@ -1058,11 +1079,14 @@ function CreateCardContent() {
   const selectedBatchPurchases = availableBatchCounts[batchCount] || 0;
   const hasSelectedBatchPurchase = selectedBatchPurchases > 0;
   const batchPurchaseStatus = searchParams.get("batchPurchase");
+  const isGuestReturn = searchParams.get("guest") === "true";
   const batchStatusMessage =
     batchPurchaseStatus === "success"
-      ? hasSelectedBatchPurchase
-        ? `${batchCount}-card batch purchased. It is ready to generate.`
-        : `Payment received. If your ${batchCount}-card batch does not unlock within a few seconds, refresh this page.`
+      ? isGuestReturn && !session?.user
+        ? `Payment received! Sign in with the email you used at checkout to access your ${batchCount}-card batch.`
+        : hasSelectedBatchPurchase
+          ? `${batchCount}-card batch purchased. It is ready to generate.`
+          : `Payment received. If your ${batchCount}-card batch does not unlock within a few seconds, refresh this page.`
       : batchPurchaseStatus === "canceled"
         ? "Batch purchase canceled."
         : "";
@@ -1078,9 +1102,7 @@ function CreateCardContent() {
         ? "Redirecting to checkout..."
         : isPremiumBatchUser || hasSelectedBatchPurchase
           ? `Generate ${batchCount} Unique Cards`
-          : session?.user
-            ? `Buy ${batchCount}-Card Batch • ${selectedBatchPrice}`
-            : `Sign in to buy ${batchCount}-Card Batch • ${selectedBatchPrice}`;
+          : `Buy ${batchCount}-Card Batch • ${selectedBatchPrice}`;
   const batchActionDisabled =
     showPreview ||
     batchLoading ||
@@ -1370,9 +1392,10 @@ function CreateCardContent() {
                   </div>
 
                   <div className="space-y-3 pt-2">
-                     <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                     <label htmlFor="free-space-toggle" className={`flex items-center gap-3 p-3 border border-gray-200 rounded-xl transition-colors ${showPreview ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"}`}>
                       <div className="relative flex items-center">
                         <input
+                            id="free-space-toggle"
                             type="checkbox"
                             checked={freeSpace}
                             onChange={(e) => {
@@ -1400,9 +1423,10 @@ function CreateCardContent() {
                       <span className="text-sm font-medium text-gray-700">Shuffle cells</span>
                     </button>
 
-                    <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
+                    <label htmlFor="public-toggle" className={`flex items-center gap-3 p-3 border border-gray-200 rounded-xl transition-colors ${showPreview ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"}`}>
                       <div className="relative flex items-center">
                          <input
+                            id="public-toggle"
                             type="checkbox"
                             checked={isPublic}
                             onChange={(e) => setIsPublic(e.target.checked)}
@@ -1418,6 +1442,20 @@ function CreateCardContent() {
                   </div>
                 </div>
               </div>
+
+              {/* AI Generate */}
+              <AiGenerateSection
+                size={size}
+                freeSpace={freeSpace}
+                title={title}
+                onCellsGenerated={handleAiCellsGenerated}
+                isPremium={permissionStatus?.planType === "PREMIUM"}
+                disabled={showPreview}
+                onUpgradeNeeded={() => {
+                  setUpgradeReason("ai_generate");
+                  setShowUpgradeModal(true);
+                }}
+              />
 
               {/* Style Customization */}
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
@@ -1555,158 +1593,176 @@ function CreateCardContent() {
                 </div>
               </div>
 
-              {/* Batch Generation */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                   <span className="w-8 h-8 rounded-lg bg-blue-50 text-[#007AFF] flex items-center justify-center">3</span>
-                   Batch Generate
+              {/* Batch Generation — Always visible, prominent */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-200/60 p-6">
+                <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
+                   <span className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm">
+                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                     </svg>
+                   </span>
+                   Print Multiple Cards
                 </h2>
+                <p className="text-sm text-gray-500 mb-4">Need cards for a group? Generate up to 500 unique shuffled cards from your content.</p>
 
-                <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors mb-4">
-                  <input
-                    type="checkbox"
-                    checked={batchMode}
-                    onChange={(e) => { setBatchMode(e.target.checked); setBatchResult(null); }}
-                    className="w-5 h-5 text-[#007AFF] border-gray-300 rounded focus:ring-[#007AFF]"
-                  />
-                  <div>
-                    <div className="text-sm font-medium text-gray-700">Enable batch mode</div>
-                    <div className="text-xs text-gray-500">Generate multiple unique cards from the same items</div>
-                  </div>
-                </label>
-
-                {batchMode && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                        Number of Cards
-                      </label>
-                      <div className="grid grid-cols-4 gap-2">
-                        {([30, 100, 250, 500] as const).map((n) => (
-                          <button
-                            key={n}
-                            onClick={() => setBatchCount(n)}
-                            className={`py-2 rounded-lg border text-sm font-medium transition-all ${
-                              batchCount === n
-                                ? "border-[#007AFF] bg-blue-50 text-[#007AFF] ring-1 ring-[#007AFF]"
-                                : "border-gray-200 bg-white text-gray-600 hover:border-[#007AFF]/30"
-                            }`}
-                          >
-                            <div className="font-semibold">{n}</div>
-                            {!isPremiumBatchUser && (
-                              <div className="mt-0.5 text-[11px] font-medium text-gray-500">
-                                {BATCH_PACKS[n].label}
-                              </div>
-                            )}
-                            {!isPremiumBatchUser && (availableBatchCounts[n] || 0) > 0 && (
-                              <div className="mt-1 text-[10px] font-semibold text-emerald-600">
-                                Ready x{availableBatchCounts[n]}
-                              </div>
-                            )}
-                          </button>
-                        ))}
-                      </div>
+                {/* Visual card stack */}
+                <div className="flex items-center justify-center mb-4">
+                  <div className="relative w-24 h-20">
+                    <div className="absolute top-0 left-2 w-16 h-16 bg-white rounded-lg border border-blue-200 shadow-sm transform rotate-[-6deg]" />
+                    <div className="absolute top-1 left-4 w-16 h-16 bg-white rounded-lg border border-blue-200 shadow-sm transform rotate-[-2deg]" />
+                    <div className="absolute top-2 left-6 w-16 h-16 bg-white rounded-lg border border-blue-300 shadow-md transform rotate-[2deg] flex items-center justify-center">
+                      <span className="text-blue-600 font-bold text-xs">BINGO</span>
                     </div>
+                  </div>
+                </div>
 
-                    {batchStatusMessage && (
-                      <div
-                        className={`rounded-xl border px-3 py-2 text-xs ${
-                          batchPurchaseStatus === "success"
-                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                            : "border-amber-200 bg-amber-50 text-amber-700"
+                {/* Tier selection — always visible */}
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  {([30, 100, 250, 500] as const).map((n) => {
+                    const isSelected = batchCount === n && batchMode;
+                    const hasReady = !isPremiumBatchUser && (availableBatchCounts[n] || 0) > 0;
+                    return (
+                      <button
+                        key={n}
+                        onClick={() => {
+                          setBatchMode(true); setBatchCount(n); setBatchResult(null);
+                          trackClientActivity("batch_tier_selected", {
+                            batch_count: n,
+                            price: BATCH_PACKS[n].label,
+                            plan_type: permissionStatus?.planType || "GUEST",
+                          });
+                        }}
+                        className={`relative py-3 px-2 rounded-xl border-2 text-center transition-all ${
+                          isSelected
+                            ? "border-blue-500 bg-white shadow-md ring-1 ring-blue-500/20"
+                            : "border-gray-200/80 bg-white/70 hover:border-blue-300 hover:bg-white"
                         }`}
                       >
-                        {batchStatusMessage}
-                      </div>
-                    )}
-
-                    {isPremiumBatchUser ? (
-                      <p className="text-xs text-gray-500">
-                        Each card will have a unique random arrangement of your items. Premium batch generation is included in your plan.
-                      </p>
-                    ) : (
-                      <div className="space-y-2">
-                        <p className="text-xs text-gray-500">
-                          Free accounts can buy one-time batch packs. Premium stays unchanged and still includes batch generation.
-                        </p>
-                        {availableBatchSummary && (
-                          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                            Purchased and ready: {availableBatchSummary}
+                        <div className="text-lg font-bold text-gray-900">{n}</div>
+                        <div className="text-[11px] font-medium text-gray-500">cards</div>
+                        {!isPremiumBatchUser && (
+                          <div className="mt-1 text-xs font-bold text-blue-600">
+                            {BATCH_PACKS[n].label}
                           </div>
                         )}
-                      </div>
-                    )}
-
-                    {batchResult && (
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-3">
-                        <p className="text-sm font-semibold text-emerald-800">
-                          {batchResult.count} cards generated!
-                        </p>
-                        <div className="space-y-2">
-                          <button
-                            onClick={() => handleBatchPdfDownload(1)}
-                            disabled={batchPdfLoading !== null}
-                            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
-                              batchPdfLoading === "pdf-1"
-                                ? "bg-red-700 text-white cursor-wait"
-                                : "bg-red-600 text-white hover:bg-red-700"
-                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-1" ? "cursor-not-allowed" : ""}`}
-                          >
-                            {batchPdfLoading === "pdf-1" ? "Generating PDF..." : "Download PDF (1 per page)"}
-                          </button>
-                          <button
-                            onClick={() => handleBatchPdfDownload(2)}
-                            disabled={batchPdfLoading !== null}
-                            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
-                              batchPdfLoading === "pdf-2"
-                                ? "bg-red-600 text-white cursor-wait"
-                                : "bg-red-500 text-white hover:bg-red-600"
-                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-2" ? "cursor-not-allowed" : ""}`}
-                          >
-                            {batchPdfLoading === "pdf-2" ? "Generating PDF..." : "Download PDF (2 per page)"}
-                          </button>
-                          <button
-                            onClick={() => handleBatchPdfDownload(4)}
-                            disabled={batchPdfLoading !== null}
-                            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
-                              batchPdfLoading === "pdf-4"
-                                ? "bg-red-500 text-white cursor-wait"
-                                : "bg-red-400 text-white hover:bg-red-500"
-                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-4" ? "cursor-not-allowed" : ""}`}
-                          >
-                            {batchPdfLoading === "pdf-4" ? "Generating PDF..." : "Download PDF (4 per page)"}
-                          </button>
-                          <button
-                            onClick={() => handleBatchPdfDownload(1, true)}
-                            disabled={batchPdfLoading !== null}
-                            className={`w-full py-2 rounded-lg text-sm font-semibold transition ${
-                              batchPdfLoading === "pdf-gray"
-                                ? "bg-slate-700 text-white cursor-wait"
-                                : "bg-slate-600 text-white hover:bg-slate-700"
-                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-gray" ? "cursor-not-allowed" : ""}`}
-                          >
-                            {batchPdfLoading === "pdf-gray" ? "Generating..." : "Download Grayscale PDF"}
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => router.push("/dashboard/cards")}
-                          className="w-full py-2 text-sm text-[#007AFF] hover:text-[#007AFF] font-medium"
-                        >
-                          View all cards in dashboard
-                        </button>
-                      </div>
-                    )}
-
-                    {!batchResult && (
-                      <button
-                        onClick={handleBatchPrimaryAction}
-                        disabled={batchActionDisabled}
-                        className="w-full bg-[#007AFF] text-white px-4 py-3 rounded-xl hover:shadow-sm transition-all disabled:opacity-50 font-bold text-sm"
-                      >
-                        {batchActionLabel}
+                        {isPremiumBatchUser && (
+                          <div className="mt-1 text-[10px] font-semibold text-emerald-600">Included</div>
+                        )}
+                        {hasReady && (
+                          <div className="absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                            Ready
+                          </div>
+                        )}
                       </button>
-                    )}
+                    );
+                  })}
+                </div>
+
+                {batchStatusMessage && (
+                  <div
+                    className={`rounded-xl border px-3 py-2 text-xs mb-3 ${
+                      batchPurchaseStatus === "success"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : "border-amber-200 bg-amber-50 text-amber-700"
+                    }`}
+                  >
+                    {batchStatusMessage}
                   </div>
+                )}
+
+                {isPremiumBatchUser && batchMode && (
+                  <p className="text-xs text-gray-500 mb-3">
+                    Every card gets a unique shuffled arrangement. Included with Premium.
+                  </p>
+                )}
+
+                {!isPremiumBatchUser && !session?.user && batchMode && (
+                  <p className="text-xs text-gray-500 mb-3">
+                    Sign up to purchase batch packs, or upgrade to Premium for unlimited batches.
+                  </p>
+                )}
+
+                {availableBatchSummary && !isPremiumBatchUser && (
+                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700 mb-3">
+                    Purchased: {availableBatchSummary}
+                  </div>
+                )}
+
+                {batchResult && (
+                  <div className="bg-white border border-emerald-200 rounded-xl p-4 space-y-3 mb-3">
+                    <p className="text-sm font-bold text-emerald-800 flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      {batchResult.count} cards generated!
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => handleBatchPdfDownload(1)}
+                        disabled={batchPdfLoading !== null}
+                        className={`py-2.5 rounded-lg text-xs font-semibold transition ${
+                          batchPdfLoading === "pdf-1" ? "bg-blue-700 text-white cursor-wait" : "bg-blue-600 text-white hover:bg-blue-700"
+                        }`}
+                      >
+                        {batchPdfLoading === "pdf-1" ? "..." : "1 per page"}
+                      </button>
+                      <button
+                        onClick={() => handleBatchPdfDownload(2)}
+                        disabled={batchPdfLoading !== null}
+                        className={`py-2.5 rounded-lg text-xs font-semibold transition ${
+                          batchPdfLoading === "pdf-2" ? "bg-blue-600 text-white cursor-wait" : "bg-blue-500 text-white hover:bg-blue-600"
+                        }`}
+                      >
+                        {batchPdfLoading === "pdf-2" ? "..." : "2 per page"}
+                      </button>
+                      <button
+                        onClick={() => handleBatchPdfDownload(4)}
+                        disabled={batchPdfLoading !== null}
+                        className={`py-2.5 rounded-lg text-xs font-semibold transition ${
+                          batchPdfLoading === "pdf-4" ? "bg-blue-500 text-white cursor-wait" : "bg-blue-400 text-white hover:bg-blue-500"
+                        }`}
+                      >
+                        {batchPdfLoading === "pdf-4" ? "..." : "4 per page"}
+                      </button>
+                      <button
+                        onClick={() => handleBatchPdfDownload(1, true)}
+                        disabled={batchPdfLoading !== null}
+                        className={`py-2.5 rounded-lg text-xs font-semibold transition ${
+                          batchPdfLoading === "pdf-gray" ? "bg-slate-700 text-white cursor-wait" : "bg-slate-500 text-white hover:bg-slate-600"
+                        }`}
+                      >
+                        {batchPdfLoading === "pdf-gray" ? "..." : "Grayscale"}
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => router.push("/dashboard/cards")}
+                      className="w-full py-2 text-sm text-[#007AFF] font-medium"
+                    >
+                      View all cards in dashboard
+                    </button>
+                  </div>
+                )}
+
+                {batchMode && !batchResult && (
+                  <button
+                    onClick={handleBatchPrimaryAction}
+                    disabled={batchActionDisabled}
+                    className="w-full bg-blue-600 text-white px-4 py-3 rounded-xl hover:bg-blue-700 hover:shadow-md transition-all disabled:opacity-50 font-bold text-sm"
+                  >
+                    {batchActionLabel}
+                  </button>
+                )}
+
+                {!batchMode && (
+                  <button
+                    onClick={() => { setBatchMode(true); setBatchResult(null); }}
+                    className="w-full bg-blue-600 text-white px-4 py-3 rounded-xl hover:bg-blue-700 hover:shadow-md transition-all font-bold text-sm flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    Select a Batch Size
+                  </button>
                 )}
               </div>
             </div>
@@ -1726,15 +1782,15 @@ function CreateCardContent() {
                 </div>
 
                 {/* Bingo Grid */}
-                <div className="flex-grow flex items-center justify-center bg-[#f2f2f7] rounded-xl border border-gray-200 p-3 md:p-6 mb-8">
+                <div className="flex-grow flex items-center justify-center bg-[#f2f2f7] rounded-xl border border-gray-200 p-2 md:p-6 mb-8">
                    <div className="w-full">
                       {/* Grid Header - matches grid columns */}
                       <div
                         className="grid mb-1.5 md:mb-2 text-center font-bold tracking-widest text-gray-900 opacity-90"
-                        style={{ gridTemplateColumns: `repeat(${size}, 1fr)`, gap: size === 5 ? "4px" : "8px" }}
+                        style={{ gridTemplateColumns: `repeat(${size}, 1fr)`, gap: size === 5 ? "3px" : "8px" }}
                       >
                          <div
-                           className="py-1.5 text-sm font-bold text-center text-[#007AFF] truncate px-2"
+                           className={`font-bold text-center text-[#007AFF] truncate px-2 ${size === 5 ? "py-1 text-xs md:text-sm" : "py-1.5 text-sm"}`}
                            style={{ gridColumn: "1 / -1" }}
                          >
                            {title || "My Bingo Card"}
@@ -1745,7 +1801,7 @@ function CreateCardContent() {
                         className="grid"
                         style={{
                           gridTemplateColumns: `repeat(${size}, 1fr)`,
-                          gap: size === 5 ? "4px" : size === 4 ? "6px" : "8px",
+                          gap: size === 5 ? "3px" : size === 4 ? "6px" : "8px",
                         }}
                       >
                         {cells.map((cell, index) => {
@@ -1756,7 +1812,9 @@ function CreateCardContent() {
                           return (
                             <div
                               key={index}
-                              className={`aspect-square relative group transition-all duration-200 ${
+                              className={`relative group transition-all duration-200 ${
+                                size === 5 ? "aspect-[1/1.1] md:aspect-square" : "aspect-square"
+                              } ${
                                 showPreview ? "shadow-sm" : "focus-within:ring-2 focus-within:ring-[#007AFF] focus-within:ring-offset-1"
                               }`}
                               style={{
@@ -1766,7 +1824,7 @@ function CreateCardContent() {
                             >
                               {isFreeSpace ? (
                                 <div
-                                  className="w-full h-full flex items-center justify-center border-2 rounded-lg md:rounded-xl font-bold p-1 text-center shadow-inner bg-opacity-90"
+                                  className={`w-full h-full flex items-center justify-center border-2 font-bold p-1 text-center shadow-inner bg-opacity-90 ${size === 5 ? "rounded-md md:rounded-xl text-xs md:text-base" : "rounded-lg md:rounded-xl"}`}
                                   style={{
                                     color: "#4338ca",
                                     fontSize: style.fontSize,
@@ -1780,22 +1838,35 @@ function CreateCardContent() {
                               ) : showPreview ? (
                                 <BingoCell cell={cell} style={style} size={size} />
                               ) : cellIsImage && imageData ? (
-                                /* Image cell in edit mode — shows image with swap/remove buttons */
+                                /* Image cell in edit mode — shows image with swap/remove/fit buttons */
                                 <div
-                                  className="w-full h-full flex flex-col items-center justify-center border rounded-lg md:rounded-xl p-1 overflow-hidden transition-colors"
-                                  style={{ borderColor: style.borderColor, backgroundColor: style.backgroundColor }}
+                                  className="w-full h-full flex flex-col items-center justify-center border rounded-lg md:rounded-xl overflow-hidden transition-colors"
+                                  style={{ borderColor: style.borderColor, backgroundColor: style.backgroundColor, padding: imageData.fit === "cover" ? 0 : "4px" }}
                                 >
-                                  <img
-                                    src={imageData.imageUrl}
-                                    alt={imageData.label || ""}
-                                    className="max-w-full max-h-[60%] object-contain"
-                                  />
-                                  {imageData.label && (
+                                  {imageData.fit === "cover" ? (
+                                    <img
+                                      src={imageData.imageUrl}
+                                      alt={imageData.label || ""}
+                                      className="absolute inset-0 w-full h-full object-cover rounded-lg md:rounded-xl"
+                                    />
+                                  ) : (
+                                    <img
+                                      src={imageData.imageUrl}
+                                      alt={imageData.label || ""}
+                                      className="max-w-full max-h-[60%] object-contain"
+                                    />
+                                  )}
+                                  {imageData.label && imageData.fit !== "cover" && (
                                     <span className="text-[9px] md:text-[10px] font-medium text-gray-700 mt-0.5 line-clamp-1 w-full text-center">
                                       {imageData.label}
                                     </span>
                                   )}
-                                  {/* Hover overlay with swap & remove */}
+                                  {imageData.label && imageData.fit === "cover" && (
+                                    <span className="relative z-10 mt-auto mb-1 text-[9px] md:text-[10px] font-medium bg-black/40 text-white px-1 py-0.5 rounded line-clamp-1 text-center">
+                                      {imageData.label}
+                                    </span>
+                                  )}
+                                  {/* Hover overlay with swap, fit & remove */}
                                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-lg md:rounded-xl flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100">
                                     <button
                                       onClick={() => openImagePicker(index)}
@@ -1804,6 +1875,15 @@ function CreateCardContent() {
                                     >
                                       <svg className="w-3.5 h-3.5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                      </svg>
+                                    </button>
+                                    <button
+                                      onClick={() => handleToggleImageFit(index)}
+                                      className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+                                      title={imageData.fit === "cover" ? "Original size" : "Fill square"}
+                                    >
+                                      <svg className="w-3.5 h-3.5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                                       </svg>
                                     </button>
                                     <button
@@ -1820,7 +1900,7 @@ function CreateCardContent() {
                               ) : (
                                 /* Text cell in edit mode — has camera button to add image */
                                 <div className="relative w-full h-full flex flex-col">
-                                  <div className="flex-1 flex items-center justify-center border rounded-lg md:rounded-xl overflow-y-auto transition-colors hover:bg-gray-50/50 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#007AFF] focus-within:ring-offset-1"
+                                  <div className={`flex-1 flex items-center justify-center border overflow-y-auto transition-colors hover:bg-gray-50/50 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#007AFF] focus-within:ring-offset-1 ${size === 5 ? "rounded-md md:rounded-xl" : "rounded-lg md:rounded-xl"}`}
                                     style={{ borderColor: style.borderColor }}
                                   >
                                     <textarea
@@ -1839,7 +1919,7 @@ function CreateCardContent() {
                                       }}
                                       placeholder={`${index + 1}`}
                                       rows={1}
-                                      className={`w-full text-center bg-transparent resize-none focus:outline-none placeholder:text-gray-300 leading-tight p-1 ${size === 5 ? "text-xs md:text-sm" : "text-sm"}`}
+                                      className={`w-full text-center bg-transparent resize-none focus:outline-none placeholder:text-gray-300 leading-tight ${size === 5 ? "text-[11px] md:text-sm p-0.5 md:p-1" : "text-sm p-1"}`}
                                       style={{
                                         color: style.textColor,
                                         fontFamily: style.fontFamily,
@@ -1849,10 +1929,10 @@ function CreateCardContent() {
                                       }}
                                     />
                                   </div>
-                                  {/* Camera button — always visible at bottom of cell */}
+                                  {/* Camera button — hidden on mobile 5x5 until focused, always visible otherwise */}
                                   <button
                                     onClick={() => openImagePicker(index)}
-                                    className="absolute bottom-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-gray-200/80 hover:bg-[#007AFF] text-gray-400 hover:text-white flex items-center justify-center transition-all"
+                                    className={`absolute bottom-0.5 md:bottom-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-gray-200/80 hover:bg-[#007AFF] text-gray-400 hover:text-white flex items-center justify-center transition-all ${size === 5 ? "opacity-0 group-focus-within:opacity-100 md:opacity-100" : ""}`}
                                     title="Add image"
                                     type="button"
                                   >
@@ -1926,6 +2006,28 @@ function CreateCardContent() {
               </div>
             </div>
           )}
+          {/* Upgrade nudge for free authenticated users */}
+          {session?.user && permissionStatus?.planType === "FREE" && !isEditingExistingCard && (
+            <div className="mx-3 mb-1">
+              <button
+                onClick={() => { setUpgradeReason("batch_generate"); setShowUpgradeModal(true); }}
+                className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-lg flex items-center justify-center gap-1.5"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+                Get Premium — AI, Batch, Unlimited Cards — $14.99 lifetime
+              </button>
+            </div>
+          )}
+          {/* Signup nudge for anonymous users */}
+          {!session?.user && (
+            <div className="mx-3 mb-1">
+              <div className="bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-2 rounded-xl text-xs font-semibold text-center">
+                Your card is ready! Sign up free to save it.
+              </div>
+            </div>
+          )}
           <div className="bg-white border-t border-gray-200 shadow-lg">
             <div className="container mx-auto px-4 py-3">
               <div className="flex gap-2">
@@ -1992,15 +2094,18 @@ function CreateCardContent() {
             <div style={{ fontSize: "40px", marginBottom: "12px" }}>🎯</div>
 
             <h2 style={{ margin: "0 0 6px", fontSize: "22px", fontWeight: 800, color: "#1e293b", letterSpacing: "-0.5px" }}>
-              Save your card
+              Your card is ready!
             </h2>
             {title && (
               <p style={{ margin: "0 0 4px", fontSize: "14px", color: "#7c3aed", fontWeight: 600 }}>
                 &ldquo;{title}&rdquo;
               </p>
             )}
-            <p style={{ margin: "0 0 24px", fontSize: "14px", color: "#64748b" }}>
-              Free to join — takes 10 seconds
+            <p style={{ margin: "0 0 6px", fontSize: "14px", color: "#64748b" }}>
+              Sign up to save, share, and download your card.
+            </p>
+            <p style={{ margin: "0 0 24px", fontSize: "13px", color: "#94a3b8" }}>
+              Free — takes 10 seconds. Your card will be waiting.
             </p>
 
             {!magicSent ? (

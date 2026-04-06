@@ -23,6 +23,13 @@ interface OtherPlayer {
   markedCount: number;
 }
 
+type WinCondition = "standard" | "four_corners" | "blackout";
+
+interface GameWinner {
+  playerId: string;
+  playerName: string;
+}
+
 export default function PlayGamePage() {
   const params = useParams();
   const router = useRouter();
@@ -44,6 +51,9 @@ export default function PlayGamePage() {
   const [style, setStyle] = useState<any>({});
   const [error, setError] = useState("");
   const [claimingBingo, setClaimingBingo] = useState(false);
+  const [winCondition, setWinCondition] = useState<WinCondition>("standard");
+  const [allowMultipleWinners, setAllowMultipleWinners] = useState(false);
+  const [winners, setWinners] = useState<GameWinner[]>([]);
 
   const prevCalledCountRef = useRef(0);
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -78,6 +88,11 @@ export default function PlayGamePage() {
           setStyle(d.room.style || {});
           setGameStatus(d.room.status);
           setCalledItems(d.room.calledItems || []);
+          if (d.room.settings) {
+            setWinCondition(d.room.settings.winCondition || "standard");
+            setAllowMultipleWinners(d.room.settings.allowMultipleWinners || false);
+          }
+          if (d.room.winners) setWinners(d.room.winners);
           prevCalledCountRef.current = d.room.calledItems?.length || 0;
           if (d.room.calledItems?.length) {
             setLastCalledItem(d.room.calledItems[d.room.calledItems.length - 1]);
@@ -96,6 +111,10 @@ export default function PlayGamePage() {
 
         setGameStatus(data.status);
         setOtherPlayers(data.players || []);
+        if (data.settings) {
+          setWinCondition(data.settings.winCondition || "standard");
+          setAllowMultipleWinners(data.settings.allowMultipleWinners || false);
+        }
 
         if (data.calledItems) {
           setCalledItems((prev) => {
@@ -110,9 +129,16 @@ export default function PlayGamePage() {
           });
         }
 
+        // Handle winners
+        const newWinners = data.winners || [];
+        setWinners((prev) => {
+          if (newWinners.length > prev.length) {
+            playBingoSound();
+          }
+          return newWinners;
+        });
         if (data.winnerName) {
           setWinnerName(data.winnerName);
-          playBingoSound();
         }
       } catch {}
     };
@@ -129,20 +155,27 @@ export default function PlayGamePage() {
 
   const checkBingoWin = useCallback(
     (markedSet: Set<number>): boolean => {
-      const grid = Array.from({ length: size }, (_, r) =>
-        Array.from({ length: size }, (_, c) => markedSet.has(r * size + c))
+      const s = size;
+      if (winCondition === "four_corners") {
+        return [0, s - 1, s * (s - 1), s * s - 1].every(idx => markedSet.has(idx));
+      }
+      if (winCondition === "blackout") {
+        return markedSet.size >= s * s;
+      }
+      const grid = Array.from({ length: s }, (_, r) =>
+        Array.from({ length: s }, (_, c) => markedSet.has(r * s + c))
       );
-      for (let r = 0; r < size; r++) {
+      for (let r = 0; r < s; r++) {
         if (grid[r]?.every(Boolean)) return true;
       }
-      for (let c = 0; c < size; c++) {
+      for (let c = 0; c < s; c++) {
         if (grid.map((row) => row[c] ?? false).every(Boolean)) return true;
       }
-      if (Array.from({ length: size }, (_, i) => grid[i]?.[i] ?? false).every(Boolean)) return true;
-      if (Array.from({ length: size }, (_, i) => grid[i]?.[size - 1 - i] ?? false).every(Boolean)) return true;
+      if (Array.from({ length: s }, (_, i) => grid[i]?.[i] ?? false).every(Boolean)) return true;
+      if (Array.from({ length: s }, (_, i) => grid[i]?.[s - 1 - i] ?? false).every(Boolean)) return true;
       return false;
     },
-    [size]
+    [size, winCondition]
   );
 
   const toggleCell = async (index: number) => {
@@ -265,8 +298,38 @@ export default function PlayGamePage() {
           </div>
         )}
 
+        {/* Win Condition Badge */}
+        {gameStatus === "active" && winCondition !== "standard" && (
+          <div className="mb-3 text-center">
+            <span className="px-3 py-1 bg-violet-100 text-violet-700 rounded-full text-xs font-bold">
+              {winCondition === "four_corners" ? "Win: Four Corners" : "Win: Blackout (Full Card)"}
+            </span>
+          </div>
+        )}
+
         {/* Winner Banner */}
-        {winnerName && (
+        {winners.length > 0 && gameStatus === "finished" && (
+          <div className="mb-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl p-4 text-center font-black shadow-lg">
+            {winners.some(w => w.playerId === player.playerId) ? (
+              <div className="text-xl">🎉 YOU WON! BINGO! 🎉</div>
+            ) : winners.length === 1 ? (
+              <div className="text-xl">🏆 {winners[0]!.playerName} got BINGO! 🏆</div>
+            ) : (
+              <div>
+                <div className="text-lg mb-1">🏆 Game Over! 🏆</div>
+                <div className="text-sm font-semibold">{winners.map(w => w.playerName).join(", ")}</div>
+              </div>
+            )}
+          </div>
+        )}
+        {winnerName && gameStatus === "active" && allowMultipleWinners && (
+          <div className="mb-3 p-2.5 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800 text-sm text-center font-semibold">
+            {winners.some(w => w.playerId === player.playerId)
+              ? "You got BINGO! Game continues for other players."
+              : `${winnerName} got BINGO! Game continues — you can still win!`}
+          </div>
+        )}
+        {winnerName && !allowMultipleWinners && (
           <div className="mb-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl p-4 text-center font-black text-xl shadow-lg">
             {winnerName === player.playerName
               ? "🎉 YOU WON! BINGO! 🎉"
@@ -293,7 +356,7 @@ export default function PlayGamePage() {
         )}
 
         {/* Bingo Claim Button */}
-        {hasBingo && gameStatus === "active" && !winnerName && (
+        {hasBingo && gameStatus === "active" && (allowMultipleWinners ? !winners.some(w => w.playerId === player.playerId) : !winnerName) && (
           <button
             onClick={claimBingoWin}
             disabled={claimingBingo}
@@ -354,16 +417,27 @@ export default function PlayGamePage() {
                     <span className="flex flex-col items-center gap-0.5">
                       <span className="text-base leading-none">&#10003;</span>
                       {isImageCell(cell) ? (
-                        <img src={parseImageCell(cell)?.imageUrl} alt="" className="max-w-[60%] max-h-[40%] object-contain opacity-60" />
+                        parseImageCell(cell)?.fit === "cover" ? (
+                          <img src={parseImageCell(cell)?.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover rounded-lg md:rounded-xl opacity-60" />
+                        ) : (
+                          <img src={parseImageCell(cell)?.imageUrl} alt="" className="max-w-[60%] max-h-[40%] object-contain opacity-60" />
+                        )
                       ) : (
                         <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: fittedSizes.has(index) ? `${fittedSizes.get(index)! * 0.55}px` : "0.55em" }}>{cell}</span>
                       )}
                     </span>
                   ) : isImageCell(cell) ? (
-                    <span className="flex flex-col items-center gap-0.5 w-full h-full justify-center p-0.5">
-                      <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-full max-h-[70%] object-contain" loading="lazy" />
-                      {getCellDisplayText(cell) && <span className="text-[0.5em] leading-tight text-center w-full truncate">{getCellDisplayText(cell)}</span>}
-                    </span>
+                    parseImageCell(cell)?.fit === "cover" ? (
+                      <span className="w-full h-full relative">
+                        <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="absolute inset-0 w-full h-full object-cover rounded-lg md:rounded-xl" loading="lazy" />
+                        {getCellDisplayText(cell) && <span className="absolute bottom-0.5 left-0.5 right-0.5 text-[0.5em] leading-tight text-center truncate bg-black/40 text-white px-1 py-0.5 rounded">{getCellDisplayText(cell)}</span>}
+                      </span>
+                    ) : (
+                      <span className="flex flex-col items-center gap-0.5 w-full h-full justify-center p-0.5">
+                        <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-full max-h-[70%] object-contain" loading="lazy" />
+                        {getCellDisplayText(cell) && <span className="text-[0.5em] leading-tight text-center w-full truncate">{getCellDisplayText(cell)}</span>}
+                      </span>
+                    )
                   ) : (
                     <span className="break-words leading-tight text-center" style={fittedSizes.has(index) ? { fontSize: `${fittedSizes.get(index)}px` } : undefined}>{cell}</span>
                   )}
