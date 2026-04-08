@@ -31,6 +31,10 @@ async function computeSizes(
   const available = cellWidth - PADDING * 2;
   if (available <= 0) return sizes;
 
+  // Use a tighter box to prevent edge clipping from subpixel rounding
+  const fitWidth = Math.floor(available * 0.92);
+  const fitHeight = Math.floor(available * 0.92);
+
   const range = FONT_RANGES[gridSize]!;
   const { min, max } = range;
 
@@ -46,8 +50,8 @@ async function computeSizes(
       const mid = Math.round((lo + hi) / 2 * 2) / 2; // 0.5px steps
       const font = `600 ${mid}px ${fontFamily}`;
       const prepared = prepare(cell, font);
-      const result = layout(prepared, available, mid * LINE_HEIGHT_RATIO);
-      if (result.height <= available * 0.95) {
+      const result = layout(prepared, fitWidth, mid * LINE_HEIGHT_RATIO);
+      if (result.height <= fitHeight) {
         best = mid;
         lo = mid + 0.5;
       } else {

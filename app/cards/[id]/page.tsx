@@ -644,10 +644,10 @@ export default function CardViewPage() {
           </section>
         )}
 
-        <div className={`${isFullscreen ? "" : "grid lg:grid-cols-12 gap-6"}`}>
+        <div className={isFullscreen ? "" : "space-y-6"}>
           {!isFullscreen && (
-            <div className="hidden lg:block lg:col-span-3 space-y-4 print:hidden">
-              <div className={`rounded-2xl shadow-sm border overflow-hidden ${
+            <div className="flex flex-wrap gap-3 items-start print:hidden">
+              <div className={`flex-1 min-w-[300px] rounded-2xl shadow-sm border overflow-hidden ${
                 "bg-white border-slate-100"
               }`}>
                 <div className={`flex border-b ${"border-slate-100"}`}>
@@ -849,7 +849,7 @@ export default function CardViewPage() {
                 )}
               </div>
 
-              <div className={`rounded-2xl shadow-sm border p-4 ${"bg-white border-slate-100"}`}>
+              <div className={`w-[200px] flex-shrink-0 rounded-2xl shadow-sm border p-4 ${"bg-white border-slate-100"}`}>
                 <h3 className={`text-sm font-semibold mb-3 ${"text-slate-700"}`}>Card Details</h3>
                 <div className="space-y-1.5 text-sm">
                   {([
@@ -869,7 +869,7 @@ export default function CardViewPage() {
           )}
 
           {/* Card grid */}
-          <div className={isFullscreen ? "bingo-container w-full max-w-2xl mx-auto" : "lg:col-span-9"}>
+          <div className={isFullscreen ? "bingo-container w-full max-w-2xl mx-auto" : "w-full"}>
            <ThemedCardWrapper theme={card.style?.theme} title={card.title}>
             <div className={`rounded-2xl shadow-sm border p-3 md:p-6 print-card ${"bg-white border-slate-100"}`} ref={cardRef}>
               <div className="text-center mb-3 md:mb-6">
