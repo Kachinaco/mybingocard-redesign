@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 
 interface AdminUser {
@@ -13,6 +13,9 @@ interface AdminUser {
   lastActive: string;
   image?: string;
   cardCount: number;
+  trialEndsAt: string | null;
+  requiresCheckout: boolean;
+  stripeCustomerId: string | null;
 }
 
 interface UsersResponse {
@@ -23,32 +26,159 @@ interface UsersResponse {
   totalPages: number;
 }
 
+const PLAN_OPTIONS = [
+  { value: "", label: "All Plans" },
+  { value: "premium", label: "Premium" },
+  { value: "free", label: "Free" },
+  { value: "trialing", label: "Trialing" },
+  { value: "lifetime", label: "Lifetime" },
+  { value: "past_due", label: "Past Due" },
+  { value: "canceled", label: "Canceled" },
+] as const;
+
+const SORT_OPTIONS = [
+  { value: "newest", label: "Newest" },
+  { value: "oldest", label: "Oldest" },
+  { value: "last_active", label: "Last Active" },
+  { value: "most_cards", label: "Most Cards" },
+] as const;
+
+function getPlanBadge(user: AdminUser): {
+  label: string;
+  dotColor: string;
+  bgColor: string;
+  textColor: string;
+} {
+  const { planType, subscriptionStatus, trialEndsAt, requiresCheckout } = user;
+
+  if (subscriptionStatus === "trialing" && trialEndsAt) {
+    const trialEndMs = new Date(trialEndsAt).getTime();
+    const trialStartMs = trialEndMs - 7 * 24 * 60 * 60 * 1000;
+    const trialDay = Math.max(
+      1,
+      Math.ceil((Date.now() - trialStartMs) / (24 * 60 * 60 * 1000))
+    );
+    return {
+      label: `Trial Day ${trialDay}`,
+      dotColor: "bg-amber-500",
+      bgColor: "bg-amber-50",
+      textColor: "text-amber-700",
+    };
+  }
+
+  if (subscriptionStatus === "lifetime" || planType === "LIFETIME") {
+    return {
+      label: "Lifetime",
+      dotColor: "bg-purple-500",
+      bgColor: "bg-purple-50",
+      textColor: "text-purple-700",
+    };
+  }
+
+  if (planType === "PREMIUM" && subscriptionStatus === "active") {
+    return {
+      label: "Premium",
+      dotColor: "bg-emerald-500",
+      bgColor: "bg-indigo-50",
+      textColor: "text-indigo-700",
+    };
+  }
+
+  if (subscriptionStatus === "past_due") {
+    return {
+      label: "Past Due",
+      dotColor: "bg-red-500",
+      bgColor: "bg-red-50",
+      textColor: "text-red-700",
+    };
+  }
+
+  if (subscriptionStatus === "canceled") {
+    return {
+      label: "Canceled",
+      dotColor: "bg-slate-400",
+      bgColor: "bg-slate-100",
+      textColor: "text-slate-600",
+    };
+  }
+
+  if (requiresCheckout) {
+    return {
+      label: "No Card",
+      dotColor: "bg-red-400",
+      bgColor: "bg-red-50",
+      textColor: "text-red-600",
+    };
+  }
+
+  return {
+    label: "Free",
+    dotColor: "bg-slate-400",
+    bgColor: "bg-slate-100",
+    textColor: "text-slate-600",
+  };
+}
+
 export default function AdminUsersPage() {
   const [data, setData] = useState<UsersResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [plan, setPlan] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchRef = useRef("");
 
-  const fetchUsers = useCallback(async (pageNum: number) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/admin/users?page=${pageNum}&limit=50`);
-      if (!res.ok) {
-        throw new Error("Failed to fetch users");
+  const fetchUsers = useCallback(
+    async (pageNum: number, searchVal: string, planVal: string, sortVal: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams({
+          page: String(pageNum),
+          limit: "50",
+        });
+        if (searchVal) params.set("search", searchVal);
+        if (planVal) params.set("plan", planVal);
+        if (sortVal && sortVal !== "newest") params.set("sort", sortVal);
+
+        const res = await fetch(`/api/admin/users?${params}`);
+        if (!res.ok) throw new Error("Failed to fetch users");
+        const json: UsersResponse = await res.json();
+        setData(json);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setLoading(false);
       }
-      const json: UsersResponse = await res.json();
-      setData(json);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   useEffect(() => {
-    fetchUsers(page);
-  }, [page, fetchUsers]);
+    fetchUsers(page, searchRef.current, plan, sortBy);
+  }, [page, plan, sortBy, fetchUsers]);
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    searchRef.current = value;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setPage(1);
+      fetchUsers(1, value, plan, sortBy);
+    }, 350);
+  };
+
+  const handlePlanChange = (value: string) => {
+    setPlan(value);
+    setPage(1);
+  };
+
+  const handleSortChange = (value: string) => {
+    setSortBy(value);
+    setPage(1);
+  };
 
   return (
     <div>
@@ -66,6 +196,54 @@ export default function AdminUsersPage() {
           {error}
         </div>
       )}
+
+      {/* Search, Filter, Sort Controls */}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+            />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search by name or email..."
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          />
+        </div>
+        <select
+          value={plan}
+          onChange={(e) => handlePlanChange(e.target.value)}
+          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+        >
+          {PLAN_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        <select
+          value={sortBy}
+          onChange={(e) => handleSortChange(e.target.value)}
+          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+        >
+          {SORT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         {loading ? (
@@ -124,24 +302,19 @@ export default function AdminUsersPage() {
                         {user.email}
                       </td>
                       <td className="py-3.5 px-6">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                            user.planType === "PREMIUM"
-                              ? "bg-indigo-50 text-indigo-700"
-                              : "bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              user.planType === "PREMIUM"
-                                ? user.subscriptionStatus === "active"
-                                  ? "bg-emerald-500"
-                                  : "bg-amber-500"
-                                : "bg-slate-400"
-                            }`}
-                          ></span>
-                          {user.planType}
-                        </span>
+                        {(() => {
+                          const badge = getPlanBadge(user);
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ${badge.bgColor} ${badge.textColor}`}
+                            >
+                              <span
+                                className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`}
+                              ></span>
+                              {badge.label}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="py-3.5 px-6 text-sm text-slate-600 font-medium">
                         {user.cardCount}
@@ -207,24 +380,19 @@ export default function AdminUsersPage() {
                             {user.email}
                           </p>
                         </div>
-                        <span
-                          className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                            user.planType === "PREMIUM"
-                              ? "bg-indigo-50 text-indigo-700"
-                              : "bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          <span
-                            className={`h-1.5 w-1.5 rounded-full ${
-                              user.planType === "PREMIUM"
-                                ? user.subscriptionStatus === "active"
-                                  ? "bg-emerald-500"
-                                  : "bg-amber-500"
-                                : "bg-slate-400"
-                            }`}
-                          ></span>
-                          {user.planType}
-                        </span>
+                        {(() => {
+                          const badge = getPlanBadge(user);
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ${badge.bgColor} ${badge.textColor}`}
+                            >
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${badge.dotColor}`}
+                              ></span>
+                              {badge.label}
+                            </span>
+                          );
+                        })()}
                       </div>
                       <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-400">
                         <span>{user.cardCount} cards</span>

@@ -2,6 +2,8 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getAdminSessionEmail, isAdminSession } from "@/lib/admin";
+import clientPromise from "@/lib/mongodb";
+import { AdminMobileNav } from "./admin-mobile-nav";
 
 const navItems = [
   {
@@ -39,7 +41,6 @@ const navItems = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
       </svg>
     ),
-    disabled: true,
   },
   {
     label: "Support",
@@ -51,6 +52,24 @@ const navItems = [
     ),
   },
 ];
+
+async function getLayoutBadges() {
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+
+  const [openTickets, pastDueUsers, paidUsers] = await Promise.all([
+    db.collection("support_tickets").countDocuments({ status: "open" }),
+    db.collection("users").countDocuments({ subscriptionStatus: "past_due" }),
+    db.collection("users").countDocuments({ subscriptionStatus: "active" }),
+  ]);
+
+  return {
+    openTickets,
+    pastDueUsers,
+    mrr: paidUsers * 4.99,
+    activeUsers: paidUsers,
+  };
+}
 
 export default async function AdminLayout({
   children,
@@ -70,6 +89,19 @@ export default async function AdminLayout({
   if (!isAdminSession(session)) {
     redirect("/dashboard");
   }
+
+  const badges = await getLayoutBadges();
+
+  const mobileNavItems = navItems.map((item) => ({
+    label: item.label,
+    href: item.href,
+    badge:
+      item.label === "Support"
+        ? badges.openTickets
+        : item.label === "Users"
+          ? badges.pastDueUsers
+          : undefined,
+  }));
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -96,26 +128,10 @@ export default async function AdminLayout({
           </div>
 
           <div className="flex flex-col gap-3 pb-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex gap-2 overflow-x-auto pb-1 sm:hidden">
-              {navItems.map((item) =>
-                item.disabled ? (
-                  <span
-                    key={item.label}
-                    className="shrink-0 rounded-full border border-slate-200 bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-400"
-                  >
-                    {item.label}
-                  </span>
-                ) : (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
-                  >
-                    {item.label}
-                  </Link>
-                )
-              )}
-            </div>
+            <AdminMobileNav
+              navItems={mobileNavItems}
+              quickStats={{ mrr: badges.mrr, activeUsers: badges.activeUsers }}
+            />
 
             <div className="flex flex-wrap items-center gap-2">
               {impersonation?.active ? (
@@ -141,27 +157,29 @@ export default async function AdminLayout({
       <div className="mx-auto flex w-full max-w-[1600px]">
         <aside className="sticky top-[101px] hidden h-[calc(100vh-101px)] w-60 shrink-0 overflow-y-auto border-r border-slate-200 bg-white lg:block">
           <nav className="p-4 space-y-1">
-            {navItems.map((item) => (
-              <div key={item.label}>
-                {item.disabled ? (
-                  <span className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 cursor-not-allowed">
-                    {item.icon}
-                    {item.label}
-                    <span className="ml-auto text-[10px] font-semibold uppercase tracking-wider text-slate-300">
-                      Soon
+            {navItems.map((item) => {
+              const badge =
+                item.label === "Support"
+                  ? badges.openTickets
+                  : item.label === "Users"
+                    ? badges.pastDueUsers
+                    : 0;
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
+                >
+                  {item.icon}
+                  {item.label}
+                  {badge > 0 && (
+                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white">
+                      {badge > 99 ? "99+" : badge}
                     </span>
-                  </span>
-                ) : (
-                  <Link
-                    href={item.href}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
-                  >
-                    {item.icon}
-                    {item.label}
-                  </Link>
-                )}
-              </div>
-            ))}
+                  )}
+                </Link>
+              );
+            })}
           </nav>
         </aside>
 

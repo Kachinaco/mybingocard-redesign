@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
-import { getAdminSessionEmail, requireAdmin } from "@/lib/admin";
+import { requireAdmin, getAdminSessionEmail } from "@/lib/admin";
+import { sendAdminCustomEmail } from "@/lib/email";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
-export async function GET(
+export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -16,57 +17,54 @@ export async function GET(
 
     const requestContext = getRequestActivityContext(request);
     const adminEmail = getAdminSessionEmail(session);
-
     const { id } = await params;
 
     if (!ObjectId.isValid(id)) {
       return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
     }
 
+    const body = await request.json();
+    const { subject, message } = body as { subject?: string; message?: string };
+
+    if (!subject?.trim()) {
+      return NextResponse.json(
+        { error: "Subject is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!message?.trim()) {
+      return NextResponse.json(
+        { error: "Message body is required" },
+        { status: 400 }
+      );
+    }
+
     const client = await clientPromise;
     const db = client.db("mybingocard");
-
-    const user = await db.collection("users").findOne(
-      { _id: new ObjectId(id) },
-      {
-        projection: {
-          password: 0,
-        },
-      }
-    );
+    const user = await db
+      .collection("users")
+      .findOne({ _id: new ObjectId(id) }, { projection: { email: 1, name: 1 } });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get user's cards
-    const cards = await db
-      .collection("cards")
-      .find({ userId: id })
-      .sort({ createdAt: -1 })
-      .toArray();
+    const sent = await sendAdminCustomEmail(
+      user.email,
+      subject.trim(),
+      message.trim()
+    );
 
-    // Get recent activity events for this user
-    const activityFilter: Record<string, unknown>[] = [{ userId: id }];
-    if (user.email) {
-      activityFilter.push({ email: user.email });
+    if (!sent) {
+      return NextResponse.json(
+        { error: "Failed to send email" },
+        { status: 500 }
+      );
     }
-    const activityEvents = await db
-      .collection("activity_events")
-      .find({ $or: activityFilter })
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .project({
-        event: 1,
-        source: 1,
-        metadata: 1,
-        pathname: 1,
-        createdAt: 1,
-      })
-      .toArray();
 
     await trackActivity({
-      event: "admin_user_details_accessed",
+      event: "admin_email_sent",
       source: "server",
       email: adminEmail,
       pathname: requestContext.pathname,
@@ -76,18 +74,16 @@ export async function GET(
       metadata: {
         admin_email: adminEmail,
         target_user_id: id,
+        target_email: user.email,
+        subject: subject.trim(),
       },
     });
 
-    return NextResponse.json({
-      user,
-      cards,
-      activityEvents,
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Admin user detail error:", error);
+    console.error("Admin send email error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch user details" },
+      { error: "Failed to send email" },
       { status: 500 }
     );
   }

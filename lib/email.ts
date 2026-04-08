@@ -599,6 +599,68 @@ export async function sendAbandonedCheckoutEmail(
   });
 }
 
+export async function sendAdminCustomEmail(
+  to: string,
+  subject: string,
+  body: string
+): Promise<boolean> {
+  const bodyHtml = body
+    .split("\n\n")
+    .map((p) => `<p style="margin:0 0 14px;font-size:15px;line-height:1.65;color:#334155;">${escapeHtml(p)}</p>`)
+    .join("");
+
+  return sendEmail({
+    to,
+    subject,
+    html: renderLayout({
+      theme: "violet",
+      preheader: subject,
+      headline: subject,
+      intro: "",
+      bodyHtml,
+      email: to,
+      campaignId: "admin-custom",
+    }),
+    text: body,
+  });
+}
+
+export async function sendSupportReplyEmail(
+  to: string,
+  subject: string,
+  replyBody: string,
+  inReplyTo?: string
+): Promise<boolean> {
+  const replySubject = subject.toLowerCase().startsWith("re:") ? subject : `Re: ${subject}`;
+  const htmlBody = replyBody.replace(/\n/g, "<br />");
+
+  try {
+    const mailOptions: Record<string, unknown> = {
+      from: fromAddress,
+      to,
+      subject: replySubject,
+      html: renderLayout({
+        theme: "violet",
+        preheader: replySubject,
+        headline: replySubject,
+        intro: "",
+        bodyHtml: `<div style="font-size:15px;line-height:1.65;color:#334155;">${htmlBody}</div>`,
+      }),
+      text: replyBody,
+    };
+    if (inReplyTo) {
+      mailOptions.inReplyTo = inReplyTo;
+      mailOptions.references = inReplyTo;
+    }
+    await transporter.sendMail(mailOptions);
+    console.log(`Support reply sent to ${to}: ${replySubject}`);
+    return true;
+  } catch (error) {
+    console.error(`Failed to send support reply to ${to}:`, error);
+    return false;
+  }
+}
+
 export async function sendCardLimitEmail(to: string, name: string) {
   const firstName = escapeHtml((name || "there").split(/\s/)[0] || "there");
 

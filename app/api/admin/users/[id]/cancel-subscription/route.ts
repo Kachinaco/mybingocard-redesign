@@ -3,8 +3,9 @@ import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { getAdminSessionEmail, requireAdmin } from "@/lib/admin";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { getStripe } from "@/lib/stripe/config";
 
-export async function GET(
+export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -16,7 +17,6 @@ export async function GET(
 
     const requestContext = getRequestActivityContext(request);
     const adminEmail = getAdminSessionEmail(session);
-
     const { id } = await params;
 
     if (!ObjectId.isValid(id)) {
@@ -26,47 +26,45 @@ export async function GET(
     const client = await clientPromise;
     const db = client.db("mybingocard");
 
-    const user = await db.collection("users").findOne(
-      { _id: new ObjectId(id) },
-      {
-        projection: {
-          password: 0,
-        },
-      }
-    );
-
+    const user = await db.collection("users").findOne({ _id: new ObjectId(id) });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Get user's cards
-    const cards = await db
-      .collection("cards")
-      .find({ userId: id })
-      .sort({ createdAt: -1 })
-      .toArray();
-
-    // Get recent activity events for this user
-    const activityFilter: Record<string, unknown>[] = [{ userId: id }];
-    if (user.email) {
-      activityFilter.push({ email: user.email });
+    if (!user.stripeSubscriptionId) {
+      return NextResponse.json(
+        { error: "User has no active subscription" },
+        { status: 400 }
+      );
     }
-    const activityEvents = await db
-      .collection("activity_events")
-      .find({ $or: activityFilter })
-      .sort({ createdAt: -1 })
-      .limit(20)
-      .project({
-        event: 1,
-        source: 1,
-        metadata: 1,
-        pathname: 1,
-        createdAt: 1,
-      })
-      .toArray();
+
+    // Cancel at period end via Stripe
+    const stripe = getStripe();
+    try {
+      await stripe.subscriptions.update(user.stripeSubscriptionId, {
+        cancel_at_period_end: true,
+      });
+    } catch (e) {
+      console.error("Failed to cancel Stripe subscription:", e);
+      return NextResponse.json(
+        { error: "Failed to cancel subscription in Stripe" },
+        { status: 500 }
+      );
+    }
+
+    // Update user record
+    await db.collection("users").updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          cancelAtPeriodEnd: true,
+          updatedAt: new Date(),
+        },
+      }
+    );
 
     await trackActivity({
-      event: "admin_user_details_accessed",
+      event: "admin_subscription_canceled",
       source: "server",
       email: adminEmail,
       pathname: requestContext.pathname,
@@ -76,18 +74,15 @@ export async function GET(
       metadata: {
         admin_email: adminEmail,
         target_user_id: id,
+        stripe_subscription_id: user.stripeSubscriptionId,
       },
     });
 
-    return NextResponse.json({
-      user,
-      cards,
-      activityEvents,
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Admin user detail error:", error);
+    console.error("Admin cancel subscription error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch user details" },
+      { error: "Failed to cancel subscription" },
       { status: 500 }
     );
   }
