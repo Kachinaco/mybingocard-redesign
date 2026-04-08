@@ -18,7 +18,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
-    newUser: "/create?new=1",
+    newUser: "/create",
     error: "/auth-error",
   },
   providers: [
@@ -296,16 +296,41 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
       }
+
+      // Stamp subscription fields on initial sign-in, manual refresh, or every 5 min
+      const needsRefresh =
+        user ||
+        trigger === "update" ||
+        !token.subscriptionStatus ||
+        (token.lastRefreshed && Date.now() - (token.lastRefreshed as number) > 5 * 60 * 1000);
+
+      if (needsRefresh && token.id) {
+        const dbUser = await getUserById(token.id as string);
+        if (dbUser) {
+          token.planType = dbUser.planType || "FREE";
+          token.subscriptionStatus = dbUser.subscriptionStatus || "inactive";
+          token.lastRefreshed = Date.now();
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
       }
+
+      // Expose subscription fields on the session for middleware
+      const sessionWithSub = session as typeof session & {
+        planType?: string;
+        subscriptionStatus?: string;
+      };
+      sessionWithSub.planType = (token.planType as string) || "FREE";
+      sessionWithSub.subscriptionStatus = (token.subscriptionStatus as string) || "inactive";
 
       const sessionWithActor = session as typeof session & {
         actor?: {

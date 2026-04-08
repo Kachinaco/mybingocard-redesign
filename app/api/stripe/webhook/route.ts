@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { stripe, STRIPE_CONFIG, getPlanByPriceId, PLANS, getStripe } from "@/lib/stripe/config";
-import { updateUserSubscription, getUserByEmail, createUser } from "@/lib/db/users";
+import { updateUserSubscription, getUserByEmail, createUser, clearRequiresCheckout } from "@/lib/db/users";
 import { getBatchPack, isBatchCount } from "@/lib/batchPacks";
 import { upsertBatchPurchaseFromCheckout } from "@/lib/db/batchPurchases";
 import {
@@ -102,7 +102,14 @@ async function findAlternateActiveSubscription(
 }
 
 export async function POST(request: Request) {
-  const body = await request.text();
+  let body: string;
+  try {
+    body = await request.text();
+  } catch (err) {
+    console.error("Stripe webhook: failed to read request body:", err);
+    return NextResponse.json({ error: "Failed to read request body" }, { status: 400 });
+  }
+
   const headersList = await headers();
   const signature = headersList.get("stripe-signature");
 
@@ -226,6 +233,9 @@ export async function POST(request: Request) {
                 },
               });
 
+              // Clear the checkout gate now that payment/trial is set up
+              await clearRequiresCheckout(userId);
+
               console.log(`Subscription activated for user ${userId}: ${planType}`);
 
               const recipient =
@@ -313,6 +323,9 @@ export async function POST(request: Request) {
                 stripeSessionId: session.id,
               },
             });
+
+            // Clear the checkout gate now that payment is complete
+            await clearRequiresCheckout(userEmail);
 
             console.log(`Lifetime Premium activated for user ${userEmail}`);
 

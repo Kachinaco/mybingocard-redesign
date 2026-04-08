@@ -38,6 +38,7 @@ export interface User {
   last_utm_term?: string;
   last_referrer?: string;
   signupMethod?: "google" | "credentials" | "magic_link";
+  requiresCheckout?: boolean;
 }
 
 export type UserAttributionFields = Pick<
@@ -96,6 +97,7 @@ export async function createUser(data: {
     password: hashedPassword,
     planType: "FREE",
     subscriptionStatus: "inactive",
+    requiresCheckout: true,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...(data.utm_source && { utm_source: data.utm_source }),
@@ -201,6 +203,15 @@ export async function updateUserSignupMethod(
   return updateUser(id, { signupMethod });
 }
 
+export async function clearRequiresCheckout(email: string): Promise<void> {
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  await db.collection<User>("users").updateOne(
+    { email },
+    { $set: { requiresCheckout: false, updatedAt: new Date() } }
+  );
+}
+
 export async function ensureUserDefaults(id: string): Promise<User | null> {
   const current = await getUserById(id);
   if (!current) return null;
@@ -234,6 +245,12 @@ export async function ensureUserDefaults(id: string): Promise<User | null> {
 
   if (!(current as any).referralCode) {
     (updates as any).referralCode = crypto.randomBytes(4).toString("hex");
+  }
+
+  // New users created by the auth adapter need checkout gating.
+  // Only set for users without an active subscription (genuinely new).
+  if (current.requiresCheckout === undefined && current.subscriptionStatus !== "active" && current.subscriptionStatus !== "lifetime") {
+    updates.requiresCheckout = true;
   }
 
   if (Object.keys(updates).length === 0) {

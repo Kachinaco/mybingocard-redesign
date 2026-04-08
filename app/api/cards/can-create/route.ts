@@ -84,6 +84,7 @@ export async function GET() {
       subscriptionStatus: user.subscriptionStatus,
       currentPeriodEnd: user.currentPeriodEnd || null,
       cancelAtPeriodEnd: user.cancelAtPeriodEnd || false,
+      requiresCheckout: user.requiresCheckout || false,
     });
   } catch (error: any) {
     console.error("Check card creation permission error:", error);

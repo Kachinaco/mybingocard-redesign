@@ -102,6 +102,7 @@ function CreateCardContent() {
     cardsCreated?: number;
     cardsLimit?: number;
     planType?: PlanType;
+    requiresCheckout?: boolean;
   } | null>(null);
   const [checkingPermission, setCheckingPermission] = useState(true);
   const [mobileToast, setMobileToast] = useState("");
@@ -128,6 +129,13 @@ function CreateCardContent() {
     currentCardIdRef.current = currentCardId;
   }, [currentCardId]);
 
+  // Refresh session after trial checkout so JWT picks up new planType/subscriptionStatus
+  useEffect(() => {
+    if (searchParams.get("trial") === "started" && session?.user) {
+      sessionData.update();
+    }
+  }, [searchParams, session?.user, sessionData]);
+
   // Show new user tip if they have 0 cards and haven't dismissed it
   useEffect(() => {
     if (!checkingPermission && permissionStatus?.cardsCreated === 0 && !cardIdFromUrl) {
@@ -140,7 +148,7 @@ function CreateCardContent() {
   const [trialClientSecret, setTrialClientSecret] = useState<string | null>(null);
   const [trialLoading, setTrialLoading] = useState(false);
   const [trialError, setTrialError] = useState("");
-  const isNewSignup = searchParams.get("new") === "1" && session?.user && !checkingPermission && permissionStatus?.planType !== "PREMIUM";
+  const isNewSignup = !checkingPermission && session?.user && permissionStatus?.requiresCheckout && permissionStatus?.planType !== "PREMIUM";
 
   useEffect(() => {
     if (trialCheckoutOpenedRef.current) return;
