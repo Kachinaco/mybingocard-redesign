@@ -259,7 +259,7 @@ export default function AdminCardsPage() {
         throw new Error(json?.error || "Failed to delete card");
       }
       setDeleteTarget(null);
-      fetchCards(page, search, visibility);
+      fetchCards(page, debouncedSearch, visibility);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Delete failed");
     } finally {

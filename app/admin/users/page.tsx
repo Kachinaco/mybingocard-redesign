@@ -16,6 +16,7 @@ interface AdminUser {
   trialEndsAt: string | null;
   requiresCheckout: boolean;
   stripeCustomerId: string | null;
+  customerType?: string;
 }
 
 interface UsersResponse {
@@ -42,6 +43,23 @@ const SORT_OPTIONS = [
   { value: "last_active", label: "Last Active" },
   { value: "most_cards", label: "Most Cards" },
 ] as const;
+
+function getCustomerTypeBadge(customerType?: string): {
+  label: string;
+  bgColor: string;
+  textColor: string;
+} | null {
+  switch (customerType) {
+    case "admin":
+      return { label: "Admin", bgColor: "bg-rose-50", textColor: "text-rose-700" };
+    case "complimentary":
+      return { label: "Comp", bgColor: "bg-cyan-50", textColor: "text-cyan-700" };
+    case "test":
+      return { label: "Test", bgColor: "bg-orange-50", textColor: "text-orange-700" };
+    default:
+      return null;
+  }
+}
 
 function getPlanBadge(user: AdminUser): {
   label: string;
@@ -125,10 +143,10 @@ export default function AdminUsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [plan, setPlan] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const searchRef = useRef("");
 
   const fetchUsers = useCallback(
     async (pageNum: number, searchVal: string, planVal: string, sortVal: string) => {
@@ -157,16 +175,15 @@ export default function AdminUsersPage() {
   );
 
   useEffect(() => {
-    fetchUsers(page, searchRef.current, plan, sortBy);
-  }, [page, plan, sortBy, fetchUsers]);
+    fetchUsers(page, debouncedSearch, plan, sortBy);
+  }, [page, debouncedSearch, plan, sortBy, fetchUsers]);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
-    searchRef.current = value;
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(value);
       setPage(1);
-      fetchUsers(1, value, plan, sortBy);
     }, 350);
   };
 
@@ -302,19 +319,32 @@ export default function AdminUsersPage() {
                         {user.email}
                       </td>
                       <td className="py-3.5 px-6">
-                        {(() => {
-                          const badge = getPlanBadge(user);
-                          return (
-                            <span
-                              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ${badge.bgColor} ${badge.textColor}`}
-                            >
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {(() => {
+                            const badge = getPlanBadge(user);
+                            return (
                               <span
-                                className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`}
-                              ></span>
-                              {badge.label}
-                            </span>
-                          );
-                        })()}
+                                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold ${badge.bgColor} ${badge.textColor}`}
+                              >
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`}
+                                ></span>
+                                {badge.label}
+                              </span>
+                            );
+                          })()}
+                          {(() => {
+                            const ctBadge = getCustomerTypeBadge(user.customerType);
+                            if (!ctBadge) return null;
+                            return (
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${ctBadge.bgColor} ${ctBadge.textColor}`}
+                              >
+                                {ctBadge.label}
+                              </span>
+                            );
+                          })()}
+                        </div>
                       </td>
                       <td className="py-3.5 px-6 text-sm text-slate-600 font-medium">
                         {user.cardCount}
@@ -380,19 +410,32 @@ export default function AdminUsersPage() {
                             {user.email}
                           </p>
                         </div>
-                        {(() => {
-                          const badge = getPlanBadge(user);
-                          return (
-                            <span
-                              className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ${badge.bgColor} ${badge.textColor}`}
-                            >
+                        <div className="flex flex-col items-end gap-1">
+                          {(() => {
+                            const badge = getPlanBadge(user);
+                            return (
                               <span
-                                className={`h-1.5 w-1.5 rounded-full ${badge.dotColor}`}
-                              ></span>
-                              {badge.label}
-                            </span>
-                          );
-                        })()}
+                                className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ${badge.bgColor} ${badge.textColor}`}
+                              >
+                                <span
+                                  className={`h-1.5 w-1.5 rounded-full ${badge.dotColor}`}
+                                ></span>
+                                {badge.label}
+                              </span>
+                            );
+                          })()}
+                          {(() => {
+                            const ctBadge = getCustomerTypeBadge(user.customerType);
+                            if (!ctBadge) return null;
+                            return (
+                              <span
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${ctBadge.bgColor} ${ctBadge.textColor}`}
+                              >
+                                {ctBadge.label}
+                              </span>
+                            );
+                          })()}
+                        </div>
                       </div>
                       <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-400">
                         <span>{user.cardCount} cards</span>

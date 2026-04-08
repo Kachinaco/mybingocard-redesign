@@ -38,6 +38,7 @@ interface UserDetail {
   anonymousId?: string;
   createdByIp?: string;
   referrerDomain?: string;
+  customerType?: string;
 }
 
 interface CardDetail {
@@ -194,6 +195,26 @@ export default function AdminUserDetailPage() {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailStatus, setEmailStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
+  const deleteCard = useCallback(async (cardId: string, cardTitle: string) => {
+    if (!confirm(`Delete "${cardTitle || "Untitled"}"? This cannot be undone.`)) return;
+    setDeletingCardId(cardId);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/admin/cards", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardId }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed to delete card");
+      setCards((prev) => prev.filter((c) => c._id !== cardId));
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to delete card");
+    } finally {
+      setDeletingCardId(null);
+    }
+  }, []);
+
   useEffect(() => {
     async function fetchUser() {
       setLoading(true);
@@ -255,6 +276,7 @@ export default function AdminUserDetailPage() {
 
   const infoFields = [
     { label: "Email", value: user.email },
+    { label: "Customer Type", value: user.customerType || "real" },
     { label: "Plan", value: user.planType || "FREE" },
     {
       label: "Subscription Status",
@@ -387,26 +409,6 @@ export default function AdminUserDetailPage() {
     }
   };
 
-  const deleteCard = useCallback(async (cardId: string, cardTitle: string) => {
-    if (!confirm(`Delete "${cardTitle || "Untitled"}"? This cannot be undone.`)) return;
-    setDeletingCardId(cardId);
-    setActionError(null);
-    try {
-      const res = await fetch("/api/admin/cards", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cardId }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed to delete card");
-      setCards((prev) => prev.filter((c) => c._id !== cardId));
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Failed to delete card");
-    } finally {
-      setDeletingCardId(null);
-    }
-  }, []);
-
   const handleSendEmail = async () => {
     if (!emailSubject.trim() || !emailBody.trim()) return;
     setSendingEmail(true);
@@ -422,6 +424,7 @@ export default function AdminUserDetailPage() {
       setEmailStatus({ type: "success", message: `Email sent to ${user?.email}` });
       setEmailSubject("");
       setEmailBody("");
+      setTimeout(() => setShowEmailModal(false), 1500);
     } catch (err) {
       setEmailStatus({ type: "error", message: err instanceof Error ? err.message : "Failed to send email" });
     } finally {
@@ -477,6 +480,21 @@ export default function AdminUserDetailPage() {
                 ></span>
                 {user.planType || "FREE"}
               </span>
+              {user.customerType && user.customerType !== "real" && (
+                <span
+                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                    user.customerType === "admin"
+                      ? "bg-rose-50 text-rose-700 border-rose-100"
+                      : user.customerType === "complimentary"
+                        ? "bg-cyan-50 text-cyan-700 border-cyan-100"
+                        : user.customerType === "test"
+                          ? "bg-orange-50 text-orange-700 border-orange-100"
+                          : "bg-slate-100 text-slate-600 border-slate-200"
+                  }`}
+                >
+                  {user.customerType.charAt(0).toUpperCase() + user.customerType.slice(1)}
+                </span>
+              )}
               <span className="text-xs text-slate-400">
                 {cards.length} card{cards.length !== 1 ? "s" : ""}
               </span>
@@ -503,38 +521,36 @@ export default function AdminUserDetailPage() {
                     ? "Starting..."
                     : "View as User"}
               </button>
+              <button
+                type="button"
+                onClick={extendTrial}
+                disabled={extendingTrial}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {extendingTrial ? "Extending..." : "Extend Trial"}
+              </button>
               {user.stripeCustomerId && (
-                <>
-                  <a
-                    href={`https://dashboard.stripe.com/customers/${user.stripeCustomerId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
-                  >
-                    View in Stripe
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                  </a>
-                  <button
-                    type="button"
-                    onClick={extendTrial}
-                    disabled={extendingTrial}
-                    className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {extendingTrial ? "Extending..." : "Extend Trial"}
-                  </button>
-                  {user.stripeSubscriptionId && !user.cancelAtPeriodEnd && (
-                    <button
-                      type="button"
-                      onClick={cancelSubscription}
-                      disabled={cancelingSub}
-                      className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {cancelingSub ? "Canceling..." : "Cancel Subscription"}
-                    </button>
-                  )}
-                </>
+                <a
+                  href={`https://dashboard.stripe.com/customers/${user.stripeCustomerId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
+                >
+                  View in Stripe
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              )}
+              {user.stripeSubscriptionId && !user.cancelAtPeriodEnd && (
+                <button
+                  type="button"
+                  onClick={cancelSubscription}
+                  disabled={cancelingSub}
+                  className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {cancelingSub ? "Canceling..." : "Cancel Subscription"}
+                </button>
               )}
             </div>
             {actionError ? (

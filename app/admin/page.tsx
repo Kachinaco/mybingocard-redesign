@@ -77,7 +77,7 @@ async function getPageData() {
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
-  const [shared, recentUsers, recentActivity] = await Promise.all([
+  const [shared, recentUsers, recentActivity, canceledUsers] = await Promise.all([
     getSharedAdminStats(),
     db
       .collection("users")
@@ -97,6 +97,34 @@ async function getPageData() {
       .sort({ createdAt: -1 })
       .limit(15)
       .toArray() as unknown as Promise<ActivityEvent[]>,
+    db
+      .collection("users")
+      .find(
+        {
+          $or: [
+            { subscriptionStatus: "canceled" },
+            { cancelAtPeriodEnd: true },
+          ],
+        },
+        {
+          projection: {
+            name: 1,
+            email: 1,
+            subscriptionStatus: 1,
+            cancelAtPeriodEnd: 1,
+            cancelAt: 1,
+            cancellationReason: 1,
+            cancellationFeedback: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            totalCardsCreated: 1,
+            totalExports: 1,
+          },
+        }
+      )
+      .sort({ updatedAt: -1 })
+      .limit(5)
+      .toArray(),
   ]);
 
   // Derive signup method display data from shared stats
@@ -120,6 +148,7 @@ async function getPageData() {
     utmSources,
     utmSourceTotal,
     recentActivity,
+    canceledUsers,
     generatedAt: new Date(),
   };
 }
@@ -280,8 +309,8 @@ export default async function AdminOverviewPage() {
         </p>
       </div>
 
-      {/* MRR Hero Card */}
-      <div className="mb-8 opacity-0 animate-fade-in-up">
+      {/* MRR + Revenue Hero Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8 opacity-0 animate-fade-in-up">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 via-amber-400 to-yellow-400 p-6 sm:p-8 shadow-lg shadow-amber-200/50">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/3" />
@@ -304,6 +333,31 @@ export default async function AdminOverviewPage() {
             <div className="text-sm text-white/80 sm:text-right">
               <p>{stats.paidUsers.toLocaleString()} paying subscribers</p>
               <p>$4.99/mo per user</p>
+            </div>
+          </div>
+        </div>
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-400 p-6 sm:p-8 shadow-lg shadow-emerald-200/50">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/3" />
+          <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                  </svg>
+                </div>
+                <span className="text-sm font-semibold text-white/80 uppercase tracking-wider">
+                  Total Net Revenue
+                </span>
+              </div>
+              <p className="text-4xl sm:text-5xl font-extrabold text-white">
+                ${formatCurrency(stats.totalNetRevenue)}
+              </p>
+            </div>
+            <div className="text-sm text-white/80 sm:text-right">
+              <p>All-time collected via Stripe</p>
+              <p>After coupons and discounts</p>
             </div>
           </div>
         </div>
@@ -764,7 +818,7 @@ export default async function AdminOverviewPage() {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm opacity-0 animate-fade-in-up animation-delay-600">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
         <div className="border-b border-slate-100 p-4 sm:p-6">
           <h2 className="text-lg font-bold text-slate-900">Recent Activity</h2>
           <p className="text-sm text-slate-400 mt-0.5">Last 15 high-value events</p>
@@ -800,6 +854,126 @@ export default async function AdminOverviewPage() {
                   <span className="text-xs text-slate-400 whitespace-nowrap shrink-0">
                     {evt.createdAt ? timeAgo(new Date(evt.createdAt)) : "N/A"}
                   </span>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* At Risk / Recently Canceled */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm opacity-0 animate-fade-in-up animation-delay-600">
+        <div className="border-b border-slate-100 p-4 sm:p-6">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">At Risk / Recently Canceled</h2>
+              <p className="text-sm text-slate-400 mt-0.5">
+                Users who canceled or are scheduled to cancel
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="divide-y divide-slate-100">
+          {stats.canceledUsers.length === 0 ? (
+            <div className="px-4 py-12 text-center text-sm text-slate-400">
+              No canceled or at-risk users.
+            </div>
+          ) : (
+            stats.canceledUsers.map((user) => {
+              const cancelDate = user.cancelAt
+                ? new Date(user.cancelAt)
+                : user.updatedAt
+                  ? new Date(user.updatedAt)
+                  : null;
+              const joinDate = user.createdAt ? new Date(user.createdAt) : null;
+              const customerDuration =
+                joinDate && cancelDate
+                  ? (() => {
+                      const diffMs = cancelDate.getTime() - joinDate.getTime();
+                      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                      if (days < 1) return "less than a day";
+                      if (days < 30) return `${days} day${days === 1 ? "" : "s"}`;
+                      const months = Math.floor(days / 30);
+                      if (months < 12) return `${months} month${months === 1 ? "" : "s"}`;
+                      const years = Math.floor(months / 12);
+                      const rem = months % 12;
+                      return rem > 0
+                        ? `${years}y ${rem}mo`
+                        : `${years} year${years === 1 ? "" : "s"}`;
+                    })()
+                  : "unknown";
+
+              const isCanceled = (user as any).subscriptionStatus === "canceled";
+              const isPending = !isCanceled && (user as any).cancelAtPeriodEnd === true;
+              const reason = (user as any).cancellationReason as string | undefined;
+              const feedback = (user as any).cancellationFeedback as string | undefined;
+              const cards = ((user as any).totalCardsCreated as number) || 0;
+              const exports = ((user as any).totalExports as number) || 0;
+
+              return (
+                <div
+                  key={user._id.toString()}
+                  className="px-4 py-4 sm:px-6 hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center text-xs font-bold text-red-500 shrink-0">
+                      {((user as any).name || (user as any).email || "?").charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 truncate">
+                            {(user as any).name || "No name"}
+                          </p>
+                          <p className="text-xs text-slate-400 truncate">
+                            {(user as any).email}
+                          </p>
+                        </div>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0 ${
+                            isCanceled
+                              ? "bg-red-50 text-red-700"
+                              : "bg-amber-50 text-amber-700"
+                          }`}
+                        >
+                          {isCanceled ? "Canceled" : "Canceling at period end"}
+                        </span>
+                      </div>
+
+                      {(reason || feedback) && (
+                        <div className="mt-2 rounded-lg bg-slate-50 px-3 py-2">
+                          {reason && (
+                            <p className="text-xs text-slate-600">
+                              <span className="font-medium">Reason:</span>{" "}
+                              {reason.replace(/_/g, " ")}
+                            </p>
+                          )}
+                          {feedback && (
+                            <p className="text-xs text-slate-500 mt-0.5 italic">
+                              &ldquo;{feedback}&rdquo;
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
+                        <span>
+                          {cancelDate
+                            ? `${isCanceled ? "Canceled" : "Cancels"} ${cancelDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                            : "Cancel date unknown"}
+                        </span>
+                        <span>Customer for {customerDuration}</span>
+                        <span>
+                          {cards} card{cards !== 1 ? "s" : ""}, {exports} export{exports !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               );
             })

@@ -38,14 +38,16 @@ export async function GET(request: Request) {
     // then combine with title search
     let userIdFilter: string[] | null = null;
     if (search) {
-      const emailRegex = new RegExp(search, "i");
+      // Escape regex special characters to prevent ReDoS / injection
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const emailRegex = new RegExp(escapedSearch, "i");
       const matchingUsers = await db
         .collection("users")
         .find({ email: emailRegex }, { projection: { _id: 1 } })
         .toArray();
       userIdFilter = matchingUsers.map((u) => u._id.toString());
 
-      const titleCondition = { title: { $regex: search, $options: "i" } };
+      const titleCondition = { title: { $regex: escapedSearch, $options: "i" } };
       if (userIdFilter.length > 0) {
         cardFilter.$or = [
           titleCondition,

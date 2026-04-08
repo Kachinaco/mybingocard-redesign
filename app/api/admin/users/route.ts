@@ -28,10 +28,12 @@ export async function GET(request: Request) {
     const conditions: Record<string, unknown>[] = [];
 
     if (search) {
+      // Escape regex special characters to prevent ReDoS / injection
+      const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       conditions.push({
         $or: [
-          { name: { $regex: search, $options: "i" } },
-          { email: { $regex: search, $options: "i" } },
+          { name: { $regex: escapedSearch, $options: "i" } },
+          { email: { $regex: escapedSearch, $options: "i" } },
         ],
       });
     }
@@ -95,6 +97,7 @@ export async function GET(request: Request) {
       trialEndsAt: unknown;
       requiresCheckout: boolean;
       stripeCustomerId: string | null;
+      customerType?: string;
     };
 
     let usersWithCards: UserResult[];
@@ -132,7 +135,7 @@ export async function GET(request: Request) {
                 $project: {
                   name: 1, email: 1, planType: 1, subscriptionStatus: 1,
                   createdAt: 1, updatedAt: 1, image: 1, cardCount: 1,
-                  trialEndsAt: 1, requiresCheckout: 1, stripeCustomerId: 1,
+                  trialEndsAt: 1, requiresCheckout: 1, stripeCustomerId: 1, customerType: 1,
                 },
               },
             ],
@@ -159,6 +162,7 @@ export async function GET(request: Request) {
         trialEndsAt: user.trialEndsAt || null,
         requiresCheckout: (user.requiresCheckout as boolean) || false,
         stripeCustomerId: (user.stripeCustomerId as string) || null,
+        customerType: (user.customerType as string) || undefined,
       }));
     } else {
       const [users, count] = await Promise.all([
@@ -168,7 +172,7 @@ export async function GET(request: Request) {
             projection: {
               name: 1, email: 1, planType: 1, subscriptionStatus: 1,
               createdAt: 1, updatedAt: 1, image: 1,
-              trialEndsAt: 1, requiresCheckout: 1, stripeCustomerId: 1,
+              trialEndsAt: 1, requiresCheckout: 1, stripeCustomerId: 1, customerType: 1,
             },
           })
           .sort(sortObj)
@@ -205,6 +209,7 @@ export async function GET(request: Request) {
         trialEndsAt: user.trialEndsAt || null,
         requiresCheckout: user.requiresCheckout || false,
         stripeCustomerId: user.stripeCustomerId || null,
+        customerType: user.customerType || undefined,
       }));
     }
 

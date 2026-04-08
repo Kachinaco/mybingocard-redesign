@@ -51,6 +51,7 @@ export interface User {
   featuresUsed?: string[];
   loginCount?: number;
   lastLoginAt?: Date;
+  customerType?: "real" | "admin" | "complimentary" | "test";
 }
 
 export type UserAttributionFields = Pick<

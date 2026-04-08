@@ -7,6 +7,7 @@ export interface AdminStats {
   recentSignups: number;
   mrr: number;
   revenueEstimate: number;
+  totalNetRevenue: number;
   trialingUsers: number;
   canceledUsers: number;
   lifetimeUsers: number;
@@ -28,18 +29,17 @@ export async function getAdminStats(): Promise<AdminStats> {
   const db = client.db("mybingocard");
   const now = new Date();
 
-  const adminEmail = process.env.ADMIN_EMAIL || "";
   const standardMonthlyPriceId = process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID || "";
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
 
   // Real paying users: must have a Stripe subscription with the standard price,
-  // exclude admin/owner, exclude manually-granted users (no stripePriceId)
+  // only count "real" customers (exclude admin, complimentary, test)
   const realPayingFilter = {
     subscriptionStatus: "active",
     stripeSubscriptionId: { $exists: true, $ne: null },
     stripePriceId: standardMonthlyPriceId,
-    ...(adminEmail ? { email: { $ne: adminEmail } } : {}),
+    customerType: "real",
   };
 
   // Split into two batches to stay within TS Promise.all tuple overload limits
@@ -114,6 +114,7 @@ export async function getAdminStats(): Promise<AdminStats> {
     paidBySourceData,
     signupsLast30Days,
     recentSignupsTrendData,
+    netRevenueData,
   ] = await Promise.all([
     db
       .collection("users")
@@ -177,9 +178,23 @@ export async function getAdminStats(): Promise<AdminStats> {
         { $sort: { _id: 1 } },
       ])
       .toArray(),
+    // Sum all successful payment amounts (stored in cents) from activity_events
+    db
+      .collection("activity_events")
+      .aggregate<{ _id: null; totalCents: number }>([
+        { $match: { event: "billing_payment_succeeded" } },
+        {
+          $group: {
+            _id: null,
+            totalCents: { $sum: "$metadata.amount" },
+          },
+        },
+      ])
+      .toArray(),
   ]);
 
   const mrr = paidUsers * 4.99;
+  const totalNetRevenue = (netRevenueData[0]?.totalCents ?? 0) / 100;
 
   const subscriptionStatusBreakdown: Record<string, number> = {};
   for (const row of statusBreakdown) {
@@ -232,6 +247,7 @@ export async function getAdminStats(): Promise<AdminStats> {
     recentSignups,
     mrr,
     revenueEstimate: mrr,
+    totalNetRevenue,
     trialingUsers,
     canceledUsers,
     lifetimeUsers,
