@@ -58,7 +58,7 @@ export async function GET(request: Request) {
       pathname: "/api/auth/verify-email",
     }).catch(() => {});
 
-    return NextResponse.redirect(`${appUrl}/login?verified=1&email=${encodeURIComponent(record.email)}`);
+    return NextResponse.redirect(`${appUrl}/login?verified=1&email=${encodeURIComponent(record.email)}&callbackUrl=/start-trial`);
   } catch (err) {
     console.error("Email verification error:", err);
     await trackApiError(err, {

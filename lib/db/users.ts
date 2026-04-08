@@ -89,17 +89,13 @@ export async function createUser(data: {
     ? await bcrypt.hash(data.password, 10)
     : undefined;
 
-  const trialEndsAt = new Date();
-  trialEndsAt.setDate(trialEndsAt.getDate() + 7);
-
   const user: Partial<User> = {
     email: data.email,
     name: data.name,
     image: data.image,
     password: hashedPassword,
-    planType: "PREMIUM",
+    planType: "FREE",
     subscriptionStatus: "inactive",
-    trialEndsAt,
     createdAt: new Date(),
     updatedAt: new Date(),
     ...(data.utm_source && { utm_source: data.utm_source }),
@@ -221,11 +217,7 @@ export async function ensureUserDefaults(id: string): Promise<User | null> {
   }
 
   if (current.planType === undefined) {
-    // New user via OAuth/magic link — start 7-day trial
-    const trialEnd = new Date();
-    trialEnd.setDate(trialEnd.getDate() + 7);
-    updates.planType = "PREMIUM";
-    updates.trialEndsAt = trialEnd;
+    updates.planType = "FREE";
   }
 
   if (current.subscriptionStatus === undefined) {

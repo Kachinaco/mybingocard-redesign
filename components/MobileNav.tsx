@@ -34,26 +34,36 @@ export default function MobileNav() {
             Pricing
           </Link>
           {isLoggedIn ? (
-            <Link
-              href="/dashboard"
-              className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 border border-indigo-200 hover:border-indigo-300 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-indigo-50"
-            >
-              My Dashboard
-            </Link>
+            <>
+              <Link
+                href="/dashboard"
+                className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 border border-indigo-200 hover:border-indigo-300 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-indigo-50"
+              >
+                My Dashboard
+              </Link>
+              <Link
+                href="/create"
+                className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 transform hover:-translate-y-0.5"
+              >
+                Create Card
+              </Link>
+            </>
           ) : (
-            <Link
-              href="/login"
-              className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 border border-indigo-200 hover:border-indigo-300 px-4 py-2 rounded-lg transition-all duration-200 hover:bg-indigo-50"
-            >
-              Sign In
-            </Link>
+            <>
+              <Link
+                href="/login"
+                className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/signup"
+                className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 transform hover:-translate-y-0.5"
+              >
+                Try Free for 7 Days
+              </Link>
+            </>
           )}
-          <Link
-            href="/create"
-            className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 transform hover:-translate-y-0.5"
-          >
-            {isLoggedIn ? "Create Card" : "Create Free"}
-          </Link>
         </nav>
 
         {/* Mobile: Sign In/Dashboard + hamburger */}
@@ -113,7 +123,7 @@ export default function MobileNav() {
                     onClick={() => setOpen(false)}
                     className="flex-1 text-center py-3 font-bold text-white bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl hover:shadow-lg transition-all"
                   >
-                    Sign Up Free
+                    Try Free 7 Days
                   </Link>
                 </>
               )}

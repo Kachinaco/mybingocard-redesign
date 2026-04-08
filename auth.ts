@@ -18,7 +18,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
-    newUser: "/create?new=1",
+    newUser: "/start-trial",
     error: "/auth-error",
   },
   providers: [
@@ -121,15 +121,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       from: process.env.EMAIL_FROM!,
       async sendVerificationRequest(params: { identifier: string; url: string }) {
-        await trackActivity({
-          event: "magic_link_requested",
-          source: "auth",
-          email: params.identifier,
-          metadata: {
-            provider: "nodemailer",
-          },
-        });
         await sendMagicLinkEmail(params.identifier, params.url);
+        try {
+          await trackActivity({
+            event: "magic_link_requested",
+            source: "auth",
+            email: params.identifier,
+            metadata: {
+              provider: "nodemailer",
+            },
+          });
+        } catch (e) {
+          console.error("Failed to track magic link activity:", e);
+        }
         notifyMagicLink(params.identifier).catch(console.error);
       },
     }),
@@ -195,21 +199,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
       }
 
-      await trackActivity({
-        event: "login_succeeded",
-        source: "auth",
-        userId: event.user.id || null,
-        email: event.user.email,
-        metadata: {
-          provider,
-          isNewUser: Boolean(event.isNewUser),
-          ...attribution,
-        },
-      });
-
-      if (provider === "nodemailer") {
+      try {
         await trackActivity({
-          event: "magic_link_opened",
+          event: "login_succeeded",
           source: "auth",
           userId: event.user.id || null,
           email: event.user.email,
@@ -219,11 +211,27 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             ...attribution,
           },
         });
-      }
 
-      // Skip Discord alert for new users (they get the signup notification)
-      if (!event.isNewUser) {
-        notifySignIn((event.user as any).name || "", event.user.email, provider).catch(console.error);
+        if (provider === "nodemailer") {
+          await trackActivity({
+            event: "magic_link_opened",
+            source: "auth",
+            userId: event.user.id || null,
+            email: event.user.email,
+            metadata: {
+              provider,
+              isNewUser: Boolean(event.isNewUser),
+              ...attribution,
+            },
+          });
+        }
+
+        // Skip Discord alert for new users (they get the signup notification)
+        if (!event.isNewUser) {
+          notifySignIn((event.user as any).name || "", event.user.email, provider).catch(console.error);
+        }
+      } catch (error) {
+        console.error("Failed to track sign-in activity:", error);
       }
     },
     async createUser({ user }) {
@@ -271,16 +279,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
 
       notifySignup(user.name || fullUser?.name || "Google User", user.email, fullUser || undefined).catch(console.error);
-      await trackActivity({
-        event: "signup_completed",
-        source: "auth",
-        userId: user.id || fullUser?._id?.toString() || null,
-        email: user.email,
-        metadata: {
-          provider: fullUser?.password ? "credentials" : "oauth_or_magic_link",
-          ...signupAttribution,
-        },
-      });
+      try {
+        await trackActivity({
+          event: "signup_completed",
+          source: "auth",
+          userId: user.id || fullUser?._id?.toString() || null,
+          email: user.email,
+          metadata: {
+            provider: fullUser?.password ? "credentials" : "oauth_or_magic_link",
+            ...signupAttribution,
+          },
+        });
+      } catch (error) {
+        console.error("Failed to track signup activity:", error);
+      }
     },
   },
   callbacks: {

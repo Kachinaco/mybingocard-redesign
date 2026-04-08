@@ -97,6 +97,8 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
         body = { purchaseType: "batch_pack", batchCount: options?.batchCount, returnPath: options?.returnPath };
       } else if (purchaseType === "lifetime") {
         body = { purchaseType: "lifetime", returnPath: options?.returnPath };
+      } else if (purchaseType === "trial") {
+        body = { purchaseType: "trial", returnPath: options?.returnPath };
       } else {
         body = { priceId, returnPath: options?.returnPath };
       }
