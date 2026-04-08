@@ -1396,9 +1396,9 @@ function CreateCardContent() {
           )}
 
           {editorUnlocked && !isLoadingCard && (
-          <div className="grid lg:grid-cols-12 gap-8">
-            {/* Left Panel - Card Settings */}
-            <div className="lg:col-span-4 space-y-6">
+          <div className="grid lg:grid-cols-12 gap-6">
+            {/* Left Panel - Card Details */}
+            <div className="lg:col-span-3 lg:order-1 space-y-6">
               {/* Basic Info */}
               <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
                 <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
@@ -1538,6 +1538,10 @@ function CreateCardContent() {
                 </div>
               </div>
 
+            </div>
+
+            {/* Right Panel - AI, Style & Batch */}
+            <div className="lg:col-span-3 lg:order-3 space-y-6">
               {/* AI Generate */}
               <AiGenerateSection
                 size={size}
@@ -1862,9 +1866,9 @@ function CreateCardContent() {
               </div>
             </div>
 
-            {/* Right Panel - Bingo Grid */}
-            <div className="lg:col-span-8">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 lg:p-8 h-full flex flex-col">
+            {/* Center Panel - Bingo Grid */}
+            <div className="lg:col-span-6 lg:order-2 lg:sticky lg:top-24 lg:self-start">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 lg:p-6 flex flex-col">
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-xl font-bold text-gray-900">
                     {showPreview ? "Card Preview" : "Edit Content"}
