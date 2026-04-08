@@ -11,13 +11,13 @@ interface TextFitOptions {
 }
 
 const FONT_RANGES: Record<number, { min: number; max: number }> = {
-  3: { min: 8, max: 28 },
-  4: { min: 7, max: 22 },
-  5: { min: 6, max: 18 },
+  3: { min: 7, max: 28 },
+  4: { min: 6, max: 22 },
+  5: { min: 4, max: 16 },
 };
 
 const LINE_HEIGHT_RATIO = 1.2;
-const PADDING = 8; // px inner padding on each side
+const PADDING = 4; // px inner padding on each side (matches cell inline style)
 
 async function computeSizes(
   cells: string[],
@@ -43,11 +43,11 @@ async function computeSizes(
     let best = min;
 
     while (lo <= hi) {
-      const mid = Math.round(lo + hi) / 2; // 0.5px steps
+      const mid = Math.round((lo + hi) / 2 * 2) / 2; // 0.5px steps
       const font = `600 ${mid}px ${fontFamily}`;
       const prepared = prepare(cell, font);
       const result = layout(prepared, available, mid * LINE_HEIGHT_RATIO);
-      if (result.height <= available) {
+      if (result.height <= available * 0.95) {
         best = mid;
         lo = mid + 0.5;
       } else {

@@ -644,9 +644,9 @@ export default function CardViewPage() {
           </section>
         )}
 
-        <div className={`${isFullscreen ? "" : "grid lg:grid-cols-3 gap-6"}`}>
+        <div className={`${isFullscreen ? "" : "grid lg:grid-cols-12 gap-6"}`}>
           {!isFullscreen && (
-            <div className="hidden lg:block lg:col-span-1 space-y-4 print:hidden">
+            <div className="hidden lg:block lg:col-span-3 space-y-4 print:hidden">
               <div className={`rounded-2xl shadow-sm border overflow-hidden ${
                 "bg-white border-slate-100"
               }`}>
@@ -869,7 +869,7 @@ export default function CardViewPage() {
           )}
 
           {/* Card grid */}
-          <div className={isFullscreen ? "bingo-container w-full max-w-2xl mx-auto" : "lg:col-span-2"}>
+          <div className={isFullscreen ? "bingo-container w-full max-w-2xl mx-auto" : "lg:col-span-9"}>
            <ThemedCardWrapper theme={card.style?.theme} title={card.title}>
             <div className={`rounded-2xl shadow-sm border p-3 md:p-6 print-card ${"bg-white border-slate-100"}`} ref={cardRef}>
               <div className="text-center mb-3 md:mb-6">
