@@ -437,12 +437,12 @@ export default async function DashboardPage() {
                 <p className="text-white/80 text-sm">Host a live game from any of your cards — friends join with a room code and play together in real time.</p>
               </div>
               <div className="flex gap-3 shrink-0">
-                <a href="/game/join" className="px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold rounded-xl text-sm transition-all">
+                <Link href="/game/join" className="px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold rounded-xl text-sm transition-all">
                   Join a Game
-                </a>
-                <a href="/dashboard/cards" className="px-5 py-2.5 bg-white text-violet-700 font-bold rounded-xl text-sm hover:shadow-lg transition-all">
+                </Link>
+                <Link href="/dashboard/cards" className="px-5 py-2.5 bg-white text-violet-700 font-bold rounded-xl text-sm hover:shadow-lg transition-all">
                   Host a Game →
-                </a>
+                </Link>
               </div>
             </div>
           </div>

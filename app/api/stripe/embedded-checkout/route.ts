@@ -203,8 +203,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Trial not configured" }, { status: 500 });
       }
 
-      // Already premium — skip trial
-      if (user?.subscriptionStatus === "active" || user?.subscriptionStatus === "lifetime") {
+      // Already premium or on trial — skip trial
+      if (user?.subscriptionStatus === "active" || user?.subscriptionStatus === "trialing" || user?.subscriptionStatus === "lifetime") {
         return NextResponse.json({ error: "Already subscribed", alreadySubscribed: true }, { status: 409 });
       }
 

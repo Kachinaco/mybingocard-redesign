@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Fundraiser Bingo Cards — Free Charity Bingo Night Generator | MyBingoCard",
   description:
     "Create fundraiser bingo cards for charity events and bingo nights. Free bingo fundraiser card generator with custom squares, bulk printing, and instant PDF download. Raise more funds with bingo.",
+  alternates: {
+    canonical: "https://mybingocard.com/fundraiser-bingo",
+  },
 };
 
 const fundraiserSquares = [

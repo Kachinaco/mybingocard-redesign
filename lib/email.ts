@@ -140,6 +140,8 @@ function renderLayout(options: {
   ctaUrl?: string;
   ctaHint?: string;
   footerNote?: string;
+  email?: string;
+  campaignId?: string;
 }): string {
   const palette = THEMES[options.theme];
   const ctaSection = options.ctaLabel && options.ctaUrl
@@ -151,6 +153,10 @@ function renderLayout(options: {
 
   const footerNote = options.footerNote
     ? `<p style="margin:16px 0 0;font-size:13px;color:#64748b;">${escapeHtml(options.footerNote)}</p>`
+    : "";
+
+  const trackingPixel = options.email && options.campaignId
+    ? `<img src="${appUrl}/api/track/open?e=${encodeURIComponent(options.email)}&c=${encodeURIComponent(options.campaignId)}" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0;" />`
     : "";
 
   return `
@@ -204,6 +210,7 @@ function renderLayout(options: {
         </td>
       </tr>
     </table>
+    ${trackingPixel}
   </body>
 </html>
   `;
@@ -256,8 +263,10 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<boolea
       intro: "Thanks for joining MyBingoCard. We built this to make fun, custom bingo experiences fast and easy.",
       bodyHtml,
       ctaLabel: "Create Your First Card",
-      ctaUrl: `${appUrl}/create`,
+      ctaUrl: trackableUrl(`${appUrl}/create`, to, "welcome", "main_cta"),
       ctaHint: "Takes about 2 minutes to set up.",
+      email: to,
+      campaignId: "welcome",
     }),
     text: `Welcome, ${firstName}!\n\nThanks for joining MyBingoCard.\n\nYou can now:\n- Create themed bingo cards in minutes\n- Share cards instantly with a link\n- Export to PDF\n\nStart here: ${appUrl}/create\n\nNeed help? Reply to this email.`,
   });
@@ -285,6 +294,8 @@ export async function sendMagicLinkEmail(to: string, url: string): Promise<boole
       ctaLabel: "Sign In",
       ctaUrl: url,
       ctaHint: "If you did not request this, you can ignore this email.",
+      email: to,
+      campaignId: "magic-link",
     }),
     text: `Sign in to MyBingoCard\n\nUse this secure link to sign in:\n${url}\n\nThis link expires automatically. If you did not request it, ignore this email.`,
   });
@@ -313,6 +324,8 @@ export async function sendPasswordResetEmail(to: string, name: string, resetUrl:
       ctaLabel: "Reset Password",
       ctaUrl: resetUrl,
       ctaHint: "This link expires in 1 hour.",
+      email: to,
+      campaignId: "password-reset",
     }),
     text: `Hi ${firstName},\n\nWe received a request to reset your MyBingoCard password.\n\nReset link (valid for 1 hour):\n${resetUrl}\n\nIf you did not request this, ignore this email.`,
   });
@@ -344,7 +357,9 @@ export async function sendSubscriptionActivatedEmail(to: string, name: string, p
       intro: `Great news ${firstName}, your subscription upgrade is complete.`,
       bodyHtml,
       ctaLabel: "Open Dashboard",
-      ctaUrl: `${appUrl}/dashboard`,
+      ctaUrl: trackableUrl(`${appUrl}/dashboard`, to, "subscription_activated", "main_cta"),
+      email: to,
+      campaignId: "subscription-activated",
     }),
     text: `Hi ${firstName},\n\nYour ${planName} plan is now active.\n\nOpen dashboard: ${appUrl}/dashboard\nManage billing: ${appUrl}/settings`,
   });
@@ -375,7 +390,9 @@ export async function sendSubscriptionCanceledEmail(
       intro: `Hi ${firstName}, we confirmed your cancellation request.`,
       bodyHtml,
       ctaLabel: "View Plans",
-      ctaUrl: `${appUrl}/pricing`,
+      ctaUrl: trackableUrl(`${appUrl}/pricing`, to, "subscription_canceled", "main_cta"),
+      email: to,
+      campaignId: "subscription-canceled",
     }),
     text: `Hi ${firstName},\n\n${renewalText}\n\nView plans: ${appUrl}/pricing`,
   });
@@ -411,7 +428,9 @@ export async function sendBillingSuccessEmail(
       intro: "Your latest billing payment was processed successfully.",
       bodyHtml,
       ctaLabel: "Manage Billing",
-      ctaUrl: `${appUrl}/settings`,
+      ctaUrl: trackableUrl(`${appUrl}/settings`, to, "billing_success", "main_cta"),
+      email: to,
+      campaignId: "billing-success",
     }),
     text: `Hi ${firstName},\n\nPayment received: ${amount}.\n${nextBill ? `Current period ends: ${nextBill}.\n` : ""}\nManage billing: ${appUrl}/settings`,
   });
@@ -450,8 +469,10 @@ export async function sendBillingFailedEmail(
       intro: `Hi ${firstName}, we could not process your recent subscription payment.`,
       bodyHtml,
       ctaLabel: "Update Billing Details",
-      ctaUrl: manageBillingUrl,
+      ctaUrl: trackableUrl(manageBillingUrl, to, "billing_failed", "main_cta"),
       ctaHint: "If payment is not updated, your plan may move to past due.",
+      email: to,
+      campaignId: "billing-failed",
     }),
     text: `Hi ${firstName},\n\nWe could not process your payment of ${amount}.\n\nUpdate billing details: ${manageBillingUrl}`,
   });
@@ -471,6 +492,8 @@ export async function sendEmailVerificationEmail(to: string, name: string, verif
       ctaLabel: "Verify Email Address",
       ctaUrl: verifyUrl,
       ctaHint: "This link expires in 24 hours. If you didn't sign up, you can ignore this email.",
+      email: to,
+      campaignId: "email-verification",
     }),
     text: `Hi ${firstName},\n\nThanks for signing up for MyBingoCard!\n\nVerify your email address:\n${verifyUrl}\n\nThis link expires in 24 hours. If you didn't sign up, you can ignore this email.`,
   });
@@ -502,6 +525,8 @@ export async function sendLiveGamesAnnouncementEmail(to: string, name: string): 
       ctaLabel: "Get your cards ready →",
       ctaUrl: "https://mybingocard.com/dashboard",
       ctaHint: "See you Friday 🎉",
+      email: to,
+      campaignId: "live-games-announcement",
     }),
     text: `Hi ${firstName},\n\nSomething exciting is dropping this Friday, March 13th.\n\nWe're launching Live Multiplayer Bingo Games.\n\nHere's what's coming:\n- Host a live bingo game from any card you've created\n- Players join instantly from their phone — no app, no signup required\n- Real-time calling, live score tracking, and instant bingo detection\n- Perfect for classrooms, parties, team meetings, and game nights\n\nGet your cards ready: https://mybingocard.com/dashboard\n\nSee you Friday!\n\n— The MyBingoCard Team`,
   });
@@ -510,11 +535,11 @@ export async function sendLiveGamesAnnouncementEmail(to: string, name: string): 
 export async function sendAbandonedCheckoutEmail(
   to: string,
   name: string,
-  purchaseType: "subscription" | "batch_pack",
+  purchaseType: "subscription" | "batch_pack" | "trial",
   batchCount?: number
 ): Promise<boolean> {
   const firstName = getFirstName(name);
-  const isSubscription = purchaseType === "subscription";
+  const isSubscription = purchaseType === "subscription" || purchaseType === "trial";
 
   const subject = isSubscription
     ? "Still thinking it over? Your Premium spot is waiting"
@@ -541,7 +566,9 @@ export async function sendAbandonedCheckoutEmail(
         "Perfect for parties, classrooms, and game nights.",
       ];
 
-  const ctaUrl = isSubscription ? `${appUrl}/pricing` : `${appUrl}/create`;
+  const ctaUrl = isSubscription
+    ? trackableUrl(`${appUrl}/pricing`, to, "abandoned_checkout", "upgrade_button")
+    : trackableUrl(`${appUrl}/create`, to, "abandoned_checkout", "main_cta");
   const ctaLabel = isSubscription ? "Complete Upgrade →" : "Generate My Cards →";
 
   const bodyHtml = `
@@ -563,6 +590,8 @@ export async function sendAbandonedCheckoutEmail(
       ctaLabel,
       ctaUrl,
       ctaHint: "Questions? Just reply to this email.",
+      email: to,
+      campaignId: "abandoned-checkout",
     }),
     text: isSubscription
       ? `Hi ${firstName},\n\nYou started upgrading to Premium but didn't finish.\n\nPremium includes:\n- Unlimited bingo cards\n- Batch-generate up to 100 cards at once\n- HD PDF & PNG export\n- Ad-free experience\n\nComplete your upgrade: ${appUrl}/pricing\n\nQuestions? Reply to this email.`
@@ -592,8 +621,10 @@ export async function sendCardLimitEmail(to: string, name: string) {
         ]), "violet")}
         <p style="margin:0;font-size:15px;color:#334155;">Upgrade takes 30 seconds and you can start creating right away.</p>`,
       ctaLabel: "Upgrade to Premium →",
-      ctaUrl: `${appUrl}/pricing?utm_source=mybingocard&utm_medium=email&utm_campaign=card_limit_hit`,
+      ctaUrl: trackableUrl(`${appUrl}/pricing?utm_source=mybingocard&utm_medium=email&utm_campaign=card_limit_hit`, to, "card_limit", "upgrade_button"),
       ctaHint: "Just reply to this email if you have questions.",
+      email: to,
+      campaignId: "card-limit",
     }),
     text: `Hey ${firstName},\n\nYou tried to create another bingo card but hit the free plan limit.\n\nPremium includes unlimited cards, AI generation, HD export, custom images, and batch generation.\n\nUpgrade here: ${appUrl}/pricing\n\nQuestions? Reply to this email.`,
   });

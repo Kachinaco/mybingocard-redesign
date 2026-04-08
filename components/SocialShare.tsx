@@ -51,15 +51,16 @@ export default function SocialShare({ url, title, cardId }: SocialShareProps) {
   ];
 
   const handleShare = (platform: string, href: string) => {
-    trackCardShared(cardId, platform.toLowerCase());
+    const platformLower = platform.toLowerCase();
+    trackCardShared(cardId, platformLower);
     trackClientActivity("card_shared", {
       cardId,
       title,
-      platform: platform.toLowerCase(),
+      platform: platformLower,
       destination: "external_social",
     });
     trackClientActivity("social_share_clicked", {
-      platform: platform.toLowerCase(),
+      platform: platformLower,
       cardId,
     });
     window.open(href, "_blank", "noopener,noreferrer,width=600,height=400");

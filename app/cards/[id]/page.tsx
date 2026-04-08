@@ -311,7 +311,11 @@ export default function CardViewPage() {
       a.href = url; a.download = `${card?.title || "bingo-card"}.pdf`;
       document.body.appendChild(a); a.click();
       window.URL.revokeObjectURL(url); document.body.removeChild(a);
-    } catch (err: any) { alert(err.message || "Failed to export PDF"); }
+      trackClientActivity("export_pdf_downloaded", { cardId, format: "pdf" });
+    } catch (err: any) {
+      trackClientActivity("export_failed", { cardId, format: "pdf", error: err.message || "Unknown error" });
+      alert(err.message || "Failed to export PDF");
+    }
     finally { setExporting(null); }
   };
 
@@ -326,7 +330,11 @@ export default function CardViewPage() {
       a.href = url; a.download = `${card?.title || "bingo-card"}.png`;
       document.body.appendChild(a); a.click();
       window.URL.revokeObjectURL(url); document.body.removeChild(a);
-    } catch (err: any) { alert(err.message || "Failed to export PNG"); }
+      trackClientActivity("export_png_downloaded", { cardId, format: "png" });
+    } catch (err: any) {
+      trackClientActivity("export_failed", { cardId, format: "png", error: err.message || "Unknown error" });
+      alert(err.message || "Failed to export PNG");
+    }
     finally { setExporting(null); }
   };
 

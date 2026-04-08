@@ -8,6 +8,7 @@ import SoundToggle from "@/components/SoundToggle";
 import { playDabSound, playUndabSound, playBingoSound, playDingSound } from "@/lib/sounds";
 import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
 import { useTextFit } from "@/lib/useTextFit";
+import { trackClientActivity } from "@/lib/activity-client";
 
 interface PlayerData {
   playerId: string;
@@ -57,6 +58,7 @@ export default function PlayGamePage() {
 
   const prevCalledCountRef = useRef(0);
   const eventSourceRef = useRef<EventSource | null>(null);
+  const cellMarkCountRef = useRef(0);
   const multiGridRef = useRef<HTMLDivElement>(null);
   const fittedSizes = useTextFit(multiGridRef, {
     cells: player?.cells ?? [],
@@ -76,6 +78,11 @@ export default function PlayGamePage() {
     const data = JSON.parse(stored) as PlayerData;
     setPlayer(data);
     setMarked(new Set(data.marked || []));
+
+    trackClientActivity("game_player_page_viewed", {
+      roomCode,
+      playerName: data.playerName,
+    });
 
     // Fetch room info
     fetch(`/api/game/${roomCode}`)
@@ -194,6 +201,13 @@ export default function PlayGamePage() {
     if (isMarking) {
       newMarked.add(index);
       playDabSound();
+      cellMarkCountRef.current++;
+      if (cellMarkCountRef.current <= 10) {
+        trackClientActivity("game_player_cell_marked", {
+          roomCode,
+          cellValue,
+        });
+      }
     } else {
       newMarked.delete(index);
       playUndabSound();
@@ -221,6 +235,8 @@ export default function PlayGamePage() {
   const claimBingoWin = async () => {
     if (!player || claimingBingo) return;
     setClaimingBingo(true);
+
+    trackClientActivity("game_player_bingo_claimed", { roomCode });
 
     try {
       const res = await fetch(`/api/game/${roomCode}/bingo`, {

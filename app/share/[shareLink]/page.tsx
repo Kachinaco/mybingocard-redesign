@@ -247,6 +247,12 @@ export default function SharedCardPage() {
           timeToBingoSeconds: duration,
           context: "shared_card",
         });
+        // Save game history for shared card plays
+        fetch("/api/game-history/shared", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cardId: card._id, cardTitle: card.title, shareLink, duration }),
+        }).catch(() => {});
       } else if (!hasBingo) {
         setBingo(false);
       }

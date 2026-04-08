@@ -26,6 +26,7 @@ export async function GET(
           hasBingo: p.hasBingo,
           markedCount: p.marked.length,
         })),
+        playerCount: room.players.length,
         status: room.status,
         winnerId: room.winnerId,
         winnerName: room.winnerName,

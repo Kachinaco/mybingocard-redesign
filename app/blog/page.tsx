@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     "Discover bingo card ideas, tips, and step-by-step guides for weddings, baby showers, classrooms, parties, and holidays. Learn how to create the perfect custom bingo cards.",
   alternates: {
-    canonical: "/blog",
+    canonical: "https://mybingocard.com/blog",
   },
   openGraph: {
     title: "Blog — Bingo Card Ideas, Tips & Guides | MyBingoCard",

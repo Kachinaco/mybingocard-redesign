@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Christmas Holiday Bingo Card Maker — Free Printable | MyBingoCard",
   description:
     "Create free Christmas and holiday bingo cards with our easy bingo card maker. Printable holiday bingo for classrooms, family gatherings, and office parties. Instant PDF download.",
+  alternates: {
+    canonical: "https://mybingocard.com/holiday-bingo",
+  },
 };
 
 const holidaySquares = [

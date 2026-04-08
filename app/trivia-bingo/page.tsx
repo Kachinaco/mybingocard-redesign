@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Trivia Bingo Cards Generator — MyBingoCard",
   description:
     "Create free trivia bingo cards for trivia nights, pub quizzes, and game nights. Printable trivia night bingo card generator with custom squares for bars, restaurants, and party trivia events.",
+  alternates: {
+    canonical: "https://mybingocard.com/trivia-bingo",
+  },
 };
 
 const triviaSquares = [

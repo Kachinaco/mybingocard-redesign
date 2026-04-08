@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Icebreaker Bingo Cards — Free People Bingo & Get to Know You Bingo | MyBingoCard",
   description:
     "Create icebreaker bingo cards for team meetings, classrooms, and networking events. Free human bingo generator with get to know you questions, people bingo cards, and printable PDF download.",
+  alternates: {
+    canonical: "https://mybingocard.com/icebreaker-bingo",
+  },
 };
 
 const icebreakerSquares = [

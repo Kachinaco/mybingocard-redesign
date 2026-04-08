@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Team Building Bingo Cards Generator — MyBingoCard",
   description:
     "Create free team building bingo cards for corporate events, icebreakers, and workplace activities. Printable team building bingo card generator with custom squares for offsites, retreats, and team bonding.",
+  alternates: {
+    canonical: "https://mybingocard.com/team-building-bingo",
+  },
 };
 
 const teamSquares = [

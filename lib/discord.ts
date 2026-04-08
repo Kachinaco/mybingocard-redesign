@@ -3,9 +3,12 @@ import { getSignupSourceLabel, type AttributionData } from "./attribution";
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 
 export async function sendDiscordNotification(content: string, embeds?: any[]) {
-  if (!WEBHOOK_URL) return;
+  if (!WEBHOOK_URL) {
+    console.warn("Discord notification skipped: DISCORD_WEBHOOK_URL not set");
+    return;
+  }
   try {
-    await fetch(WEBHOOK_URL, {
+    const res = await fetch(WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -13,6 +16,9 @@ export async function sendDiscordNotification(content: string, embeds?: any[]) {
         ...(embeds ? { embeds } : {}),
       }),
     });
+    if (!res.ok) {
+      console.error(`Discord webhook returned ${res.status}: ${await res.text().catch(() => "")}`);
+    }
   } catch (err) {
     console.error("Discord webhook failed:", err);
   }
@@ -103,6 +109,20 @@ export async function notifyCardCreated(name: string, email: string, cardTitle: 
       { name: "Plan", value: planType || "FREE", inline: true },
       { name: "Card Title", value: cardTitle || "Untitled", inline: false },
     ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyFirstCard(name: string, email: string, cardTitle: string) {
+  await sendDiscordNotification("", [{
+    title: "🏆 First Bingo Card Created!",
+    color: 0x10b981,
+    fields: [
+      { name: "User", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Card Title", value: cardTitle || "Untitled", inline: false },
+    ],
+    footer: { text: "MyBingoCard • Milestone" },
     timestamp: new Date().toISOString(),
   }]);
 }
@@ -476,6 +496,103 @@ export async function notifyBatchSelected(
       { name: "Batch Size", value: `${batchCount} cards`, inline: true },
       { name: "Price", value: price, inline: true },
       { name: "Guest?", value: isGuest ? "Yes" : "No", inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyTrialStarted(
+  name: string,
+  email: string,
+  trialEndsAt: Date | null
+) {
+  await sendDiscordNotification("", [{
+    title: "🆓 New Trial Started!",
+    color: 0x10b981,
+    fields: [
+      { name: "Name", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Trial Ends", value: trialEndsAt ? trialEndsAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Unknown", inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyTrialEndingSoon(
+  email: string,
+  name: string,
+  trialEndsAt: Date
+) {
+  const daysRemaining = Math.max(
+    0,
+    Math.ceil((trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+  );
+
+  await sendStripeEventEmbed(
+    "⏳ Trial Ending Soon",
+    "A customer's trial period is about to expire.",
+    0xf59e0b,
+    [
+      { name: "User", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Days Remaining", value: String(daysRemaining), inline: true },
+      { name: "Trial Ends", value: trialEndsAt.toISOString().split("T")[0] ?? "", inline: true },
+    ]
+  );
+}
+
+export async function notifyCardExported(
+  name: string,
+  email: string,
+  cardTitle: string,
+  format: "pdf" | "png"
+) {
+  await sendDiscordNotification("", [{
+    title: `📥 Card Exported as ${format.toUpperCase()}`,
+    color: format === "pdf" ? 0xdc2626 : 0x7c3aed,
+    fields: [
+      { name: "User", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Format", value: format.toUpperCase(), inline: true },
+      { name: "Card", value: cardTitle || "Untitled", inline: false },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyTrialChurnRisk(
+  email: string,
+  name: string,
+  trialDay: number,
+  daysInactive: number,
+  cardsCreated: number
+) {
+  await sendDiscordNotification("", [{
+    title: "🚨 Trial Churn Risk Detected",
+    color: 0xef4444,
+    fields: [
+      { name: "Name", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Trial Day", value: `Day ${trialDay} of 7`, inline: true },
+      { name: "Inactive", value: `${daysInactive} day${daysInactive === 1 ? "" : "s"}`, inline: true },
+      { name: "Cards Created", value: String(cardsCreated), inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyFirstAiGeneration(
+  name: string,
+  email: string,
+  topic: string
+) {
+  await sendDiscordNotification("", [{
+    title: "🤖 First AI Generation!",
+    color: 0x8b5cf6,
+    fields: [
+      { name: "Name", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Topic", value: topic || "Unknown", inline: false },
     ],
     timestamp: new Date().toISOString(),
   }]);

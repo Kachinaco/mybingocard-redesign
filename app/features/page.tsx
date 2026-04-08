@@ -4,6 +4,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Features - MyBingoCard",
   description: "Everything you need to create, customize, and share beautiful bingo cards. Smart editor, theme library, PDF export, virtual play, and more.",
+  alternates: {
+    canonical: "https://mybingocard.com/features",
+  },
 };
 
 const features = [

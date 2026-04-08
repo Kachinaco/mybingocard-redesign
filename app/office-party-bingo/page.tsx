@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Office Bingo Card Generator — Free Work Party Bingo | MyBingoCard",
   description:
     "Create hilarious office bingo cards for your next work party or team meeting. Free office bingo card generator — perfect for holiday parties, team events, and remote meetings.",
+  alternates: {
+    canonical: "https://mybingocard.com/office-party-bingo",
+  },
 };
 
 const officeSquares = [

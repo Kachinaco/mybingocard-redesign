@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "Learn how to make custom bingo cards online for free. Step-by-step guide to creating personalized, printable bingo cards for any event using MyBingoCard.",
   keywords: ["how to make bingo cards", "custom bingo cards", "bingo card maker", "create bingo cards", "printable bingo cards", "free bingo card generator"],
-  alternates: { canonical: "/blog/how-to-make-custom-bingo-cards" },
+  alternates: { canonical: "https://mybingocard.com/blog/how-to-make-custom-bingo-cards" },
   openGraph: {
     title: "How to Make Custom Bingo Cards in 5 Minutes",
     description: "Step-by-step guide to creating free custom bingo cards for any event.",

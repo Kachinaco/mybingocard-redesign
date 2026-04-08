@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "Discover the best baby shower bingo games that guests love. From gift bingo to baby prediction cards — 7 creative baby shower bingo ideas with free printable cards.",
   keywords: ["baby shower bingo", "baby shower games", "baby bingo", "baby shower bingo cards", "baby shower activities", "gift bingo"],
-  alternates: { canonical: "/blog/best-bingo-games-baby-showers" },
+  alternates: { canonical: "https://mybingocard.com/blog/best-bingo-games-baby-showers" },
   openGraph: {
     title: "The 7 Best Bingo Games for Baby Showers",
     description: "Creative baby shower bingo variations that guests absolutely love.",

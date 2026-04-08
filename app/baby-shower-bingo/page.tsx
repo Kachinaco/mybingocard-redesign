@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Baby Shower Bingo Cards Generator — MyBingoCard",
   description:
     "Create custom baby shower bingo cards in minutes. Free baby shower bingo cards generator with printable PDF export. Perfect for any baby shower party game.",
+  alternates: {
+    canonical: "https://mybingocard.com/baby-shower-bingo",
+  },
 };
 
 const babySquares = [

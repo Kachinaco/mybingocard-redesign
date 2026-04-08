@@ -133,6 +133,8 @@ function CreateCardContent() {
   useEffect(() => {
     if (searchParams.get("trial") === "started" && session?.user) {
       sessionData.update();
+      const timeSpent = Math.round((Date.now() - pageLoadedAtRef.current) / 1000);
+      trackClientActivity("trial_checkout_completed_client", { time_spent_seconds: timeSpent });
     }
   }, [searchParams, session?.user, sessionData]);
 
@@ -155,6 +157,7 @@ function CreateCardContent() {
     if (!isNewSignup) return;
 
     trialCheckoutOpenedRef.current = true;
+    trackClientActivity("trial_checkout_viewed");
     setTrialLoading(true);
 
     fetch("/api/stripe/embedded-checkout", {
@@ -170,14 +173,33 @@ function CreateCardContent() {
           return;
         }
         if (!res.ok || !data.clientSecret) {
-          setTrialError(data.error || "Failed to start trial. Please try again.");
+          const msg = data.error || "Failed to start trial. Please try again.";
+          setTrialError(msg);
+          trackClientActivity("trial_checkout_error", { error: msg });
           return;
         }
         setTrialClientSecret(data.clientSecret);
+        trackClientActivity("trial_checkout_form_loaded");
       })
-      .catch(() => setTrialError("Something went wrong. Please try again."))
+      .catch(() => {
+        setTrialError("Something went wrong. Please try again.");
+        trackClientActivity("trial_checkout_error", { error: "Something went wrong. Please try again." });
+      })
       .finally(() => setTrialLoading(false));
   }, [isNewSignup, router]);
+
+  // Track abandonment when user closes/navigates away during trial checkout
+  useEffect(() => {
+    if (!isNewSignup || !trialClientSecret) return;
+
+    const handleBeforeUnload = () => {
+      const timeSpent = Math.round((Date.now() - pageLoadedAtRef.current) / 1000);
+      trackClientActivity("trial_checkout_abandoned", { time_spent_seconds: timeSpent }, { keepalive: true });
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isNewSignup, trialClientSecret]);
 
   // Check permissions on mount
   useEffect(() => {
@@ -1192,12 +1214,18 @@ function CreateCardContent() {
                     .then(async (res) => {
                       const data = await res.json();
                       if (!res.ok || !data.clientSecret) {
-                        setTrialError(data.error || "Failed to start trial.");
+                        const msg = data.error || "Failed to start trial.";
+                        setTrialError(msg);
+                        trackClientActivity("trial_checkout_error", { error: msg, retry: true });
                         return;
                       }
                       setTrialClientSecret(data.clientSecret);
+                      trackClientActivity("trial_checkout_form_loaded", { retry: true });
                     })
-                    .catch(() => setTrialError("Something went wrong."))
+                    .catch(() => {
+                      setTrialError("Something went wrong.");
+                      trackClientActivity("trial_checkout_error", { error: "Something went wrong.", retry: true });
+                    })
                     .finally(() => setTrialLoading(false));
                 }}
                 className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"

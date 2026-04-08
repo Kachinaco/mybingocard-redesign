@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "Pro tips for hosting bingo at birthday parties, game nights, and celebrations. From card setup to prizes, learn how to run a bingo game that keeps energy high.",
   keywords: ["party bingo", "how to play bingo", "bingo game tips", "bingo at parties", "birthday bingo", "game night bingo", "bingo prizes"],
-  alternates: { canonical: "/blog/party-bingo-tips" },
+  alternates: { canonical: "https://mybingocard.com/blog/party-bingo-tips" },
   openGraph: {
     title: "How to Run the Perfect Bingo Game at Any Party",
     description: "Pro tips for hosting bingo at parties — setup, prizes, and keeping the energy high.",

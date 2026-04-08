@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "custom party games",
   ],
   alternates: {
-    canonical: "/party-bingo",
+    canonical: "https://mybingocard.com/party-bingo",
   },
   openGraph: {
     title: "Party Bingo Cards — Free Bingo Card Generator for Any Party",

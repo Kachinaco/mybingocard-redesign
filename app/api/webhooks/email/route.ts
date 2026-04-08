@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { notifySupportEmail } from "@/lib/discord";
 
-// Webhook endpoint for inbound email notifications
-// Can be called by email forwarding services (SendGrid, Mailgun, etc.)
-// or by a simple cron/IMAP checker
 export async function POST(request: Request) {
   try {
+    const secret = request.headers.get("x-webhook-secret");
+    if (!process.env.WEBHOOK_SECRET || secret !== process.env.WEBHOOK_SECRET) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { from, subject, text, html } = body;
     

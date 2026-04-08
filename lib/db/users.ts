@@ -15,7 +15,7 @@ export interface User {
   stripeCustomerId?: string | null;
   stripeSubscriptionId?: string | null;
   stripePriceId?: string | null;
-  subscriptionStatus?: "active" | "inactive" | "past_due" | "canceled" | "lifetime";
+  subscriptionStatus?: "active" | "trialing" | "inactive" | "past_due" | "canceled" | "lifetime";
   currentPeriodStart?: Date | null;
   currentPeriodEnd?: Date | null;
   cancelAtPeriodEnd?: boolean;
@@ -37,8 +37,20 @@ export interface User {
   last_utm_content?: string;
   last_utm_term?: string;
   last_referrer?: string;
+  anonymousId?: string;
   signupMethod?: "google" | "credentials" | "magic_link";
+  signupDevice?: string;   // "Chrome 146 / Windows" parsed from UA
+  signupCountry?: string;  // "PH" from IP geolocation
+  signupLanguage?: string; // "en-PH" from Accept-Language header
   requiresCheckout?: boolean;
+  // Behavior counters
+  totalCardsCreated?: number;
+  lastCardCreatedAt?: Date;
+  totalExports?: number;
+  lastExportAt?: Date;
+  featuresUsed?: string[];
+  loginCount?: number;
+  lastLoginAt?: Date;
 }
 
 export type UserAttributionFields = Pick<
@@ -82,6 +94,8 @@ export async function createUser(data: {
   last_utm_term?: string;
   last_referrer?: string;
   signupMethod?: "google" | "credentials" | "magic_link";
+  signupDevice?: string;
+  signupLanguage?: string;
 }): Promise<User> {
   const client = await clientPromise;
   const db = client.db("mybingocard");
@@ -113,6 +127,8 @@ export async function createUser(data: {
     ...(data.last_utm_term && { last_utm_term: data.last_utm_term }),
     ...(data.last_referrer && { last_referrer: data.last_referrer }),
     ...(data.signupMethod && { signupMethod: data.signupMethod }),
+    ...(data.signupDevice && { signupDevice: data.signupDevice }),
+    ...(data.signupLanguage && { signupLanguage: data.signupLanguage }),
     referralCode: crypto.randomBytes(4).toString("hex"),
   };
 
@@ -249,7 +265,7 @@ export async function ensureUserDefaults(id: string): Promise<User | null> {
 
   // New users created by the auth adapter need checkout gating.
   // Only set for users without an active subscription (genuinely new).
-  if (current.requiresCheckout === undefined && current.subscriptionStatus !== "active" && current.subscriptionStatus !== "lifetime") {
+  if (current.requiresCheckout === undefined && current.subscriptionStatus !== "active" && current.subscriptionStatus !== "trialing" && current.subscriptionStatus !== "lifetime") {
     updates.requiresCheckout = true;
   }
 
@@ -270,13 +286,14 @@ export async function updateUserSubscription(
     stripeCustomerId?: string | null;
     stripeSubscriptionId?: string | null;
     stripePriceId?: string | null;
-    status?: "active" | "inactive" | "past_due" | "canceled" | "lifetime";
+    status?: "active" | "trialing" | "inactive" | "past_due" | "canceled" | "lifetime";
     currentPeriodStart?: Date | null;
     currentPeriodEnd?: Date | null;
       cancelAtPeriodEnd?: boolean;
     cancelAt?: Date | null;
     cancellationReason?: string | null;
     cancellationFeedback?: string | null;
+    trialEndsAt?: Date | null;
   }
 ): Promise<User | null> {
   const client = await clientPromise;
@@ -330,6 +347,10 @@ export async function updateUserSubscription(
     updateData.cancellationFeedback = subscriptionData.cancellationFeedback;
   }
 
+  if (subscriptionData.trialEndsAt !== undefined) {
+    updateData.trialEndsAt = subscriptionData.trialEndsAt;
+  }
+
   const result = await db.collection<User>("users").findOneAndUpdate(
     { email },
     { $set: updateData },
@@ -359,4 +380,47 @@ export async function updateUserPassword(
   );
 
   return result.matchedCount > 0;
+}
+
+export async function incrementUserCounter(
+  userId: string,
+  field: string,
+  value?: number
+): Promise<void> {
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  await db.collection<User>("users").updateOne(
+    { _id: new ObjectId(userId) },
+    {
+      $inc: { [field]: value || 1 } as any,
+      $set: { updatedAt: new Date() },
+    }
+  );
+}
+
+export async function addFeatureUsed(
+  userId: string,
+  feature: string
+): Promise<void> {
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  await db.collection<User>("users").updateOne(
+    { _id: new ObjectId(userId) },
+    {
+      $addToSet: { featuresUsed: feature } as any,
+      $set: { updatedAt: new Date() },
+    }
+  );
+}
+
+export async function incrementCardStats(userId: string): Promise<void> {
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  await db.collection<User>("users").updateOne(
+    { _id: new ObjectId(userId) },
+    {
+      $inc: { totalCardsCreated: 1 } as any,
+      $set: { lastCardCreatedAt: new Date(), updatedAt: new Date() },
+    }
+  );
 }

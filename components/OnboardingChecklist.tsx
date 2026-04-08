@@ -21,7 +21,7 @@ const STEPS = [
   { key: "createAccount", label: "Create your account", href: null, icon: "\u{1F464}" },
   { key: "createCard", label: "Create your first bingo card", href: "/create", icon: "\u{1F3A8}" },
   { key: "exportCard", label: "Export or share a card", href: null, icon: "\u{1F4E4}" },
-  { key: "tryGame", label: "Try a live game", href: "/game", icon: "\u{1F3AE}" },
+  { key: "tryGame", label: "Try a live game", href: "/game/join", icon: "\u{1F3AE}" },
   { key: "exploreTemplates", label: "Explore templates", href: "/templates", icon: "\u{1F4CB}" },
 ];
 

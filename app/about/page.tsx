@@ -4,6 +4,9 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "About Us — MyBingoCard",
   description: "Learn about MyBingoCard — the easiest way to create custom bingo cards for any occasion.",
+  alternates: {
+    canonical: "https://mybingocard.com/about",
+  },
 };
 
 export default function AboutPage() {

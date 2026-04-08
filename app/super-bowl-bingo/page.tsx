@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Super Bowl Bingo Cards Printable — Free Super Bowl Bingo Generator | MyBingoCard",
   description:
     "Create free printable Super Bowl bingo cards for your watch party. The best Super Bowl bingo generator — custom squares, instant PDF perfect for any football party.",
+  alternates: {
+    canonical: "https://mybingocard.com/super-bowl-bingo",
+  },
 };
 
 const superBowlSquares = [

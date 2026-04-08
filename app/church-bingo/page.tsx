@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Church Bingo Cards Generator — MyBingoCard",
   description:
     "Create free church bingo cards for fundraisers, Sunday school, and religious events. Printable church bingo card generator with custom squares for youth groups, potlucks, and fellowship gatherings.",
+  alternates: {
+    canonical: "https://mybingocard.com/church-bingo",
+  },
 };
 
 const churchSquares = [

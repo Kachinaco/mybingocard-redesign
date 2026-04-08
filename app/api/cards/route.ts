@@ -2,11 +2,11 @@ import { sanitizeCells, sanitizeText } from "@/lib/sanitize";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createCard, getUserCards, updateCard, deleteCard, getCardById } from "@/lib/db/cards";
-import { canCreateCard } from "@/lib/db/subscriptions";
+import { canCreateCard, getUserCardCount } from "@/lib/db/subscriptions";
 import { generateShareLink } from "@/lib/db/cards";
-import { getUserById } from "@/lib/db/users";
+import { getUserById, incrementCardStats } from "@/lib/db/users";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
-import { notifyCardCreated } from "@/lib/discord";
+import { notifyCardCreated, notifyFirstCard } from "@/lib/discord";
 
 export async function GET(request: Request) {
   try {
@@ -135,8 +135,37 @@ export async function POST(request: Request) {
       session.user.name || "",
       session.user.email || "",
       card.title || "Untitled",
-      "FREE"
+      userPlan
     ).catch(console.error);
+
+    // Increment card stats for every card creation
+    incrementCardStats(session.user.id).catch(console.error);
+
+    // First-card milestone tracking
+    const cardCount = await getUserCardCount(session.user.id);
+    if (cardCount === 1) {
+      const isTrial = !!(user?.trialEndsAt && user.trialEndsAt > new Date());
+      trackActivity({
+        event: "first_card_created",
+        source: "server",
+        userId: session.user.id,
+        email: session.user.email || null,
+        pathname: requestContext.pathname,
+        domain: requestContext.domain,
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+        metadata: {
+          cardTitle: card.title,
+          isTrial,
+        },
+      }).catch(console.error);
+
+      notifyFirstCard(
+        session.user.name || "",
+        session.user.email || "",
+        card.title || "Untitled"
+      ).catch(console.error);
+    }
 
     return NextResponse.json({ card }, { status: 201 });
   } catch (error) {

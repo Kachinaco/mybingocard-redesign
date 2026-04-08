@@ -24,6 +24,8 @@ import {
   notifyRenewalFailed,
   notifyRenewalPaid,
   notifySubscription,
+  notifyTrialStarted,
+  notifyTrialEndingSoon,
 } from "@/lib/discord";
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
@@ -44,9 +46,10 @@ function isActiveLikeStatus(status: Stripe.Subscription.Status): boolean {
 
 function mapSubscriptionStatus(
   status: Stripe.Subscription.Status
-): "active" | "inactive" | "past_due" | "canceled" {
+): "active" | "trialing" | "inactive" | "past_due" | "canceled" {
   switch (status) {
     case "trialing":
+      return "trialing";
     case "active":
       return "active";
     case "past_due":
@@ -183,6 +186,7 @@ export async function POST(request: Request) {
                 currentPeriodEnd: toDate(subscription.items.data[0]?.current_period_end),
                 cancelAtPeriodEnd: subscription.cancel_at_period_end,
                 cancelAt: toDate(subscription.cancel_at),
+                trialEndsAt: toDate(subscription.trial_end),
               });
 
               // Also upsert subscription record so canCreateCard() works correctly
@@ -259,6 +263,14 @@ export async function POST(request: Request) {
                   session.currency,
                   session.id
                 ).catch(console.error);
+
+                if (subscription.trial_end) {
+                  notifyTrialStarted(
+                    user?.name || recipient,
+                    recipient,
+                    toDate(subscription.trial_end)
+                  ).catch(console.error);
+                }
               }
             }
           }
@@ -696,7 +708,7 @@ export async function POST(request: Request) {
       case "checkout.session.expired": {
         const expiredSession = event.data.object as Stripe.Checkout.Session;
         const email = expiredSession.customer_details?.email || expiredSession.customer_email;
-        const purchaseType = expiredSession.metadata?.purchaseType as "subscription" | "batch_pack" | undefined;
+        const purchaseType = expiredSession.metadata?.purchaseType as "subscription" | "batch_pack" | "trial" | undefined;
         const batchCount = expiredSession.metadata?.batchCount ? parseInt(expiredSession.metadata.batchCount) : undefined;
 
         if (email && purchaseType) {
@@ -722,14 +734,14 @@ export async function POST(request: Request) {
           }).catch(console.error);
 
           // Only send if this is a real purchase type we track
-          if (purchaseType === "subscription" || purchaseType === "batch_pack") {
+          if (purchaseType === "subscription" || purchaseType === "batch_pack" || purchaseType === "trial") {
             await sendAbandonedCheckoutEmail(email, userName, purchaseType, batchCount).catch(console.error);
             console.log(`Abandoned checkout email sent to ${email} (${purchaseType})`);
             notifyCheckoutExpired(
               email,
               userName,
-              purchaseType === "subscription"
-                ? "Premium"
+              purchaseType === "subscription" || purchaseType === "trial"
+                ? "Premium Trial"
                 : `Batch Pack (${batchCount || "Unknown"} cards)`,
               expiredSession.id
             ).catch(console.error);
@@ -801,6 +813,62 @@ export async function POST(request: Request) {
           disputeStatus,
           dispute.reason
         ).catch(console.error);
+        break;
+      }
+
+      case "customer.subscription.trial_will_end": {
+        const subscription = event.data.object as Stripe.Subscription;
+        const customerId = typeof subscription.customer === "string" ? subscription.customer : subscription.customer?.toString();
+        let email: string | null = null;
+        let name: string | null = null;
+
+        // Try metadata first, then look up the Stripe customer
+        email = subscription.metadata?.userId || null;
+        if (!email && customerId) {
+          try {
+            const customer = await stripe.customers.retrieve(customerId);
+            if (!("deleted" in customer && customer.deleted)) {
+              email = customer.email || null;
+              name = customer.name || null;
+            }
+          } catch (err) {
+            console.error("Failed to retrieve customer for trial_will_end:", err);
+          }
+        }
+
+        if (email) {
+          const user = await getUserByEmail(email);
+          name = name || user?.name || null;
+        }
+
+        const trialEndsAt = toDate(subscription.trial_end);
+        const daysRemaining = trialEndsAt
+          ? Math.max(0, Math.ceil((trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+          : 3;
+
+        await trackActivity({
+          event: "trial_ending_soon",
+          source: "webhook",
+          userId: null,
+          email,
+          metadata: {
+            email,
+            trialEndsAt,
+            daysRemaining,
+            stripeSubscriptionId: subscription.id,
+            stripeCustomerId: customerId || null,
+          },
+        });
+
+        if (email) {
+          notifyTrialEndingSoon(
+            email,
+            name || email,
+            trialEndsAt || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+          ).catch(console.error);
+        }
+
+        console.log(`Trial ending soon for ${email || customerId || "unknown"} — ${daysRemaining} days remaining`);
         break;
       }
 

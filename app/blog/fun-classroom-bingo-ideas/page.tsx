@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "Engaging classroom bingo ideas for every subject — vocabulary, math, science, history, and more. Proven bingo games teachers use to boost student participation.",
   keywords: ["classroom bingo", "bingo for teachers", "educational bingo", "vocabulary bingo", "math bingo", "classroom games", "student engagement"],
-  alternates: { canonical: "/blog/fun-classroom-bingo-ideas" },
+  alternates: { canonical: "https://mybingocard.com/blog/fun-classroom-bingo-ideas" },
   openGraph: {
     title: "15 Fun Classroom Bingo Ideas Students Love",
     description: "Engaging bingo games for every subject that boost student participation.",

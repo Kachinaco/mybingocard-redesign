@@ -35,6 +35,33 @@ export function parseAttributionCookie(value: string | undefined): AttributionDa
   }
 }
 
+const OAUTH_REDIRECT_DOMAINS = [
+  "accounts.google.com",
+  "appleid.apple.com",
+  "github.com",
+  "login.microsoftonline.com",
+];
+
+export function stripOAuthReferrer(data: AttributionData): AttributionData {
+  if (!data.referrer) return data;
+
+  try {
+    const url = new URL(data.referrer);
+    const hostname = url.hostname.toLowerCase();
+    const isOAuth = OAUTH_REDIRECT_DOMAINS.some(
+      (domain) => hostname === domain || hostname.endsWith(`.${domain}`)
+    );
+    if (isOAuth) {
+      const { referrer: _, ...rest } = data;
+      return rest;
+    }
+  } catch {
+    // Not a valid URL — leave it alone
+  }
+
+  return data;
+}
+
 export function getSignupSourceLabel(data: Partial<AttributionData> | null | undefined): string {
   const attribution = sanitizeAttribution(data);
 

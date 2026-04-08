@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Bridal Shower Bingo Cards Printable — Free Bridal Shower Bingo Generator | MyBingoCard",
   description:
     "Create free printable bridal shower bingo cards for your guests. The best bridal shower bingo card generator — custom squares, instant PDF download for any bridal shower.",
+  alternates: {
+    canonical: "https://mybingocard.com/bridal-shower-bingo",
+  },
 };
 
 const bridalSquares = [

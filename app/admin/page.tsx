@@ -8,12 +8,16 @@ async function getAdminStats() {
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
-  const [totalUsers, paidUsers, totalCards, recentSignups, recentUsers] =
+  const [totalUsers, paidUsers, trialingUsers, totalCards, recentSignups, recentUsers] =
     await Promise.all([
       db.collection("users").countDocuments(),
       db.collection("users").countDocuments({
         planType: "PREMIUM",
         subscriptionStatus: "active",
+      }),
+      db.collection("users").countDocuments({
+        planType: "PREMIUM",
+        subscriptionStatus: "trialing",
       }),
       db.collection("cards").countDocuments(),
       db.collection("users").countDocuments({
@@ -35,6 +39,7 @@ async function getAdminStats() {
   return {
     totalUsers,
     paidUsers,
+    trialingUsers,
     totalCards,
     revenueEstimate: paidUsers * 4.99,
     recentSignups,
@@ -75,6 +80,17 @@ export default async function AdminOverviewPage() {
       ),
     },
     {
+      label: "Trialing",
+      value: stats.trialingUsers.toLocaleString(),
+      description: "Free trial (not yet paying)",
+      color: "sky",
+      icon: (
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
       label: "Total Cards",
       value: stats.totalCards.toLocaleString(),
       description: "Bingo cards created",
@@ -88,7 +104,7 @@ export default async function AdminOverviewPage() {
     {
       label: "MRR",
       value: `$${stats.revenueEstimate.toFixed(2)}`,
-      description: `${stats.paidUsers} subscribers x $4.99`,
+      description: `${stats.paidUsers} paying subscribers x $4.99`,
       color: "amber",
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,7 +116,7 @@ export default async function AdminOverviewPage() {
       label: "Recent Signups",
       value: stats.recentSignups.toLocaleString(),
       description: "Last 7 days",
-      color: "sky",
+      color: "rose",
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -115,6 +131,7 @@ export default async function AdminOverviewPage() {
     violet: { bg: "bg-violet-50", text: "text-violet-600", iconBg: "bg-violet-100" },
     amber: { bg: "bg-amber-50", text: "text-amber-600", iconBg: "bg-amber-100" },
     sky: { bg: "bg-sky-50", text: "text-sky-600", iconBg: "bg-sky-100" },
+    rose: { bg: "bg-rose-50", text: "text-rose-600", iconBg: "bg-rose-100" },
   };
 
   return (
@@ -127,7 +144,7 @@ export default async function AdminOverviewPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-10">
         {statCards.map((stat) => {
           const colors = colorClasses[stat.color];
           if (!colors) return null;

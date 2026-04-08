@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getUserByEmail } from "@/lib/db/users";
+import { getUserByEmail, addFeatureUsed } from "@/lib/db/users";
 import { PLANS } from "@/lib/stripe/config";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import clientPromise from "@/lib/mongodb";
+import { notifyFirstAiGeneration } from "@/lib/discord";
 
 const PROXY_URL = "http://127.0.0.1:3456/v1/chat/completions";
 
@@ -139,17 +141,58 @@ export async function POST(req: NextRequest) {
       cells = items;
     }
 
-    // Track activity
+    // Track activity + first-generation detection + feature usage
     try {
       const ctx = getRequestActivityContext(req as any);
+
+      // Compute trial metadata
+      const isTrialUser = user.subscriptionStatus === "trialing" && !!user.trialEndsAt;
+      let trialDay: number | null = null;
+      if (isTrialUser && user.trialEndsAt) {
+        const trialStartMs = user.trialEndsAt.getTime() - 7 * 24 * 60 * 60 * 1000;
+        trialDay = Math.max(1, Math.ceil((Date.now() - trialStartMs) / (24 * 60 * 60 * 1000)));
+      }
+
       await trackActivity({
         event: "ai_cells_generated",
         userId: session.user.id,
         email: session.user.email,
-        metadata: { theme: theme.substring(0, 100), tone, size, cellCount },
+        metadata: {
+          theme: theme.substring(0, 100),
+          tone,
+          size,
+          cellCount,
+          isTrialUser,
+          ...(trialDay !== null ? { trialDay } : {}),
+        },
         ...ctx,
       });
+
+      // Check if this is the user's first AI generation
+      const client = await clientPromise;
+      const db = client.db("mybingocard");
+      const priorCount = await db.collection("activity_events").countDocuments({
+        event: "ai_cells_generated",
+        userId: session.user.id,
+      });
+      // priorCount === 1 means the event we just inserted is the only one
+      if (priorCount === 1) {
+        await trackActivity({
+          event: "first_ai_generation",
+          userId: session.user.id,
+          email: session.user.email,
+          metadata: { theme: theme.substring(0, 100), tone, size },
+          ...ctx,
+        });
+        notifyFirstAiGeneration(
+          user.name || session.user.name || "Unknown",
+          session.user.email,
+          theme.substring(0, 100)
+        ).catch(() => {});
+      }
     } catch {}
+
+    addFeatureUsed(session.user.id, "ai_generate").catch(() => {});
 
     return NextResponse.json({ cells });
   } catch (err: any) {

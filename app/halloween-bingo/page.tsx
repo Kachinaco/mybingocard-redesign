@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Halloween Bingo Cards Printable — Free Halloween Bingo Generator | MyBingoCard",
   description:
     "Create free printable Halloween bingo cards for your party or classroom. The best Halloween bingo card generator — spooky squares, instant PDF, perfect for kids and adults.",
+  alternates: {
+    canonical: "https://mybingocard.com/halloween-bingo",
+  },
 };
 
 const halloweenSquares = [

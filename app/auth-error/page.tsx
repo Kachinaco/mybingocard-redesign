@@ -19,6 +19,13 @@ const errorMessages: Record<string, { title: string; message: string; action: st
     action: "Back to sign in",
     href: "/login",
   },
+  Configuration: {
+    title: "Sign in hiccup",
+    message: "Something went wrong during sign in. This is usually temporary — please try again.",
+    action: "Try again",
+    href: "/login",
+    showGoogle: true,
+  },
   OAuthSignin: {
     title: "Sign in failed",
     message: "There was a problem connecting to Google. Please try again.",

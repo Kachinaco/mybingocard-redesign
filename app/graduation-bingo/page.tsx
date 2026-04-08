@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Graduation Bingo Cards Printable — Free Graduation Bingo Generator | MyBingoCard",
   description:
     "Create free printable graduation bingo cards for your ceremony or party. The best graduation bingo generator — custom squares, instant PDF for any graduation celebration.",
+  alternates: {
+    canonical: "https://mybingocard.com/graduation-bingo",
+  },
 };
 
 const graduationSquares = [

@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Music Bingo Cards — Free Song Bingo Generator | MyBingoCard",
   description:
     "Create music bingo cards for your next party or event. Free song bingo generator with custom playlists, name that tune bingo, and printable music bingo cards. Instant PDF download.",
+  alternates: {
+    canonical: "https://mybingocard.com/music-bingo",
+  },
 };
 
 const musicSquares = [

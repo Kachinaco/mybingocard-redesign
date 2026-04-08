@@ -7,8 +7,8 @@ import { cookies } from "next/headers";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "./lib/mongodb";
 import bcrypt from "bcryptjs";
-import { ATTRIBUTION_COOKIE_NAME, parseAttributionCookie } from "@/lib/attribution";
-import { ensureUserDefaults, getUserByEmail, getUserById, updateUserAttribution, updateUserLastAttribution, updateUserSignupMethod } from "./lib/db/users";
+import { ATTRIBUTION_COOKIE_NAME, parseAttributionCookie, stripOAuthReferrer } from "@/lib/attribution";
+import { ensureUserDefaults, getUserByEmail, getUserById, incrementUserCounter, updateUserAttribution, updateUserLastAttribution, updateUserSignupMethod } from "./lib/db/users";
 import { sendMagicLinkEmail, sendWelcomeEmail } from "./lib/email";
 import { trackActivity } from "./lib/activity";
 import { IMPERSONATION_COOKIE_NAME, parseImpersonationCookie } from "@/lib/impersonation";
@@ -156,8 +156,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (event.user.id) {
         try {
           const cookieStore = await cookies();
-          attribution = parseAttributionCookie(
-            cookieStore.get(ATTRIBUTION_COOKIE_NAME)?.value
+          attribution = stripOAuthReferrer(
+            parseAttributionCookie(
+              cookieStore.get(ATTRIBUTION_COOKIE_NAME)?.value
+            )
           );
 
           if (Object.keys(attribution).length > 0) {
@@ -194,6 +196,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               await updateUserSignupMethod(event.user.id, signupMethod);
             }
           }
+
+          // Behavior counters
+          await incrementUserCounter(event.user.id, "loginCount");
+          const client2 = await clientPromise;
+          const db2 = client2.db("mybingocard");
+          await db2.collection("users").updateOne(
+            { _id: new (await import("mongodb")).ObjectId(event.user.id) },
+            { $set: { lastLoginAt: new Date() } }
+          );
         } catch (error) {
           console.error("Failed to capture sign-in attribution:", error);
         }
@@ -241,8 +252,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user.id) {
         try {
           const cookieStore = await cookies();
-          const attribution = parseAttributionCookie(
-            cookieStore.get(ATTRIBUTION_COOKIE_NAME)?.value
+          const attribution = stripOAuthReferrer(
+            parseAttributionCookie(
+              cookieStore.get(ATTRIBUTION_COOKIE_NAME)?.value
+            )
           );
 
           signupAttribution = attribution;

@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Thanksgiving Bingo Cards Printable — Free Thanksgiving Bingo Generator | MyBingoCard",
   description:
     "Create free printable Thanksgiving bingo cards for your family dinner or party. The best Thanksgiving bingo generator — custom squares, instant PDF for any Thanksgiving celebration.",
+  alternates: {
+    canonical: "https://mybingocard.com/thanksgiving-bingo",
+  },
 };
 
 const thanksgivingSquares = [

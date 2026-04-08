@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "Everything you need to know about wedding reception bingo — 50+ square ideas, printable tips, prize suggestions, and how to make wedding bingo a hit with your guests.",
   keywords: ["wedding bingo", "wedding bingo cards", "wedding reception games", "wedding games for guests", "printable wedding bingo", "wedding entertainment"],
-  alternates: { canonical: "/blog/wedding-bingo-guide" },
+  alternates: { canonical: "https://mybingocard.com/blog/wedding-bingo-guide" },
   openGraph: {
     title: "The Ultimate Wedding Bingo Guide for 2026",
     description: "Square ideas, tips, and everything you need for wedding reception bingo.",

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getCardById } from "@/lib/db/cards";
-import { getUserByEmail } from "@/lib/db/users";
+import { getUserByEmail, incrementUserCounter } from "@/lib/db/users";
 import { canExportHD, canRemoveBranding } from "@/lib/permissions";
 import puppeteer from "puppeteer";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { notifyCardExported } from "@/lib/discord";
 
 export async function POST(
   request: Request,
@@ -101,6 +102,17 @@ export async function POST(
         hd: hdPermission.allowed,
       },
     });
+
+    // Increment export counter and send Discord notification (fire-and-forget)
+    if (session.user.id) {
+      incrementUserCounter(session.user.id, "totalExports").catch(() => {});
+    }
+    notifyCardExported(
+      user.name || "Unknown",
+      session.user.email,
+      card.title,
+      "png"
+    ).catch(() => {});
 
     // Return PNG as downloadable file
     return new NextResponse(Buffer.from(pngBuffer), {

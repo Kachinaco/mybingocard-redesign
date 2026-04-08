@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "Creative holiday bingo card ideas for Christmas parties, Hanukkah celebrations, New Year gatherings, and winter events. Free printable holiday bingo cards included.",
   keywords: ["holiday bingo", "Christmas bingo", "holiday bingo cards", "Christmas party games", "holiday party ideas", "printable holiday bingo"],
-  alternates: { canonical: "/blog/holiday-bingo-ideas" },
+  alternates: { canonical: "https://mybingocard.com/blog/holiday-bingo-ideas" },
   openGraph: {
     title: "20+ Holiday Bingo Ideas for Christmas & Beyond",
     description: "Creative holiday bingo ideas for Christmas, Hanukkah, New Year, and winter celebrations.",

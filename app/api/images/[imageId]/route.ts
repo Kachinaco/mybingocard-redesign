@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { getImageById } from "@/lib/db/images";
 import { readFile } from "node:fs/promises";
 
@@ -16,6 +17,18 @@ export async function GET(
       return NextResponse.json({ error: "Image not found" }, { status: 404 });
     }
 
+    // System/library images (clip-art) are public — no auth required.
+    // User-uploaded images are private to the owner.
+    if (!image.isSystem) {
+      const session = await auth();
+      if (!session?.user?.id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      if (image.userId !== session.user.id) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+
     const filePath = wantThumb ? image.thumbnailPath : image.storagePath;
 
     const fileBuffer = await readFile(filePath);
@@ -23,7 +36,9 @@ export async function GET(
     return new Response(fileBuffer, {
       headers: {
         "Content-Type": "image/webp",
-        "Cache-Control": "public, max-age=31536000, immutable",
+        "Cache-Control": image.isSystem
+          ? "public, max-age=31536000, immutable"
+          : "private, max-age=31536000, immutable",
         "Content-Length": fileBuffer.length.toString(),
       },
     });

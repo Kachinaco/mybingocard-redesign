@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Birthday Bingo Cards Printable — Free Birthday Bingo Generator | MyBingoCard",
   description:
     "Create free printable birthday bingo cards for your party guests. The best birthday bingo card generator — custom squares, instant PDF, and digital play for any birthday celebration.",
+  alternates: {
+    canonical: "https://mybingocard.com/birthday-bingo",
+  },
 };
 
 const birthdaySquares = [

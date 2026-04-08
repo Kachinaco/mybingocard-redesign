@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getUserImages, deleteImage, getUserImageCount, getUploadLimits } from "@/lib/db/images";
-import { getSubscriptionByUserId } from "@/lib/db/subscriptions";
+import { getUserById } from "@/lib/db/users";
 import { unlink } from "node:fs/promises";
 
 export async function GET() {
@@ -13,8 +13,8 @@ export async function GET() {
 
     const images = await getUserImages(session.user.id);
 
-    const subscription = await getSubscriptionByUserId(session.user.id);
-    const isPremium = subscription?.plan !== "free" && subscription?.status === "active";
+    const user = await getUserById(session.user.id);
+    const isPremium = user?.planType === "PREMIUM";
     const limits = getUploadLimits(isPremium);
     const count = await getUserImageCount(session.user.id);
 

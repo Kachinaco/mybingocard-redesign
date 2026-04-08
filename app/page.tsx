@@ -1,7 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import MobileNav from "@/components/MobileNav";
 import AdUnit from "@/components/AdUnit";
 import { EmailCaptureInline } from "@/components/EmailCapture";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "https://mybingocard.com",
+  },
+};
 
 // Sample bingo card data for the visual demo
 const demoBingoItems = [

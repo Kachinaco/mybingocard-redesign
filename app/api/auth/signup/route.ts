@@ -5,6 +5,7 @@ import { sendEmailVerificationEmail } from "@/lib/email";
 import { notifySignup, sendDiscordNotification } from "@/lib/discord";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { getReferralByCode, createReferral } from "@/lib/db/referrals";
+import { parseUserAgent } from "@/lib/parse-user-agent";
 
 export async function POST(request: Request) {
   try {
@@ -62,6 +63,11 @@ export async function POST(request: Request) {
       );
     }
 
+    // Parse device & language from request headers
+    const rawUA = request.headers.get("user-agent") || "";
+    const signupDevice = rawUA ? parseUserAgent(rawUA) : undefined;
+    const signupLanguage = request.headers.get("accept-language")?.split(",")[0]?.trim() || undefined;
+
     // Create user (emailVerified left unset = unverified for credentials signup)
     const user = await createUser({
       name,
@@ -80,6 +86,8 @@ export async function POST(request: Request) {
       last_utm_term: utm_term,
       last_referrer: referrer,
       signupMethod: "credentials",
+      signupDevice,
+      signupLanguage,
     });
 
     // Normalize referrer domain from the Referer header or body referrer

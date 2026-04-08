@@ -40,6 +40,19 @@ function sendError(payload: Record<string, unknown>) {
   }
 }
 
+// Known browser-extension and bot error patterns we can't fix
+const IGNORE_PATTERNS = [
+  /Object Not Found Matching Id/i,
+  /Cannot assign to read only property 'pushState'/i,
+  /removeChild.*not a child of this node/i,
+  /ResizeObserver loop/i,
+  /Loading chunk \d+ failed/i,
+];
+
+function isNoiseError(message: string): boolean {
+  return IGNORE_PATTERNS.some((re) => re.test(message));
+}
+
 export default function ErrorCapture() {
   useEffect(() => {
     // Session-level dedup: track messages already sent
@@ -54,6 +67,10 @@ export default function ErrorCapture() {
     function onError(event: ErrorEvent) {
       const message = event.message || "Unknown error";
       if (isDuplicate(message)) return;
+      if (isNoiseError(message)) return;
+      // Check the stack too for extension errors
+      const stack = event.error?.stack || "";
+      if (isNoiseError(stack)) return;
 
       const user = getUserInfo();
       sendError({
@@ -80,6 +97,7 @@ export default function ErrorCapture() {
             : "Unhandled promise rejection";
 
       if (isDuplicate(message)) return;
+      if (isNoiseError(message)) return;
 
       const stack =
         reason instanceof Error && reason.stack
@@ -123,9 +141,9 @@ export default function ErrorCapture() {
       const user = getUserInfo();
       sendError({
         type: "resource_load_failed",
-        element_type: tagName as "img" | "script" | "link",
-        src: src.slice(0, 500),
-        page: window.location.href,
+        message: `Failed to load ${tagName}: ${src.slice(0, 200)}`,
+        source: src.slice(0, 500),
+        pageUrl: window.location.href,
         userAgent: navigator.userAgent,
         userId: user.userId,
         email: user.email,

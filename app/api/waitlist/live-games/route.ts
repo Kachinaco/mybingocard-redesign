@@ -29,13 +29,18 @@ export async function POST() {
 }
 
 export async function GET() {
-  const session = await auth();
-  const adminEmails = ["coryanalla@gmail.com", "rank@townranker.com"];
-  if (!session?.user?.email || !adminEmails.includes(session.user.email)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  try {
+    const session = await auth();
+    const adminEmails = ["coryanalla@gmail.com", "rank@townranker.com"];
+    if (!session?.user?.email || !adminEmails.includes(session.user.email)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+    const client = await clientPromise;
+    const db = client.db("mybingocard");
+    const list = await db.collection("live_game_waitlist").find({}).sort({ createdAt: -1 }).toArray();
+    return NextResponse.json({ count: list.length, list });
+  } catch (error) {
+    console.error("Waitlist GET error:", error);
+    return NextResponse.json({ error: "Failed to fetch waitlist" }, { status: 500 });
   }
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const list = await db.collection("live_game_waitlist").find({}).sort({ createdAt: -1 }).toArray();
-  return NextResponse.json({ count: list.length, list });
 }

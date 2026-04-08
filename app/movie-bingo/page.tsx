@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Movie Bingo Cards — Free Movie Night Bingo Generator | MyBingoCard",
   description:
     "Create movie bingo cards for your next movie night or watch party. Free film bingo generator with tropes, cliches, and custom squares. Printable movie night bingo cards with instant PDF download.",
+  alternates: {
+    canonical: "https://mybingocard.com/movie-bingo",
+  },
 };
 
 const movieSquares = [

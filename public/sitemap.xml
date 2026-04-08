@@ -3,45 +3,51 @@
   <!-- Core Pages -->
   <url>
     <loc>https://mybingocard.com/</loc>
-    <lastmod>2026-03-04</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://mybingocard.com/create</loc>
-    <lastmod>2026-03-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
     <loc>https://mybingocard.com/templates</loc>
-    <lastmod>2026-03-04</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/pricing</loc>
-    <lastmod>2026-03-04</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/features</loc>
-    <lastmod>2026-03-04</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/supplies</loc>
-    <lastmod>2026-03-04</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://mybingocard.com/about</loc>
+    <lastmod>2026-04-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://mybingocard.com/contact</loc>
+    <lastmod>2026-04-06</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
 
   <!-- Guide Pages -->
   <url>
     <loc>https://mybingocard.com/how-to-play-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -49,121 +55,121 @@
   <!-- Landing Pages -->
   <url>
     <loc>https://mybingocard.com/wedding-bingo</loc>
-    <lastmod>2026-03-04</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/baby-shower-bingo</loc>
-    <lastmod>2026-03-04</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/classroom-bingo</loc>
-    <lastmod>2026-03-04</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/party-bingo</loc>
-    <lastmod>2026-03-04</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/holiday-bingo</loc>
-    <lastmod>2026-03-04</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/office-party-bingo</loc>
-    <lastmod>2026-03-04</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/birthday-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/bridal-shower-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/graduation-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/halloween-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/thanksgiving-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/super-bowl-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/church-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/family-reunion-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/team-building-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/trivia-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/music-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/movie-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/fundraiser-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/icebreaker-bingo</loc>
-    <lastmod>2026-04-03</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -171,7 +177,7 @@
   <!-- Blog -->
   <url>
     <loc>https://mybingocard.com/blog</loc>
-    <lastmod>2026-03-04</lastmod>
+    <lastmod>2026-04-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -212,17 +218,17 @@
     <priority>0.7</priority>
   </url>
 
-  <!-- Auth/Utility -->
+  <!-- Legal -->
   <url>
-    <loc>https://mybingocard.com/login</loc>
-    <lastmod>2026-03-04</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
+    <loc>https://mybingocard.com/privacy</loc>
+    <lastmod>2026-04-06</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://mybingocard.com/signup</loc>
-    <lastmod>2026-03-04</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
+    <loc>https://mybingocard.com/terms</loc>
+    <lastmod>2026-04-06</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>

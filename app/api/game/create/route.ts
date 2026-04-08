@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getCardById } from "@/lib/db/cards";
-import { getUserById } from "@/lib/db/users";
+import { getUserById, addFeatureUsed } from "@/lib/db/users";
 import { createGameRoom } from "@/lib/db/games";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
@@ -70,6 +70,8 @@ export async function POST(request: Request) {
         size: room.size,
       },
     });
+
+    addFeatureUsed(session.user.id, "live_game").catch(() => {});
 
     return NextResponse.json({
       roomCode: room.roomCode,

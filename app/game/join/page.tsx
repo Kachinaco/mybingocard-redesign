@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { trackClientActivity } from "@/lib/activity-client";
 
 function JoinGameContent() {
   const router = useRouter();
@@ -14,6 +15,10 @@ function JoinGameContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [roomInfo, setRoomInfo] = useState<{ title: string; playerCount: number; status: string } | null>(null);
+
+  useEffect(() => {
+    trackClientActivity("game_join_page_viewed");
+  }, []);
 
   useEffect(() => {
     const code = searchParams.get("code");

@@ -5,6 +5,9 @@ import ContactTracker from "./ContactTracker";
 export const metadata: Metadata = {
   title: "Contact Us — MyBingoCard",
   description: "Get in touch with the MyBingoCard team. We're here to help with questions, feedback, or support.",
+  alternates: {
+    canonical: "https://mybingocard.com/contact",
+  },
 };
 
 export default function ContactPage() {

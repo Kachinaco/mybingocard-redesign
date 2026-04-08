@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Wedding Bingo Cards Printable — Free Wedding Bingo Generator | MyBingoCard",
   description:
     "Create free printable wedding bingo cards for guests. The best wedding bingo cards printable generator — custom squares, instant PDF, and digital play for any wedding.",
+  alternates: {
+    canonical: "https://mybingocard.com/wedding-bingo",
+  },
 };
 
 const weddingSquares = [

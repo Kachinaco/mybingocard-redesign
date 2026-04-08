@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   title: "Family Reunion Bingo Cards Generator — MyBingoCard",
   description:
     "Create free family reunion bingo cards for your next family gathering. Printable family reunion icebreaker bingo card generator with custom squares for reunions, cookouts, and family events.",
+  alternates: {
+    canonical: "https://mybingocard.com/family-reunion-bingo",
+  },
 };
 
 const reunionSquares = [

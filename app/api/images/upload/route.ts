@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createImage, getUserImageCount, getUploadLimits, isAllowedMimeType } from "@/lib/db/images";
-import { getSubscriptionByUserId } from "@/lib/db/subscriptions";
+import { getUserById, addFeatureUsed } from "@/lib/db/users";
 import { trackActivity, getRequestActivityContext } from "@/lib/activity";
 import sharp from "sharp";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -24,9 +24,9 @@ export async function POST(request: Request) {
 
     const userId = session.user.id;
 
-    // Check plan limits
-    const subscription = await getSubscriptionByUserId(userId);
-    const isPremium = subscription?.plan !== "free" && subscription?.status === "active";
+    // Check plan limits using user.planType (same as all other API routes)
+    const user = await getUserById(userId);
+    const isPremium = user?.planType === "PREMIUM";
     const limits = getUploadLimits(isPremium);
 
     if (!limits.canUpload) {
@@ -152,6 +152,8 @@ export async function POST(request: Request) {
         height: mainMeta.height,
       },
     });
+
+    addFeatureUsed(userId, "image_upload").catch(() => {});
 
     return NextResponse.json({
       imageId,

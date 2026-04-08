@@ -62,8 +62,11 @@ export function trackClientActivity(
   if (keepalive && typeof navigator !== "undefined" && "sendBeacon" in navigator) {
     try {
       const blob = new Blob([payload], { type: "application/json" });
-      navigator.sendBeacon("/api/activity", blob);
-      return;
+      const queued = navigator.sendBeacon("/api/activity", blob);
+      if (queued) {
+        return;
+      }
+      // sendBeacon returned false (browser rejected it) — fall through to fetch.
     } catch {
       // Fallback to fetch below.
     }

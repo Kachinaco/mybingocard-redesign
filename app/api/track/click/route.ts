@@ -1,6 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 
+const ALLOWED_DOMAINS = [
+  "mybingocard.com",
+  "www.mybingocard.com",
+];
+
+function isAllowedRedirect(rawUrl: string): boolean {
+  try {
+    const parsed = new URL(rawUrl);
+    return ALLOWED_DOMAINS.includes(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const email = searchParams.get("e");
@@ -9,6 +23,11 @@ export async function GET(req: NextRequest) {
   const linkId = searchParams.get("l");
 
   if (!url) {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+
+  const decodedUrl = decodeURIComponent(url);
+  if (!isAllowedRedirect(decodedUrl)) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
@@ -36,5 +55,5 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(decodeURIComponent(url));
+  return NextResponse.redirect(decodedUrl);
 }

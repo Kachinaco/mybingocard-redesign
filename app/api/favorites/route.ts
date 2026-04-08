@@ -4,49 +4,59 @@ import { toggleFavorite, isFavorited, getUserFavorites } from "@/lib/favorites";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 export async function GET(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const cardId = req.nextUrl.searchParams.get("cardId");
+
+    if (cardId) {
+      const favorited = await isFavorited(session.user.id, cardId);
+      return NextResponse.json({ favorited });
+    }
+
+    const favorites = await getUserFavorites(session.user.id);
+    return NextResponse.json({ favorites });
+  } catch (error) {
+    console.error("Get favorites error:", error);
+    return NextResponse.json({ error: "Failed to fetch favorites" }, { status: 500 });
   }
-
-  const cardId = req.nextUrl.searchParams.get("cardId");
-
-  if (cardId) {
-    const favorited = await isFavorited(session.user.id, cardId);
-    return NextResponse.json({ favorited });
-  }
-
-  const favorites = await getUserFavorites(session.user.id);
-  return NextResponse.json({ favorites });
 }
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { cardId } = await req.json();
+    if (!cardId) {
+      return NextResponse.json({ error: "cardId required" }, { status: 400 });
+    }
+
+    const isFav = await toggleFavorite(session.user.id, cardId);
+    const requestContext = getRequestActivityContext(req);
+
+    await trackActivity({
+      event: "favorite_toggled",
+      source: "server",
+      userId: session.user.id,
+      email: session.user.email || null,
+      pathname: requestContext.pathname,
+      domain: requestContext.domain,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      metadata: {
+        cardId,
+        favorited: isFav,
+      },
+    });
+    return NextResponse.json({ favorited: isFav });
+  } catch (error) {
+    console.error("Toggle favorite error:", error);
+    return NextResponse.json({ error: "Failed to toggle favorite" }, { status: 500 });
   }
-
-  const { cardId } = await req.json();
-  if (!cardId) {
-    return NextResponse.json({ error: "cardId required" }, { status: 400 });
-  }
-
-  const isFav = await toggleFavorite(session.user.id, cardId);
-  const requestContext = getRequestActivityContext(req);
-
-  await trackActivity({
-    event: "favorite_toggled",
-    source: "server",
-    userId: session.user.id,
-    email: session.user.email || null,
-    pathname: requestContext.pathname,
-    domain: requestContext.domain,
-    ipAddress: requestContext.ipAddress,
-    userAgent: requestContext.userAgent,
-    metadata: {
-      cardId,
-      favorited: isFav,
-    },
-  });
-  return NextResponse.json({ favorited: isFav });
 }
