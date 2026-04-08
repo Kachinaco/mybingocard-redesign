@@ -57,6 +57,12 @@ export default function MobileNav() {
                 Sign In
               </Link>
               <Link
+                href="/create"
+                className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
+              >
+                Create Card
+              </Link>
+              <Link
                 href="/signup"
                 className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 transform hover:-translate-y-0.5"
               >
