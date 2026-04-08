@@ -9,7 +9,6 @@ import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import AdUnit from "@/components/AdUnit";
 import UpgradeModal from "@/components/UpgradeModal";
-import CardUsageBadge from "@/components/CardUsageBadge";
 import ImagePickerModal from "@/components/ImagePickerModal";
 import BingoCell from "@/components/BingoCell";
 import AiGenerateSection from "@/components/AiGenerateSection";
@@ -1212,9 +1211,9 @@ function CreateCardContent() {
     <div className="min-h-screen bg-[#f2f2f7] selection:bg-blue-100 selection:text-blue-900">
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50">
-        <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
+        <div className="container mx-auto px-4 lg:px-8 h-14 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-[#007AFF] rounded-xl flex items-center justify-center shadow-sm transition-all duration-300">
+            <div className="w-8 h-8 bg-[#007AFF] rounded-lg flex items-center justify-center shadow-sm transition-all duration-300">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
@@ -1245,23 +1244,16 @@ function CreateCardContent() {
         </div>
       </header>
 
-      <main className="pt-24 pb-32 md:pb-24 px-4">
+      <main className="pt-16 pb-32 md:pb-24 px-4">
         <div className="container mx-auto max-w-7xl">
-          <div className="mb-8 flex items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+          <div className="mb-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl font-bold text-gray-900">
                 {isEditingExistingCard ? "Edit Bingo Card" : "Create Bingo Card"}
               </h1>
-              <p className="mt-2 text-sm text-gray-500">{autoSaveLabel}</p>
-              {!checkingPermission && permissionStatus && permissionStatus.cardsCreated !== undefined && permissionStatus.cardsLimit !== undefined && permissionStatus.planType && (
-                <div className="mt-2">
-                  <CardUsageBadge
-                    cardsCreated={permissionStatus.cardsCreated}
-                    cardsLimit={permissionStatus.cardsLimit}
-                    planType={permissionStatus.planType}
-                  />
-                </div>
-              )}
+              <span className="text-xs text-gray-400" title={autoSaveLabel}>
+                {autoSaveState === "saving" ? "Saving..." : autoSaveState === "saved" ? "\u2713 Saved" : ""}
+              </span>
             </div>
              {/* Usage Banner */}
             {!checkingPermission && permissionStatus && (
@@ -1363,52 +1355,38 @@ function CreateCardContent() {
           )}
 
           {showNewUserTip && (
-            <div className="mb-6 bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-200 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in-up">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-900">First time? Start with a template!</p>
-                  <p className="text-sm text-slate-500">Pick a ready-made design, or type a title above and fill in the squares.</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/templates"
-                  className="whitespace-nowrap px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all"
-                >
-                  Browse Templates
-                </Link>
-                <button
-                  onClick={() => { setShowNewUserTip(false); localStorage.setItem("new_user_tip_dismissed", "1"); }}
-                  className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
-                  title="Dismiss"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
+            <div className="mb-6 bg-gray-50 border border-gray-200 rounded-xl px-5 py-3 flex items-center justify-between gap-4 animate-fade-in-up">
+              <p className="text-sm text-gray-600">
+                First time? Type a title above and fill in the squares, or{" "}
+                <Link href="/templates" className="text-[#007AFF] font-semibold hover:underline">
+                  start from a template
+                </Link>.
+              </p>
+              <button
+                onClick={() => { setShowNewUserTip(false); localStorage.setItem("new_user_tip_dismissed", "1"); }}
+                className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                title="Dismiss"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
           )}
 
           {editorUnlocked && !isLoadingCard && (
-          <div className="grid lg:grid-cols-12 gap-6">
+          <div className="grid lg:grid-cols-[minmax(0,240px)_1fr_minmax(0,340px)] gap-4 lg:gap-5 items-start">
             {/* Left Panel - Card Details */}
-            <div className="lg:col-span-3 lg:order-1 space-y-6">
+            <div className="lg:order-1 space-y-5 min-w-0">
               {/* Basic Info */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                   <span className="w-8 h-8 rounded-lg bg-blue-50 text-[#007AFF] flex items-center justify-center">1</span>
+              <div className="bg-white/60 rounded-2xl border border-gray-200/50 p-4">
+                <h2 className="text-base font-bold text-gray-900 mb-3">
                    Card Details
                 </h2>
 
-                <div className="space-y-5">
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
                       Card Title <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -1421,30 +1399,30 @@ function CreateCardContent() {
                         }
                       }}
                       placeholder="e.g., Wedding Bingo"
-                      className="w-full px-4 py-3 bg-[#f2f2f7] border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] outline-none transition-all duration-200 placeholder:text-gray-400"
+                      className="w-full px-3 py-2 bg-[#f2f2f7] border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] outline-none transition-all duration-200 placeholder:text-gray-400 text-sm"
                       disabled={showPreview}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
                       Description <span className="font-normal text-gray-500">(optional)</span>
                     </label>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Add some instructions for your players..."
-                      rows={3}
-                      className="w-full px-4 py-3 bg-[#f2f2f7] border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] outline-none transition-all duration-200 placeholder:text-gray-400 resize-none"
+                      rows={2}
+                      className="w-full px-3 py-2 bg-[#f2f2f7] border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] outline-none transition-all duration-200 placeholder:text-gray-400 resize-none text-sm"
                       disabled={showPreview}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
                       Grid Size
                     </label>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-3 gap-2">
                       {[3, 4, 5].map((s) => {
                         const gridSize = s as GridSize;
                         const isAllowed = canUseGridSize(gridSize);
@@ -1464,7 +1442,7 @@ function CreateCardContent() {
                                 }
                               }}
                               disabled={showPreview || !isAllowed}
-                              className={`w-full py-2.5 rounded-xl border transition-all duration-200 font-medium text-sm ${
+                              className={`w-full py-1.5 rounded-lg border transition-all duration-200 font-medium text-sm ${
                                 size === s
                                   ? "border-[#007AFF] bg-blue-50 text-[#007AFF] ring-1 ring-[#007AFF]"
                                   : isAllowed
@@ -1541,7 +1519,7 @@ function CreateCardContent() {
             </div>
 
             {/* Right Panel - AI, Style & Batch */}
-            <div className="lg:col-span-3 lg:order-3 space-y-6">
+            <div className="lg:order-3 space-y-4 min-w-0">
               {/* AI Generate */}
               <AiGenerateSection
                 size={size}
@@ -1557,19 +1535,18 @@ function CreateCardContent() {
               />
 
               {/* Style Customization */}
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                   <span className="w-8 h-8 rounded-lg bg-blue-50 text-[#007AFF] flex items-center justify-center">2</span>
+              <div className="bg-white/60 rounded-2xl border border-gray-200/50 p-4">
+                <h2 className="text-base font-bold text-gray-900 mb-3">
                    Style & Colors
                 </h2>
 
-                <div className="space-y-5">
+                <div className="space-y-4">
                   {/* Theme Presets */}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                       Quick Themes
                     </label>
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-4 gap-1.5">
                       {[
                         { name: "Classic", bg: "#ffffff", text: "#0f172a", border: "#e2e8f0", font: "Arial" },
                         { name: "Ocean", bg: "#eff6ff", text: "#1e3a5f", border: "#93c5fd", font: "Georgia" },
@@ -1590,19 +1567,20 @@ function CreateCardContent() {
                             fontFamily: theme.font,
                           })}
                           disabled={showPreview}
-                          className={`group relative flex flex-col items-center gap-1.5 p-2 rounded-xl border-2 transition-all duration-200 hover:scale-105 ${
+                          title={theme.name}
+                          className={`group relative flex flex-col items-center gap-0.5 p-1.5 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
                             style.backgroundColor === theme.bg && style.textColor === theme.text
                               ? "border-[#007AFF] ring-2 ring-[#007AFF]/20"
                               : "border-gray-200 hover:border-gray-300"
                           }`}
                         >
                           <div
-                            className="w-full h-8 rounded-lg border flex items-center justify-center"
+                            className="w-full h-6 rounded border flex items-center justify-center"
                             style={{ backgroundColor: theme.bg, borderColor: theme.border }}
                           >
-                            <span className="text-[10px] font-bold" style={{ color: theme.text }}>B I N G O</span>
+                            <span className="text-[8px] font-bold" style={{ color: theme.text }}>BINGO</span>
                           </div>
-                          <span className="text-[10px] font-medium text-gray-600">{theme.name}</span>
+                          <span className="text-[9px] font-medium text-gray-500 leading-none">{theme.name}</span>
                         </button>
                       ))}
                     </div>
@@ -1614,7 +1592,7 @@ function CreateCardContent() {
                       <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
-                      Custom Colors
+                      Custom Colors & Font
                     </summary>
                     <div className="mt-3 space-y-3">
                       {[
@@ -1637,86 +1615,70 @@ function CreateCardContent() {
                           ></div>
                         </div>
                       ))}
-                    </div>
-                  </details>
-
-                  {/* Font Controls */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                        Font
-                      </label>
-                      <select
-                        value={style.fontFamily}
-                        onChange={(e) => setStyle({ ...style, fontFamily: e.target.value })}
-                        disabled={showPreview}
-                        className="w-full px-3 py-2.5 bg-[#f2f2f7] border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF]"
-                        style={{ fontFamily: style.fontFamily }}
-                      >
-                        <option value="Arial" style={{ fontFamily: "Arial" }}>Arial</option>
-                        <option value="Georgia" style={{ fontFamily: "Georgia" }}>Georgia</option>
-                        <option value="Times New Roman" style={{ fontFamily: "Times New Roman" }}>Times New Roman</option>
-                        <option value="Courier New" style={{ fontFamily: "Courier New" }}>Courier New</option>
-                        <option value="Verdana" style={{ fontFamily: "Verdana" }}>Verdana</option>
-                        <option value="Comic Sans MS" style={{ fontFamily: "Comic Sans MS" }}>Comic Sans</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                        Text Size
-                      </label>
-                      <div className="flex items-center gap-1 bg-[#f2f2f7] border border-gray-200 rounded-xl p-1">
-                        {[
-                          { value: "12px", label: "S" },
-                          { value: "14px", label: "M" },
-                          { value: "16px", label: "L" },
-                          { value: "18px", label: "XL" },
-                        ].map((s) => (
-                          <button
-                            key={s.value}
-                            onClick={() => setStyle({ ...style, fontSize: s.value })}
+                      {/* Font Controls — inside collapsible */}
+                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Font</label>
+                          <select
+                            value={style.fontFamily}
+                            onChange={(e) => setStyle({ ...style, fontFamily: e.target.value })}
                             disabled={showPreview}
-                            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
-                              style.fontSize === s.value
-                                ? "bg-white text-[#007AFF] shadow-sm"
-                                : "text-gray-500 hover:text-gray-700"
-                            }`}
+                            className="w-full px-2 py-2 bg-[#f2f2f7] border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF]"
+                            style={{ fontFamily: style.fontFamily }}
                           >
-                            {s.label}
-                          </button>
-                        ))}
+                            <option value="Arial" style={{ fontFamily: "Arial" }}>Arial</option>
+                            <option value="Georgia" style={{ fontFamily: "Georgia" }}>Georgia</option>
+                            <option value="Times New Roman" style={{ fontFamily: "Times New Roman" }}>Times</option>
+                            <option value="Courier New" style={{ fontFamily: "Courier New" }}>Courier</option>
+                            <option value="Verdana" style={{ fontFamily: "Verdana" }}>Verdana</option>
+                            <option value="Comic Sans MS" style={{ fontFamily: "Comic Sans MS" }}>Comic Sans</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Size</label>
+                          <div className="flex items-center gap-0.5 bg-[#f2f2f7] border border-gray-200 rounded-lg p-0.5">
+                            {[
+                              { value: "12px", label: "S" },
+                              { value: "14px", label: "M" },
+                              { value: "16px", label: "L" },
+                              { value: "18px", label: "XL" },
+                            ].map((s) => (
+                              <button
+                                key={s.value}
+                                onClick={() => setStyle({ ...style, fontSize: s.value })}
+                                disabled={showPreview}
+                                className={`flex-1 py-1.5 rounded-md text-xs font-bold transition-all ${
+                                  style.fontSize === s.value
+                                    ? "bg-white text-[#007AFF] shadow-sm"
+                                    : "text-gray-500 hover:text-gray-700"
+                                }`}
+                              >
+                                {s.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </details>
 
                 </div>
               </div>
 
               {/* Batch Generation — Always visible, prominent */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-200/60 p-6">
-                <h2 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                   <span className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm">
-                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-200/60 p-4">
+                <h2 className="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
+                   <span className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm">
+                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                      </svg>
                    </span>
                    Print Multiple Cards
                 </h2>
-                <p className="text-sm text-gray-500 mb-4">Need cards for a group? Generate up to 500 unique shuffled cards from your content.</p>
-
-                {/* Visual card stack */}
-                <div className="flex items-center justify-center mb-4">
-                  <div className="relative w-24 h-20">
-                    <div className="absolute top-0 left-2 w-16 h-16 bg-white rounded-lg border border-blue-200 shadow-sm transform rotate-[-6deg]" />
-                    <div className="absolute top-1 left-4 w-16 h-16 bg-white rounded-lg border border-blue-200 shadow-sm transform rotate-[-2deg]" />
-                    <div className="absolute top-2 left-6 w-16 h-16 bg-white rounded-lg border border-blue-300 shadow-md transform rotate-[2deg] flex items-center justify-center">
-                      <span className="text-blue-600 font-bold text-xs">BINGO</span>
-                    </div>
-                  </div>
-                </div>
+                <p className="text-xs text-gray-500 mb-3">Generate up to 500 unique shuffled cards.</p>
 
                 {/* Tier selection — always visible */}
-                <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="grid grid-cols-4 gap-1.5 mb-3">
                   {([30, 100, 250, 500] as const).map((n) => {
                     const isSelected = batchCount === n && batchMode;
                     const hasReady = !isPremiumBatchUser && (availableBatchCounts[n] || 0) > 0;
@@ -1731,14 +1693,14 @@ function CreateCardContent() {
                             plan_type: permissionStatus?.planType || "GUEST",
                           });
                         }}
-                        className={`relative py-3 px-2 rounded-xl border-2 text-center transition-all ${
+                        className={`relative py-1.5 px-1 rounded-lg border-2 text-center transition-all ${
                           isSelected
                             ? "border-blue-500 bg-white shadow-md ring-1 ring-blue-500/20"
                             : "border-gray-200/80 bg-white/70 hover:border-blue-300 hover:bg-white"
                         }`}
                       >
-                        <div className="text-lg font-bold text-gray-900">{n}</div>
-                        <div className="text-[11px] font-medium text-gray-500">cards</div>
+                        <div className="text-sm font-bold text-gray-900">{n}</div>
+                        <div className="text-[10px] font-medium text-gray-500">cards</div>
                         {!isPremiumBatchUser && (
                           <div className="mt-1 text-xs font-bold text-blue-600">
                             {BATCH_PACKS[n].label}
@@ -1867,10 +1829,10 @@ function CreateCardContent() {
             </div>
 
             {/* Center Panel - Bingo Grid */}
-            <div className="lg:col-span-6 lg:order-2 lg:sticky lg:top-24 lg:self-start">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 lg:p-6 flex flex-col">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">
+            <div className="lg:order-2 lg:sticky lg:top-24 lg:self-start min-w-0">
+              <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200 p-3 lg:p-4 flex flex-col">
+                <div className="flex justify-between items-center mb-3">
+                  <h2 className="text-base font-bold text-gray-900">
                     {showPreview ? "Card Preview" : "Edit Content"}
                   </h2>
                   {!showPreview && (
@@ -1881,7 +1843,7 @@ function CreateCardContent() {
                 </div>
 
                 {/* Bingo Grid */}
-                <div className="flex-grow flex items-center justify-center bg-[#f2f2f7] rounded-xl border border-gray-200 p-2 md:p-6 mb-8">
+                <div className="flex-grow flex items-center justify-center bg-[#f2f2f7] rounded-xl border border-gray-200 p-2 lg:p-4 mb-3">
                    <div className="w-full">
                       {/* Grid Header - matches grid columns */}
                       <div
@@ -2049,38 +2011,33 @@ function CreateCardContent() {
                    </div>
                 </div>
 
-                {/* Action Buttons - Hidden on mobile (replaced by sticky bar) */}
-                <div className="hidden md:flex flex-col sm:flex-row gap-4 pt-4 border-t border-gray-200">
-                  <Link
-                    href="/templates"
-                    className="px-6 py-3.5 bg-white text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-semibold flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                    </svg>
-                    {t("btn.browse_templates")}
-                  </Link>
-
-                  {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
+                {/* Desktop sticky bottom CTA bar */}
+                <div className="hidden md:block fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+                  <div className="container mx-auto max-w-xl px-4 py-3 flex flex-col items-center gap-1.5">
+                    {!session?.user && !isEditingExistingCard && (
+                      <p className="text-xs text-gray-500 font-medium">Free to create — no credit card needed</p>
+                    )}
+                    {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
+                      <button
+                        onClick={redirectToCheckout}
+                        className="w-full max-w-md bg-gradient-to-r from-orange-500 to-pink-600 text-white px-8 py-4 rounded-xl hover:shadow-lg hover:shadow-orange-500/20 transition-all font-bold text-lg shadow-md shadow-orange-200 text-center"
+                      >
+                        {t("btn.limit_reached")}
+                      </button>
+                    ) : (
                     <button
-                      onClick={redirectToCheckout}
-                      className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-6 py-3.5 rounded-xl hover:shadow-sm hover:shadow-orange-500/20 transition-all font-bold text-lg shadow-md shadow-orange-200 text-center"
+                      onClick={handleSave}
+                      disabled={
+                        loading ||
+                        showPreview ||
+                        isLoadingCard
+                      }
+                      className="w-full max-w-md bg-[#007AFF] text-white px-8 py-4 rounded-xl hover:bg-[#0066DD] hover:shadow-lg hover:shadow-blue-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-lg shadow-md"
                     >
-                      {t("btn.limit_reached")}
+                      {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save_dashboard") : session?.user ? t("btn.create_save_full") : t("btn.signup_to_save_full")}
                     </button>
-                  ) : (
-                  <button
-                    onClick={handleSave}
-                    disabled={
-                      loading ||
-                      showPreview ||
-                      isLoadingCard
-                    }
-                    className="flex-1 bg-[#007AFF] text-white px-6 py-3.5 rounded-xl hover:shadow-sm transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-lg shadow-sm"
-                  >
-                    {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save_dashboard") : session?.user ? t("btn.create_save_full") : t("btn.signup_to_save_full")}
-                  </button>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -2123,23 +2080,16 @@ function CreateCardContent() {
           {!session?.user && (
             <div className="mx-3 mb-1">
               <div className="bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-2 rounded-xl text-xs font-semibold text-center">
-                Your card is ready! Sign up free to save it.
+                Free to create — no credit card needed
               </div>
             </div>
           )}
           <div className="bg-white border-t border-gray-200 shadow-lg">
             <div className="container mx-auto px-4 py-3">
-              <div className="flex gap-2">
-                <Link
-                  href="/templates"
-                  className="px-4 py-3 bg-white text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all font-semibold text-sm flex items-center justify-center"
-                >
-                  {`📋 ${t("btn.templates")}`}
-                </Link>
                 {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
                   <button
                     onClick={redirectToCheckout}
-                    className="flex-1 bg-gradient-to-r from-orange-500 to-pink-600 text-white px-4 py-3 rounded-lg font-bold text-sm shadow-md text-center"
+                    className="w-full bg-gradient-to-r from-orange-500 to-pink-600 text-white px-4 py-3.5 rounded-lg font-bold text-base shadow-md text-center"
                   >
                     {t("btn.upgrade")}
                   </button>
@@ -2147,12 +2097,11 @@ function CreateCardContent() {
                 <button
                   onClick={handleSave}
                   disabled={loading || showPreview || isLoadingCard}
-                  className="flex-1 bg-[#007AFF] text-white px-4 py-3 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed font-bold text-sm shadow-md"
+                  className="w-full bg-[#007AFF] text-white px-4 py-3.5 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed font-bold text-base shadow-md"
                 >
                   {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save") : session?.user ? t("btn.create_save") : t("btn.signup_to_save")}
                 </button>
                 )}
-              </div>
             </div>
           </div>
         </div>

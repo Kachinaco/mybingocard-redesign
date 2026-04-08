@@ -99,45 +99,42 @@ export default function AiGenerateSection({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-      <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-        <span className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-sm">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+      <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+        <span className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-sm">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
           </svg>
         </span>
         AI Generate
         {!isPremium && (
-          <span className="text-xs font-normal text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">Premium</span>
+          <span className="text-[10px] font-normal text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-full">Premium</span>
         )}
       </h2>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            What&apos;s your bingo card about?
-          </label>
           <textarea
             value={theme}
             onChange={(e) => setTheme(e.target.value)}
-            placeholder="e.g., first date red flags, office meeting bingo, baby shower moments..."
-            rows={2}
+            placeholder="e.g., first date red flags, office meeting bingo..."
+            rows={1}
             disabled={disabled || generating}
             className="w-full px-3 py-2 bg-[#f2f2f7] border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007AFF] focus:border-transparent resize-none disabled:opacity-50"
             maxLength={500}
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Tone</label>
-          <div className="flex gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-medium text-gray-500">Tone</span>
+          <div className="flex gap-1.5">
             {TONES.map((t) => (
               <button
                 key={t.value}
                 type="button"
                 onClick={() => setTone(t.value)}
                 disabled={disabled || generating}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${
                   tone === t.value
                     ? "bg-[#007AFF] text-white shadow-sm"
                     : "bg-[#f2f2f7] text-gray-600 hover:bg-gray-200"
