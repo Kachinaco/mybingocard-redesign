@@ -441,8 +441,10 @@ function CreateCardContent() {
 
     // If user just signed in and has a pending draft, save it directly from localStorage
     // (avoids race condition where React state hasn't settled yet)
+    // Skip draft-save redirect for new signups — they need to complete trial checkout first
+    const isNewUser = searchParams.get("new") === "1";
     const draftRaw = localStorage.getItem("mybingo_card_draft");
-    if (session?.user && draftRaw && !cardIdFromUrl) {
+    if (session?.user && draftRaw && !cardIdFromUrl && !isNewUser) {
       // Prevent auto-save from also firing a duplicate POST
       createInFlightRef.current = true;
       (async () => {
@@ -476,10 +478,6 @@ function CreateCardContent() {
           console.error("Failed to save draft after sign-in:", e);
         } finally {
           createInFlightRef.current = false;
-        }
-        // If draft had no content or save failed, still redirect new users
-        if (searchParams.get("new") === "1") {
-          router.replace("/dashboard");
         }
       })();
     }
