@@ -28,8 +28,19 @@ export async function getAdminStats(): Promise<AdminStats> {
   const db = client.db("mybingocard");
   const now = new Date();
 
+  const adminEmail = process.env.ADMIN_EMAIL || "";
+  const standardMonthlyPriceId = process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID || "";
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+
+  // Real paying users: must have a Stripe subscription with the standard price,
+  // exclude admin/owner, exclude manually-granted users (no stripePriceId)
+  const realPayingFilter = {
+    subscriptionStatus: "active",
+    stripeSubscriptionId: { $exists: true, $ne: null },
+    stripePriceId: standardMonthlyPriceId,
+    ...(adminEmail ? { email: { $ne: adminEmail } } : {}),
+  };
 
   // Split into two batches to stay within TS Promise.all tuple overload limits
   const [
@@ -45,9 +56,7 @@ export async function getAdminStats(): Promise<AdminStats> {
     trialConversionData,
   ] = await Promise.all([
     db.collection("users").countDocuments(),
-    db.collection("users").countDocuments({
-      subscriptionStatus: "active",
-    }),
+    db.collection("users").countDocuments(realPayingFilter),
     db.collection("users").countDocuments({
       $or: [
         { subscriptionStatus: "trialing" },
@@ -137,7 +146,7 @@ export async function getAdminStats(): Promise<AdminStats> {
       .aggregate<{ _id: string; count: number }>([
         {
           $match: {
-            subscriptionStatus: "active",
+            ...realPayingFilter,
             utm_source: { $exists: true, $ne: null },
           },
         },
