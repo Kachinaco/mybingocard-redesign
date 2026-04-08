@@ -21,8 +21,11 @@ import {
   type BatchCount,
 } from "@/lib/batchPacks";
 import { redirectToCheckout } from "@/lib/upgrade";
-import { useCheckout } from "@/components/CheckoutModal";
+import { loadStripe } from "@stripe/stripe-js";
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { t } from "@/lib/i18n";
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
 
 type GridSize = 3 | 4 | 5;
 type PlanType = "FREE" | "PREMIUM";
@@ -56,7 +59,6 @@ function CreateCardContent() {
   const searchParams = useSearchParams();
   const sessionData = useSession();
   const { track, trackOnce } = useAnalytics();
-  const { openCheckout } = useCheckout();
   const session = sessionData?.data;
   const searchParamsKey = searchParams.toString();
   const cardIdFromUrl = searchParams.get("cardId");
@@ -135,22 +137,40 @@ function CreateCardContent() {
     }
   }, [checkingPermission, permissionStatus, cardIdFromUrl]);
 
-  // Auto-open trial checkout popup for new signups
+  // Block new signups behind trial checkout — card info required
+  const [trialClientSecret, setTrialClientSecret] = useState<string | null>(null);
+  const [trialLoading, setTrialLoading] = useState(false);
+  const [trialError, setTrialError] = useState("");
+  const isNewSignup = searchParams.get("new") === "1" && session?.user && !checkingPermission && permissionStatus?.planType !== "PREMIUM";
+
   useEffect(() => {
     if (trialCheckoutOpenedRef.current) return;
-    if (searchParams.get("new") !== "1") return;
-    if (!session?.user) return;
-    if (checkingPermission) return;
-    // Don't show if already premium (e.g. returning user)
-    if (permissionStatus?.planType === "PREMIUM") return;
+    if (!isNewSignup) return;
 
     trialCheckoutOpenedRef.current = true;
-    openCheckout({
-      purchaseType: "trial",
-      label: "7-day free trial — then $4.99/mo. Cancel anytime.",
-      returnPath: "/create?trial=started",
-    });
-  }, [searchParams, session, checkingPermission, permissionStatus, openCheckout]);
+    setTrialLoading(true);
+
+    fetch("/api/stripe/embedded-checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ purchaseType: "trial", returnPath: "/create?trial=started" }),
+    })
+      .then(async (res) => {
+        const data = await res.json();
+        if (res.status === 409) {
+          // Already subscribed — let them through
+          router.replace("/create");
+          return;
+        }
+        if (!res.ok || !data.clientSecret) {
+          setTrialError(data.error || "Failed to start trial. Please try again.");
+          return;
+        }
+        setTrialClientSecret(data.clientSecret);
+      })
+      .catch(() => setTrialError("Something went wrong. Please try again."))
+      .finally(() => setTrialLoading(false));
+  }, [isNewSignup, router]);
 
   // Check permissions on mount
   useEffect(() => {
@@ -1132,6 +1152,68 @@ function CreateCardContent() {
   const handleBatchPrimaryAction = isPremiumBatchUser || hasSelectedBatchPurchase
     ? handleBatchGenerate
     : handleBatchCheckout;
+
+  // Block new signups until card info is entered
+  if (isNewSignup) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8">
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-200">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900">Start Your 7-Day Free Trial</h1>
+            <p className="text-slate-500 text-sm mt-2">Enter your card to unlock Premium. You won't be charged for 7 days — cancel anytime.</p>
+          </div>
+
+          {trialLoading && (
+            <div className="flex items-center justify-center py-16">
+              <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+            </div>
+          )}
+
+          {trialError && (
+            <div className="text-center py-8">
+              <p className="text-red-500 text-sm mb-4">{trialError}</p>
+              <button
+                onClick={() => {
+                  trialCheckoutOpenedRef.current = false;
+                  setTrialError("");
+                  setTrialLoading(true);
+                  fetch("/api/stripe/embedded-checkout", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ purchaseType: "trial", returnPath: "/create?trial=started" }),
+                  })
+                    .then(async (res) => {
+                      const data = await res.json();
+                      if (!res.ok || !data.clientSecret) {
+                        setTrialError(data.error || "Failed to start trial.");
+                        return;
+                      }
+                      setTrialClientSecret(data.clientSecret);
+                    })
+                    .catch(() => setTrialError("Something went wrong."))
+                    .finally(() => setTrialLoading(false));
+                }}
+                className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {trialClientSecret && !trialLoading && (
+            <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret: trialClientSecret }}>
+              <EmbeddedCheckout />
+            </EmbeddedCheckoutProvider>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f2f2f7] selection:bg-blue-100 selection:text-blue-900">
