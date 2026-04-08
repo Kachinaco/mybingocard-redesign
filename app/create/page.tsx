@@ -21,6 +21,7 @@ import {
   type BatchCount,
 } from "@/lib/batchPacks";
 import { redirectToCheckout } from "@/lib/upgrade";
+import { useCheckout } from "@/components/CheckoutModal";
 import { t } from "@/lib/i18n";
 
 type GridSize = 3 | 4 | 5;
@@ -55,6 +56,7 @@ function CreateCardContent() {
   const searchParams = useSearchParams();
   const sessionData = useSession();
   const { track, trackOnce } = useAnalytics();
+  const { openCheckout } = useCheckout();
   const session = sessionData?.data;
   const searchParamsKey = searchParams.toString();
   const cardIdFromUrl = searchParams.get("cardId");
@@ -119,6 +121,7 @@ function CreateCardContent() {
   const prevStyleRef = useRef<CellStyle>(style);
   const draftLoadTrackedRef = useRef(false);
   const batchCancelTrackedRef = useRef(false);
+  const trialCheckoutOpenedRef = useRef(false);
 
   useEffect(() => {
     currentCardIdRef.current = currentCardId;
@@ -131,6 +134,23 @@ function CreateCardContent() {
       if (!dismissed) setShowNewUserTip(true);
     }
   }, [checkingPermission, permissionStatus, cardIdFromUrl]);
+
+  // Auto-open trial checkout popup for new signups
+  useEffect(() => {
+    if (trialCheckoutOpenedRef.current) return;
+    if (searchParams.get("new") !== "1") return;
+    if (!session?.user) return;
+    if (checkingPermission) return;
+    // Don't show if already premium (e.g. returning user)
+    if (permissionStatus?.planType === "PREMIUM") return;
+
+    trialCheckoutOpenedRef.current = true;
+    openCheckout({
+      purchaseType: "trial",
+      label: "7-day free trial — then $4.99/mo. Cancel anytime.",
+      returnPath: "/create?trial=started",
+    });
+  }, [searchParams, session, checkingPermission, permissionStatus, openCheckout]);
 
   // Check permissions on mount
   useEffect(() => {
