@@ -1152,29 +1152,26 @@ function CreateCardContent() {
     : handleBatchCheckout;
 
   // Block new signups until card info is entered
-  if (isNewSignup) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8">
-          <div className="text-center mb-6">
-            <div className="w-14 h-14 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-200">
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900">Start Your 7-Day Free Trial</h1>
-            <p className="text-slate-500 text-sm mt-2">Enter your card to unlock Premium. You won't be charged for 7 days — cancel anytime.</p>
+  return (
+    <>
+    {/* Trial checkout popup — blocks interaction until card entered */}
+    {isNewSignup && (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6">
+          <div className="text-center mb-4">
+            <h2 className="text-xl font-bold text-slate-900">Start Your 7-Day Free Trial</h2>
+            <p className="text-slate-500 text-sm mt-1">You won't be charged for 7 days. Cancel anytime.</p>
           </div>
 
           {trialLoading && (
-            <div className="flex items-center justify-center py-16">
+            <div className="flex items-center justify-center py-12">
               <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
             </div>
           )}
 
           {trialError && (
-            <div className="text-center py-8">
-              <p className="text-red-500 text-sm mb-4">{trialError}</p>
+            <div className="text-center py-6">
+              <p className="text-red-500 text-sm mb-3">{trialError}</p>
               <button
                 onClick={() => {
                   trialCheckoutOpenedRef.current = false;
@@ -1210,10 +1207,8 @@ function CreateCardContent() {
           )}
         </div>
       </div>
-    );
-  }
+    )}
 
-  return (
     <div className="min-h-screen bg-[#f2f2f7] selection:bg-blue-100 selection:text-blue-900">
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50">
@@ -2298,6 +2293,7 @@ function CreateCardContent() {
         cellIndex={imagePickerCellIndex ?? undefined}
       />
     </div>
+    </>
   );
 }
 
