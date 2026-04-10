@@ -269,7 +269,10 @@ export default function ImagePickerModal({
         {tab === "upload" && isPremium && (
           <div className="px-5 pt-3">
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => !uploading && fileInputRef.current?.click()}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); !uploading && fileInputRef.current?.click(); } }}
               className={`border-2 border-dashed rounded-xl p-3 text-center cursor-pointer transition-all ${
                 uploading ? "border-gray-200 bg-gray-50" : "border-gray-300 hover:border-[#007AFF] hover:bg-blue-50/30"
               }`}

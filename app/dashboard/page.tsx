@@ -13,6 +13,7 @@ import { getGameHistory, getGameStats } from "@/lib/gameHistory";
 import { getUserFavorites } from "@/lib/favorites";
 import DashboardEngagement from "./DashboardEngagement";
 import DashboardFunnelTracker from "./DashboardFunnelTracker";
+import CopyReferralCode from "@/components/CopyReferralCode";
 import DashboardTracker from "./DashboardTracker";
 import FavCardPreview from "./FavCardPreview";
 import UpgradeBanner from "@/components/UpgradeBanner";
@@ -420,9 +421,7 @@ export default async function DashboardPage() {
                   <p className="text-white/80 text-sm">Share your link with friends. When they sign up, you both win.</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <code className="px-4 py-2 bg-white/20 rounded-lg text-sm font-mono select-all">
-                    mybingocard.com/r/{(user as any).referralCode}
-                  </code>
+                  <CopyReferralCode code={(user as any).referralCode} />
                   <Link href="/dashboard/referrals" className="px-5 py-2.5 bg-white text-emerald-700 font-bold rounded-xl text-sm hover:shadow-lg transition-all shrink-0">
                     View Referrals
                   </Link>
