@@ -146,7 +146,7 @@ function CreateCardContent() {
     }
   }, [checkingPermission, permissionStatus, cardIdFromUrl]);
 
-  // Block new signups behind trial checkout — card info required
+  // Trial checkout for new signups — skipped if user has a pending draft to save
   const [trialClientSecret, setTrialClientSecret] = useState<string | null>(null);
   const [trialLoading, setTrialLoading] = useState(false);
   const [trialError, setTrialError] = useState("");
@@ -155,6 +155,11 @@ function CreateCardContent() {
   useEffect(() => {
     if (trialCheckoutOpenedRef.current) return;
     if (!isNewSignup) return;
+
+    // Don't block with trial checkout if user has a pending draft — let it save first
+    // The draft save will redirect to /dashboard, avoiding the checkout modal entirely
+    const hasPendingDraft = typeof window !== "undefined" && localStorage.getItem("mybingo_card_draft");
+    if (hasPendingDraft) return;
 
     trialCheckoutOpenedRef.current = true;
     trackClientActivity("trial_checkout_viewed");
@@ -470,10 +475,9 @@ function CreateCardContent() {
 
     // If user just signed in and has a pending draft, save it directly from localStorage
     // (avoids race condition where React state hasn't settled yet)
-    // Skip draft-save redirect for new signups — they need to complete trial checkout first
-    const isNewUser = searchParams.get("new") === "1";
+    // Save draft BEFORE any trial checkout modal — user's work comes first
     const draftRaw = localStorage.getItem("mybingo_card_draft");
-    if (session?.user && draftRaw && !cardIdFromUrl && !isNewUser) {
+    if (session?.user && draftRaw && !cardIdFromUrl) {
       // Prevent auto-save from also firing a duplicate POST
       createInFlightRef.current = true;
       (async () => {
