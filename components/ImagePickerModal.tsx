@@ -17,10 +17,33 @@ interface ImagePickerModalProps {
   onClose: () => void;
   onPick: (imageId: string, imageUrl: string, label: string) => void;
   isPremium: boolean;
+  /** Is user logged in? Anonymous users get local uploads stored in localStorage */
+  isLoggedIn?: boolean;
   /** Tracking context: where the image picker was opened from */
   context?: "card_background" | "cell_image" | "header_image";
   /** Cell index when context is cell_image */
   cellIndex?: number;
+}
+
+const ANON_UPLOADS_KEY = "mybingo_anon_uploads";
+
+function loadAnonUploads(): ImageItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(ANON_UPLOADS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveAnonUploads(images: ImageItem[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(ANON_UPLOADS_KEY, JSON.stringify(images));
+  } catch {
+    // localStorage might be full
+  }
 }
 
 export default function ImagePickerModal({
@@ -28,6 +51,7 @@ export default function ImagePickerModal({
   onClose,
   onPick,
   isPremium,
+  isLoggedIn = true,
   context = "cell_image",
   cellIndex,
 }: ImagePickerModalProps) {
@@ -50,7 +74,8 @@ export default function ImagePickerModal({
       setLabel("");
       setUploadError("");
       loadLibrary();
-      if (isPremium) loadMyImages();
+      // Load uploads for premium users OR anonymous users
+      if (isPremium || !isLoggedIn) loadMyImages();
       trackClientActivity("image_picker_opened", {
         context,
         ...(cellIndex != null ? { cell_index: cellIndex } : {}),
@@ -89,6 +114,12 @@ export default function ImagePickerModal({
   };
 
   const loadMyImages = async () => {
+    // Anonymous users: load from localStorage
+    if (!isLoggedIn) {
+      setMyImages(loadAnonUploads());
+      return;
+    }
+    // Logged-in users: fetch from API
     setLoading(true);
     try {
       const res = await fetch("/api/images");
@@ -108,6 +139,40 @@ export default function ImagePickerModal({
     try {
       const compressed = await compressImage(file);
       fileSizeKb = Math.round(compressed.size / 1024);
+
+      // Anonymous users: store as data URL in localStorage
+      if (!isLoggedIn) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result as string;
+          const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+          const newImg: ImageItem = {
+            imageId: tempId,
+            imageUrl: dataUrl,
+            thumbnailUrl: dataUrl,
+            filename: file.name,
+          };
+          const updated = [newImg, ...loadAnonUploads()];
+          saveAnonUploads(updated);
+          setMyImages(updated);
+          setSelectedImage(newImg);
+          trackClientActivity("image_uploaded_local", {
+            context,
+            file_size_kb: fileSizeKb,
+            file_type: fileType,
+            ...(cellIndex != null ? { cell_index: cellIndex } : {}),
+          });
+          setUploading(false);
+        };
+        reader.onerror = () => {
+          setUploadError("Failed to read image");
+          setUploading(false);
+        };
+        reader.readAsDataURL(compressed);
+        return;
+      }
+
+      // Logged-in users: upload to server
       const formData = new FormData();
       formData.append("image", compressed);
       const res = await fetch("/api/images/upload", { method: "POST", body: formData });
@@ -222,7 +287,7 @@ export default function ImagePickerModal({
           >
             Clip Art
           </button>
-          {isPremium && (
+          {(isPremium || !isLoggedIn) && (
             <button
               onClick={() => setTab("upload")}
               className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
@@ -266,7 +331,7 @@ export default function ImagePickerModal({
         )}
 
         {/* Upload zone (upload tab) */}
-        {tab === "upload" && isPremium && (
+        {tab === "upload" && (isPremium || !isLoggedIn) && (
           <div className="px-5 pt-3">
             <div
               role="button"

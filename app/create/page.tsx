@@ -2293,6 +2293,7 @@ function CreateCardContent() {
         onClose={() => setImagePickerCellIndex(null)}
         onPick={handleImagePicked}
         isPremium={permissionStatus?.planType === "PREMIUM"}
+        isLoggedIn={Boolean(session?.user)}
         context="cell_image"
         cellIndex={imagePickerCellIndex ?? undefined}
       />
