@@ -769,7 +769,8 @@ function CreateCardContent() {
   };
 
   const openImagePicker = (index: number) => {
-    if (permissionStatus?.planType !== "PREMIUM") {
+    // Allow premium users and anonymous users (who will get 7-day trial on signup)
+    if (permissionStatus?.planType !== "PREMIUM" && session?.user) {
       setUpgradeReason("image_picker");
       setShowUpgradeModal(true);
       return;
