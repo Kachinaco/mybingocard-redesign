@@ -544,15 +544,77 @@ function CreateCardContent() {
     style,
   });
 
+  // Convert data URL images to server uploads before saving
+  const uploadDataUrlImages = async (cellsToProcess: string[]): Promise<string[]> => {
+    const updatedCells = [...cellsToProcess];
+
+    for (let i = 0; i < updatedCells.length; i++) {
+      const cell = updatedCells[i] ?? "";
+      const imgData = parseImageCell(cell);
+
+      // Check if this is a data URL image (temp_ prefix)
+      if (imgData && imgData.imageId.startsWith("temp_") && imgData.imageUrl.startsWith("data:")) {
+        try {
+          // Convert data URL to blob
+          const response = await fetch(imgData.imageUrl);
+          const blob = await response.blob();
+
+          // Upload to server
+          const formData = new FormData();
+          formData.append("image", blob, imgData.imageId + ".webp");
+
+          const uploadRes = await fetch("/api/images/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            // Update cell with server URL
+            updatedCells[i] = encodeImageCell({
+              imageId: uploadData.imageId,
+              imageUrl: uploadData.imageUrl,
+              label: imgData.label,
+              fit: imgData.fit,
+            });
+          }
+          // If upload fails, keep the data URL (card still works)
+        } catch {
+          // Keep original data URL on error
+        }
+      }
+    }
+
+    // Clear anonymous uploads from localStorage after successful migration
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("mybingo_anon_uploads");
+    }
+
+    return updatedCells;
+  };
+
   const saveCard = async (options?: { redirectAfterSave?: boolean; suppressValidationErrors?: boolean }) => {
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
       autoSaveTimerRef.current = null;
     }
 
-    const payload = getCardPayload();
+    // Upload any data URL images to server before saving
+    const hasDataUrlImages = cells.some((cell) => {
+      const imgData = parseImageCell(cell);
+      return imgData && imgData.imageId.startsWith("temp_");
+    });
 
-    const cellsFilledCount = cells.filter((c) => c.trim()).length;
+    let cellsToSave = cells;
+    if (hasDataUrlImages && session?.user) {
+      cellsToSave = await uploadDataUrlImages(cells);
+      // Update local state with server URLs
+      setCells(cellsToSave);
+    }
+
+    const payload = { ...getCardPayload(), cells: cellsToSave };
+
+    const cellsFilledCount = cellsToSave.filter((c) => c.trim()).length;
 
     if (!payload.title) {
       if (options?.suppressValidationErrors) {
