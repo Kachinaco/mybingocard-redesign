@@ -2,8 +2,8 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Suspense } from "react";
-import { signIn } from "next-auth/react";
+import { Suspense, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 
 const errorMessages: Record<string, { title: string; message: string; action: string; href: string; showGoogle?: boolean }> = {
   Verification: {
@@ -42,9 +42,29 @@ const errorMessages: Record<string, { title: string; message: string; action: st
 };
 
 function AuthErrorContent() {
+  const sessionState = useSession();
   const searchParams = useSearchParams();
   const error = searchParams.get("error") || "Default";
   const info = errorMessages[error] ?? errorMessages.Default!;
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
+  useEffect(() => {
+    if (sessionState.status !== "authenticated") return;
+    if (error !== "Configuration" && error !== "OAuthAccountNotLinked") return;
+
+    window.location.href = callbackUrl;
+  }, [callbackUrl, error, sessionState.status]);
+
+  if (
+    sessionState.status === "authenticated" &&
+    (error === "Configuration" || error === "OAuthAccountNotLinked")
+  ) {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif", color: "#64748b" }}>
+        Redirecting...
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "#f8f7ff", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>

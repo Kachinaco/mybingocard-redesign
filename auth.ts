@@ -13,6 +13,14 @@ import { sendMagicLinkEmail, sendWelcomeEmail } from "./lib/email";
 import { trackActivity } from "./lib/activity";
 import { IMPERSONATION_COOKIE_NAME, parseImpersonationCookie } from "@/lib/impersonation";
 
+const authBaseUrl =
+  process.env.AUTH_URL ||
+  process.env.NEXTAUTH_URL ||
+  "http://localhost:4000";
+const useSecureAuthCookies = authBaseUrl.startsWith("https://");
+const authCookiePrefix = useSecureAuthCookies ? "__Secure-" : "";
+const oauthCookieSameSite = useSecureAuthCookies ? "none" : "lax";
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: MongoDBAdapter(clientPromise),
   session: { strategy: "jwt" },
@@ -20,6 +28,37 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: "/login",
     newUser: "/create",
     error: "/auth-error",
+  },
+  cookies: {
+    pkceCodeVerifier: {
+      name: `${authCookiePrefix}authjs.pkce.code_verifier`,
+      options: {
+        httpOnly: true,
+        sameSite: oauthCookieSameSite,
+        path: "/",
+        secure: useSecureAuthCookies,
+        maxAge: 60 * 15,
+      },
+    },
+    state: {
+      name: `${authCookiePrefix}authjs.state`,
+      options: {
+        httpOnly: true,
+        sameSite: oauthCookieSameSite,
+        path: "/",
+        secure: useSecureAuthCookies,
+        maxAge: 60 * 15,
+      },
+    },
+    nonce: {
+      name: `${authCookiePrefix}authjs.nonce`,
+      options: {
+        httpOnly: true,
+        sameSite: oauthCookieSameSite,
+        path: "/",
+        secure: useSecureAuthCookies,
+      },
+    },
   },
   providers: [
     Google({

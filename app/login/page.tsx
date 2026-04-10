@@ -1,15 +1,18 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { trackClientActivity } from "@/lib/activity-client";
+import { useSession } from "next-auth/react";
 
 function LoginContent() {
   const searchParams = useSearchParams();
+  const sessionState = useSession();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const justVerified = searchParams.get("verified") === "1";
+  const authError = searchParams.get("error") || "";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,6 +21,23 @@ function LoginContent() {
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [error, setError] = useState("");
   const [useMagicLink, setUseMagicLink] = useState(false);
+
+  useEffect(() => {
+    if (sessionState.status !== "authenticated") return;
+
+    const redirectTarget =
+      authError === "OAuthAccountNotLinked" ? "/dashboard" : callbackUrl;
+
+    window.location.href = redirectTarget;
+  }, [authError, callbackUrl, sessionState.status]);
+
+  if (sessionState.status === "authenticated") {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center text-slate-600">
+        Redirecting...
+      </div>
+    );
+  }
 
   const handleCredentialsLogin = async (e: React.FormEvent) => {
     e.preventDefault();
