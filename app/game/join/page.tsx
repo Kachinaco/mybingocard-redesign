@@ -114,32 +114,13 @@ function JoinGameContent() {
               <div className="inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
               <p className="mt-3 text-slate-500 text-sm">Loading...</p>
             </div>
-          ) : !session?.user ? (
-            <div className="text-center py-6">
-              <div className="w-14 h-14 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Sign in to play</h3>
-              <p className="text-slate-500 text-sm mb-6">Create a free account to join live bingo games.</p>
-              <div className="space-y-3">
-                <Link
-                  href={`/login?callbackUrl=/game/join${roomCode ? `?code=${roomCode}` : ""}`}
-                  className="block w-full px-4 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold text-center hover:shadow-lg transition-all"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href={`/signup?callbackUrl=/game/join${roomCode ? `?code=${roomCode}` : ""}`}
-                  className="block w-full px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold text-center hover:bg-slate-200 transition-all"
-                >
-                  Create Free Account
-                </Link>
-              </div>
-            </div>
           ) : (
           <form onSubmit={handleJoin} className="space-y-5">
+            {session?.user?.email && (
+              <div className="text-xs text-slate-500 text-center">
+                Signed in as {session.user.email}
+              </div>
+            )}
             {/* Room Code */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">

@@ -38,7 +38,7 @@ export interface User {
   last_utm_term?: string;
   last_referrer?: string;
   anonymousId?: string;
-  signupMethod?: "google" | "credentials" | "magic_link";
+  signupMethod?: "google" | "credentials" | "magic_link" | "share_link";
   signupDevice?: string;   // "Chrome 146 / Windows" parsed from UA
   signupCountry?: string;  // "PH" from IP geolocation
   signupLanguage?: string; // "en-PH" from Accept-Language header
@@ -51,7 +51,7 @@ export interface User {
   featuresUsed?: string[];
   loginCount?: number;
   lastLoginAt?: Date;
-  customerType?: "real" | "admin" | "complimentary" | "test";
+  customerType?: "real" | "admin" | "complimentary" | "test" | "guest";
 }
 
 export type UserAttributionFields = Pick<

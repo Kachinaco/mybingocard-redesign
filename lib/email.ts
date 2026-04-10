@@ -661,6 +661,119 @@ export async function sendSupportReplyEmail(
   }
 }
 
+export async function sendShareLinkInvitationEmail(
+  to: string,
+  recipientName: string | null | undefined,
+  ownerName: string | null | undefined,
+  linkUrl: string,
+  cardTitle: string | null | undefined
+): Promise<boolean> {
+  if (!/^https?:\/\//i.test(linkUrl)) {
+    console.error(
+      `sendShareLinkInvitationEmail: refusing to send, invalid linkUrl protocol: ${linkUrl}`
+    );
+    return false;
+  }
+
+  const firstName = getFirstName(recipientName || "");
+  const friendlyOwner = (ownerName && ownerName.trim()) || "Someone you know";
+  const friendlyCardTitle = (cardTitle && cardTitle.trim()) || "a bingo card";
+  const cleanedOwner =
+    friendlyOwner.replace(/[\r\n\t]+/g, " ").slice(0, 60).trim() ||
+    "Someone you know";
+  const subject = `${cleanedOwner} sent you a bingo card to play`;
+
+  const bodyHtml = `
+    ${renderPanel(
+      `<p style="margin:0 0 10px;font-size:14px;"><strong>From:</strong> ${escapeHtml(cleanedOwner)}</p>
+       <p style="margin:0;font-size:14px;"><strong>Card:</strong> ${escapeHtml(friendlyCardTitle)}</p>`,
+      "violet"
+    )}
+    <p style="margin:0 0 14px;font-size:15px;color:#334155;">Click the button below to open your card and start playing. You can sign in, or play as a guest — no account required.</p>
+    <p style="margin:0;font-size:14px;line-height:1.65;color:#475569;word-break:break-all;">If the button does not work, copy and paste this link:<br /><a href="${escapeHtml(linkUrl)}" style="color:#4f46e5;text-decoration:none;">${escapeHtml(linkUrl)}</a></p>
+  `;
+
+  return sendEmail({
+    to,
+    subject,
+    html: renderLayout({
+      theme: "violet",
+      preheader: `${cleanedOwner} sent you a bingo card to play on MyBingoCard.`,
+      headline: `${cleanedOwner} invited you to play`,
+      intro: `Hi ${firstName} — ${cleanedOwner} has sent you a personal link to play their bingo card.`,
+      bodyHtml,
+      ctaLabel: "Open My Card",
+      ctaUrl: trackableUrl(linkUrl, to, "share-link-invitation", "open_card"),
+      ctaHint: "Your link is unique to you and grants access to this specific card.",
+      email: to,
+      campaignId: "share-link-invitation",
+    }),
+    text: `Hi ${firstName},\n\n${cleanedOwner} sent you a bingo card to play: ${friendlyCardTitle}\n\nOpen your card: ${linkUrl}\n\nYou can sign in or play as a guest.`,
+  });
+}
+
+export async function sendShareLinkSummaryEmail(
+  to: string,
+  ownerName: string | null,
+  links: Array<{ linkId: string; cardTitle: string; linkUrl: string }>
+): Promise<boolean> {
+  const firstName = getFirstName(ownerName || "");
+  const count = links.length;
+  const subject = `Your ${count} MyBingoCard share link${count === 1 ? "" : "s"} ${count === 1 ? "is" : "are"} ready`;
+
+  const linkRows = links
+    .map(
+      (link) => `
+        <tr>
+          <td style="padding:12px 0;border-bottom:1px solid #e2e8f0;">
+            <p style="margin:0 0 4px;font-size:14px;font-weight:700;color:#0f172a;">${escapeHtml(link.cardTitle || "Bingo card")}</p>
+            <p style="margin:0;font-size:13px;line-height:1.55;color:#475569;word-break:break-all;">
+              <a href="${escapeHtml(link.linkUrl)}" style="color:#4f46e5;text-decoration:none;">${escapeHtml(link.linkUrl)}</a>
+            </p>
+          </td>
+        </tr>
+      `
+    )
+    .join("");
+
+  const bodyHtml = `
+    ${renderPanel(
+      `<p style="margin:0;font-size:14px;"><strong>${count}</strong> share link${count === 1 ? "" : "s"} generated and ready to send out. Copy any link below and share it directly with a player, or manage everything from your dashboard.</p>`,
+      "violet"
+    )}
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:6px 0 0;">
+      ${linkRows}
+    </table>
+  `;
+
+  const plainTextLinks = links
+    .map((link) => `- ${link.cardTitle || "Bingo card"}: ${link.linkUrl}`)
+    .join("\n");
+
+  return sendEmail({
+    to,
+    subject,
+    html: renderLayout({
+      theme: "violet",
+      preheader: `Your ${count} MyBingoCard share link${count === 1 ? "" : "s"} ${count === 1 ? "is" : "are"} ready to share.`,
+      headline: `${count} share link${count === 1 ? "" : "s"} ready`,
+      intro: `Hi ${firstName}, your share links have been generated and are ready to hand out.`,
+      bodyHtml,
+      ctaLabel: "Open Share Links Dashboard",
+      ctaUrl: trackableUrl(
+        `${appUrl}/dashboard/share-links`,
+        to,
+        "share-link-summary",
+        "dashboard"
+      ),
+      ctaHint: "You can copy, track, and resend any of these links from the dashboard.",
+      email: to,
+      campaignId: "share-link-summary",
+    }),
+    text: `Hi ${firstName},\n\nYour ${count} MyBingoCard share link${count === 1 ? "" : "s"} ${count === 1 ? "is" : "are"} ready.\n\n${plainTextLinks}\n\nManage everything: ${appUrl}/dashboard/share-links`,
+  });
+}
+
 export async function sendCardLimitEmail(to: string, name: string) {
   const firstName = escapeHtml((name || "there").split(/\s/)[0] || "there");
 

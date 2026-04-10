@@ -436,10 +436,15 @@ export default function HostGamePage() {
           <Link href="/dashboard" className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
             MyBingoCard
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <SoundToggle />
-            <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-bold">
-              HOST
+            <span
+              role="status"
+              aria-label="Host status"
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-slate-400 select-none pointer-events-none opacity-60"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
+              Hosting
             </span>
           </div>
         </div>

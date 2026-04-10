@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { isImageCell, parseImageCell } from "@/lib/cellContent";
 import ThemedCardWrapper from "@/components/ThemedCardWrapper";
 import { useSession } from "next-auth/react";
 import PlaySoloButton from "@/components/PlaySoloButton";
 import StartGameButton from "@/components/StartGameButton";
+import ShareBatchButton from "@/components/ShareBatchButton";
 
 interface Card {
   _id: string;
@@ -30,8 +31,68 @@ interface Card {
   updatedAt: string;
 }
 
+interface BatchGroup {
+  batchId: string;
+  title: string;
+  cards: Card[];
+}
+
+// Cards created via batch generation are titled like "Oscar Night! #1", "Oscar Night! #2".
+// Group them by stripping the trailing " #N" suffix so we can treat the group as a batch.
+function groupCardsByBatch(cards: Card[]): BatchGroup[] {
+  const groups = new Map<string, Card[]>();
+  for (const card of cards) {
+    const match = card.title.match(/^(.+?)\s+#\d+\s*$/);
+    if (!match) continue;
+    const title = match[1]!.trim();
+    if (!title) continue;
+    const existing = groups.get(title);
+    if (existing) {
+      existing.push(card);
+    } else {
+      groups.set(title, [card]);
+    }
+  }
+
+  const result: BatchGroup[] = [];
+  for (const [title, groupCards] of groups.entries()) {
+    if (groupCards.length <= 1) continue;
+    // Sort newest first within the group so the first card is a stable representative.
+    const sorted = [...groupCards].sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    const representative = sorted[0]!;
+    result.push({
+      // Synthetic batchId based on the representative card id — stable across reloads
+      // until the backend adds a real batchId field on the card document.
+      batchId: representative._id,
+      title,
+      cards: sorted,
+    });
+  }
+
+  // Sort groups by most recent card
+  result.sort(
+    (a, b) =>
+      new Date(b.cards[0]!.createdAt).getTime() -
+      new Date(a.cards[0]!.createdAt).getTime()
+  );
+
+  return result;
+}
+
 export default function MyCardsPage() {
+  return (
+    <Suspense fallback={null}>
+      <MyCardsPageInner />
+    </Suspense>
+  );
+}
+
+function MyCardsPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +101,20 @@ export default function MyCardsPage() {
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [batchDeleting, setBatchDeleting] = useState(false);
+  const [sharedBannerCount, setSharedBannerCount] = useState<number | null>(
+    null
+  );
+
+  useEffect(() => {
+    if (searchParams.get("shared") === "true") {
+      const countParam = Number(searchParams.get("count") || "0");
+      setSharedBannerCount(
+        Number.isFinite(countParam) && countParam > 0 ? countParam : 0
+      );
+    }
+  }, [searchParams]);
+
+  const batchGroups = useMemo(() => groupCardsByBatch(cards), [cards]);
 
   const toggleSelect = (cardId: string) => {
     setSelected((prev) => {
@@ -218,6 +293,12 @@ export default function MyCardsPage() {
               <span className="sm:hidden">+ Create</span>
             </Link>
             <Link
+              href="/dashboard/share-links"
+              className="hidden md:inline-flex px-3 md:px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-all duration-200"
+            >
+              Share Links
+            </Link>
+            <Link
               href="/dashboard"
               className="px-3 md:px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-all duration-200"
             >
@@ -304,6 +385,82 @@ export default function MyCardsPage() {
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               {error}
+            </div>
+          )}
+
+          {sharedBannerCount !== null && (
+            <div className="mb-8 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 flex items-center justify-between gap-3 animate-fade-in-up">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 flex-shrink-0 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="font-semibold">Share links ready</p>
+                  <p className="text-sm text-emerald-800">
+                    {sharedBannerCount > 0
+                      ? `${sharedBannerCount} link${sharedBannerCount !== 1 ? "s" : ""} generated.`
+                      : "Your share links are being generated."}{" "}
+                    <Link href="/dashboard/share-links" className="underline font-semibold">
+                      View them
+                    </Link>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setSharedBannerCount(null)}
+                className="text-emerald-600 hover:text-emerald-800 transition-colors"
+                aria-label="Dismiss"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {batchGroups.length > 0 && (
+            <div className="mb-10 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">Your Batches</h2>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Share each card in a batch with a different person — $0.10 per link.
+                  </p>
+                </div>
+                <Link
+                  href="/dashboard/share-links"
+                  className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+                >
+                  Manage share links
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </Link>
+              </div>
+              <div className="space-y-3">
+                {batchGroups.map((group) => (
+                  <div
+                    key={group.batchId}
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-900 truncate">{group.title}</p>
+                      <p className="text-xs text-slate-500">
+                        {group.cards.length} cards ·{" "}
+                        {new Date(group.cards[0]!.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="shrink-0">
+                      <ShareBatchButton
+                        batchId={group.batchId}
+                        cardCount={group.cards.length}
+                        batchTitle={group.title}
+                        variant="primary"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

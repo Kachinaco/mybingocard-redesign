@@ -74,7 +74,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${poppins.variable} ${satisfy.variable}`} suppressHydrationWarning>
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        <script src="https://analytics.townranker.com/tracker.js" data-api="https://analytics.townranker.com/api/track" async></script>
+        <script src="/t/tracker.js" data-api="/t/api/track" async></script>
       </head>
       <body className="antialiased font-sans">
         <script

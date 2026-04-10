@@ -9,16 +9,17 @@ export async function POST(
 ) {
   try {
     const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Sign in to join a live game" }, { status: 401 });
-    }
 
     const { roomCode } = await params;
     const { playerName } = await request.json();
 
-    const finalName = playerName?.trim() || session.user.name || session.user.email?.split("@")[0] || "Player";
+    if (!playerName || !playerName.trim()) {
+      return NextResponse.json({ error: "Please enter your name" }, { status: 400 });
+    }
 
-    const result = await joinGameRoom(roomCode, finalName, session.user.id, session.user.email || undefined);
+    const finalName = playerName.trim() || session?.user?.name || session?.user?.email?.split("@")[0] || "Player";
+
+    const result = await joinGameRoom(roomCode, finalName, session?.user?.id, session?.user?.email || undefined);
     if (!result) {
       // Determine specific failure reason
       const existingRoom = await getGameRoom(roomCode);
@@ -35,8 +36,8 @@ export async function POST(
       trackActivity({
         event: "game_join_failed",
         source: "server",
-        userId: session.user.id,
-        email: session.user.email || null,
+        userId: session?.user?.id ?? null,
+        email: session?.user?.email || null,
         pathname: `/game/play/${roomCode}`,
         domain: reqCtx.domain,
         ipAddress: reqCtx.ipAddress,
@@ -56,8 +57,8 @@ export async function POST(
     trackActivity({
       event: "game_player_joined",
       source: "server",
-      userId: session.user.id,
-      email: session.user.email || null,
+      userId: session?.user?.id ?? null,
+      email: session?.user?.email || null,
       pathname: `/game/play/${roomCode}`,
       domain: reqCtx.domain,
       ipAddress: reqCtx.ipAddress,

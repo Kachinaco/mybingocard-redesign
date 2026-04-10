@@ -8,10 +8,15 @@ import {
   sendAbandonedCheckoutEmail,
   sendBillingFailedEmail,
   sendBillingSuccessEmail,
+  sendShareLinkInvitationEmail,
+  sendShareLinkSummaryEmail,
   sendSubscriptionActivatedEmail,
   sendSubscriptionCanceledEmail,
 } from "@/lib/email";
 import { createSubscription, updateSubscription, getSubscriptionByUserId, PLAN_LIMITS } from "@/lib/db/subscriptions";
+import { generateLinkId, type SharedLink } from "@/lib/db/sharedLinks";
+import type { BatchPurchase } from "@/lib/db/batchPurchases";
+import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import type Stripe from "stripe";
 import { trackActivity } from "@/lib/activity";
@@ -140,6 +145,35 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Global idempotency — ensures every Stripe event is processed at most once,
+    // even across webhook retries. Relies on a unique index on `eventId`.
+    try {
+      const client = await clientPromise;
+      const db = client.db("mybingocard");
+      const webhookEvents = db.collection("webhook_events");
+      try {
+        await webhookEvents.createIndex({ eventId: 1 }, { unique: true });
+      } catch (indexErr) {
+        console.error("webhook_events index creation failed:", indexErr);
+      }
+      try {
+        await webhookEvents.insertOne({
+          eventId: event.id,
+          type: event.type,
+          processedAt: new Date(),
+        });
+      } catch (insertErr: any) {
+        if (insertErr?.code === 11000) {
+          console.log("Webhook event already processed:", event.id);
+          return NextResponse.json({ received: true, duplicate: true });
+        }
+        throw insertErr;
+      }
+    } catch (idempotencyErr) {
+      console.error("Webhook idempotency check failed:", idempotencyErr);
+      throw idempotencyErr;
+    }
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -424,6 +458,475 @@ export async function POST(request: Request) {
                 session.currency || batchPack.currency,
                 session.id
               ).catch(console.error);
+            }
+          }
+        } else if (
+          session.mode === "payment" &&
+          session.metadata?.purchaseType === "share_links"
+        ) {
+          const ownerUserId = session.metadata?.userId || session.client_reference_id || null;
+          const ownerEmail =
+            session.metadata?.userEmail ||
+            session.customer_details?.email ||
+            (typeof session.customer_email === "string" ? session.customer_email : null);
+          const batchId = session.metadata?.batchId || null;
+          const count = Number(session.metadata?.count);
+          const pricePerLinkCents = Number(session.metadata?.pricePerLinkCents) || 10;
+          const expiresInDays = session.metadata?.expiresInDays
+            ? Number(session.metadata.expiresInDays)
+            : null;
+
+          let recipientEmails: string[] = [];
+          if (session.metadata?.recipientEmails) {
+            try {
+              const parsed = JSON.parse(session.metadata.recipientEmails);
+              if (Array.isArray(parsed)) {
+                recipientEmails = parsed.filter((value) => typeof value === "string");
+              }
+            } catch (err) {
+              console.error("Failed to parse recipientEmails metadata:", err);
+            }
+          }
+
+          let recipientPhones: string[] = [];
+          if (session.metadata?.recipientPhones) {
+            try {
+              const parsed = JSON.parse(session.metadata.recipientPhones);
+              if (Array.isArray(parsed)) {
+                recipientPhones = parsed.filter((value) => typeof value === "string");
+              }
+            } catch (err) {
+              console.error("Failed to parse recipientPhones metadata:", err);
+            }
+          }
+
+          if (
+            session.payment_status === "paid" &&
+            ownerUserId &&
+            ownerEmail &&
+            batchId &&
+            Number.isFinite(count) &&
+            count > 0
+          ) {
+            try {
+              const client = await clientPromise;
+              const db = client.db("mybingocard");
+              const sharedLinksCollection = db.collection<SharedLink>("shared_links");
+
+              // BUG #1 — Per-session idempotency. If another webhook retry already
+              // created links for this checkout session, skip so we don't double-
+              // create links or re-send emails.
+              const existingLinksForSession = await sharedLinksCollection.countDocuments({
+                stripeSessionId: session.id,
+              });
+              if (existingLinksForSession > 0) {
+                console.log(
+                  `share_links webhook: session ${session.id} already processed (${existingLinksForSession} links exist); skipping`
+                );
+                break;
+              }
+
+              // Prefer cardIds passed directly through metadata. Fall back to
+              // a stashed reference, then finally to the legacy batch lookup.
+              let generatedCardIds: string[] = [];
+              let cardIdsRefObjectId: ObjectId | null = null;
+
+              if (session.metadata?.cardIds) {
+                try {
+                  const parsed = JSON.parse(session.metadata.cardIds);
+                  if (Array.isArray(parsed)) {
+                    generatedCardIds = parsed.filter(
+                      (value): value is string => typeof value === "string"
+                    );
+                  }
+                } catch (err) {
+                  console.error("Failed to parse cardIds metadata:", err);
+                }
+              } else if (session.metadata?.cardIdsRef) {
+                try {
+                  cardIdsRefObjectId = new ObjectId(session.metadata.cardIdsRef);
+                  const refDoc = await db
+                    .collection("share_link_checkout_refs")
+                    .findOne({ _id: cardIdsRefObjectId });
+                  if (refDoc && Array.isArray((refDoc as any).cardIds)) {
+                    generatedCardIds = ((refDoc as any).cardIds as unknown[]).filter(
+                      (value): value is string => typeof value === "string"
+                    );
+                  }
+                } catch (err) {
+                  console.error("Failed to load cardIdsRef:", err);
+                }
+              }
+
+              // Legacy fallback: resolve via batch_purchases if metadata was missing.
+              if (generatedCardIds.length === 0) {
+                let batchObjectId: ObjectId | null = null;
+                try {
+                  batchObjectId = new ObjectId(batchId);
+                } catch {
+                  batchObjectId = null;
+                }
+
+                const batchPurchase = batchObjectId
+                  ? await db
+                      .collection<BatchPurchase>("batch_purchases")
+                      .findOne({ _id: batchObjectId })
+                  : null;
+
+                if (batchPurchase && batchPurchase.userId !== ownerUserId) {
+                  console.error(
+                    `share_links webhook: batch ${batchId} owner mismatch (${batchPurchase.userId} vs ${ownerUserId})`
+                  );
+                } else if (batchPurchase) {
+                  generatedCardIds = Array.isArray(batchPurchase.generatedCardIds)
+                    ? batchPurchase.generatedCardIds
+                    : [];
+                }
+              }
+
+              // BUG #6 — Defense in depth: verify every cardId in the list
+              // actually belongs to the buyer. Never trust metadata alone.
+              if (generatedCardIds.length > 0) {
+                const candidateObjectIds: ObjectId[] = [];
+                for (const id of generatedCardIds) {
+                  try {
+                    candidateObjectIds.push(new ObjectId(id));
+                  } catch {
+                    // skip invalid ids
+                  }
+                }
+
+                if (candidateObjectIds.length > 0) {
+                  const ownedCards = await db
+                    .collection("cards")
+                    .find(
+                      { _id: { $in: candidateObjectIds }, userId: ownerUserId },
+                      { projection: { _id: 1 } }
+                    )
+                    .toArray();
+                  const ownedIds = new Set(
+                    ownedCards.map((doc) => doc._id.toString())
+                  );
+                  const verifiedIds: string[] = [];
+                  for (const id of generatedCardIds) {
+                    if (ownedIds.has(id)) verifiedIds.push(id);
+                  }
+                  if (verifiedIds.length !== generatedCardIds.length) {
+                    console.error(
+                      `share_links webhook: filtered ${
+                        generatedCardIds.length - verifiedIds.length
+                      } card(s) not owned by ${ownerUserId}`
+                    );
+                  }
+                  generatedCardIds = verifiedIds;
+                } else {
+                  generatedCardIds = [];
+                }
+              }
+
+              if (generatedCardIds.length === 0) {
+                console.error(
+                  `share_links webhook: batch ${batchId} has no cards to attach; skipping link creation`
+                );
+              } else {
+                const linksToCreate = Math.min(count, generatedCardIds.length);
+                const expiresAt =
+                  expiresInDays && expiresInDays > 0
+                    ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
+                    : undefined;
+
+                // BUG #5 — Bulk pre-generate unique linkIds and use insertMany.
+                // Pre-check to guarantee uniqueness, then retry any collisions.
+                const generateBatchOfLinkIds = (n: number): string[] => {
+                  const ids = new Set<string>();
+                  while (ids.size < n) ids.add(generateLinkId());
+                  return Array.from(ids);
+                };
+
+                let candidateLinkIds = generateBatchOfLinkIds(linksToCreate);
+                for (let attempt = 0; attempt < 3; attempt++) {
+                  const conflicts = await sharedLinksCollection
+                    .find(
+                      { linkId: { $in: candidateLinkIds } },
+                      { projection: { linkId: 1 } }
+                    )
+                    .toArray();
+                  if (conflicts.length === 0) break;
+                  const conflictSet = new Set(conflicts.map((c) => c.linkId));
+                  candidateLinkIds = candidateLinkIds.map((id) =>
+                    conflictSet.has(id) ? generateLinkId() : id
+                  );
+                }
+
+                const now = new Date();
+                const docsToInsert: Array<Omit<SharedLink, "_id">> = [];
+                const plannedLinks: Array<{
+                  linkId: string;
+                  cardId: string;
+                  recipientEmail?: string;
+                }> = [];
+
+                const failedLinks: Array<{
+                  cardId: string;
+                  recipientEmail?: string;
+                  error: string;
+                }> = [];
+
+                for (let i = 0; i < linksToCreate; i++) {
+                  try {
+                    const cardId = generatedCardIds[i]!;
+                    const linkId = candidateLinkIds[i]!;
+                    const recipientEmail = recipientEmails[i];
+                    const recipientPhone = recipientPhones[i];
+
+                    const doc: Omit<SharedLink, "_id"> = {
+                      linkId,
+                      batchId,
+                      cardId,
+                      ownerUserId,
+                      ownerEmail,
+                      ...(recipientEmail ? { recipientEmail } : {}),
+                      ...(recipientPhone ? { recipientPhone } : {}),
+                      status: "pending",
+                      stripeSessionId: session.id,
+                      amountCents: pricePerLinkCents,
+                      createdAt: now,
+                      updatedAt: now,
+                      ...(expiresAt ? { expiresAt } : {}),
+                    };
+
+                    docsToInsert.push(doc);
+                    plannedLinks.push({
+                      linkId,
+                      cardId,
+                      ...(recipientEmail ? { recipientEmail } : {}),
+                    });
+                  } catch (prepErr) {
+                    console.error(
+                      `share_links webhook: failed to prepare link ${i}:`,
+                      prepErr
+                    );
+                    failedLinks.push({
+                      cardId: generatedCardIds[i] || "unknown",
+                      ...(recipientEmails[i] ? { recipientEmail: recipientEmails[i]! } : {}),
+                      error:
+                        prepErr instanceof Error ? prepErr.message : String(prepErr),
+                    });
+                  }
+                }
+
+                const successfulLinks: Array<{
+                  linkId: string;
+                  cardId: string;
+                  recipientEmail?: string;
+                }> = [];
+
+                if (docsToInsert.length > 0) {
+                  try {
+                    const insertRes = await sharedLinksCollection.insertMany(
+                      docsToInsert as unknown as SharedLink[],
+                      { ordered: false }
+                    );
+                    const insertedCount = insertRes.insertedCount ?? 0;
+                    // insertMany with ordered:false commits each doc atomically;
+                    // insertedIds maps the index of the originally submitted array
+                    // to the ObjectId assigned. Anything missing = failed.
+                    for (let i = 0; i < plannedLinks.length; i++) {
+                      if (insertRes.insertedIds && insertRes.insertedIds[i]) {
+                        successfulLinks.push(plannedLinks[i]!);
+                      } else {
+                        failedLinks.push({
+                          cardId: plannedLinks[i]!.cardId,
+                          ...(plannedLinks[i]!.recipientEmail
+                            ? { recipientEmail: plannedLinks[i]!.recipientEmail! }
+                            : {}),
+                          error: "insertMany did not ack this document",
+                        });
+                      }
+                    }
+                    console.log(
+                      `share_links webhook: bulk inserted ${insertedCount}/${docsToInsert.length} links`
+                    );
+                  } catch (bulkErr: any) {
+                    // With ordered:false, partial success is reported via writeErrors.
+                    const writeErrors: any[] =
+                      bulkErr?.writeErrors || bulkErr?.result?.writeErrors || [];
+                    const failedIndexes = new Set<number>(
+                      writeErrors.map((we: any) => we.index).filter(
+                        (idx: unknown): idx is number => typeof idx === "number"
+                      )
+                    );
+                    for (let i = 0; i < plannedLinks.length; i++) {
+                      if (failedIndexes.has(i)) {
+                        const err = writeErrors.find((we: any) => we.index === i);
+                        failedLinks.push({
+                          cardId: plannedLinks[i]!.cardId,
+                          ...(plannedLinks[i]!.recipientEmail
+                            ? { recipientEmail: plannedLinks[i]!.recipientEmail! }
+                            : {}),
+                          error: err?.errmsg || err?.message || "insertMany error",
+                        });
+                      } else {
+                        successfulLinks.push(plannedLinks[i]!);
+                      }
+                    }
+                    if (successfulLinks.length === 0) {
+                      console.error(
+                        "share_links webhook: bulk insert failed completely:",
+                        bulkErr
+                      );
+                    } else {
+                      console.error(
+                        `share_links webhook: bulk insert partial failure (${successfulLinks.length} ok, ${failedLinks.length} failed)`
+                      );
+                    }
+                  }
+                }
+
+                const createdLinks = successfulLinks;
+
+                // Fetch card titles in one query for the email body.
+                const cardObjectIds: ObjectId[] = [];
+                for (const id of createdLinks.map((l) => l.cardId)) {
+                  try {
+                    cardObjectIds.push(new ObjectId(id));
+                  } catch {
+                    // skip invalid ids
+                  }
+                }
+                const cardsById: Record<string, { title?: string }> = {};
+                if (cardObjectIds.length > 0) {
+                  const cardDocs = await db
+                    .collection("cards")
+                    .find({ _id: { $in: cardObjectIds } }, { projection: { title: 1 } })
+                    .toArray();
+                  for (const doc of cardDocs) {
+                    cardsById[doc._id.toString()] = { title: (doc as any).title };
+                  }
+                }
+
+                const owner = await getUserByEmail(ownerEmail);
+                const ownerName = owner?.name || ownerEmail;
+
+                // BUG #3 — Self-delivery. When the buyer didn't specify any
+                // recipient emails, they expect to receive all the links
+                // themselves. Send one summary email to the owner.
+                const hasRecipientEmails = recipientEmails.length > 0;
+
+                if (!hasRecipientEmails && createdLinks.length > 0) {
+                  const summaryLinks = createdLinks.map((link) => ({
+                    linkId: link.linkId,
+                    linkUrl: `${appUrl}/play/${link.linkId}`,
+                    cardTitle: cardsById[link.cardId]?.title || "Bingo Card",
+                  }));
+
+                  fireAndForget(
+                    sendShareLinkSummaryEmail(ownerEmail, ownerName, summaryLinks),
+                    `sendShareLinkSummaryEmail(${ownerEmail})`
+                  );
+                }
+
+                // Send invitation emails to any recipients we have emails for.
+                for (const link of createdLinks) {
+                  if (!link.recipientEmail) continue;
+                  const linkUrl = `${appUrl}/play/${link.linkId}`;
+                  const cardTitle = cardsById[link.cardId]?.title || null;
+                  fireAndForget(
+                    sendShareLinkInvitationEmail(
+                      link.recipientEmail,
+                      null,
+                      ownerName,
+                      linkUrl,
+                      cardTitle
+                    ),
+                    `sendShareLinkInvitationEmail(${link.recipientEmail})`
+                  );
+                }
+
+                // BUG #4 — Partial failure handling. If anything failed, log it
+                // so we can retry later and alert Discord.
+                if (failedLinks.length > 0) {
+                  try {
+                    await db.collection("webhook_partial_failures").insertOne({
+                      type: "share_links",
+                      stripeSessionId: session.id,
+                      ownerUserId,
+                      ownerEmail,
+                      batchId,
+                      requestedCount: count,
+                      successfulCount: createdLinks.length,
+                      failedCount: failedLinks.length,
+                      failedLinks,
+                      createdAt: new Date(),
+                    });
+                  } catch (persistErr) {
+                    console.error(
+                      "Failed to persist webhook_partial_failures record:",
+                      persistErr
+                    );
+                  }
+
+                  notifyCheckoutActivated(
+                    ownerEmail,
+                    ownerName,
+                    "one_time",
+                    `PARTIAL FAILURE: Share Links (${createdLinks.length}/${count})`,
+                    session.amount_total || pricePerLinkCents * createdLinks.length,
+                    session.currency || "usd",
+                    session.id
+                  ).catch(console.error);
+                }
+
+                await trackActivity({
+                  event: "share_links_generated",
+                  source: "webhook",
+                  userId: ownerUserId,
+                  email: ownerEmail,
+                  metadata: {
+                    batchId,
+                    count: createdLinks.length,
+                    requestedCount: count,
+                    failedCount: failedLinks.length,
+                    amountCents: session.amount_total || pricePerLinkCents * createdLinks.length,
+                    currency: (session.currency || "usd").toUpperCase(),
+                    stripeSessionId: session.id,
+                    recipientEmailCount: recipientEmails.length,
+                    recipientPhoneCount: recipientPhones.length,
+                  },
+                });
+
+                console.log(
+                  `Share links created for user ${ownerEmail}: ${createdLinks.length} links from batch ${batchId}`
+                );
+
+                if (failedLinks.length === 0) {
+                  notifyCheckoutActivated(
+                    ownerEmail,
+                    ownerName,
+                    "one_time",
+                    `Share Links (${createdLinks.length})`,
+                    session.amount_total || pricePerLinkCents * createdLinks.length,
+                    session.currency || "usd",
+                    session.id
+                  ).catch(console.error);
+                }
+              }
+
+              // BUG #8 — Clean up the checkout ref doc after successful use.
+              if (cardIdsRefObjectId) {
+                try {
+                  await db
+                    .collection("share_link_checkout_refs")
+                    .deleteOne({ _id: cardIdsRefObjectId });
+                } catch (cleanupErr) {
+                  console.error(
+                    "Failed to delete share_link_checkout_refs doc:",
+                    cleanupErr
+                  );
+                }
+              }
+            } catch (shareErr) {
+              console.error("Failed to create share links after checkout:", shareErr);
             }
           }
         }
@@ -775,6 +1278,53 @@ export async function POST(request: Request) {
           charge.currency || "usd",
           charge.id
         ).catch(console.error);
+
+        // BUG #6 — Refund revocation. A refunded share_links purchase is a
+        // fraud vector: the buyer keeps all the working links after getting
+        // their money back. When we see a refund, look up the original
+        // checkout session via payment_intent and mark every share link we
+        // created from it as "refunded" so /play/[linkId] can reject it.
+        const paymentIntentId =
+          typeof charge.payment_intent === "string" ? charge.payment_intent : null;
+        if (paymentIntentId) {
+          try {
+            const sessionList = await stripe.checkout.sessions.list({
+              payment_intent: paymentIntentId,
+              limit: 1,
+            });
+            const refundedSession = sessionList.data[0];
+            if (
+              refundedSession &&
+              refundedSession.metadata?.purchaseType === "share_links"
+            ) {
+              const client = await clientPromise;
+              const db = client.db("mybingocard");
+              const revokeResult = await db
+                .collection("shared_links")
+                .updateMany(
+                  { stripeSessionId: refundedSession.id },
+                  { $set: { status: "refunded", updatedAt: new Date() } }
+                );
+              const revokedCount = revokeResult.modifiedCount ?? 0;
+              console.log(
+                `share_links refund: revoked ${revokedCount} link(s) for session ${refundedSession.id}`
+              );
+              notifyRefundIssued(
+                email,
+                name,
+                `Share Links REVOKED (${revokedCount} link${revokedCount === 1 ? "" : "s"})`,
+                charge.amount_refunded || charge.amount,
+                charge.currency || "usd",
+                `${charge.id} | session=${refundedSession.id}`
+              ).catch(console.error);
+            }
+          } catch (revokeErr) {
+            console.error(
+              `Failed to revoke share links for refunded payment_intent ${paymentIntentId}:`,
+              revokeErr
+            );
+          }
+        }
         break;
       }
 

@@ -19,6 +19,9 @@ const GATE_BYPASS_PREFIXES = [
   "/uploads",
   "/icons",
   "/manifest",
+  "/game",
+  "/play",
+  "/r",
 ];
 
 function isProtectedPath(pathname: string): boolean {

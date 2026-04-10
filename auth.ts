@@ -28,6 +28,61 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       allowDangerousEmailAccountLinking: true,
     }),
     Credentials({
+      id: "guest",
+      name: "guest",
+      credentials: {
+        userId: { label: "User ID", type: "text" },
+        guestToken: { label: "Guest Token", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.userId || !credentials?.guestToken) {
+          return null;
+        }
+
+        try {
+          const client = await clientPromise;
+          const db = client.db("mybingocard");
+          const { ObjectId } = await import("mongodb");
+
+          let objectId: InstanceType<typeof ObjectId>;
+          try {
+            objectId = new ObjectId(credentials.userId as string);
+          } catch {
+            return null;
+          }
+
+          // Atomic single-use: match the token+expiry and clear it in one op.
+          // The DB query itself encapsulates the token comparison, so there is
+          // no need for a separate timingSafeEqual — MongoDB's equality match
+          // on an indexed field performs the comparison server-side and the
+          // $unset guarantees the token cannot be reused even under races.
+          const result = await db.collection("users").findOneAndUpdate(
+            {
+              _id: objectId,
+              customerType: "guest",
+              guestClaimToken: credentials.guestToken as string,
+              guestClaimTokenExpiresAt: { $gt: new Date() },
+            },
+            { $unset: { guestClaimToken: "", guestClaimTokenExpiresAt: "" } },
+            { returnDocument: "before" }
+          );
+
+          const user = result as any;
+          if (!user) return null;
+
+          return {
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name || "Guest",
+            image: user.image || null,
+          };
+        } catch (error) {
+          console.error("Guest authorize error:", error);
+          return null;
+        }
+      },
+    }),
+    Credentials({
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
@@ -121,6 +176,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       from: process.env.EMAIL_FROM!,
       async sendVerificationRequest(params: { identifier: string; url: string }) {
+        // Block magic-link emails for guest placeholder addresses — guests
+        // never receive email, and this prevents abuse via the guest domain.
+        if (params.identifier.toLowerCase().endsWith("@guest.mybingocard.com")) {
+          return;
+        }
+
         await sendMagicLinkEmail(params.identifier, params.url);
         try {
           await trackActivity({
@@ -147,6 +208,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       };
 
       if (!event.user?.email) {
+        return;
+      }
+
+      // Guest sign-ins are ephemeral — skip Discord notifications and welcome
+      // emails entirely. Guests don't have real email addresses.
+      if (event.account?.provider === "guest") {
         return;
       }
 
@@ -326,7 +393,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (dbUser) {
           token.planType = dbUser.planType || "FREE";
           token.subscriptionStatus = dbUser.subscriptionStatus || "inactive";
+          token.customerType = dbUser.customerType || "real";
           token.lastRefreshed = Date.now();
+        }
+      }
+
+      // Guest session lifetime cap: clamp ephemeral guest sessions to 24h
+      // regardless of the 30-day cookie default.
+      if (token.customerType === "guest") {
+        if (!token.guestSessionExpiresAt) {
+          token.guestSessionExpiresAt = Date.now() + 24 * 60 * 60 * 1000;
+        } else if (Date.now() > (token.guestSessionExpiresAt as number)) {
+          return null;
         }
       }
 
@@ -335,6 +413,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (token && session.user) {
         session.user.id = token.id as string;
+        (session.user as any).customerType = token.customerType || "real";
       }
 
       // Expose subscription fields on the session for middleware

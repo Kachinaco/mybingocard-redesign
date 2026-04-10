@@ -849,22 +849,6 @@ export default function CardViewPage() {
                 )}
               </div>
 
-              <div className={`w-[200px] flex-shrink-0 rounded-2xl shadow-sm border p-4 ${"bg-white border-slate-100"}`}>
-                <h3 className={`text-sm font-semibold mb-3 ${"text-slate-700"}`}>Card Details</h3>
-                <div className="space-y-1.5 text-sm">
-                  {([
-                    ["Grid", `${card.size}×${card.size}`],
-                    ["Free Space", card.freeSpace ? "Yes" : "No"],
-                    ["Public", card.isPublic ? "Yes" : "No"],
-                    ["Created", new Date(card.createdAt).toLocaleDateString()],
-                  ] as const).map(([label, value]) => (
-                    <div key={label} className="flex justify-between">
-                      <span className={"text-slate-500"}>{label}</span>
-                      <span className={`font-medium ${"text-slate-700"}`}>{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           )}
 

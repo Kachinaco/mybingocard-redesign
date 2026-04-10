@@ -85,6 +85,12 @@ export default async function DashboardPage() {
              </div>
 
             <Link
+              href="/dashboard/share-links"
+              className="hidden md:inline text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors px-3 py-2"
+            >
+              Share Links
+            </Link>
+            <Link
               href="/settings"
               className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors px-3 py-2"
             >
