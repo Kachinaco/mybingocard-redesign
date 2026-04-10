@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createCard, deleteCard, generateShareLink } from "@/lib/db/cards";
+import { ObjectId } from "mongodb";
 import {
   claimBatchPurchase,
   markBatchPurchaseGenerated,
@@ -139,6 +140,7 @@ export async function POST(request: Request) {
 
     // Generate shuffled card arrangements
     const shuffledCards = generateShuffledCards(cells, size, freeSpace, count);
+    const batchGroupId = claimedPurchase?._id.toString() || new ObjectId().toString();
 
     // Create all cards in DB
     const createdCards = [];
@@ -147,6 +149,7 @@ export async function POST(request: Request) {
         const shareLink = generateShareLink();
         const card = await createCard({
           userId: session.user.id,
+          batchId: batchGroupId,
           title: `${title} #${createdCards.length + 1}`,
           description: description || `Batch card ${createdCards.length + 1} of ${count}`,
           size,

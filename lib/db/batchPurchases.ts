@@ -146,3 +146,32 @@ export async function findGeneratedBatchPurchaseForCards(
     generatedCardIds: { $all: cardIds },
   });
 }
+
+export async function getGeneratedBatchIdMapForCards(
+  userId: string,
+  cardIds: string[]
+): Promise<Record<string, string>> {
+  if (cardIds.length === 0) return {};
+
+  const collection = await getBatchPurchasesCollection();
+  const purchases = await collection
+    .find({
+      userId,
+      status: "generated",
+      generatedCardIds: { $in: cardIds },
+    })
+    .project({ generatedCardIds: 1 })
+    .toArray();
+
+  const batchIdByCardId: Record<string, string> = {};
+  for (const purchase of purchases) {
+    const batchId = purchase._id.toString();
+    for (const cardId of purchase.generatedCardIds || []) {
+      if (!batchIdByCardId[cardId]) {
+        batchIdByCardId[cardId] = batchId;
+      }
+    }
+  }
+
+  return batchIdByCardId;
+}

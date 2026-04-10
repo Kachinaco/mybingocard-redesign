@@ -585,11 +585,6 @@ function CreateCardContent() {
       }
     }
 
-    // Clear anonymous uploads from localStorage after successful migration
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("mybingo_anon_uploads");
-    }
-
     return updatedCells;
   };
 
@@ -708,6 +703,9 @@ function CreateCardContent() {
       const isNewCard = !currentCardIdRef.current;
       // Clean up draft from localStorage on successful save
       try { localStorage.removeItem("mybingo_card_draft"); } catch (e) {}
+      if (hasDataUrlImages) {
+        try { localStorage.removeItem("mybingo_anon_uploads"); } catch (e) {}
+      }
       if (savedCard?._id && !currentCardIdRef.current) {
         currentCardIdRef.current = savedCard._id;
         setCurrentCardId(savedCard._id);

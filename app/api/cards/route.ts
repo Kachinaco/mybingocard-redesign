@@ -5,6 +5,7 @@ import { createCard, getUserCards, updateCard, deleteCard, getCardById } from "@
 import { canCreateCard, getUserCardCount } from "@/lib/db/subscriptions";
 import { generateShareLink } from "@/lib/db/cards";
 import { getUserById, incrementCardStats } from "@/lib/db/users";
+import { getGeneratedBatchIdMapForCards } from "@/lib/db/batchPurchases";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyCardCreated, notifyFirstCard } from "@/lib/discord";
 
@@ -24,8 +25,21 @@ export async function GET(request: Request) {
 
 
     const cards = await getUserCards(session.user.id);
+    const missingBatchIdCardIds = cards
+      .filter((card) => !card.batchId)
+      .map((card) => card._id.toString());
+    const legacyBatchIdMap = await getGeneratedBatchIdMapForCards(
+      session.user.id,
+      missingBatchIdCardIds
+    );
+    const enrichedCards = cards.map((card) => {
+      const fallbackBatchId = legacyBatchIdMap[card._id.toString()];
+      return fallbackBatchId && !card.batchId
+        ? { ...card, batchId: fallbackBatchId }
+        : card;
+    });
 
-    return NextResponse.json({ cards });
+    return NextResponse.json({ cards: enrichedCards });
   } catch (error) {
     console.error("Get cards error:", error);
     return NextResponse.json(

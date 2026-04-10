@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getGameRoom, DEFAULT_SETTINGS } from "@/lib/db/games";
+import { auth } from "@/auth";
 
 export async function GET(
   request: Request,
@@ -8,10 +9,13 @@ export async function GET(
   try {
     const { roomCode } = await params;
     const room = await getGameRoom(roomCode);
+    const session = await auth();
 
     if (!room) {
       return NextResponse.json({ error: "Room not found" }, { status: 404 });
     }
+
+    const isHost = session?.user?.id === room.hostUserId;
 
     return NextResponse.json({
       room: {
@@ -32,7 +36,7 @@ export async function GET(
         winnerName: room.winnerName,
         style: room.style,
         settings: room.settings ?? DEFAULT_SETTINGS,
-        wordList: room.wordList,
+        ...(isHost ? { wordList: room.wordList } : {}),
         wordListCount: room.wordList.length,
         winners: (room.winners ?? []).map(w => ({ playerId: w.playerId, playerName: w.playerName })),
         createdAt: room.createdAt,

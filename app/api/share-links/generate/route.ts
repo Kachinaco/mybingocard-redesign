@@ -23,6 +23,7 @@ const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 
 const checkoutRateLimit = new Map<string, number[]>();
+let checkoutRefsIndexEnsured = false;
 
 function checkRateLimit(userId: string): boolean {
   const now = Date.now();
@@ -55,6 +56,19 @@ function isEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+async function ensureCheckoutRefsIndexes(db: any) {
+  if (checkoutRefsIndexEnsured) return;
+  try {
+    await db.collection("share_link_checkout_refs").createIndex(
+      { createdAt: 1 },
+      { expireAfterSeconds: 24 * 60 * 60, name: "share_link_checkout_refs_ttl" }
+    );
+  } catch (error) {
+    console.error("share_link_checkout_refs index setup failed:", error);
+  }
+  checkoutRefsIndexEnsured = true;
+}
+
 export async function POST(request: Request) {
   try {
     const session = await auth();
@@ -67,7 +81,10 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!checkRateLimit(session.user.id)) {
+    const sessionUserId = session.user.id;
+    const sessionUserEmail = session.user.email;
+
+    if (!checkRateLimit(sessionUserId)) {
       return NextResponse.json(
         { error: "Too many checkout attempts, please wait a minute" },
         { status: 429 }
@@ -142,26 +159,26 @@ export async function POST(request: Request) {
     //       implicit "Title #N" groupings with no real batchId field on cards).
     const client = await clientPromise;
     const db = client.db("mybingocard");
+    await ensureCheckoutRefsIndexes(db);
 
-    let batchObjectId: ObjectId;
+    let batchObjectId: ObjectId | null = null;
     try {
       batchObjectId = new ObjectId(batchId);
     } catch {
-      return NextResponse.json(
-        { error: "Invalid batchId" },
-        { status: 400 }
-      );
+      batchObjectId = null;
     }
 
     let generatedCardIds: string[] = [];
 
     // Try real batch_purchases lookup first.
-    const batchPurchase = await db
-      .collection<BatchPurchase>("batch_purchases")
-      .findOne({ _id: batchObjectId });
+    const batchPurchase = batchObjectId
+      ? await db
+          .collection<BatchPurchase>("batch_purchases")
+          .findOne({ _id: batchObjectId })
+      : null;
 
     if (batchPurchase) {
-      if (batchPurchase.userId !== session.user.id) {
+      if (batchPurchase.userId !== sessionUserId) {
         return NextResponse.json(
           { error: "You do not own this batch" },
           { status: 403 }
@@ -179,6 +196,36 @@ export async function POST(request: Request) {
         ? batchPurchase.generatedCardIds
         : [];
     } else {
+      let userIdQuery: any = { userId: sessionUserId };
+      try {
+        const userObjectId = new ObjectId(sessionUserId);
+        userIdQuery = {
+          $or: [
+            { userId: sessionUserId },
+            { userId: userObjectId },
+          ],
+        };
+      } catch {
+        // keep string-only query
+      }
+
+      const explicitBatchCards = await db
+        .collection<BingoCard>("cards")
+        .find({
+          ...userIdQuery,
+          batchId,
+        })
+        .sort({ createdAt: 1 })
+        .toArray();
+
+      if (explicitBatchCards.length > 0) {
+        generatedCardIds = explicitBatchCards.map((card) => card._id.toString());
+      } else if (!batchObjectId) {
+        return NextResponse.json(
+          { error: "Invalid batchId" },
+          { status: 400 }
+        );
+      } else {
       // Fall back to treating batchId as a card _id, then finding all cards
       // from the same user that share the stripped title prefix.
       const representative = await db
@@ -197,7 +244,7 @@ export async function POST(request: Request) {
           ? representative.userId
           : (representative.userId as any)?.toString?.() || "";
 
-      if (ownerIdStr !== session.user.id) {
+      if (ownerIdStr !== sessionUserId) {
         return NextResponse.json(
           { error: "You do not own this batch" },
           { status: 403 }
@@ -218,19 +265,6 @@ export async function POST(request: Request) {
       const escaped = baseTitle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const titleRegex = new RegExp(`^${escaped}\\s+#\\d+\\s*$`);
 
-      let userIdQuery: any = { userId: session.user.id };
-      try {
-        const userObjectId = new ObjectId(session.user.id);
-        userIdQuery = {
-          $or: [
-            { userId: session.user.id },
-            { userId: userObjectId },
-          ],
-        };
-      } catch {
-        // keep string-only query
-      }
-
       const batchCards = await db
         .collection<BingoCard>("cards")
         .find({
@@ -241,6 +275,7 @@ export async function POST(request: Request) {
         .toArray();
 
       generatedCardIds = batchCards.map((c) => c._id.toString());
+      }
     }
 
     if (generatedCardIds.length === 0) {
@@ -263,12 +298,12 @@ export async function POST(request: Request) {
     }
 
     // Resolve current user record for Stripe customer reuse.
-    const userRecord = await getUserById(session.user.id);
+    const userRecord = await getUserById(sessionUserId);
     let reusableCustomerId = userRecord?.stripeCustomerId || null;
 
     if (!reusableCustomerId) {
       const existingCustomers = await stripe.customers.list({
-        email: session.user.email,
+        email: sessionUserEmail,
         limit: 10,
       });
       for (const customer of existingCustomers.data) {
@@ -286,8 +321,8 @@ export async function POST(request: Request) {
 
     const metadata: Record<string, string> = {
       purchaseType: "share_links",
-      userId: session.user.id,
-      userEmail: session.user.email,
+      userId: sessionUserId,
+      userEmail: sessionUserEmail,
       batchId,
       count: String(count),
       pricePerLinkCents: String(PRICE_PER_LINK_CENTS),
@@ -301,17 +336,36 @@ export async function POST(request: Request) {
     // Stripe metadata values are capped at 500 chars per key. Encode the card
     // ids as JSON. If we exceed the limit we stash them in a temp collection
     // and pass a reference id in metadata instead.
+    let checkoutRefId: ObjectId | null = null;
+    let checkoutRefDoc:
+      | {
+          _id: ObjectId;
+          userId: string;
+          createdAt: Date;
+          cardIds?: string[];
+          recipientEmails?: string[];
+          recipientPhones?: string[];
+        }
+      | null = null;
+
+    const ensureCheckoutRef = () => {
+      if (!checkoutRefId) {
+        checkoutRefId = new ObjectId();
+        checkoutRefDoc = {
+          _id: checkoutRefId,
+          userId: sessionUserId,
+          createdAt: new Date(),
+        };
+      }
+      return checkoutRefId;
+    };
+
     const cardIdsJson = JSON.stringify(cardIdsForCheckout);
     if (cardIdsJson.length <= 500) {
       metadata.cardIds = cardIdsJson;
     } else {
-      const tempRef = new ObjectId();
-      await db.collection("share_link_checkout_refs").insertOne({
-        _id: tempRef,
-        userId: session.user.id,
-        cardIds: cardIdsForCheckout,
-        createdAt: new Date(),
-      });
+      const tempRef = ensureCheckoutRef();
+      checkoutRefDoc!.cardIds = cardIdsForCheckout;
       metadata.cardIdsRef = tempRef.toString();
     }
 
@@ -321,12 +375,22 @@ export async function POST(request: Request) {
     if (emailsJson.length <= 500) {
       metadata.recipientEmails = emailsJson;
     } else {
-      metadata.recipientEmailsTruncated = "true";
+      const tempRef = ensureCheckoutRef();
+      checkoutRefDoc!.recipientEmails = recipientEmails;
+      metadata.recipientEmailsRef = tempRef.toString();
     }
 
     const phonesJson = JSON.stringify(recipientPhones);
     if (phonesJson.length <= 500) {
       metadata.recipientPhones = phonesJson;
+    } else if (recipientPhones.length > 0) {
+      const tempRef = ensureCheckoutRef();
+      checkoutRefDoc!.recipientPhones = recipientPhones;
+      metadata.recipientPhonesRef = tempRef.toString();
+    }
+
+    if (checkoutRefDoc) {
+      await db.collection("share_link_checkout_refs").insertOne(checkoutRefDoc);
     }
 
     const checkoutSessionParams: Stripe.Checkout.SessionCreateParams = {
@@ -354,7 +418,7 @@ export async function POST(request: Request) {
     if (reusableCustomerId) {
       checkoutSessionParams.customer = reusableCustomerId;
     } else {
-      checkoutSessionParams.customer_email = session.user.email;
+      checkoutSessionParams.customer_email = sessionUserEmail;
     }
 
     const recipientEmailsHash = crypto
@@ -363,7 +427,7 @@ export async function POST(request: Request) {
       .digest("hex");
     const idempotencyKey = crypto
       .createHash("sha256")
-      .update(`${session.user.id}:${batchId}:${count}:${recipientEmailsHash}`)
+      .update(`${sessionUserId}:${batchId}:${count}:${recipientEmailsHash}`)
       .digest("hex")
       .slice(0, 32);
 
@@ -375,8 +439,8 @@ export async function POST(request: Request) {
     await trackActivity({
       event: "checkout_started",
       source: "server",
-      userId: session.user.id,
-      email: session.user.email,
+      userId: sessionUserId,
+      email: sessionUserEmail,
       pathname: requestContext.pathname,
       domain: requestContext.domain,
       ipAddress: requestContext.ipAddress,
@@ -393,7 +457,7 @@ export async function POST(request: Request) {
     });
 
     notifyCheckoutStarted(
-      session.user.email,
+      sessionUserEmail,
       session.user.name || "",
       "one_time",
       `Share Links (${count})`,

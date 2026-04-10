@@ -52,6 +52,43 @@ export default auth(async (req) => {
   const { nextUrl } = req;
   const pathname = nextUrl.pathname;
 
+  // Redirect AI referral traffic to /welcome
+  const AI_DOMAINS = [
+    "chatgpt.com",
+    "chat.openai.com",
+    "claude.ai",
+    "gemini.google.com",
+    "perplexity.ai",
+    "copilot.microsoft.com",
+    "you.com",
+    "poe.com",
+    "phind.com",
+    "bard.google.com",
+    "meta.ai",
+    "character.ai",
+    "pi.ai",
+  ];
+  if (pathname === "/") {
+    // Check utm_source parameter
+    const utmSource = nextUrl.searchParams.get("utm_source");
+    if (utmSource && AI_DOMAINS.includes(utmSource)) {
+      const welcomeUrl = new URL("/welcome", nextUrl.origin);
+      return NextResponse.redirect(welcomeUrl);
+    }
+    // Check referrer header
+    const referer = req.headers.get("referer") || "";
+    if (AI_DOMAINS.some((domain) => referer.includes(domain))) {
+      const welcomeUrl = new URL("/welcome", nextUrl.origin);
+      return NextResponse.redirect(welcomeUrl);
+    }
+    // Check user agent for AI in-app browsers
+    const userAgent = req.headers.get("user-agent") || "";
+    if (/GeminiiOS|GeminiAndroid|ChatGPT|ClaudeApp/i.test(userAgent)) {
+      const welcomeUrl = new URL("/welcome", nextUrl.origin);
+      return NextResponse.redirect(welcomeUrl);
+    }
+  }
+
   // Subscription gate: FREE/inactive users must complete checkout first.
   // If the JWT planType/subscriptionStatus are missing (stale token from before
   // those fields were added), don't gate — let the page do its own check.

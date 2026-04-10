@@ -558,6 +558,38 @@ export async function POST(request: Request) {
                 }
               }
 
+              if (recipientEmails.length === 0 && session.metadata?.recipientEmailsRef) {
+                try {
+                  const refObjectId = new ObjectId(session.metadata.recipientEmailsRef);
+                  const refDoc = await db
+                    .collection("share_link_checkout_refs")
+                    .findOne({ _id: refObjectId });
+                  if (refDoc && Array.isArray((refDoc as any).recipientEmails)) {
+                    recipientEmails = ((refDoc as any).recipientEmails as unknown[]).filter(
+                      (value): value is string => typeof value === "string"
+                    );
+                  }
+                } catch (err) {
+                  console.error("Failed to load recipientEmailsRef:", err);
+                }
+              }
+
+              if (recipientPhones.length === 0 && session.metadata?.recipientPhonesRef) {
+                try {
+                  const refObjectId = new ObjectId(session.metadata.recipientPhonesRef);
+                  const refDoc = await db
+                    .collection("share_link_checkout_refs")
+                    .findOne({ _id: refObjectId });
+                  if (refDoc && Array.isArray((refDoc as any).recipientPhones)) {
+                    recipientPhones = ((refDoc as any).recipientPhones as unknown[]).filter(
+                      (value): value is string => typeof value === "string"
+                    );
+                  }
+                } catch (err) {
+                  console.error("Failed to load recipientPhonesRef:", err);
+                }
+              }
+
               // Legacy fallback: resolve via batch_purchases if metadata was missing.
               if (generatedCardIds.length === 0) {
                 let batchObjectId: ObjectId | null = null;
@@ -581,6 +613,17 @@ export async function POST(request: Request) {
                   generatedCardIds = Array.isArray(batchPurchase.generatedCardIds)
                     ? batchPurchase.generatedCardIds
                     : [];
+                } else {
+                  generatedCardIds = (
+                    await db
+                      .collection("cards")
+                      .find(
+                        { batchId, userId: ownerUserId },
+                        { projection: { _id: 1 } }
+                      )
+                      .sort({ createdAt: 1 })
+                      .toArray()
+                  ).map((card) => card._id.toString());
                 }
               }
 
@@ -597,10 +640,18 @@ export async function POST(request: Request) {
                 }
 
                 if (candidateObjectIds.length > 0) {
+                  let ownerUserIdQuery: unknown = ownerUserId;
+                  try {
+                    ownerUserIdQuery = {
+                      $in: [ownerUserId, new ObjectId(ownerUserId)],
+                    };
+                  } catch {
+                    ownerUserIdQuery = ownerUserId;
+                  }
                   const ownedCards = await db
                     .collection("cards")
                     .find(
-                      { _id: { $in: candidateObjectIds }, userId: ownerUserId },
+                      { _id: { $in: candidateObjectIds }, userId: ownerUserIdQuery },
                       { projection: { _id: 1 } }
                     )
                     .toArray();
@@ -913,11 +964,29 @@ export async function POST(request: Request) {
               }
 
               // BUG #8 — Clean up the checkout ref doc after successful use.
+              const refIdsToDelete = new Set<string>();
               if (cardIdsRefObjectId) {
+                refIdsToDelete.add(cardIdsRefObjectId.toString());
+              }
+              if (session.metadata?.recipientEmailsRef) {
+                refIdsToDelete.add(session.metadata.recipientEmailsRef);
+              }
+              if (session.metadata?.recipientPhonesRef) {
+                refIdsToDelete.add(session.metadata.recipientPhonesRef);
+              }
+
+              if (refIdsToDelete.size > 0) {
                 try {
+                  const refObjectIds = Array.from(refIdsToDelete).flatMap((id) => {
+                    try {
+                      return [new ObjectId(id)];
+                    } catch {
+                      return [];
+                    }
+                  });
                   await db
                     .collection("share_link_checkout_refs")
-                    .deleteOne({ _id: cardIdsRefObjectId });
+                    .deleteMany({ _id: { $in: refObjectIds } });
                 } catch (cleanupErr) {
                   console.error(
                     "Failed to delete share_link_checkout_refs doc:",

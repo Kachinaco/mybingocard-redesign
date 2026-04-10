@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import clientPromise from "../mongodb";
 import { ObjectId } from "mongodb";
 import { trackActivity } from "@/lib/activity";
@@ -14,6 +15,7 @@ export interface MarkEvent {
 
 export interface GamePlayer {
   playerId: string;
+  playerTokenHash: string;
   userId?: string;
   email?: string;
   playerName: string;
@@ -84,9 +86,15 @@ function generateRoomCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
   for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += chars.charAt(crypto.randomInt(0, chars.length));
   }
   return code;
+}
+
+function generatePlayerToken(): { raw: string; hash: string } {
+  const raw = crypto.randomBytes(32).toString("hex");
+  const hash = crypto.createHash("sha256").update(raw).digest("hex");
+  return { raw, hash };
 }
 
 function shuffleArray<T>(arr: T[]): T[] {
@@ -234,12 +242,44 @@ export async function joinGameRoom(
   playerName: string,
   userId?: string,
   email?: string
-): Promise<{ player: GamePlayer; room: GameRoom } | null> {
+): Promise<{ player: GamePlayer; room: GameRoom; playerToken: string } | null> {
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
   const room = await db.collection<GameRoom>("game_rooms").findOne({ roomCode });
   if (!room || room.status === "finished") return null;
+
+  // Reuse an existing signed-in player slot instead of duplicating the same
+  // account in the room. Rotate the token so rejoining refreshes the session.
+  if (userId) {
+    const existingPlayer = room.players.find((player) => player.userId === userId);
+    if (existingPlayer) {
+      const { raw: playerToken, hash: playerTokenHash } = generatePlayerToken();
+      await db.collection<GameRoom>("game_rooms").updateOne(
+        { _id: room._id, "players.playerId": existingPlayer.playerId },
+        {
+          $set: {
+            "players.$.playerTokenHash": playerTokenHash,
+            "players.$.playerName": playerName.trim() || existingPlayer.playerName,
+            "players.$.email": email || existingPlayer.email,
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+      const updatedRoom = await db.collection<GameRoom>("game_rooms").findOne({ _id: room._id });
+      const updatedPlayer =
+        updatedRoom?.players.find((player) => player.playerId === existingPlayer.playerId) ||
+        {
+          ...existingPlayer,
+          playerTokenHash,
+          playerName: playerName.trim() || existingPlayer.playerName,
+          email: email || existingPlayer.email,
+        };
+
+      return { player: updatedPlayer, room: updatedRoom!, playerToken };
+    }
+  }
 
   // Enforce player cap
   if (room.players.length >= MAX_PLAYERS_PER_ROOM) return null;
@@ -259,8 +299,10 @@ export async function joinGameRoom(
   const cells = generateCardCells(room.wordList, room.size, room.freeSpace);
 
   const playerId = new ObjectId().toString();
+  const { raw: playerToken, hash: playerTokenHash } = generatePlayerToken();
   const player: GamePlayer = {
     playerId,
+    playerTokenHash,
     userId: userId || undefined,
     email: email || undefined,
     playerName: finalName,
@@ -280,7 +322,31 @@ export async function joinGameRoom(
   );
 
   const updatedRoom = await db.collection<GameRoom>("game_rooms").findOne({ _id: room._id });
-  return { player, room: updatedRoom! };
+  return { player, room: updatedRoom!, playerToken };
+}
+
+export async function verifyPlayerToken(
+  roomCode: string,
+  playerId: string,
+  rawToken: string
+): Promise<boolean> {
+  if (typeof rawToken !== "string" || rawToken.length !== 64) return false;
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+
+  const room = await db.collection<GameRoom>("game_rooms").findOne(
+    { roomCode, "players.playerId": playerId },
+    { projection: { "players.$": 1 } }
+  );
+  const player = room?.players?.[0];
+  if (!player || typeof player.playerTokenHash !== "string") return false;
+
+  const suppliedHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+  const a = Buffer.from(suppliedHash, "hex");
+  const b = Buffer.from(player.playerTokenHash, "hex");
+  if (a.length !== b.length || a.length === 0) return false;
+  return crypto.timingSafeEqual(a, b);
 }
 
 export async function startGame(
@@ -302,8 +368,10 @@ export async function startGame(
   if (hostPlaysAlong) {
     const cells = generateCardCells(room.wordList, room.size, room.freeSpace);
     const totalCells = room.size * room.size;
+    const { hash: hostTokenHash } = generatePlayerToken();
     hostPlayer = {
       playerId: new ObjectId().toString(),
+      playerTokenHash: hostTokenHash,
       userId: hostUserId,
       email: room.hostEmail || undefined,
       playerName: (room.hostName || "Host") + " (Host)",
@@ -453,8 +521,12 @@ export async function updateGameSettings(
 export async function markCell(
   roomCode: string,
   playerId: string,
-  cellIndex: number
+  cellIndex: number,
+  rawToken: string,
+  bypassTokenCheck = false
 ): Promise<boolean> {
+  if (!bypassTokenCheck && !(await verifyPlayerToken(roomCode, playerId, rawToken))) return false;
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   const now = new Date();
@@ -473,8 +545,12 @@ export async function markCell(
 export async function unmarkCell(
   roomCode: string,
   playerId: string,
-  cellIndex: number
+  cellIndex: number,
+  rawToken: string,
+  bypassTokenCheck = false
 ): Promise<boolean> {
+  if (!bypassTokenCheck && !(await verifyPlayerToken(roomCode, playerId, rawToken))) return false;
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
@@ -550,8 +626,12 @@ export function detectWinPattern(marked: number[], size: number): string | null 
 
 export async function claimBingo(
   roomCode: string,
-  playerId: string
+  playerId: string,
+  rawToken: string,
+  bypassTokenCheck = false
 ): Promise<{ valid: boolean; playerName?: string; gameEnded?: boolean }> {
+  if (!bypassTokenCheck && !(await verifyPlayerToken(roomCode, playerId, rawToken))) return { valid: false };
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
 

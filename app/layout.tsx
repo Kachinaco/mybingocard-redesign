@@ -32,6 +32,7 @@ const satisfy = Satisfy({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://mybingocard.com"),
   title: "MyBingoCard - Create Custom Bingo Cards Online",
   description:
     "Create, customize, and share bingo cards for any occasion. Free online bingo card maker with AI generation, 30+ templates, HD PDF export, and live multiplayer games. Used by 50,000+ teachers, party planners, and event organizers.",

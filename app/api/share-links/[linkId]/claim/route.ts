@@ -166,6 +166,49 @@ export async function POST(
         });
       }
 
+      if (isGuestClaim && !session?.user?.id && existing.claimedByUserId) {
+        const client = await clientPromise;
+        const db = client.db("mybingocard");
+
+        let guestObjectId: ObjectId | null = null;
+        try {
+          guestObjectId = new ObjectId(existing.claimedByUserId);
+        } catch {
+          guestObjectId = null;
+        }
+
+        if (guestObjectId) {
+          const guestUser = await db.collection("users").findOne({
+            _id: guestObjectId,
+            customerType: "guest",
+            guestClaimToken: { $exists: true, $ne: null },
+            guestClaimTokenExpiresAt: { $gt: now },
+          });
+
+          if (guestUser) {
+            const card = await getCardById(existing.cardId);
+            if (!card) {
+              return NextResponse.json(
+                { error: "This share link is no longer valid" },
+                { status: 410 }
+              );
+            }
+
+            return NextResponse.json({
+              ok: true,
+              alreadyClaimed: true,
+              card: serializeCard(card),
+              guestAuth: {
+                userId: existing.claimedByUserId,
+                guestToken: String(
+                  (guestUser as unknown as { guestClaimToken: string }).guestClaimToken
+                ),
+              },
+            });
+          }
+        }
+      }
+
       return NextResponse.json(
         { error: "This share link has already been claimed by someone else" },
         { status: 410 }

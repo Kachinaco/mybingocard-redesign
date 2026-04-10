@@ -256,6 +256,10 @@ export async function ensureUserDefaults(id: string): Promise<User | null> {
     updates.cancelAtPeriodEnd = false;
   }
 
+  if (current.emailVerified === undefined || current.emailVerified === null) {
+    updates.emailVerified = now;
+  }
+
   if (current.cancelAt === undefined) {
     updates.cancelAt = null;
   }

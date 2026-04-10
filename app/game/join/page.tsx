@@ -26,6 +26,9 @@ function JoinGameContent() {
       setRoomCode(code.toUpperCase());
       fetchRoomInfo(code.toUpperCase());
     }
+    if (searchParams.get("error") === "session_expired") {
+      setError("Your session expired, please join again.");
+    }
   }, [searchParams]);
 
   // Pre-fill player name from session
@@ -83,6 +86,7 @@ function JoinGameContent() {
       // Store player info in sessionStorage
       sessionStorage.setItem(`game-${roomCode}`, JSON.stringify({
         playerId: data.playerId,
+        playerToken: data.playerToken,
         playerName: data.playerName,
         cells: data.cells,
         marked: data.marked,

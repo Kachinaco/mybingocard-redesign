@@ -127,6 +127,12 @@ export default function PlayClient({ linkId }: PlayClientProps) {
         return;
       }
 
+      if (data.link.status === "claimed" && !data.canPlay) {
+        setErrorMessage("This share link has already been claimed.");
+        setViewState("invalid");
+        return;
+      }
+
       setCard(data.card);
       setOwnerName(data.link.ownerName || null);
 

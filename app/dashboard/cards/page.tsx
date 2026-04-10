@@ -12,6 +12,7 @@ import ShareBatchButton from "@/components/ShareBatchButton";
 
 interface Card {
   _id: string;
+  batchId?: string;
   title: string;
   description?: string;
   size: 3 | 4 | 5;
@@ -40,33 +41,40 @@ interface BatchGroup {
 // Cards created via batch generation are titled like "Oscar Night! #1", "Oscar Night! #2".
 // Group them by stripping the trailing " #N" suffix so we can treat the group as a batch.
 function groupCardsByBatch(cards: Card[]): BatchGroup[] {
-  const groups = new Map<string, Card[]>();
+  const groups = new Map<string, { batchId: string; title: string; cards: Card[] }>();
   for (const card of cards) {
+    const explicitBatchId = typeof card.batchId === "string" ? card.batchId.trim() : "";
     const match = card.title.match(/^(.+?)\s+#\d+\s*$/);
-    if (!match) continue;
-    const title = match[1]!.trim();
-    if (!title) continue;
-    const existing = groups.get(title);
+    const title = match?.[1]?.trim() || "";
+
+    if (!explicitBatchId && !title) continue;
+
+    const groupKey = explicitBatchId ? `batch:${explicitBatchId}` : `legacy:${title}`;
+    const resolvedBatchId = explicitBatchId || card._id;
+    const resolvedTitle = title || card.title.trim() || "Untitled batch";
+
+    const existing = groups.get(groupKey);
     if (existing) {
-      existing.push(card);
+      existing.cards.push(card);
     } else {
-      groups.set(title, [card]);
+      groups.set(groupKey, {
+        batchId: resolvedBatchId,
+        title: resolvedTitle,
+        cards: [card],
+      });
     }
   }
 
   const result: BatchGroup[] = [];
-  for (const [title, groupCards] of groups.entries()) {
-    if (groupCards.length <= 1) continue;
+  for (const { batchId, title, cards: groupedCards } of groups.values()) {
+    if (groupedCards.length <= 1) continue;
     // Sort newest first within the group so the first card is a stable representative.
-    const sorted = [...groupCards].sort(
+    const sorted = [...groupedCards].sort(
       (a, b) =>
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-    const representative = sorted[0]!;
     result.push({
-      // Synthetic batchId based on the representative card id — stable across reloads
-      // until the backend adds a real batchId field on the card document.
-      batchId: representative._id,
+      batchId,
       title,
       cards: sorted,
     });

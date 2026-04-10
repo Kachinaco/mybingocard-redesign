@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 export interface BingoCard {
   _id: ObjectId;
   userId: string; // User's _id as string
+  batchId?: string; // Stable batch identity for multi-card generation runs
   title: string;
   description?: string;
   size: 3 | 4 | 5; // Grid size (3x3, 4x4, 5x5)

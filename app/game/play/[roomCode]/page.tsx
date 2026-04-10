@@ -12,6 +12,7 @@ import { trackClientActivity } from "@/lib/activity-client";
 
 interface PlayerData {
   playerId: string;
+  playerToken: string;
   playerName: string;
   cells: string[];
   marked: number[];
@@ -76,6 +77,11 @@ export default function PlayGamePage() {
     }
 
     const data = JSON.parse(stored) as PlayerData;
+    if (!data.playerToken) {
+      sessionStorage.removeItem(`game-${roomCode}`);
+      router.push(`/game/join?code=${roomCode}&error=session_expired`);
+      return;
+    }
     setPlayer(data);
     setMarked(new Set(data.marked || []));
 
@@ -222,9 +228,17 @@ export default function PlayGamePage() {
       body: JSON.stringify({
         action: isMarking ? "mark" : "unmark",
         playerId: player.playerId,
+        playerToken: player.playerToken,
         cellIndex: index,
       }),
-    }).catch(() => {});
+    })
+      .then((res) => {
+        if (res.status === 401) {
+          sessionStorage.removeItem(`game-${roomCode}`);
+          router.push(`/game/join?code=${roomCode}&error=session_expired`);
+        }
+      })
+      .catch(() => {});
 
     // Check for bingo
     if (checkBingoWin(newMarked) && !hasBingo) {
@@ -245,8 +259,15 @@ export default function PlayGamePage() {
         body: JSON.stringify({
           action: "claim",
           playerId: player.playerId,
+          playerToken: player.playerToken,
         }),
       });
+
+      if (res.status === 401) {
+        sessionStorage.removeItem(`game-${roomCode}`);
+        router.push(`/game/join?code=${roomCode}&error=session_expired`);
+        return;
+      }
 
       const data = await res.json();
       if (data.valid) {
