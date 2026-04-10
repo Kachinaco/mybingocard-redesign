@@ -25,6 +25,8 @@ import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe
 import { t } from "@/lib/i18n";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
+const TRIAL_CHECKOUT_STORAGE_KEY = "mbc_trial_checkout";
+const TRIAL_CHECKOUT_STORAGE_TTL_MS = 30 * 60 * 1000;
 
 type GridSize = 3 | 4 | 5;
 type PlanType = "FREE" | "PREMIUM";
@@ -132,6 +134,7 @@ function CreateCardContent() {
   // Refresh session after trial checkout so JWT picks up new planType/subscriptionStatus
   useEffect(() => {
     if (searchParams.get("trial") === "started" && session?.user) {
+      clearStoredTrialCheckout();
       sessionData.update();
       const timeSpent = Math.round((Date.now() - pageLoadedAtRef.current) / 1000);
       trackClientActivity("trial_checkout_completed_client", { time_spent_seconds: timeSpent });
@@ -152,6 +155,142 @@ function CreateCardContent() {
   const [trialError, setTrialError] = useState("");
   const isNewSignup = !checkingPermission && session?.user && permissionStatus?.requiresCheckout && permissionStatus?.planType !== "PREMIUM";
 
+  const readStoredTrialCheckout = (email: string) => {
+    if (typeof window === "undefined") return null;
+
+    try {
+      const raw = window.sessionStorage.getItem(TRIAL_CHECKOUT_STORAGE_KEY);
+      if (!raw) return null;
+
+      const parsed = JSON.parse(raw) as {
+        email?: string;
+        clientSecret?: string;
+        sessionId?: string | null;
+        storedAt?: number;
+      };
+
+      const isValid =
+        parsed?.email === email &&
+        typeof parsed.clientSecret === "string" &&
+        parsed.clientSecret.length > 0 &&
+        typeof parsed.storedAt === "number" &&
+        Date.now() - parsed.storedAt < TRIAL_CHECKOUT_STORAGE_TTL_MS;
+
+      if (!isValid) {
+        window.sessionStorage.removeItem(TRIAL_CHECKOUT_STORAGE_KEY);
+        return null;
+      }
+
+      return parsed;
+    } catch {
+      window.sessionStorage.removeItem(TRIAL_CHECKOUT_STORAGE_KEY);
+      return null;
+    }
+  };
+
+  const storeTrialCheckout = (
+    email: string,
+    clientSecret: string,
+    sessionId?: string | null
+  ) => {
+    if (typeof window === "undefined") return;
+
+    window.sessionStorage.setItem(
+      TRIAL_CHECKOUT_STORAGE_KEY,
+      JSON.stringify({
+        email,
+        clientSecret,
+        sessionId: sessionId || null,
+        storedAt: Date.now(),
+      })
+    );
+  };
+
+  const clearStoredTrialCheckout = () => {
+    if (typeof window === "undefined") return;
+    window.sessionStorage.removeItem(TRIAL_CHECKOUT_STORAGE_KEY);
+  };
+
+  const startTrialCheckout = async ({
+    retry = false,
+    forceNew = false,
+  }: {
+    retry?: boolean;
+    forceNew?: boolean;
+  } = {}) => {
+    const email = session?.user?.email;
+    if (!email) return;
+
+    if (forceNew) {
+      clearStoredTrialCheckout();
+      setTrialClientSecret(null);
+    } else {
+      const existingCheckout = readStoredTrialCheckout(email);
+      if (existingCheckout?.clientSecret) {
+        trialCheckoutOpenedRef.current = true;
+        setTrialError("");
+        setTrialClientSecret(existingCheckout.clientSecret);
+        setTrialLoading(false);
+        return;
+      }
+    }
+
+    trialCheckoutOpenedRef.current = true;
+    setTrialError("");
+    setTrialLoading(true);
+    trackClientActivity("trial_checkout_viewed", retry ? { retry: true } : {});
+
+    try {
+      const response = await fetch("/api/stripe/embedded-checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          purchaseType: "trial",
+          returnPath: "/create?trial=started",
+        }),
+      });
+      const data = await response.json();
+
+      if (response.status === 409) {
+        clearStoredTrialCheckout();
+        router.replace("/create");
+        return;
+      }
+
+      if (!response.ok || !data.clientSecret) {
+        const msg = data.error || "Failed to start trial. Please try again.";
+        setTrialError(msg);
+        trackClientActivity(
+          "trial_checkout_error",
+          retry ? { error: msg, retry: true } : { error: msg }
+        );
+        return;
+      }
+
+      setTrialClientSecret(data.clientSecret);
+      storeTrialCheckout(email, data.clientSecret, data.sessionId);
+      trackClientActivity(
+        "trial_checkout_form_loaded",
+        data.reused
+          ? retry
+            ? { reused: true, retry: true }
+            : { reused: true }
+          : retry
+            ? { retry: true }
+            : {}
+      );
+    } catch {
+      const msg = "Something went wrong. Please try again.";
+      setTrialError(msg);
+      trackClientActivity(
+        "trial_checkout_error",
+        retry ? { error: msg, retry: true } : { error: msg }
+      );
+    } finally {
+      setTrialLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (trialCheckoutOpenedRef.current) return;
     if (!isNewSignup) return;
@@ -161,37 +300,8 @@ function CreateCardContent() {
     const hasPendingDraft = typeof window !== "undefined" && localStorage.getItem("mybingo_card_draft");
     if (hasPendingDraft) return;
 
-    trialCheckoutOpenedRef.current = true;
-    trackClientActivity("trial_checkout_viewed");
-    setTrialLoading(true);
-
-    fetch("/api/stripe/embedded-checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ purchaseType: "trial", returnPath: "/create?trial=started" }),
-    })
-      .then(async (res) => {
-        const data = await res.json();
-        if (res.status === 409) {
-          // Already subscribed — let them through
-          router.replace("/create");
-          return;
-        }
-        if (!res.ok || !data.clientSecret) {
-          const msg = data.error || "Failed to start trial. Please try again.";
-          setTrialError(msg);
-          trackClientActivity("trial_checkout_error", { error: msg });
-          return;
-        }
-        setTrialClientSecret(data.clientSecret);
-        trackClientActivity("trial_checkout_form_loaded");
-      })
-      .catch(() => {
-        setTrialError("Something went wrong. Please try again.");
-        trackClientActivity("trial_checkout_error", { error: "Something went wrong. Please try again." });
-      })
-      .finally(() => setTrialLoading(false));
-  }, [isNewSignup, router]);
+    void startTrialCheckout();
+  }, [isNewSignup, session?.user?.email]);
 
   // Track abandonment when user closes/navigates away during trial checkout
   useEffect(() => {
@@ -1255,6 +1365,7 @@ function CreateCardContent() {
           <button
             type="button"
             onClick={async () => {
+              clearStoredTrialCheckout();
               const { signOut } = await import("next-auth/react");
               await signOut({ callbackUrl: "/" });
             }}
@@ -1279,29 +1390,7 @@ function CreateCardContent() {
               <button
                 onClick={() => {
                   trialCheckoutOpenedRef.current = false;
-                  setTrialError("");
-                  setTrialLoading(true);
-                  fetch("/api/stripe/embedded-checkout", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ purchaseType: "trial", returnPath: "/create?trial=started" }),
-                  })
-                    .then(async (res) => {
-                      const data = await res.json();
-                      if (!res.ok || !data.clientSecret) {
-                        const msg = data.error || "Failed to start trial.";
-                        setTrialError(msg);
-                        trackClientActivity("trial_checkout_error", { error: msg, retry: true });
-                        return;
-                      }
-                      setTrialClientSecret(data.clientSecret);
-                      trackClientActivity("trial_checkout_form_loaded", { retry: true });
-                    })
-                    .catch(() => {
-                      setTrialError("Something went wrong.");
-                      trackClientActivity("trial_checkout_error", { error: "Something went wrong.", retry: true });
-                    })
-                    .finally(() => setTrialLoading(false));
+                  void startTrialCheckout({ retry: true, forceNew: true });
                 }}
                 className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
               >

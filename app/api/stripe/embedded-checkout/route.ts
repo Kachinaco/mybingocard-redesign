@@ -5,10 +5,57 @@ import { getUserByEmail } from "@/lib/db/users";
 import { getBatchPack, isBatchCount } from "@/lib/batchPacks";
 import { upsertBatchPurchaseFromCheckout } from "@/lib/db/batchPurchases";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import clientPromise from "@/lib/mongodb";
 import { notifyCheckoutStarted } from "@/lib/discord";
 import type Stripe from "stripe";
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
+const TRIAL_CHECKOUT_REUSE_WINDOW_MS = 30 * 60 * 1000;
+
+async function findReusableTrialCheckoutSession(email: string) {
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  const recentStarted = await db.collection("activity_events")
+    .find(
+      {
+        event: "checkout_started",
+        email,
+        "metadata.purchaseType": "trial",
+        createdAt: { $gte: new Date(Date.now() - TRIAL_CHECKOUT_REUSE_WINDOW_MS) },
+      },
+      { projection: { "metadata.checkoutSessionId": 1 } }
+    )
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .toArray();
+
+  const seen = new Set<string>();
+
+  for (const entry of recentStarted) {
+    const checkoutSessionId = (entry as { metadata?: { checkoutSessionId?: string } })?.metadata?.checkoutSessionId;
+    if (!checkoutSessionId || seen.has(checkoutSessionId)) {
+      continue;
+    }
+
+    seen.add(checkoutSessionId);
+
+    try {
+      const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+      if (
+        session.mode === "subscription" &&
+        session.status === "open" &&
+        typeof session.client_secret === "string" &&
+        session.client_secret.length > 0
+      ) {
+        return session;
+      }
+    } catch (error) {
+      console.error("Failed to inspect existing trial checkout session:", error);
+    }
+  }
+
+  return null;
+}
 
 export async function POST(request: Request) {
   try {
@@ -216,6 +263,15 @@ export async function POST(request: Request) {
         }
       }
 
+      const existingCheckoutSession = await findReusableTrialCheckoutSession(session.user.email);
+      if (existingCheckoutSession?.client_secret) {
+        return NextResponse.json({
+          clientSecret: existingCheckoutSession.client_secret,
+          sessionId: existingCheckoutSession.id,
+          reused: true,
+        });
+      }
+
       const trialReturnUrl = `${appUrl}${returnPath || "/create?trial=started"}&session_id={CHECKOUT_SESSION_ID}`;
 
       const checkoutParams: Stripe.Checkout.SessionCreateParams = {
@@ -266,7 +322,11 @@ export async function POST(request: Request) {
         "7-Day Free Trial", 0, "usd", checkoutSession.id
       ).catch(console.error);
 
-      return NextResponse.json({ clientSecret: checkoutSession.client_secret, sessionId: checkoutSession.id });
+      return NextResponse.json({
+        clientSecret: checkoutSession.client_secret,
+        sessionId: checkoutSession.id,
+        reused: false,
+      });
     }
 
     // ---- SUBSCRIPTION CHECKOUT ----

@@ -73,18 +73,21 @@ export default auth(async (req) => {
     const utmSource = nextUrl.searchParams.get("utm_source");
     if (utmSource && AI_DOMAINS.includes(utmSource)) {
       const welcomeUrl = new URL("/welcome", nextUrl.origin);
+      welcomeUrl.search = nextUrl.search;
       return NextResponse.redirect(welcomeUrl);
     }
     // Check referrer header
     const referer = req.headers.get("referer") || "";
     if (AI_DOMAINS.some((domain) => referer.includes(domain))) {
       const welcomeUrl = new URL("/welcome", nextUrl.origin);
+      welcomeUrl.search = nextUrl.search;
       return NextResponse.redirect(welcomeUrl);
     }
     // Check user agent for AI in-app browsers
     const userAgent = req.headers.get("user-agent") || "";
     if (/GeminiiOS|GeminiAndroid|ChatGPT|ClaudeApp/i.test(userAgent)) {
       const welcomeUrl = new URL("/welcome", nextUrl.origin);
+      welcomeUrl.search = nextUrl.search;
       return NextResponse.redirect(welcomeUrl);
     }
   }
