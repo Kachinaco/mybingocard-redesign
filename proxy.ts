@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth } from "./auth";
 
-const PROTECTED_PATHS = ["/dashboard", "/settings"];
+const PROTECTED_PATHS = ["/dashboard", "/settings", "/game/host"];
 const VALID_ACTION = /^[0-9a-f]{40,}$/i;
 
-// Paths that bypass the subscription gate (unauthenticated or pre-checkout flows)
+// Paths that bypass the subscription gate
+// Includes auth/pre-checkout flows AND public/guest content (game join, game play, shareable cards, referral redirects)
 const GATE_BYPASS_PREFIXES = [
   "/api",
   "/login",
@@ -51,14 +52,21 @@ export default auth(async (req) => {
   const { nextUrl } = req;
   const pathname = nextUrl.pathname;
 
-  // Subscription gate: FREE/inactive users must complete checkout first
+  // Subscription gate: FREE/inactive users must complete checkout first.
+  // If the JWT planType/subscriptionStatus are missing (stale token from before
+  // those fields were added), don't gate — let the page do its own check.
   if (req.auth?.user?.email && !isGateBypassed(pathname)) {
     const session = req.auth as typeof req.auth & {
       planType?: string;
       subscriptionStatus?: string;
     };
 
+    const hasSubFields =
+      typeof session.planType === "string" &&
+      typeof session.subscriptionStatus === "string";
+
     if (
+      hasSubFields &&
       session.planType === "FREE" &&
       session.subscriptionStatus === "inactive"
     ) {

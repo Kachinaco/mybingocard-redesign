@@ -1187,6 +1187,16 @@ function CreateCardContent() {
     {isNewSignup && (
       <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6">
+          <button
+            type="button"
+            onClick={async () => {
+              const { signOut } = await import("next-auth/react");
+              await signOut({ callbackUrl: "/" });
+            }}
+            className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 mb-3 -mt-1 cursor-pointer"
+          >
+            <span aria-hidden="true">←</span> Back to mybingocard.com
+          </button>
           <div className="text-center mb-4">
             <h2 className="text-xl font-bold text-slate-900">Start Your 7-Day Free Trial</h2>
             <p className="text-slate-500 text-sm mt-1">You won't be charged for 7 days. Cancel anytime.</p>
