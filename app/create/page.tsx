@@ -1187,13 +1187,6 @@ function CreateCardContent() {
           </Link>
           
           <div className="flex gap-4 items-center">
-            {!checkingPermission && session?.user && permissionStatus?.planType === "FREE" && (
-              <StartTrialButton
-                source="create_header"
-                className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#007AFF] text-white text-sm font-semibold hover:shadow-md transition-all duration-200"
-                label="Start Trial"
-              />
-            )}
             <button
               onClick={() => {
                 const nextPreview = !showPreview;

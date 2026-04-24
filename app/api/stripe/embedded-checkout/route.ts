@@ -392,6 +392,7 @@ export async function POST(request: Request) {
       userAgent: requestContext.userAgent,
       metadata: {
         planType,
+        purchaseType: "subscription",
         checkoutSessionId: checkoutSession.id,
         checkoutMode: "embedded",
       },

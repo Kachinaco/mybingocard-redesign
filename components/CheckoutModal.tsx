@@ -41,6 +41,7 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
   const checkoutOpenedAtRef = useRef<number | null>(null);
   const checkoutPlanRef = useRef<string>("premium");
   const checkoutSessionIdRef = useRef<string>("");
+  const isOpeningRef = useRef(false);
 
   const close = useCallback(() => {
     // Track time spent and cancel when the user closes the embedded checkout modal
@@ -76,6 +77,10 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
     label?: string;
     returnPath?: string;
   }) => {
+    if (isOpeningRef.current || state.loading || state.clientSecret) {
+      return;
+    }
+
     const purchaseType = options?.purchaseType || "subscription";
     const priceId = options?.priceId || (purchaseType === "lifetime"
       ? process.env.NEXT_PUBLIC_STRIPE_PREMIUM_ONETIME_PRICE_ID
@@ -91,6 +96,7 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    isOpeningRef.current = true;
     setState({ isOpen: true, clientSecret: null, loading: true, error: "", label });
 
     try {
@@ -162,8 +168,10 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
       });
     } catch {
       setState(s => ({ ...s, loading: false, error: "Failed to start checkout. Please try again." }));
+    } finally {
+      isOpeningRef.current = false;
     }
-  }, [close]);
+  }, [close, state.clientSecret, state.loading]);
 
   // Register global checkout opener so redirectToCheckout() uses the modal
   useEffect(() => {
