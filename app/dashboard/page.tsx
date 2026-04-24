@@ -7,6 +7,7 @@ import { getUserByEmail } from "@/lib/db/users";
 import { getUserCards } from "@/lib/db/cards";
 import { PLANS } from "@/lib/stripe/config";
 import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
+import StartTrialButton from "@/components/StartTrialButton";
 import UpgradeButton from "@/components/UpgradeButton";
 import Link from "next/link";
 import { getGameHistory, getGameStats } from "@/lib/gameHistory";
@@ -97,6 +98,13 @@ export default async function DashboardPage() {
             >
               Settings
             </Link>
+            {currentPlan === "FREE" && (
+              <StartTrialButton
+                source="dashboard_header"
+                className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-semibold hover:shadow-lg transition-all"
+                label="Start 7-Day Trial"
+              />
+            )}
             <SignOutButton />
           </div>
         </div>
@@ -189,7 +197,7 @@ export default async function DashboardPage() {
                       </div>
                     ) : (
                       <p className="text-slate-500 text-sm">
-                        Unlock premium features and unlimited cards.
+                        Unlock AI generation, image bingo cards, premium templates, and HD export.
                       </p>
                     )}
                   </div>

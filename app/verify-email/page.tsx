@@ -2,12 +2,15 @@
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef } from "react";
 import { trackClientActivity } from "@/lib/activity-client";
+import { buildVerifyEmailSigninHref } from "@/lib/auth/verify-email-page-links";
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+  const signupEmail = searchParams.get("email");
+  const signInHref = useMemo(() => buildVerifyEmailSigninHref(searchParams), [searchParams]);
   const hasFiredFunnelView = useRef(false);
 
   useEffect(() => {
@@ -50,13 +53,16 @@ function VerifyEmailContent() {
         <p className="text-slate-500 mb-2">
           We sent a verification link to your email address. Click it to activate your account.
         </p>
+        {signupEmail && (
+          <p className="text-slate-700 font-medium mb-2">{signupEmail}</p>
+        )}
         <p className="text-slate-400 text-sm mb-6">
           Didn&apos;t get it? Check your spam folder.
         </p>
         <div className="border-t border-slate-100 pt-6">
           <p className="text-slate-400 text-sm">
             Already verified?{" "}
-            <Link href="/login" className="text-indigo-600 hover:underline font-medium">
+            <Link href={signInHref} className="text-indigo-600 hover:underline font-medium">
               Sign in
             </Link>
           </p>

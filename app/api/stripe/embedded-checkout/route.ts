@@ -7,6 +7,7 @@ import { upsertBatchPurchaseFromCheckout } from "@/lib/db/batchPurchases";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import clientPromise from "@/lib/mongodb";
 import { notifyCheckoutStarted } from "@/lib/discord";
+import { hasPremiumAccess, isActiveLikeSubscriptionStatus } from "@/lib/subscription-status";
 import type Stripe from "stripe";
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
@@ -250,15 +251,14 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Trial not configured" }, { status: 500 });
       }
 
-      // Already premium or on trial — skip trial
-      if (user?.subscriptionStatus === "active" || user?.subscriptionStatus === "trialing" || user?.subscriptionStatus === "lifetime") {
+      if (hasPremiumAccess(user)) {
         return NextResponse.json({ error: "Already subscribed", alreadySubscribed: true }, { status: 409 });
       }
 
-      // Check for existing active subscription
       if (customerId) {
-        const subs = await stripe.subscriptions.list({ customer: customerId, status: "active", limit: 5 });
-        if (subs.data.length > 0) {
+        const subs = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 10 });
+        const existingSubscription = subs.data.find((subscription) => isActiveLikeSubscriptionStatus(subscription.status));
+        if (existingSubscription) {
           return NextResponse.json({ error: "Already subscribed", alreadySubscribed: true }, { status: 409 });
         }
       }

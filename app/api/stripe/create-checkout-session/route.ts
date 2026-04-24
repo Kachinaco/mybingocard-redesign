@@ -7,16 +7,13 @@ import { upsertBatchPurchaseFromCheckout } from "@/lib/db/batchPurchases";
 import type Stripe from "stripe";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyCheckoutStarted } from "@/lib/discord";
+import { isActiveLikeSubscriptionStatus } from "@/lib/subscription-status";
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
 
 function buildCheckoutUrl(path: string | undefined, fallback: string): string {
   const safePath = path && path.startsWith("/") ? path : fallback;
   return `${appUrl}${safePath}`;
-}
-
-function isActiveLikeStatus(status: Stripe.Subscription.Status): boolean {
-  return ["active", "trialing", "past_due", "unpaid"].includes(status);
 }
 
 export async function POST(request: Request) {
@@ -224,7 +221,7 @@ export async function POST(request: Request) {
       });
 
       const match = subscriptions.data.find((subscription) => {
-        if (!isActiveLikeStatus(subscription.status)) {
+        if (!isActiveLikeSubscriptionStatus(subscription.status)) {
           return false;
         }
 
@@ -244,11 +241,13 @@ export async function POST(request: Request) {
         stripeCustomerId: reusableCustomerId,
         stripeSubscriptionId: existingSubscription.id,
         stripePriceId: priceId,
-        status: existingSubscription.status === "active" || existingSubscription.status === "trialing"
-          ? "active"
-          : existingSubscription.status === "past_due" || existingSubscription.status === "unpaid"
-            ? "past_due"
-            : "inactive",
+        status: existingSubscription.status === "trialing"
+          ? "trialing"
+          : existingSubscription.status === "active"
+            ? "active"
+            : existingSubscription.status === "past_due" || existingSubscription.status === "unpaid"
+              ? "past_due"
+              : "inactive",
         currentPeriodStart: existingSubscription.items.data[0]?.current_period_start
           ? new Date(existingSubscription.items.data[0].current_period_start * 1000)
           : null,

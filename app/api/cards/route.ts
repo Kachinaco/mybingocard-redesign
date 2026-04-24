@@ -8,6 +8,7 @@ import { getUserById, incrementCardStats } from "@/lib/db/users";
 import { getGeneratedBatchIdMapForCards } from "@/lib/db/batchPurchases";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyCardCreated, notifyFirstCard } from "@/lib/discord";
+import { isUserOnTrial } from "@/lib/subscription-status";
 
 export async function GET(request: Request) {
   try {
@@ -158,7 +159,7 @@ export async function POST(request: Request) {
     // First-card milestone tracking
     const cardCount = await getUserCardCount(session.user.id);
     if (cardCount === 1) {
-      const isTrial = !!(user?.trialEndsAt && user.trialEndsAt > new Date());
+      const isTrial = isUserOnTrial(user);
       trackActivity({
         event: "first_card_created",
         source: "server",

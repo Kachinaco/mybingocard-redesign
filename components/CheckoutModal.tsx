@@ -82,7 +82,9 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
       : process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_PRICE_ID);
     const label = options?.label || (purchaseType === "lifetime"
       ? "Premium Lifetime — $14.99 one-time"
-      : "Premium — $4.99/mo · Cancel anytime");
+      : purchaseType === "trial"
+        ? "7-day free trial — then $4.99/mo. Cancel anytime."
+        : "Premium — $4.99/mo · Cancel anytime");
 
     if (!priceId && purchaseType === "subscription") {
       setState(s => ({ ...s, isOpen: true, error: "Checkout is temporarily unavailable." }));
@@ -136,9 +138,17 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
 
       setState(s => ({ ...s, loading: false, clientSecret: data.clientSecret }));
 
-      const checkoutPlan = purchaseType === "batch_pack" ? "batch_pack" : "premium";
+      const checkoutPlan = purchaseType === "batch_pack"
+        ? "batch_pack"
+        : purchaseType === "trial"
+          ? "trial"
+          : "premium";
       const batchPack = purchaseType === "batch_pack" ? getBatchPack(options?.batchCount) : null;
-      const checkoutPrice = batchPack ? batchPack.amount / 100 : 4.99;
+      const checkoutPrice = batchPack
+        ? batchPack.amount / 100
+        : purchaseType === "trial"
+          ? 0
+          : 4.99;
 
       // Store context for close/cancel tracking
       checkoutOpenedAtRef.current = Date.now();

@@ -17,7 +17,6 @@ interface UserDetail {
   currentPeriodEnd?: string;
   cancelAtPeriodEnd?: boolean;
   trialEndsAt?: string | null;
-  requiresCheckout?: boolean;
   createdAt: string;
   updatedAt: string;
   utm_source?: string;
@@ -624,17 +623,6 @@ export default function AdminUserDetailPage() {
               </span>
             </div>
 
-            {/* Requires Checkout */}
-            {user.requiresCheckout && (
-              <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <span className="text-sm text-slate-400">
-                  Requires Checkout
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-100">
-                  Hasn&apos;t completed trial setup
-                </span>
-              </div>
-            )}
           </div>
         </div>
 

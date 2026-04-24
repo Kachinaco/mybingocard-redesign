@@ -12,7 +12,6 @@ import NamePromptModal from "@/components/NamePromptModal";
 import ErrorCapture from "@/components/ErrorCapture";
 import PerformanceTracker from "@/components/PerformanceTracker";
 import { CheckoutModalProvider } from "@/components/CheckoutModal";
-import { EmailCapturePopup } from "@/components/EmailCapture";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -109,7 +108,7 @@ export default function RootLayout({
                       "price": "0",
                       "priceCurrency": "USD",
                       "name": "Free",
-                      "description": "1 bingo card, 5 templates, standard PDF export",
+                      "description": "Unlimited bingo cards, 5 starter templates, standard PDF export with watermark",
                     },
                     {
                       "@type": "Offer",
@@ -216,7 +215,6 @@ export default function RootLayout({
           <SessionHeartbeat />
           <NamePromptModal />
           <PerformanceTracker />
-          <EmailCapturePopup />
           {children}
           </CheckoutModalProvider>
         </Providers>

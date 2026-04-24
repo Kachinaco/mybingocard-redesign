@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { getUserByEmail, addFeatureUsed } from "@/lib/db/users";
 import { PLANS } from "@/lib/stripe/config";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { getTrialDaysLeft, isUserOnTrial } from "@/lib/subscription-status";
 import clientPromise from "@/lib/mongodb";
 import { notifyFirstAiGeneration } from "@/lib/discord";
 
@@ -146,11 +147,11 @@ export async function POST(req: NextRequest) {
       const ctx = getRequestActivityContext(req as any);
 
       // Compute trial metadata
-      const isTrialUser = user.subscriptionStatus === "trialing" && !!user.trialEndsAt;
+      const isTrialUser = isUserOnTrial(user);
       let trialDay: number | null = null;
-      if (isTrialUser && user.trialEndsAt) {
-        const trialStartMs = user.trialEndsAt.getTime() - 7 * 24 * 60 * 60 * 1000;
-        trialDay = Math.max(1, Math.ceil((Date.now() - trialStartMs) / (24 * 60 * 60 * 1000)));
+      const trialDaysLeft = getTrialDaysLeft(user.trialEndsAt);
+      if (isTrialUser && trialDaysLeft !== null) {
+        trialDay = Math.max(1, 8 - trialDaysLeft);
       }
 
       await trackActivity({

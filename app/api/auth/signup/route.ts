@@ -6,10 +6,11 @@ import { notifySignup, sendDiscordNotification } from "@/lib/discord";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { getReferralByCode, createReferral } from "@/lib/db/referrals";
 import { parseUserAgent } from "@/lib/parse-user-agent";
+import { sanitizePostVerificationCallback } from "@/lib/auth/verify-email-redirect";
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password, website, utm_source, utm_medium, utm_campaign, utm_content, utm_term, referrer } = await request.json();
+    const { name, email, password, website, callbackUrl, utm_source, utm_medium, utm_campaign, utm_content, utm_term, referrer } = await request.json();
     const requestContext = getRequestActivityContext(request);
 
     // Validate input
@@ -132,7 +133,8 @@ export async function POST(request: Request) {
     });
 
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
-    const verifyUrl = `${appUrl}/api/auth/verify-email?token=${verifyToken}`;
+    const nextCallbackUrl = sanitizePostVerificationCallback(callbackUrl);
+    const verifyUrl = `${appUrl}/api/auth/verify-email?token=${verifyToken}&callbackUrl=${encodeURIComponent(nextCallbackUrl)}`;
 
     // Send verification email instead of welcome email
     sendEmailVerificationEmail(email, name, verifyUrl).catch(console.error);

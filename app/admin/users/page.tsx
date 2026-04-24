@@ -14,7 +14,6 @@ interface AdminUser {
   image?: string;
   cardCount: number;
   trialEndsAt: string | null;
-  requiresCheckout: boolean;
   stripeCustomerId: string | null;
   customerType?: string;
 }
@@ -67,7 +66,7 @@ function getPlanBadge(user: AdminUser): {
   bgColor: string;
   textColor: string;
 } {
-  const { planType, subscriptionStatus, trialEndsAt, requiresCheckout } = user;
+  const { planType, subscriptionStatus, trialEndsAt } = user;
 
   if (subscriptionStatus === "trialing" && trialEndsAt) {
     const trialEndMs = new Date(trialEndsAt).getTime();
@@ -117,15 +116,6 @@ function getPlanBadge(user: AdminUser): {
       dotColor: "bg-slate-400",
       bgColor: "bg-slate-100",
       textColor: "text-slate-600",
-    };
-  }
-
-  if (requiresCheckout) {
-    return {
-      label: "No Card",
-      dotColor: "bg-red-400",
-      bgColor: "bg-red-50",
-      textColor: "text-red-600",
     };
   }
 

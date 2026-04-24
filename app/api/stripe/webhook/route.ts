@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { stripe, STRIPE_CONFIG, getPlanByPriceId, PLANS, getStripe } from "@/lib/stripe/config";
-import { updateUserSubscription, getUserByEmail, createUser, clearRequiresCheckout } from "@/lib/db/users";
+import { updateUserSubscription, getUserByEmail, createUser } from "@/lib/db/users";
 import { getBatchPack, isBatchCount } from "@/lib/batchPacks";
 import { upsertBatchPurchaseFromCheckout } from "@/lib/db/batchPurchases";
 import {
@@ -20,6 +20,7 @@ import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import type Stripe from "stripe";
 import { trackActivity } from "@/lib/activity";
+import { isUserOnTrial } from "@/lib/subscription-status";
 import {
   notifyCheckoutActivated,
   notifyCheckoutCompleted,
@@ -271,9 +272,6 @@ export async function POST(request: Request) {
                 },
               });
 
-              // Clear the checkout gate now that payment/trial is set up
-              await clearRequiresCheckout(userId);
-
               console.log(`Subscription activated for user ${userId}: ${planType}`);
 
               const recipient =
@@ -369,9 +367,6 @@ export async function POST(request: Request) {
                 stripeSessionId: session.id,
               },
             });
-
-            // Clear the checkout gate now that payment is complete
-            await clearRequiresCheckout(userEmail);
 
             console.log(`Lifetime Premium activated for user ${userEmail}`);
 
@@ -1191,18 +1186,26 @@ export async function POST(request: Request) {
 
             const user = await getUserByEmail(userId);
             const product = `${getPlanName(subscription.items.data[0]?.price.id)} Renewal`;
-            fireAndForget(
-              sendBillingSuccessEmail(
-                userId,
-                user?.name || userId,
-                invoice.amount_paid || invoice.amount_due || 0,
-                (invoice.currency || "usd").toUpperCase(),
-                subscription.items.data[0]?.current_period_end
-                  ? new Date(subscription.items.data[0].current_period_end * 1000)
-                  : null
-              ),
-              `sendBillingSuccessEmail(${userId})`
-            );
+            const isTrialInvoice = invoice.billing_reason === "subscription_create" && isUserOnTrial({
+              planType: "PREMIUM",
+              subscriptionStatus: mapSubscriptionStatus(subscription.status),
+              trialEndsAt: toDate(subscription.trial_end),
+            });
+
+            if (!isTrialInvoice) {
+              fireAndForget(
+                sendBillingSuccessEmail(
+                  userId,
+                  user?.name || userId,
+                  invoice.amount_paid || invoice.amount_due || 0,
+                  (invoice.currency || "usd").toUpperCase(),
+                  subscription.items.data[0]?.current_period_end
+                    ? new Date(subscription.items.data[0].current_period_end * 1000)
+                    : null
+                ),
+                `sendBillingSuccessEmail(${userId})`
+              );
+            }
 
             // The initial subscription invoice is already covered by checkout completion.
             if (invoice.billing_reason !== "subscription_create") {

@@ -61,7 +61,7 @@ async function sendTrialExpiredEmail(email, name) {
         Your 7-day Premium trial has ended and your account has been switched to the Free plan.
       </p>
       <p style="color: #475569; line-height: 1.6; margin-bottom: 24px;">
-        You can still create 1 bingo card for free, but to unlock unlimited cards, AI generation, HD exports, and all templates, upgrade to Premium.
+        You can keep creating and sharing bingo cards for free. Upgrade to Premium when you want AI generation, image bingo cards, HD exports, and premium templates.
       </p>
       <div style="text-align: center; margin-bottom: 24px;">
         <a href="${appUrl}/pricing" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px;">
@@ -80,6 +80,10 @@ async function sendTrialExpiredEmail(email, name) {
     to: email,
     subject: `${firstName}, your Premium trial has ended`,
     html,
+    headers: {
+      'List-Unsubscribe': `<${appUrl}/api/unsubscribe?email=${encodeURIComponent(email)}>, <mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(email)}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
   });
 }
 
@@ -95,7 +99,7 @@ async function sendTrialEndingSoonEmail(email, name, daysLeft) {
       </div>
       <h1 style="font-size: 22px; color: #1e293b; margin-bottom: 16px;">Your trial ${urgency}, ${firstName}</h1>
       <p style="color: #475569; line-height: 1.6; margin-bottom: 16px;">
-        You've been using Premium features like unlimited cards, AI generation, and HD exports. When your trial ends, you'll switch to the Free plan (1 card, watermarks, ads).
+        You've been using Premium features like AI generation, image bingo cards, and HD exports. When your trial ends, you'll switch back to the Free plan with starter templates, standard PDF export, and ads.
       </p>
       <p style="color: #475569; line-height: 1.6; margin-bottom: 24px;">
         Keep everything you have now by upgrading before your trial ends.
@@ -117,6 +121,10 @@ async function sendTrialEndingSoonEmail(email, name, daysLeft) {
     to: email,
     subject: `${firstName}, your Premium trial ${urgency}`,
     html,
+    headers: {
+      'List-Unsubscribe': `<${appUrl}/api/unsubscribe?email=${encodeURIComponent(email)}>, <mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(email)}>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
   });
 }
 
@@ -256,10 +264,9 @@ async function run() {
     // 3. CHURN RISK: Flag inactive trial users
     const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
     const trialUsers = await users.find({
-      $or: [
-        { subscriptionStatus: 'trialing' },
-        { subscriptionStatus: 'active', trialEndsAt: { $gt: now } },
-      ],
+      planType: 'PREMIUM',
+      trialEndsAt: { $gt: now },
+      subscriptionStatus: { $ne: 'lifetime' },
     }).toArray();
 
     let churnFlagged = 0;

@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { trackClientActivity } from "@/lib/activity-client";
+import { buildVerifyEmailPageUrl } from "@/lib/auth/verify-email-page-links";
 
 type StoredAttribution = {
   utm_source?: string;
@@ -157,6 +158,7 @@ function SignupForm() {
         method: "credentials",
         callbackUrl: searchParams.get("callbackUrl") || "/dashboard",
       });
+      const callbackUrl = buildPostSignupPath(searchParams.get("callbackUrl") || "/dashboard");
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -165,6 +167,7 @@ function SignupForm() {
           email,
           password,
           website: honeypot,
+          callbackUrl,
           utm_source: searchParams.get("utm_source") || storedAttribution.utm_source || undefined,
           utm_medium: searchParams.get("utm_medium") || storedAttribution.utm_medium || undefined,
           utm_campaign: searchParams.get("utm_campaign") || storedAttribution.utm_campaign || undefined,
@@ -216,7 +219,12 @@ function SignupForm() {
       }
 
       // Redirect to verify-email page — user must confirm email before logging in
-      router.push("/verify-email");
+      router.push(
+        buildVerifyEmailPageUrl({
+          email,
+          callbackUrl,
+        })
+      );
     } catch (error) {
       const msg = "An error occurred. Please try again.";
       setError(msg);

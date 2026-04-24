@@ -3,11 +3,13 @@ import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { trackActivity } from "@/lib/activity";
 import { trackApiError } from "@/lib/api-error-tracking";
+import { buildPostVerificationLoginUrl, sanitizePostVerificationCallback } from "@/lib/auth/verify-email-redirect";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const token = searchParams.get("token");
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
+  const callbackUrl = sanitizePostVerificationCallback(searchParams.get("callbackUrl"));
 
   if (!token) {
     return NextResponse.redirect(`${appUrl}/verify-email?error=missing_token`);
@@ -58,7 +60,13 @@ export async function GET(request: Request) {
       pathname: "/api/auth/verify-email",
     }).catch(() => {});
 
-    return NextResponse.redirect(`${appUrl}/login?verified=1&email=${encodeURIComponent(record.email)}&callbackUrl=${encodeURIComponent("/create")}`);
+    return NextResponse.redirect(
+      buildPostVerificationLoginUrl({
+        appUrl,
+        email: record.email,
+        callbackUrl,
+      })
+    );
   } catch (err) {
     console.error("Email verification error:", err);
     await trackApiError(err, {

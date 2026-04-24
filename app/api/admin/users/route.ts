@@ -95,7 +95,6 @@ export async function GET(request: Request) {
       image?: string;
       cardCount: number;
       trialEndsAt: unknown;
-      requiresCheckout: boolean;
       stripeCustomerId: string | null;
       customerType?: string;
     };
@@ -135,7 +134,7 @@ export async function GET(request: Request) {
                 $project: {
                   name: 1, email: 1, planType: 1, subscriptionStatus: 1,
                   createdAt: 1, updatedAt: 1, image: 1, cardCount: 1,
-                  trialEndsAt: 1, requiresCheckout: 1, stripeCustomerId: 1, customerType: 1,
+                  trialEndsAt: 1, stripeCustomerId: 1, customerType: 1,
                 },
               },
             ],
@@ -160,7 +159,6 @@ export async function GET(request: Request) {
         image: user.image as string | undefined,
         cardCount: (user.cardCount as number) || 0,
         trialEndsAt: user.trialEndsAt || null,
-        requiresCheckout: (user.requiresCheckout as boolean) || false,
         stripeCustomerId: (user.stripeCustomerId as string) || null,
         customerType: (user.customerType as string) || undefined,
       }));
@@ -172,7 +170,7 @@ export async function GET(request: Request) {
             projection: {
               name: 1, email: 1, planType: 1, subscriptionStatus: 1,
               createdAt: 1, updatedAt: 1, image: 1,
-              trialEndsAt: 1, requiresCheckout: 1, stripeCustomerId: 1, customerType: 1,
+              trialEndsAt: 1, stripeCustomerId: 1, customerType: 1,
             },
           })
           .sort(sortObj)
@@ -207,7 +205,6 @@ export async function GET(request: Request) {
         image: user.image,
         cardCount: cardCountMap.get(user._id.toString()) || 0,
         trialEndsAt: user.trialEndsAt || null,
-        requiresCheckout: user.requiresCheckout || false,
         stripeCustomerId: user.stripeCustomerId || null,
         customerType: user.customerType || undefined,
       }));

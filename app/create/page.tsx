@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import AdUnit from "@/components/AdUnit";
+import StartTrialButton from "@/components/StartTrialButton";
 import UpgradeModal from "@/components/UpgradeModal";
 import ImagePickerModal from "@/components/ImagePickerModal";
 import BingoCell from "@/components/BingoCell";
@@ -20,13 +21,7 @@ import {
   type BatchCount,
 } from "@/lib/batchPacks";
 import { redirectToCheckout } from "@/lib/upgrade";
-import { loadStripe } from "@stripe/stripe-js";
-import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { t } from "@/lib/i18n";
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
-const TRIAL_CHECKOUT_STORAGE_KEY = "mbc_trial_checkout";
-const TRIAL_CHECKOUT_STORAGE_TTL_MS = 30 * 60 * 1000;
 
 type GridSize = 3 | 4 | 5;
 type PlanType = "FREE" | "PREMIUM";
@@ -104,7 +99,6 @@ function CreateCardContent() {
     cardsCreated?: number;
     cardsLimit?: number;
     planType?: PlanType;
-    requiresCheckout?: boolean;
   } | null>(null);
   const [checkingPermission, setCheckingPermission] = useState(true);
   const [mobileToast, setMobileToast] = useState("");
@@ -125,21 +119,10 @@ function CreateCardContent() {
   const prevStyleRef = useRef<CellStyle>(style);
   const draftLoadTrackedRef = useRef(false);
   const batchCancelTrackedRef = useRef(false);
-  const trialCheckoutOpenedRef = useRef(false);
 
   useEffect(() => {
     currentCardIdRef.current = currentCardId;
   }, [currentCardId]);
-
-  // Refresh session after trial checkout so JWT picks up new planType/subscriptionStatus
-  useEffect(() => {
-    if (searchParams.get("trial") === "started" && session?.user) {
-      clearStoredTrialCheckout();
-      sessionData.update();
-      const timeSpent = Math.round((Date.now() - pageLoadedAtRef.current) / 1000);
-      trackClientActivity("trial_checkout_completed_client", { time_spent_seconds: timeSpent });
-    }
-  }, [searchParams, session?.user, sessionData]);
 
   // Show new user tip if they have 0 cards and haven't dismissed it
   useEffect(() => {
@@ -148,173 +131,6 @@ function CreateCardContent() {
       if (!dismissed) setShowNewUserTip(true);
     }
   }, [checkingPermission, permissionStatus, cardIdFromUrl]);
-
-  // Trial checkout for new signups — skipped if user has a pending draft to save
-  const [trialClientSecret, setTrialClientSecret] = useState<string | null>(null);
-  const [trialLoading, setTrialLoading] = useState(false);
-  const [trialError, setTrialError] = useState("");
-  const isNewSignup = !checkingPermission && session?.user && permissionStatus?.requiresCheckout && permissionStatus?.planType !== "PREMIUM";
-
-  const readStoredTrialCheckout = (email: string) => {
-    if (typeof window === "undefined") return null;
-
-    try {
-      const raw = window.sessionStorage.getItem(TRIAL_CHECKOUT_STORAGE_KEY);
-      if (!raw) return null;
-
-      const parsed = JSON.parse(raw) as {
-        email?: string;
-        clientSecret?: string;
-        sessionId?: string | null;
-        storedAt?: number;
-      };
-
-      const isValid =
-        parsed?.email === email &&
-        typeof parsed.clientSecret === "string" &&
-        parsed.clientSecret.length > 0 &&
-        typeof parsed.storedAt === "number" &&
-        Date.now() - parsed.storedAt < TRIAL_CHECKOUT_STORAGE_TTL_MS;
-
-      if (!isValid) {
-        window.sessionStorage.removeItem(TRIAL_CHECKOUT_STORAGE_KEY);
-        return null;
-      }
-
-      return parsed;
-    } catch {
-      window.sessionStorage.removeItem(TRIAL_CHECKOUT_STORAGE_KEY);
-      return null;
-    }
-  };
-
-  const storeTrialCheckout = (
-    email: string,
-    clientSecret: string,
-    sessionId?: string | null
-  ) => {
-    if (typeof window === "undefined") return;
-
-    window.sessionStorage.setItem(
-      TRIAL_CHECKOUT_STORAGE_KEY,
-      JSON.stringify({
-        email,
-        clientSecret,
-        sessionId: sessionId || null,
-        storedAt: Date.now(),
-      })
-    );
-  };
-
-  const clearStoredTrialCheckout = () => {
-    if (typeof window === "undefined") return;
-    window.sessionStorage.removeItem(TRIAL_CHECKOUT_STORAGE_KEY);
-  };
-
-  const startTrialCheckout = async ({
-    retry = false,
-    forceNew = false,
-  }: {
-    retry?: boolean;
-    forceNew?: boolean;
-  } = {}) => {
-    const email = session?.user?.email;
-    if (!email) return;
-
-    if (forceNew) {
-      clearStoredTrialCheckout();
-      setTrialClientSecret(null);
-    } else {
-      const existingCheckout = readStoredTrialCheckout(email);
-      if (existingCheckout?.clientSecret) {
-        trialCheckoutOpenedRef.current = true;
-        setTrialError("");
-        setTrialClientSecret(existingCheckout.clientSecret);
-        setTrialLoading(false);
-        return;
-      }
-    }
-
-    trialCheckoutOpenedRef.current = true;
-    setTrialError("");
-    setTrialLoading(true);
-    trackClientActivity("trial_checkout_viewed", retry ? { retry: true } : {});
-
-    try {
-      const response = await fetch("/api/stripe/embedded-checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          purchaseType: "trial",
-          returnPath: "/create?trial=started",
-        }),
-      });
-      const data = await response.json();
-
-      if (response.status === 409) {
-        clearStoredTrialCheckout();
-        router.replace("/create");
-        return;
-      }
-
-      if (!response.ok || !data.clientSecret) {
-        const msg = data.error || "Failed to start trial. Please try again.";
-        setTrialError(msg);
-        trackClientActivity(
-          "trial_checkout_error",
-          retry ? { error: msg, retry: true } : { error: msg }
-        );
-        return;
-      }
-
-      setTrialClientSecret(data.clientSecret);
-      storeTrialCheckout(email, data.clientSecret, data.sessionId);
-      trackClientActivity(
-        "trial_checkout_form_loaded",
-        data.reused
-          ? retry
-            ? { reused: true, retry: true }
-            : { reused: true }
-          : retry
-            ? { retry: true }
-            : {}
-      );
-    } catch {
-      const msg = "Something went wrong. Please try again.";
-      setTrialError(msg);
-      trackClientActivity(
-        "trial_checkout_error",
-        retry ? { error: msg, retry: true } : { error: msg }
-      );
-    } finally {
-      setTrialLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (trialCheckoutOpenedRef.current) return;
-    if (!isNewSignup) return;
-
-    // Don't block with trial checkout if user has a pending draft — let it save first
-    // The draft save will redirect to /dashboard, avoiding the checkout modal entirely
-    const hasPendingDraft = typeof window !== "undefined" && localStorage.getItem("mybingo_card_draft");
-    if (hasPendingDraft) return;
-
-    void startTrialCheckout();
-  }, [isNewSignup, session?.user?.email]);
-
-  // Track abandonment when user closes/navigates away during trial checkout
-  useEffect(() => {
-    if (!isNewSignup || !trialClientSecret) return;
-
-    const handleBeforeUnload = () => {
-      const timeSpent = Math.round((Date.now() - pageLoadedAtRef.current) / 1000);
-      trackClientActivity("trial_checkout_abandoned", { time_spent_seconds: timeSpent }, { keepalive: true });
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [isNewSignup, trialClientSecret]);
 
   // Check permissions on mount
   useEffect(() => {
@@ -585,7 +401,6 @@ function CreateCardContent() {
 
     // If user just signed in and has a pending draft, save it directly from localStorage
     // (avoids race condition where React state hasn't settled yet)
-    // Save draft BEFORE any trial checkout modal — user's work comes first
     const draftRaw = localStorage.getItem("mybingo_card_draft");
     if (session?.user && draftRaw && !cardIdFromUrl) {
       // Prevent auto-save from also firing a duplicate POST
@@ -939,7 +754,6 @@ function CreateCardContent() {
   };
 
   const openImagePicker = (index: number) => {
-    // Allow premium users and anonymous users (who will get 7-day trial on signup)
     if (permissionStatus?.planType !== "PREMIUM" && session?.user) {
       setUpgradeReason("image_picker");
       setShowUpgradeModal(true);
@@ -1355,59 +1169,8 @@ function CreateCardContent() {
     ? handleBatchGenerate
     : handleBatchCheckout;
 
-  // Block new signups until card info is entered
   return (
     <>
-    {/* Trial checkout popup — blocks interaction until card entered */}
-    {isNewSignup && (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6">
-          <button
-            type="button"
-            onClick={async () => {
-              clearStoredTrialCheckout();
-              const { signOut } = await import("next-auth/react");
-              await signOut({ callbackUrl: "/" });
-            }}
-            className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 mb-3 -mt-1 cursor-pointer"
-          >
-            <span aria-hidden="true">←</span> Back to mybingocard.com
-          </button>
-          <div className="text-center mb-4">
-            <h2 className="text-xl font-bold text-slate-900">Start Your 7-Day Free Trial</h2>
-            <p className="text-slate-500 text-sm mt-1">You won't be charged for 7 days. Cancel anytime.</p>
-          </div>
-
-          {trialLoading && (
-            <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-            </div>
-          )}
-
-          {trialError && (
-            <div className="text-center py-6">
-              <p className="text-red-500 text-sm mb-3">{trialError}</p>
-              <button
-                onClick={() => {
-                  trialCheckoutOpenedRef.current = false;
-                  void startTrialCheckout({ retry: true, forceNew: true });
-                }}
-                className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
-              >
-                Try Again
-              </button>
-            </div>
-          )}
-
-          {trialClientSecret && !trialLoading && (
-            <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret: trialClientSecret }}>
-              <EmbeddedCheckout />
-            </EmbeddedCheckoutProvider>
-          )}
-        </div>
-      </div>
-    )}
-
     <div className="min-h-screen bg-[#f2f2f7] selection:bg-blue-100 selection:text-blue-900">
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50">
@@ -1424,6 +1187,13 @@ function CreateCardContent() {
           </Link>
           
           <div className="flex gap-4 items-center">
+            {!checkingPermission && session?.user && permissionStatus?.planType === "FREE" && (
+              <StartTrialButton
+                source="create_header"
+                className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-lg bg-[#007AFF] text-white text-sm font-semibold hover:shadow-md transition-all duration-200"
+                label="Start Trial"
+              />
+            )}
             <button
               onClick={() => {
                 const nextPreview = !showPreview;
@@ -1471,6 +1241,13 @@ function CreateCardContent() {
                       ? "Unlimited Cards"
                       : `${permissionStatus.cardsCreated}/${permissionStatus.cardsLimit} used`}
                   </span>
+                  {session?.user && permissionStatus.planType === "FREE" && (
+                    <StartTrialButton
+                      source="create_plan_banner"
+                      className="ml-2 px-3 py-1 bg-white rounded-full text-xs font-bold shadow-sm hover:shadow transition-all"
+                      label="Start 7-Day Trial"
+                    />
+                  )}
                    {permissionStatus.upgradeRequired && !isEditingExistingCard && (
                     <button
                       onClick={redirectToCheckout}
@@ -1519,15 +1296,15 @@ function CreateCardContent() {
             </div>
           )}
 
-          {/* Paywall - Free user card limit reached */}
+          {/* Paywall - Premium-only feature access */}
           {permissionStatus && !permissionStatus.allowed && permissionStatus.upgradeRequired && !isEditingExistingCard && (
             <div className="mb-8 bg-blue-50 border-2 border-blue-200 rounded-2xl p-8 text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
                 <svg className="w-8 h-8 text-[#007AFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">You&apos;ve used your free card</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">This feature requires Premium</h2>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Upgrade to Premium for unlimited cards, all grid sizes, templates, and HD exports.
+                Unlock AI generation, image bingo cards, HD export, premium templates, and bigger batch generation.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button

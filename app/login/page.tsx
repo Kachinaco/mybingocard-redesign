@@ -5,6 +5,7 @@ import { useState, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { trackClientActivity } from "@/lib/activity-client";
+import { getInitialLoginEmails } from "@/lib/auth/login-prefill";
 import { useSession } from "next-auth/react";
 
 function LoginContent() {
@@ -13,10 +14,11 @@ function LoginContent() {
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const justVerified = searchParams.get("verified") === "1";
   const authError = searchParams.get("error") || "";
+  const initialEmails = getInitialLoginEmails(searchParams);
 
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmails.email);
   const [password, setPassword] = useState("");
-  const [magicLinkEmail, setMagicLinkEmail] = useState("");
+  const [magicLinkEmail, setMagicLinkEmail] = useState(initialEmails.magicLinkEmail);
   const [isLoading, setIsLoading] = useState(false);
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [error, setError] = useState("");
@@ -30,6 +32,16 @@ function LoginContent() {
 
     window.location.href = redirectTarget;
   }, [authError, callbackUrl, sessionState.status]);
+
+  useEffect(() => {
+    if (initialEmails.email && !email) {
+      setEmail(initialEmails.email);
+    }
+
+    if (initialEmails.magicLinkEmail && !magicLinkEmail) {
+      setMagicLinkEmail(initialEmails.magicLinkEmail);
+    }
+  }, [email, initialEmails.email, initialEmails.magicLinkEmail, magicLinkEmail]);
 
   if (sessionState.status === "authenticated") {
     return (
