@@ -380,7 +380,7 @@ function PricingContent() {
               </thead>
               <tbody className="text-sm">
                 {[
-                  ["Bingo cards", "Unlimited", "Unlimited", "Unlimited"],
+                  ["Bingo cards", "3 cards", "Unlimited", "Unlimited"],
                   ["Grid sizes", "3x3, 4x4, 5x5", "3x3, 4x4, 5x5", "3x3, 4x4, 5x5"],
                   ["Templates", "5 starter", "All 30+", "All 30+"],
                   ["AI generation", "-", "Yes", "Yes"],
@@ -388,7 +388,7 @@ function PricingContent() {
                   ["PDF export", "With watermark", "HD, no watermark", "HD, no watermark"],
                   ["PNG export", "-", "Yes", "Yes"],
                   ["Custom colors & fonts", "-", "Yes", "Yes"],
-                  ["Batch generation", "-", "Up to 500", "Up to 500"],
+                  ["Batch generation", "-", "Up to 100", "Up to 100"],
                   ["Ads", "Yes", "Ad-free", "Ad-free"],
                   ["Support", "Community", "Priority", "Priority"],
                   ["Billing", "-", "$4.99/mo", "One-time $14.99"],
