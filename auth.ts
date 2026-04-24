@@ -148,7 +148,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               success: false,
               createdAt: { $gte: windowStart },
             });
-            if (failures >= 5) {
+            if (failures >= 3) {
               throw new Error("TOO_MANY_ATTEMPTS");
             }
           }
