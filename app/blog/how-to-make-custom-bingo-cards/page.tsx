@@ -41,7 +41,7 @@ export default function HowToMakeCustomBingoCards() {
         categoryGradient="from-violet-500 to-indigo-500"
       >
         <p>
-          Whether you&apos;re planning a baby shower, classroom activity, wedding reception, or party game night, custom bingo cards are one of the easiest and most engaging activities you can add to any event. The best part? You can create stunning, personalized bingo cards in less than 5 minutes — completely free.
+          Whether you&apos;re planning a baby shower, classroom activity, wedding reception, or party game night, custom bingo cards are one of the easiest and most engaging activities you can add to any event. The best part? You can create printable or online bingo cards in less than 5 minutes, then customize them for your exact audience.
         </p>
         <p>
           In this guide, we&apos;ll walk you through everything you need to know about making custom bingo cards online, from choosing your theme to printing perfect cards for your guests.
@@ -113,7 +113,7 @@ export default function HowToMakeCustomBingoCards() {
 
         <h2>Start Creating Your Bingo Cards Now</h2>
         <p>
-          Ready to make your own custom bingo cards? Head to our <Link href="/create">bingo card creator</Link>, build your card in under 5 minutes, then create an account and start your 7-day trial in Stripe when you’re ready to save it.
+          Ready to make your own custom bingo cards? Head to our <Link href="/create">bingo card creator</Link>, build your card in under 5 minutes, and start free. Upgrade only if you want Premium features like AI generation, image cards, and HD export.
         </p>
       </BlogLayout>
     </>

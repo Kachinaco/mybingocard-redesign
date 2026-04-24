@@ -5,7 +5,7 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 export const metadata: Metadata = {
   title: "Bingo Cards for Teachers — Free Classroom Bingo Generator | MyBingoCard",
   description:
-    "Create fun classroom bingo cards for teachers in minutes. Free printable bingo cards for teachers — vocabulary, math facts, spelling, and more. Instant PDF download.",
+    "Create printable classroom bingo cards for teachers in minutes. Build vocabulary bingo, math fact bingo, spelling bingo, and review games for any subject.",
   alternates: {
     canonical: "https://mybingocard.com/classroom-bingo",
   },

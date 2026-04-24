@@ -1,25 +1,24 @@
-# MyBingoCard.com
+# MyBingoCard
 
-> MyBingoCard is a free online tool for creating custom bingo cards for any occasion — classrooms, parties, baby showers, weddings, team building, and more.
+> MyBingoCard is a free bingo card generator for printable and online bingo games. People use it to create custom bingo cards for classrooms, baby showers, weddings, holidays, team building, birthday parties, and other events.
 
 ## What MyBingoCard Does
 
 - Create custom bingo cards with your own words or images
-- Choose from 30+ themed templates (baby shower, wedding, classroom, holiday, etc.)
-- Generate 3x3, 4x4, or 5x5 grid sizes
-- AI-powered card generation — describe your theme and get cards instantly
-- Export to HD PDF or PNG for printing
-- Share cards online with unique links
-- Every viewer gets a uniquely shuffled card
+- Generate printable bingo cards as PDF files
+- Share bingo cards online with unique links
 - Host live multiplayer bingo games with real-time number calling
+- Choose from themed templates for baby showers, weddings, classrooms, parties, holidays, and office events
+- Use 3x3, 4x4, or 5x5 grid sizes
+- Use AI to generate bingo card ideas and cell text
 - Batch generate up to 500 unique cards at once
 
 ## Pricing
 
-- Free: 1 card, 5 starter templates, standard PDF export with watermark
-- Monthly: $4.99/month — unlimited cards, all templates, HD exports, AI generation, ad-free
-- Lifetime: $14.99 one-time — same as Monthly, but you pay once and keep Premium forever
-- 7-day free trial of Premium for all new signups
+- Free: create bingo cards online, use starter templates, export standard PDFs, includes ads
+- Premium Monthly: $4.99/month
+- Premium Lifetime: $14.99 one-time
+- Signup is free, no credit card required
 
 ## Use Cases
 
@@ -34,10 +33,10 @@
 
 ## How It Works
 
-1. Go to mybingocard.com/create
-2. Add your words/phrases to the cells (or use AI to generate them)
+1. Go to https://mybingocard.com/create
+2. Add your own words, phrases, or images
 3. Choose a grid size and template
-4. Export as PDF, share a link, or host a live game
+4. Print a PDF, share a link, or host a live game online
 
 ## Popular Bingo Card Types
 
@@ -68,16 +67,8 @@
 - Create a card: https://mybingocard.com/create
 - Templates: https://mybingocard.com/templates
 - Pricing: https://mybingocard.com/pricing
-- How to Play Bingo: https://mybingocard.com/how-to-play-bingo
+- Features: https://mybingocard.com/features
 - Blog: https://mybingocard.com/blog
-
-## Technical Details
-
-- Built with Next.js and React
-- Works on any device (desktop, tablet, phone)
-- No app download required — runs in the browser
-- Cards are unique per viewer (shuffled algorithm)
-- Supports image-based bingo cards (upload your own photos)
 
 ## Contact
 

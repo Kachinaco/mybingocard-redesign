@@ -32,21 +32,21 @@ const satisfy = Satisfy({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://mybingocard.com"),
-  title: "MyBingoCard - Create Custom Bingo Cards Online",
+  title: "Free Bingo Card Generator | Printable & Online Bingo Cards | MyBingoCard",
   description:
-    "Create, customize, and share bingo cards for any occasion. Free online bingo card maker with AI generation, 30+ templates, HD PDF export, and live multiplayer games. Used by 50,000+ teachers, party planners, and event organizers.",
+    "Create printable and online bingo cards for classrooms, baby showers, weddings, team building, holidays, and parties. Free bingo card generator with templates, AI help, PDF export, and live play.",
   manifest: "/manifest.json",
   openGraph: {
-    title: "MyBingoCard - Create Custom Bingo Cards Online",
-    description: "Free online bingo card maker with AI generation, 30+ templates, and live multiplayer games. Create cards for classrooms, parties, baby showers, weddings, and more.",
+    title: "Free Bingo Card Generator | MyBingoCard",
+    description: "Create printable and online bingo cards for classrooms, parties, baby showers, weddings, and team building.",
     url: "https://mybingocard.com",
     siteName: "MyBingoCard",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "MyBingoCard - Create Custom Bingo Cards Online",
-    description: "Free online bingo card maker with AI generation, 30+ templates, and live multiplayer games.",
+    title: "Free Bingo Card Generator | MyBingoCard",
+    description: "Create printable and online bingo cards for classrooms, parties, baby showers, weddings, and team building.",
   },
   appleWebApp: {
     capable: true,
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: "#4f46e5",
   width: "device-width",
-  initialScale: 0.5,
+  initialScale: 1,
   maximumScale: 5,
 };
 
@@ -87,7 +87,7 @@ export default function RootLayout({
                   "@type": "Organization",
                   "name": "MyBingoCard",
                   "url": "https://mybingocard.com",
-                  "description": "Free online bingo card maker with AI generation, 30+ templates, HD PDF export, and live multiplayer games.",
+                  "description": "Free bingo card generator for printable and online bingo games.",
                   "foundingDate": "2026",
                   "contactPoint": {
                     "@type": "ContactPoint",
@@ -101,37 +101,30 @@ export default function RootLayout({
                   "url": "https://mybingocard.com",
                   "applicationCategory": "UtilitiesApplication",
                   "operatingSystem": "Web",
-                  "description": "Create custom bingo cards for classrooms, parties, baby showers, weddings, team building, and more. AI-powered generation, 30+ templates, HD PDF export, and live multiplayer games.",
+                  "description": "Create printable and online bingo cards for classrooms, parties, baby showers, weddings, team building, holidays, and more.",
                   "offers": [
                     {
                       "@type": "Offer",
                       "price": "0",
                       "priceCurrency": "USD",
                       "name": "Free",
-                      "description": "Unlimited bingo cards, 5 starter templates, standard PDF export with watermark",
+                      "description": "Free bingo card generator with starter templates and standard PDF export",
                     },
                     {
                       "@type": "Offer",
                       "price": "4.99",
                       "priceCurrency": "USD",
                       "name": "Premium Monthly",
-                      "description": "Unlimited cards, AI generation, HD exports, all templates",
+                      "description": "AI generation, image bingo cards, HD exports, and premium templates",
                     },
                     {
                       "@type": "Offer",
                       "price": "14.99",
                       "priceCurrency": "USD",
                       "name": "Premium Lifetime",
-                      "description": "One-time payment for lifetime Premium access",
+                      "description": "One-time payment for lifetime AI generation, HD exports, and premium templates",
                     },
                   ],
-                  "aggregateRating": {
-                    "@type": "AggregateRating",
-                    "ratingValue": "4.9",
-                    "ratingCount": "127",
-                    "bestRating": "5",
-                    "worstRating": "1",
-                  },
                 },
               ],
             }),

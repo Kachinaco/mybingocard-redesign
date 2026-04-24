@@ -1,29 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Core Pages -->
   <url>
-    <loc>https://mybingocard.com/</loc>
-    <lastmod>2026-04-06</lastmod>
+    <loc>https://mybingocard.com</loc>
+    <lastmod>2026-04-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://mybingocard.com/templates</loc>
-    <lastmod>2026-04-06</lastmod>
+    <loc>https://mybingocard.com/create</loc>
+    <lastmod>2026-04-17</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://mybingocard.com/templates</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/pricing</loc>
-    <lastmod>2026-04-06</lastmod>
+    <lastmod>2026-04-17</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/features</loc>
-    <lastmod>2026-04-06</lastmod>
+    <lastmod>2026-04-17</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://mybingocard.com/supplies</loc>
@@ -43,16 +48,12 @@
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
-
-  <!-- Guide Pages -->
   <url>
     <loc>https://mybingocard.com/how-to-play-bingo</loc>
     <lastmod>2026-04-06</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
-
-  <!-- Landing Pages -->
   <url>
     <loc>https://mybingocard.com/wedding-bingo</loc>
     <lastmod>2026-04-06</lastmod>
@@ -173,12 +174,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
-
-  <!-- Blog -->
   <url>
     <loc>https://mybingocard.com/blog</loc>
-    <lastmod>2026-04-06</lastmod>
+    <lastmod>2026-04-17</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://mybingocard.com/blog/best-bingo-card-generator</loc>
+    <lastmod>2026-04-17</lastmod>
+    <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
@@ -216,19 +221,5 @@
     <lastmod>2026-01-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
-  </url>
-
-  <!-- Legal -->
-  <url>
-    <loc>https://mybingocard.com/privacy</loc>
-    <lastmod>2026-04-06</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://mybingocard.com/terms</loc>
-    <lastmod>2026-04-06</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
   </url>
 </urlset>

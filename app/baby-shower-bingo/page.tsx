@@ -3,9 +3,9 @@ import Link from "next/link";
 import LandingPageTracker from "@/components/LandingPageTracker";
 
 export const metadata: Metadata = {
-  title: "Baby Shower Bingo Cards Generator — MyBingoCard",
+  title: "Printable Baby Shower Bingo Cards Generator | MyBingoCard",
   description:
-    "Create custom baby shower bingo cards in minutes. Free baby shower bingo cards generator with printable PDF export. Perfect for any baby shower party game.",
+    "Create printable baby shower bingo cards in minutes. Free baby shower bingo card generator for gift bingo, prediction bingo, and custom shower games.",
   alternates: {
     canonical: "https://mybingocard.com/baby-shower-bingo",
   },
@@ -190,7 +190,7 @@ export default function BabyShowerBingoPage() {
                   {
                     icon: "💸",
                     title: "Free to Start",
-                    desc: "Build your baby shower bingo card for free. Upgrade to Premium for unlimited cards, HD exports, and all templates.",
+                    desc: "Build your baby shower bingo card for free. Upgrade only when you want HD exports, premium templates, or image bingo cards.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">

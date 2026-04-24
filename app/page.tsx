@@ -5,10 +5,46 @@ import AdUnit from "@/components/AdUnit";
 import { EmailCaptureInline } from "@/components/EmailCapture";
 
 export const metadata: Metadata = {
+  title: "Free Bingo Card Generator for Printable & Online Bingo Games | MyBingoCard",
+  description:
+    "Create custom bingo cards online for classrooms, baby showers, weddings, team building, holidays, and parties. Free printable bingo card generator with templates, PDF export, AI help, and live online play.",
+  keywords: [
+    "free bingo card generator",
+    "printable bingo cards",
+    "custom bingo cards",
+    "online bingo card maker",
+    "wedding bingo cards",
+    "baby shower bingo cards",
+    "classroom bingo cards",
+    "team building bingo",
+  ],
   alternates: {
     canonical: "https://mybingocard.com",
   },
 };
+
+const faqItems = [
+  {
+    question: "How do I create a custom bingo card online?",
+    answer:
+      "Start with a blank bingo card or a template, add your own words or images, choose a grid size, then print the PDF, share a link, or host the game online.",
+  },
+  {
+    question: "Can I print bingo cards from MyBingoCard?",
+    answer:
+      "Yes. MyBingoCard exports printable bingo cards as PDF files, and Premium users can also export higher-resolution files and larger batches.",
+  },
+  {
+    question: "What types of bingo cards can I make?",
+    answer:
+      "You can make bingo cards for classrooms, baby showers, weddings, birthday parties, holidays, office parties, team building, family reunions, trivia nights, and more.",
+  },
+  {
+    question: "Can people play MyBingoCard games online?",
+    answer:
+      "Yes. You can share bingo cards with links and host live multiplayer bingo games so players can join from phones, tablets, or laptops.",
+  },
+];
 
 // Sample bingo card data for the visual demo
 const demoBingoItems = [
@@ -135,21 +171,21 @@ export default function Home() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
                   </span>
-                  <span className="text-xs font-semibold text-indigo-900 uppercase tracking-wide">#1 Bingo Card Generator</span>
+                  <span className="text-xs font-semibold text-indigo-900 uppercase tracking-wide">Free Bingo Card Generator</span>
                 </div>
                 
                 <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-6 leading-[1.1]">
-                  Create <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Bingo Cards</span> that pop.
+                  Create <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Printable Bingo Cards</span> Online
                 </h1>
                 
                 <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                  The modern way to create custom bingo cards for weddings, classrooms, and team events. Simple, fast, and beautiful.
+                  Make custom bingo cards for classrooms, baby showers, weddings, holidays, team building, and parties. Add your own words or images, print PDFs, share links, or play online.
                 </p>
 
                 {/* Primary CTA - prominent above the fold */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <Link href="/create" className="group bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3">
-                    Create Your First Card
+                    Create a Free Bingo Card
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                   </Link>
                   <Link href="/templates" className="bg-white text-indigo-600 border-2 border-indigo-200 px-8 py-5 rounded-2xl font-bold text-lg hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-300 flex items-center justify-center gap-2">
@@ -159,7 +195,7 @@ export default function Home() {
 
 
                 <p className="mt-4 text-sm text-slate-500 text-center lg:text-left">
-                  7-day free Premium trial. No credit card required.
+                  Free to start. No credit card required.
                 </p>
 
                 <div className="mt-8 flex items-center justify-center lg:justify-start gap-4 text-sm text-slate-500">
@@ -175,7 +211,7 @@ export default function Home() {
                       </div>
                     ))}
                   </div>
-                  <div>Loved by <span className="font-bold text-slate-900">50,000+</span> creators</div>
+                  <div>Used for classrooms, parties, showers, weddings, and team events</div>
                 </div>
               </div>
 
@@ -211,10 +247,10 @@ export default function Home() {
           <div className="container mx-auto px-4 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-20 animate-fade-in-up">
               <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-6">
-                Everything you need to run the <span className="text-indigo-600">perfect game</span>
+                Everything you need to create and run a <span className="text-indigo-600">great bingo game</span>
               </h2>
               <p className="text-lg text-slate-600">
-                Powerful tools designed for teachers, event planners, and fun-seekers.
+                Build printable bingo cards, online bingo games, and themed templates for real events and classrooms.
               </p>
             </div>
 
@@ -257,6 +293,46 @@ export default function Home() {
               />
             </div>
           </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="py-24 lg:py-28 bg-slate-50 border-t border-slate-200">
+          <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
+            <div className="text-center mb-14">
+              <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-4">
+                Bingo Card Generator FAQ
+              </h2>
+              <p className="text-lg text-slate-600">
+                Short answers for the questions people ask before choosing a bingo card maker.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {faqItems.map((item) => (
+                <div key={item.question} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <h3 className="text-xl font-semibold text-slate-900 mb-3">{item.question}</h3>
+                  <p className="text-slate-600 leading-relaxed">{item.answer}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: faqItems.map((item) => ({
+                  "@type": "Question",
+                  name: item.question,
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: item.answer,
+                  },
+                })),
+              }),
+            }}
+          />
         </section>
 
         {/* Testimonials Section */}
@@ -338,13 +414,13 @@ export default function Home() {
            
            <div className="container mx-auto px-4 relative z-10 text-center">
              <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 tracking-tight">
-               Ready to host the best bingo game ever?
+               Ready to create custom bingo cards?
              </h2>
              <p className="text-xl text-slate-300 mb-4 max-w-2xl mx-auto">
-               Join 50,000+ happy users and create your first card in less than 2 minutes. No design skills required.
+               Make printable or online bingo cards in a few minutes for classrooms, parties, showers, work events, and holiday games.
              </p>
              <p className="text-indigo-300 mb-12">
-               Start with a 7-day free trial, then just $14.99 for lifetime access.
+               Start free, then upgrade only if you need AI tools, image cards, HD exports, or bigger batches.
              </p>
              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
@@ -378,7 +454,7 @@ export default function Home() {
                 <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
               </Link>
               <p className="text-slate-500 max-w-sm leading-relaxed">
-                The world&apos;s most popular bingo card generator. We help people create fun, engaging experiences for events of all sizes.
+                Free bingo card generator for printable and online bingo games. Build custom cards for classrooms, parties, showers, weddings, and team events.
               </p>
             </div>
             <div>

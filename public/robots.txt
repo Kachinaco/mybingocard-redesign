@@ -1,16 +1,10 @@
 User-agent: *
 Allow: /
 
-# Block API routes
+# Block API routes and private app surfaces
 Disallow: /api/
-# Block auth-related pages
-Disallow: /forgot-password
-Disallow: /reset-password
-# Block user dashboard and internal pages
 Disallow: /dashboard/
 Disallow: /settings
-Disallow: /create
-Disallow: /create-v2
 Disallow: /admin
 Disallow: /auth-error
 Disallow: /verify-email
@@ -19,6 +13,10 @@ Disallow: /game/
 Disallow: /share/
 Disallow: /cards/
 Disallow: /r/
+
+# Keep password reset and account-recovery URLs out of crawl paths
+Disallow: /forgot-password
+Disallow: /reset-password
 
 # AI crawlers welcome
 User-agent: GPTBot
