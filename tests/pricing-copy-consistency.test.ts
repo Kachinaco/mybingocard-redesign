@@ -6,13 +6,19 @@ const pricingPageSource = readFileSync(
   join(process.cwd(), "app/pricing/page.tsx"),
   "utf8"
 );
+const stripeConfigSource = readFileSync(
+  join(process.cwd(), "lib/stripe/config.ts"),
+  "utf8"
+);
 
 describe("pricing page copy consistency", () => {
   test("matches the free plan table row to the 3-card free plan", () => {
     expect(pricingPageSource).toContain('["Bingo cards", "3 cards", "Unlimited", "Unlimited"]');
   });
 
-  test("matches the premium batch-generation row to the 100-card premium batch limit", () => {
-    expect(pricingPageSource).toContain('["Batch generation", "-", "Up to 100", "Up to 100"]');
+  test("matches premium batch-generation copy to the configured 500-card batch limit", () => {
+    expect(stripeConfigSource).toContain("maxBatchSize: 500");
+    expect(pricingPageSource).toContain('"Up to 500 cards per batch"');
+    expect(pricingPageSource).toContain('["Batch generation", "-", "Up to 500", "Up to 500"]');
   });
 });

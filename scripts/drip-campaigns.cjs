@@ -221,7 +221,7 @@ function buildUpgradeNudgeEmail(user) {
         <li>Image bingo cards and all premium templates</li>
         <li>HD PDF &amp; PNG export</li>
         <li>Custom colors &amp; fonts</li>
-        <li>Batch generate up to 100 cards</li>
+        <li>Batch generate up to 500 cards</li>
         <li>Ad-free experience</li>
       </ul>
     </div>
@@ -230,7 +230,7 @@ function buildUpgradeNudgeEmail(user) {
   `;
   return {
     html: wrap('Unlock the full experience', 'See what MyBingoCard paid plans can do for you.', body),
-    text: `Hey ${name},\n\nYou've been using MyBingoCard for about a month now. Did you know Premium unlocks the full experience?\n\n- AI-powered card generation\n- Image bingo cards and premium templates\n- HD PDF & PNG export\n- Custom colors & fonts\n- Batch generate up to 100 cards\n- Ad-free experience\n\nUpgrade: ${appendUtmParams(appUrl + '/pricing', 'upgrade_nudge')}\n\nNo pressure — free plan is always available.`,
+    text: `Hey ${name},\n\nYou've been using MyBingoCard for about a month now. Did you know Premium unlocks the full experience?\n\n- AI-powered card generation\n- Image bingo cards and premium templates\n- HD PDF & PNG export\n- Custom colors & fonts\n- Batch generate up to 500 cards\n- Ad-free experience\n\nUpgrade: ${appendUtmParams(appUrl + '/pricing', 'upgrade_nudge')}\n\nNo pressure — free plan is always available.`,
   };
 }
 
