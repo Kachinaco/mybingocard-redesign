@@ -22,6 +22,16 @@ export interface AdminStats {
   paidBySource: Record<string, number>;
   signupsLast30Days: number;
   recentSignupsTrend: { date: string; count: number }[];
+  deadClickHotspots: {
+    page: string;
+    tag: string;
+    text: string;
+    className: string;
+    count: number;
+    uniqueSessions: number;
+    lastSeenAt: Date | null;
+    popularity: "popular" | "very_popular";
+  }[];
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
@@ -115,6 +125,7 @@ export async function getAdminStats(): Promise<AdminStats> {
     signupsLast30Days,
     recentSignupsTrendData,
     netRevenueData,
+    deadClickHotspotsData,
   ] = await Promise.all([
     db
       .collection("users")
@@ -191,6 +202,37 @@ export async function getAdminStats(): Promise<AdminStats> {
         },
       ])
       .toArray(),
+    db
+      .collection("activity_events")
+      .aggregate<{
+        _id: { page?: string; tag?: string; text?: string; className?: string };
+        count: number;
+        uniqueSessions: string[];
+        lastSeenAt: Date | null;
+      }>([
+        {
+          $match: {
+            event: "dead_click",
+            createdAt: { $gte: fourteenDaysAgo },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              page: { $ifNull: ["$pathname", ""] },
+              tag: { $ifNull: ["$metadata.tag", ""] },
+              text: { $ifNull: ["$metadata.text", ""] },
+              className: { $ifNull: ["$metadata.className", ""] },
+            },
+            count: { $sum: 1 },
+            uniqueSessions: { $addToSet: { $ifNull: ["$sessionId", ""] } },
+            lastSeenAt: { $max: "$createdAt" },
+          },
+        },
+        { $sort: { count: -1, lastSeenAt: -1 } },
+        { $limit: 8 },
+      ])
+      .toArray(),
   ]);
 
   const mrr = paidUsers * 4.99;
@@ -225,6 +267,23 @@ export async function getAdminStats(): Promise<AdminStats> {
   for (const row of paidBySourceData) {
     paidBySource[row._id] = row.count;
   }
+
+  const deadClickHotspots: AdminStats["deadClickHotspots"] = deadClickHotspotsData.map((row) => {
+    const count = row.count;
+    const popularity: "popular" | "very_popular" =
+      count >= 10 ? "very_popular" : "popular";
+
+    return {
+      page: row._id.page || "",
+      tag: row._id.tag || "",
+      text: row._id.text || "",
+      className: row._id.className || "",
+      count,
+      uniqueSessions: row.uniqueSessions.filter(Boolean).length,
+      lastSeenAt: row.lastSeenAt ?? null,
+      popularity,
+    };
+  });
 
   // Fill in missing days with 0 counts for the 14-day trend
   const trendMap = new Map(
@@ -262,5 +321,6 @@ export async function getAdminStats(): Promise<AdminStats> {
     paidBySource,
     signupsLast30Days,
     recentSignupsTrend,
+    deadClickHotspots,
   };
 }

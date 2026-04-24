@@ -51,6 +51,17 @@ function timeAgo(date: Date): string {
   return `${months}mo ago`;
 }
 
+function formatDeadClickLabel(hotspot: {
+  tag: string;
+  text: string;
+  className: string;
+}): string {
+  if (hotspot.text) return hotspot.text;
+  if (hotspot.className) return `.${hotspot.className}`;
+  if (hotspot.tag) return `<${hotspot.tag}>`;
+  return "Untitled target";
+}
+
 interface ActivityEvent {
   _id: { toString(): string };
   event: string;
@@ -854,6 +865,70 @@ export default async function AdminOverviewPage() {
                   <span className="text-xs text-slate-400 whitespace-nowrap shrink-0">
                     {evt.createdAt ? timeAgo(new Date(evt.createdAt)) : "N/A"}
                   </span>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Dead Click Hotspots */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
+        <div className="border-b border-slate-100 p-4 sm:p-6">
+          <h2 className="text-lg font-bold text-slate-900">Dead Click Hotspots</h2>
+          <p className="text-sm text-slate-400 mt-0.5">
+            Most-clicked non-interactive targets from the last 14 days
+          </p>
+        </div>
+        <div className="divide-y divide-slate-100">
+          {stats.deadClickHotspots.length === 0 ? (
+            <div className="px-4 py-12 text-center text-sm text-slate-400">
+              No dead click hotspots yet.
+            </div>
+          ) : (
+            stats.deadClickHotspots.map((hotspot, index) => {
+              const label = formatDeadClickLabel(hotspot);
+              const badgeClass =
+                hotspot.popularity === "very_popular"
+                  ? "bg-rose-50 text-rose-700"
+                  : "bg-amber-50 text-amber-700";
+              const badgeText =
+                hotspot.popularity === "very_popular"
+                  ? "Very Popular Dead Click"
+                  : "Popular Dead Click";
+
+              return (
+                <div
+                  key={`${hotspot.page}-${hotspot.tag}-${hotspot.className}-${index}`}
+                  className="px-4 py-4 sm:px-6 hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
+                          {index + 1}
+                        </span>
+                        <p className="text-sm font-semibold text-slate-900 break-words">
+                          {label}
+                        </p>
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${badgeClass}`}>
+                          {badgeText}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-xs text-slate-500 break-all">
+                        {hotspot.page || "Unknown page"}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
+                        <span>{hotspot.count.toLocaleString()} dead clicks</span>
+                        <span>{hotspot.uniqueSessions.toLocaleString()} sessions</span>
+                        {hotspot.tag && <span>tag: {hotspot.tag}</span>}
+                        {hotspot.className && <span>class: {hotspot.className}</span>}
+                      </div>
+                    </div>
+                    <span className="shrink-0 text-xs text-slate-400">
+                      {hotspot.lastSeenAt ? timeAgo(new Date(hotspot.lastSeenAt)) : "N/A"}
+                    </span>
+                  </div>
                 </div>
               );
             })
