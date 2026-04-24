@@ -217,8 +217,8 @@ function buildUpgradeNudgeEmail(user) {
     <div style="margin:18px 0;padding:16px;border:1px solid #a7f3d0;background:#ecfdf5;border-radius:12px;">
       <p style="margin:0 0 8px;font-size:14px;color:#065f46;font-weight:600;">Premium plan highlights:</p>
       <ul style="margin:0;padding:0 0 0 18px;color:#334155;font-size:14px;line-height:1.7;">
-        <li>Unlimited bingo cards</li>
-        <li>All grid sizes (3x3, 4x4, 5x5)</li>
+        <li>AI-powered card generation</li>
+        <li>Image bingo cards and all premium templates</li>
         <li>HD PDF &amp; PNG export</li>
         <li>Custom colors &amp; fonts</li>
         <li>Batch generate up to 100 cards</li>
@@ -230,7 +230,7 @@ function buildUpgradeNudgeEmail(user) {
   `;
   return {
     html: wrap('Unlock the full experience', 'See what MyBingoCard paid plans can do for you.', body),
-    text: `Hey ${name},\n\nYou've been using MyBingoCard for about a month now. Did you know Premium unlocks the full experience?\n\n- Unlimited bingo cards\n- All grid sizes (3x3, 4x4, 5x5)\n- HD PDF & PNG export\n- Custom colors & fonts\n- Batch generate up to 100 cards\n- Ad-free experience\n\nUpgrade: ${appendUtmParams(appUrl + '/pricing', 'upgrade_nudge')}\n\nNo pressure — free plan is always available.`,
+    text: `Hey ${name},\n\nYou've been using MyBingoCard for about a month now. Did you know Premium unlocks the full experience?\n\n- AI-powered card generation\n- Image bingo cards and premium templates\n- HD PDF & PNG export\n- Custom colors & fonts\n- Batch generate up to 100 cards\n- Ad-free experience\n\nUpgrade: ${appendUtmParams(appUrl + '/pricing', 'upgrade_nudge')}\n\nNo pressure — free plan is always available.`,
   };
 }
 
@@ -353,6 +353,10 @@ async function run() {
             subject,
             html: email.html.replace(/%%EMAIL%%/g, encodeURIComponent(user.email)).replace(/%%CAMPAIGN%%/g, campaign.id),
             text: email.text,
+            headers: {
+              'List-Unsubscribe': `<${appUrl}/api/unsubscribe?email=${encodeURIComponent(user.email)}>, <mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(user.email)}>`,
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+            },
           });
 
           // Log it

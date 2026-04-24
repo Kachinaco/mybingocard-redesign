@@ -195,6 +195,10 @@ async function main() {
           subject: emailContent.subject,
           html: emailContent.html,
           text: emailContent.text,
+          headers: {
+            'List-Unsubscribe': `<${APP_URL}/api/unsubscribe?email=${encodeURIComponent(person.email)}>, <mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(person.email)}>`,
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+          },
         });
         console.log(`    Sent! MessageId: ${result.messageId}`);
 

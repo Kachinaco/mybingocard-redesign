@@ -96,6 +96,10 @@ async function main() {
       from: FROM, to: PREVIEW_TO,
       subject: '[PREVIEW] 🎯 Live Bingo Games are coming to MyBingoCard this Friday',
       html: buildHtml('there'), text: buildText('there'),
+      headers: {
+        'List-Unsubscribe': `<https://mybingocard.com/api/unsubscribe?email=${encodeURIComponent(PREVIEW_TO)}>, <mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(PREVIEW_TO)}>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+      },
     });
     console.log('Preview sent!');
     await client.close();
@@ -129,6 +133,10 @@ async function main() {
         from: FROM, to: user.email,
         subject: '🎯 Live Bingo Games are coming to MyBingoCard this Friday',
         html: buildHtml(firstName), text: buildText(firstName),
+        headers: {
+          'List-Unsubscribe': `<https://mybingocard.com/api/unsubscribe?email=${encodeURIComponent(user.email)}>, <mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(user.email)}>`,
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        },
       });
       await db.collection('drip_log').insertOne({
         email: user.email, campaignId: CAMPAIGN_ID,

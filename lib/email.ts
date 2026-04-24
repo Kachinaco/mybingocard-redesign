@@ -20,7 +20,21 @@ type EmailPayload = {
   subject: string;
   html: string;
   text: string;
+  // When true, adds List-Unsubscribe + List-Unsubscribe-Post headers so
+  // Gmail/Apple Mail/Yahoo show their native one-click unsubscribe button.
+  // Required by Gmail's Feb 2024 bulk sender rules. Set ONLY for marketing
+  // mail — never for auth/billing/receipts that the user must always receive.
+  marketing?: boolean;
 };
+
+function buildUnsubscribeHeaders(to: string): Record<string, string> {
+  const url = `${appUrl}/api/unsubscribe?email=${encodeURIComponent(to)}`;
+  const mailto = `mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(to)}`;
+  return {
+    "List-Unsubscribe": `<${url}>, <${mailto}>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+  };
+}
 
 type Theme = "violet" | "emerald" | "rose" | "slate";
 
@@ -232,6 +246,7 @@ async function sendEmail(payload: EmailPayload): Promise<boolean> {
       subject: payload.subject,
       html: payload.html,
       text: payload.text,
+      ...(payload.marketing ? { headers: buildUnsubscribeHeaders(payload.to) } : {}),
     });
     console.log(`Email sent to ${payload.to}: ${payload.subject}`);
     return true;
@@ -269,6 +284,7 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<boolea
       campaignId: "welcome",
     }),
     text: `Welcome, ${firstName}!\n\nThanks for joining MyBingoCard.\n\nYou can now:\n- Create themed bingo cards in minutes\n- Share cards instantly with a link\n- Export to PDF\n\nStart here: ${appUrl}/create\n\nNeed help? Reply to this email.`,
+    marketing: true,
   });
 }
 
@@ -341,8 +357,8 @@ export async function sendSubscriptionActivatedEmail(to: string, name: string, p
       "emerald"
     )}
     ${renderBulletList([
-      "Create unlimited cards and bigger game sets.",
-      "Use advanced templates and export options.",
+      "Use AI generation, image bingo cards, and premium templates.",
+      "Export cleaner HD files and bigger game sets.",
       "Manage your billing anytime from settings."
     ])}
   `;
@@ -529,6 +545,7 @@ export async function sendLiveGamesAnnouncementEmail(to: string, name: string): 
       campaignId: "live-games-announcement",
     }),
     text: `Hi ${firstName},\n\nSomething exciting is dropping this Friday, March 13th.\n\nWe're launching Live Multiplayer Bingo Games.\n\nHere's what's coming:\n- Host a live bingo game from any card you've created\n- Players join instantly from their phone — no app, no signup required\n- Real-time calling, live score tracking, and instant bingo detection\n- Perfect for classrooms, parties, team meetings, and game nights\n\nGet your cards ready: https://mybingocard.com/dashboard\n\nSee you Friday!\n\n— The MyBingoCard Team`,
+    marketing: true,
   });
 }
 
@@ -555,8 +572,8 @@ export async function sendAbandonedCheckoutEmail(
 
   const bulletItems = isSubscription
     ? [
-        "Unlimited bingo cards — no cap, ever.",
-        "Batch-generate up to 100 unique cards at once.",
+        "AI-powered card generation for faster setup.",
+        "Premium templates, image bingo cards, and custom styling.",
         "HD PDF & PNG export for print-ready cards.",
         "Ad-free experience across your whole account.",
       ]
@@ -594,8 +611,9 @@ export async function sendAbandonedCheckoutEmail(
       campaignId: "abandoned-checkout",
     }),
     text: isSubscription
-      ? `Hi ${firstName},\n\nYou started upgrading to Premium but didn't finish.\n\nPremium includes:\n- Unlimited bingo cards\n- Batch-generate up to 100 cards at once\n- HD PDF & PNG export\n- Ad-free experience\n\nComplete your upgrade: ${appUrl}/pricing\n\nQuestions? Reply to this email.`
+      ? `Hi ${firstName},\n\nYou started upgrading to Premium but didn't finish.\n\nPremium includes:\n- AI-powered card generation\n- Premium templates, image bingo cards, and custom styling\n- HD PDF & PNG export\n- Ad-free experience\n\nComplete your upgrade: ${appUrl}/pricing\n\nQuestions? Reply to this email.`
       : `Hi ${firstName},\n\nYou were close to generating ${batchCount ? `${batchCount} unique bingo cards` : "your card batch"}.\n\nHead back to finish: ${appUrl}/create\n\nQuestions? Reply to this email.`,
+    marketing: true,
   });
 }
 
@@ -622,6 +640,7 @@ export async function sendAdminCustomEmail(
       campaignId: "admin-custom",
     }),
     text: body,
+    marketing: true,
   });
 }
 
@@ -709,6 +728,7 @@ export async function sendShareLinkInvitationEmail(
       campaignId: "share-link-invitation",
     }),
     text: `Hi ${firstName},\n\n${cleanedOwner} sent you a bingo card to play: ${friendlyCardTitle}\n\nOpen your card: ${linkUrl}\n\nYou can sign in or play as a guest.`,
+    marketing: true,
   });
 }
 
@@ -771,6 +791,7 @@ export async function sendShareLinkSummaryEmail(
       campaignId: "share-link-summary",
     }),
     text: `Hi ${firstName},\n\nYour ${count} MyBingoCard share link${count === 1 ? "" : "s"} ${count === 1 ? "is" : "are"} ready.\n\n${plainTextLinks}\n\nManage everything: ${appUrl}/dashboard/share-links`,
+    marketing: true,
   });
 }
 
@@ -779,18 +800,18 @@ export async function sendCardLimitEmail(to: string, name: string) {
 
   return sendEmail({
     to,
-    subject: `${firstName}, you hit your free card limit`,
+    subject: `${firstName}, unlock Premium bingo features`,
     html: renderLayout({
       theme: "violet",
-      preheader: "Upgrade to Premium for unlimited bingo cards.",
-      headline: "You've used your free card",
-      intro: `Hey ${firstName}, you tried to create another bingo card but hit the free plan limit of 1 card.`,
+      preheader: "Upgrade to Premium for AI, image bingo cards, and HD export.",
+      headline: "Unlock Premium bingo features",
+      intro: `Hey ${firstName}, Premium gives you the faster and more customizable way to create, export, and share bingo cards.`,
       bodyHtml: `
         ${renderPanel(renderBulletList([
-          "Unlimited bingo cards",
           "AI-powered card generation",
           "HD PDF and PNG export",
           "Custom image uploads",
+          "All premium templates",
           "Batch generate up to 500 cards",
           "Ad-free experience",
         ]), "violet")}
@@ -801,6 +822,7 @@ export async function sendCardLimitEmail(to: string, name: string) {
       email: to,
       campaignId: "card-limit",
     }),
-    text: `Hey ${firstName},\n\nYou tried to create another bingo card but hit the free plan limit.\n\nPremium includes unlimited cards, AI generation, HD export, custom images, and batch generation.\n\nUpgrade here: ${appUrl}/pricing\n\nQuestions? Reply to this email.`,
+    text: `Hey ${firstName},\n\nPremium gives you AI generation, HD export, custom image uploads, premium templates, and bigger batch generation.\n\nUpgrade here: ${appUrl}/pricing\n\nQuestions? Reply to this email.`,
+    marketing: true,
   });
 }

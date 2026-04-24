@@ -233,6 +233,10 @@ async function run() {
           subject,
           html,
           text,
+          headers: {
+            'List-Unsubscribe': `<${appUrl}/api/unsubscribe?email=${encodeURIComponent(user.email)}>, <mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(user.email)}>`,
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+          },
         });
 
         await db.collection('email_blasts').insertOne({

@@ -154,8 +154,8 @@ function buildTwoHourReminder({ email, name, planType }) {
       { bg: '#eef2ff', border: '#c7d2fe', text: '#312e81' }
     )}
     ${bulletList([
-      'Create unlimited bingo cards without hitting the free plan cap.',
-      'Unlock premium templates, HD export, and custom fonts and colors.',
+      'Use AI generation to build bingo cards faster.',
+      'Unlock premium templates, image bingo cards, and custom fonts and colors.',
       'Pick up where you left off in just a minute or two.',
     ])}
     <p style="margin:18px 0 0;font-size:15px;line-height:1.7;color:#334155;">If something felt off during checkout, reply and tell us what happened. We can usually fix it quickly.</p>
@@ -181,7 +181,7 @@ function buildTwoHourReminder({ email, name, planType }) {
       },
       footerNote: 'We only send this when you start a paid checkout and do not complete it.',
     }),
-    text: `Hi ${userFirstName},\n\nYou started upgrading to ${displayPlan} but did not finish checkout.\n\nPremium gives you:\n- Unlimited bingo cards\n- Premium templates, HD export, and custom fonts/colors\n- A faster path back into your saved work\n\nFinish your upgrade: ${ctaUrl}\n\nIf something felt off during checkout, reply to this email and we will help.\n\nUnsubscribe from reminder emails: ${APP_URL}/unsubscribe?email=${encodeURIComponent(email)}`,
+    text: `Hi ${userFirstName},\n\nYou started upgrading to ${displayPlan} but did not finish checkout.\n\nPremium gives you:\n- AI generation for faster card creation\n- Premium templates, image bingo cards, and custom fonts/colors\n- A faster path back into your saved work\n\nFinish your upgrade: ${ctaUrl}\n\nIf something felt off during checkout, reply to this email and we will help.\n\nUnsubscribe from reminder emails: ${APP_URL}/unsubscribe?email=${encodeURIComponent(email)}`,
   };
 }
 
@@ -194,7 +194,7 @@ function buildTwoDayReminder({ email, name, planType }) {
     ${panel(
       `<p style="margin:0 0 10px;font-size:14px;"><strong>${escapeHtml(displayPlan)} unlocks:</strong></p>
        ${bulletList([
-         'Unlimited cards and larger batch exports',
+         'AI generation, image bingo cards, and larger batch exports',
          'Premium templates with better customization',
          'HD export and a cleaner, ad-free workflow',
        ])}`,
@@ -224,7 +224,7 @@ function buildTwoDayReminder({ email, name, planType }) {
       },
       footerNote: 'Reply if there was anything unclear in checkout or pricing.',
     }),
-    text: `Hi ${userFirstName},\n\nIt has been a couple of days since you started upgrading to ${displayPlan}.\n\nPremium includes:\n- Unlimited cards and larger batch exports\n- Premium templates and better customization\n- HD export and an ad-free workflow\n\nTake another look: ${ctaUrl}\n\nNo pressure if you decided to stay on free. Your account and cards are still there.\n\nUnsubscribe from reminder emails: ${APP_URL}/unsubscribe?email=${encodeURIComponent(email)}`,
+    text: `Hi ${userFirstName},\n\nIt has been a couple of days since you started upgrading to ${displayPlan}.\n\nPremium includes:\n- AI generation, image bingo cards, and larger batch exports\n- Premium templates and better customization\n- HD export and an ad-free workflow\n\nTake another look: ${ctaUrl}\n\nNo pressure if you decided to stay on free. Your account and cards are still there.\n\nUnsubscribe from reminder emails: ${APP_URL}/unsubscribe?email=${encodeURIComponent(email)}`,
   };
 }
 
@@ -251,6 +251,15 @@ function isPaidOrInBillingFlow(user) {
   return ['active', 'past_due'].includes(user.subscriptionStatus);
 }
 
+function buildUnsubscribeHeaders(to) {
+  const url = `${APP_URL}/api/unsubscribe?email=${encodeURIComponent(to)}`;
+  const mailto = `mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(to)}`;
+  return {
+    'List-Unsubscribe': `<${url}>, <${mailto}>`,
+    'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+  };
+}
+
 async function sendReminderEmail(to, subject, html, text) {
   await transporter.sendMail({
     from: FROM_ADDRESS,
@@ -258,6 +267,7 @@ async function sendReminderEmail(to, subject, html, text) {
     subject,
     html,
     text,
+    headers: buildUnsubscribeHeaders(to),
   });
 }
 
