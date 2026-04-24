@@ -101,33 +101,33 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
   const reasonContent = {
     card_limit: {
       title: "Upgrade to Premium",
-      description: "You\u2019ve reached your free card limit. Unlock unlimited bingo cards and premium features.",
-      features: ["Unlimited bingo cards", "All grid sizes (3x3, 4x4, 5x5)", "HD PDF & PNG export", "All premium templates", "Custom colors & fonts", "Ad-free experience"],
+      description: "Premium unlocks AI generation, premium templates, HD export, and the rest of the advanced bingo tools.",
+      features: ["AI-powered card generation", "All premium templates", "HD PDF & PNG export", "Custom colors & fonts", "Image bingo cards", "Ad-free experience"],
     },
     image_picker: {
       title: "Add Images to Your Cards",
       description: "Picture bingo cards are a Premium feature. Add photos, icons, and custom images to any cell.",
-      features: ["Upload your own images to cells", "Create picture bingo (like Loter\u00EDa)", "Unlimited bingo cards", "HD PDF & PNG export", "All premium templates", "Ad-free experience"],
+      features: ["Upload your own images to cells", "Create picture bingo (like Loter\u00EDa)", "HD PDF & PNG export", "All premium templates", "Custom colors & fonts", "Ad-free experience"],
     },
     premium_template: {
       title: "Unlock This Template",
       description: "This template is part of our Premium collection. Get instant access to all templates and more.",
-      features: ["All premium templates included", "Unlimited bingo cards", "All grid sizes (3x3, 4x4, 5x5)", "HD PDF & PNG export", "Custom colors & fonts", "Ad-free experience"],
+      features: ["All premium templates included", "HD PDF & PNG export", "Custom colors & fonts", "Image bingo cards", "AI-powered card generation", "Ad-free experience"],
     },
     ai_generate: {
       title: "Unlock AI Generation",
       description: "Let AI create your bingo card cells instantly. Describe your theme and get a perfect card in seconds.",
-      features: ["AI-powered cell generation", "Describe any theme or topic", "Unlimited bingo cards", "HD PDF & PNG export", "All premium templates", "Ad-free experience"],
+      features: ["AI-powered cell generation", "Describe any theme or topic", "HD PDF & PNG export", "All premium templates", "Image bingo cards", "Ad-free experience"],
     },
     batch_generate: {
       title: "Generate Cards in Bulk",
       description: "Create up to 500 unique shuffled cards at once. Perfect for classrooms, events, and parties.",
-      features: ["Up to 500 unique cards per batch", "Print-ready PDF export", "Every card uniquely shuffled", "Unlimited bingo cards", "AI-powered generation", "Ad-free experience"],
+      features: ["Up to 500 unique cards per batch", "Print-ready PDF export", "Every card uniquely shuffled", "AI-powered generation", "Premium templates", "Ad-free experience"],
     },
     modal: {
       title: "Upgrade to Premium",
-      description: "Get the most out of MyBingoCard with unlimited cards, templates, and export options.",
-      features: ["Unlimited bingo cards", "All grid sizes (3x3, 4x4, 5x5)", "HD PDF & PNG export", "All premium templates", "Custom colors & fonts", "Ad-free experience"],
+      description: "Get the most out of MyBingoCard with AI generation, image cards, premium templates, and cleaner exports.",
+      features: ["AI-powered card generation", "Image bingo cards", "HD PDF & PNG export", "All premium templates", "Custom colors & fonts", "Ad-free experience"],
     },
   }[reason];
 

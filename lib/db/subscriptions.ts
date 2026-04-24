@@ -27,7 +27,7 @@ export interface Subscription {
 // Plan limits configuration
 export const PLAN_LIMITS = {
   free: {
-    maxCards: 1,
+    maxCards: 3,
     maxExports: 10,
     canAccessPremiumTemplates: false,
     canRemoveWatermark: false,
@@ -232,6 +232,10 @@ export async function canCreateCard(userId: string): Promise<boolean> {
   }
 
   // Free plan: check card count against free limit
+  if (PLAN_LIMITS.free.maxCards === -1) {
+    return true;
+  }
+
   const currentCount = await getUserCardCount(userId);
   return currentCount < PLAN_LIMITS.free.maxCards;
 }

@@ -218,7 +218,7 @@ export default async function DashboardPage() {
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Monthly Limit</p>
                     <p className="text-lg font-bold text-slate-900">
-                      {plan.limits.maxCards === -1 ? "Unlimited" : `${plan.limits.maxCards} Card${plan.limits.maxCards !== 1 ? "s" : ""}`}
+                      {Number(plan.limits.maxCards) === -1 ? "Unlimited" : `${plan.limits.maxCards} Card${Number(plan.limits.maxCards) !== 1 ? "s" : ""}`}
                     </p>
                   </div>
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">

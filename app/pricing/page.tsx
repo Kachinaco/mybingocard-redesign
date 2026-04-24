@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 const FREE_FEATURES = [
-  "1 bingo card",
+  "3 bingo cards",
   "All grid sizes (3x3, 4x4, 5x5)",
   "5 starter templates",
   "Standard PDF export (with watermark)",
@@ -18,7 +18,6 @@ const FREE_FEATURES = [
 ];
 
 const PREMIUM_FEATURES = [
-  "Unlimited bingo cards",
   "All grid sizes (3x3, 4x4, 5x5)",
   "AI-powered card generation",
   "Image bingo cards",
@@ -229,7 +228,7 @@ function PricingContent() {
             Upgrade to <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Premium</span>
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Subscribe monthly or pay once for lifetime access. All plans include unlimited cards, AI generation, HD exports, and more.
+            Start free, then upgrade for AI generation, image bingo cards, premium templates, HD exports, and ad-free sharing.
           </p>
         </div>
 
@@ -381,13 +380,15 @@ function PricingContent() {
               </thead>
               <tbody className="text-sm">
                 {[
-                  ["Bingo cards", "1 card", "Unlimited", "Unlimited"],
+                  ["Bingo cards", "Unlimited", "Unlimited", "Unlimited"],
                   ["Grid sizes", "3x3, 4x4, 5x5", "3x3, 4x4, 5x5", "3x3, 4x4, 5x5"],
                   ["Templates", "5 starter", "All 30+", "All 30+"],
+                  ["AI generation", "-", "Yes", "Yes"],
+                  ["Image bingo cells", "-", "Yes", "Yes"],
                   ["PDF export", "With watermark", "HD, no watermark", "HD, no watermark"],
                   ["PNG export", "-", "Yes", "Yes"],
                   ["Custom colors & fonts", "-", "Yes", "Yes"],
-                  ["Batch generation", "-", "Up to 100", "Up to 100"],
+                  ["Batch generation", "-", "Up to 500", "Up to 500"],
                   ["Ads", "Yes", "Ad-free", "Ad-free"],
                   ["Support", "Community", "Priority", "Priority"],
                   ["Billing", "-", "$4.99/mo", "One-time $14.99"],
@@ -415,9 +416,9 @@ function PricingContent() {
                 { "@type": "Question", "name": "Why choose monthly premium?", "acceptedAnswer": { "@type": "Answer", "text": "Monthly premium gives you unlimited bingo cards, all premium templates, HD exports, custom styles, and an ad-free experience for one flat monthly price." }},
                 { "@type": "Question", "name": "Can I cancel anytime?", "acceptedAnswer": { "@type": "Answer", "text": "Absolutely. Monthly subscriptions can be canceled anytime from your settings, and you'll keep premium access until the end of your current billing period." }},
                 { "@type": "Question", "name": "What payment methods do you accept?", "acceptedAnswer": { "@type": "Answer", "text": "We accept all major credit cards including Visa, Mastercard, and American Express through Stripe, our secure payment processor." }},
-                { "@type": "Question", "name": "What can I do on the free plan?", "acceptedAnswer": { "@type": "Answer", "text": "The free plan lets you create 1 bingo card with 5 starter templates. Free exports include a small watermark. Upgrade to Premium for unlimited cards, all templates, HD exports, and watermark-free downloads." }},
+                { "@type": "Question", "name": "What can I do on the free plan?", "acceptedAnswer": { "@type": "Answer", "text": "The free plan lets you create up to 3 bingo cards with 5 starter templates and standard PDF export (with a small watermark). Upgrade to Premium for AI card generation, image bingo cells, HD/PNG export, custom colors and fonts, batch generation, all 30+ templates, and an ad-free experience." }},
                 { "@type": "Question", "name": "What is the Lifetime plan?", "acceptedAnswer": { "@type": "Answer", "text": "The Lifetime plan is a one-time payment of $14.99 that gives you permanent Premium access. No subscription, no renewals. You pay once and get all Premium features forever." }},
-                { "@type": "Question", "name": "Do you offer a free trial?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Every new account gets a 7-day free trial of Premium with full access to unlimited cards, AI generation, HD exports, and all templates. No credit card required." }},
+                { "@type": "Question", "name": "Is signup free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Signup is completely free, no credit card required. Create an account and start building bingo cards right away. Upgrade to Premium anytime for AI generation, image bingo cells, HD and PNG export, premium templates, and ad-free sharing." }},
               ],
             }),
           }}
@@ -433,7 +434,7 @@ function PricingContent() {
                 Why choose monthly premium?
               </h3>
               <p className="text-slate-600 leading-relaxed">
-                Monthly premium gives you unlimited bingo cards, all premium templates, HD exports, custom styles, and an ad-free experience for one flat monthly price.
+                Monthly premium gives you AI generation, image bingo cards, all premium templates, HD exports, custom styles, and an ad-free experience for one flat monthly price.
               </p>
             </div>
 
@@ -460,7 +461,7 @@ function PricingContent() {
                 What can I do on the free plan?
               </h3>
               <p className="text-slate-600 leading-relaxed">
-                The free plan lets you create 1 bingo card with 5 starter templates. Free exports include a small watermark. Upgrade to Premium for unlimited cards, all templates, HD exports, and watermark-free downloads.
+                The free plan lets you create up to 3 bingo cards with 5 starter templates and standard PDF export (with a small watermark). Upgrade to Premium for AI card generation, image bingo cells, HD/PNG export, custom colors and fonts, batch generation, all 30+ templates, and an ad-free experience.
               </p>
             </div>
 
@@ -475,10 +476,10 @@ function PricingContent() {
 
             <div className="bg-white rounded-2xl border border-slate-100 p-8 shadow-sm hover:shadow-md transition-shadow">
               <h3 className="font-bold text-lg text-slate-900 mb-3">
-                Do you offer a free trial?
+                Is signup free?
               </h3>
               <p className="text-slate-600 leading-relaxed">
-                Yes. Every new account gets a 7-day free trial of Premium with full access to unlimited cards, AI generation, HD exports, and all templates. No credit card required.
+                Yes. Signup is completely free, no credit card required. Create an account and start building bingo cards right away. Upgrade to Premium anytime for AI generation, image bingo cells, HD and PNG export, premium templates, and ad-free sharing.
               </p>
             </div>
           </div>
@@ -496,7 +497,7 @@ function PricingContent() {
                 Make your next event unforgettable.
               </h2>
               <p className="text-indigo-200 text-lg mb-8 max-w-2xl mx-auto">
-                Wedding guests, baby shower attendees, and students all love bingo. Create beautiful, watermark-free cards in minutes.
+                Wedding guests, baby shower attendees, and students all love bingo. Start free, then upgrade when you want HD export, premium templates, and AI-powered setup.
               </p>
               <Link href="/create" className="inline-block px-8 py-4 bg-white text-slate-900 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-colors shadow-lg shadow-white/10">
                 Create Your First Card
@@ -535,7 +536,19 @@ function PricingContent() {
 
 export default function PricingPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center text-indigo-600">Loading...</div>}>
+    <Suspense fallback={(
+      <div className="min-h-screen bg-slate-50 text-slate-900">
+        <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center px-6 py-16 text-center">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-indigo-600">MyBingoCard Pricing</p>
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">Simple Pricing for Custom Bingo Cards</h1>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Start free, then upgrade when you want AI generation, image bingo cards, premium templates, HD exports, and ad-free sharing.</p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3 text-sm font-semibold">
+            <Link href="/create" className="rounded-md bg-indigo-600 px-4 py-2 text-white">Create a Free Card</Link>
+            <Link href="/templates" className="rounded-md border border-slate-300 px-4 py-2 text-slate-700">Explore Templates</Link>
+          </div>
+        </main>
+      </div>
+    )}>
       <PricingContent />
     </Suspense>
   );

@@ -22,15 +22,15 @@ export default function UpgradeBanner() {
           </svg>
         </div>
         <div>
-          <p className="font-semibold text-slate-900">Upgrade to create unlimited cards</p>
-          <p className="text-sm text-slate-500">Get all grid sizes, HD exports, templates, and more.</p>
+          <p className="font-semibold text-slate-900">Upgrade for AI, image cards, and HD export</p>
+          <p className="text-sm text-slate-500">Get premium templates, custom styles, larger batches, and cleaner shared cards.</p>
         </div>
       </div>
       <button
         onClick={handleClick}
         className="whitespace-nowrap px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all"
       >
-        Upgrade &mdash; $4.99/mo
+        Upgrade to Premium &mdash; $4.99/mo
       </button>
     </div>
   );

@@ -29,7 +29,7 @@ export async function GET() {
       return NextResponse.json({
         allowed: true,
         cardsCreated: 0,
-        cardsLimit: -1,
+        cardsLimit: 3,
         planType,
       });
     }
@@ -76,7 +76,7 @@ export async function GET() {
 
     return NextResponse.json({
       allowed,
-      reason: allowed ? undefined : "You've reached your free card limit. Upgrade to Premium for unlimited cards.",
+      reason: allowed ? undefined : `You've reached the free plan limit of ${maxCards} cards. Upgrade to Premium for more cards plus AI generation, image uploads, and advanced exports.`,
       upgradeRequired: !allowed,
       cardsCreated: totalCards,
       cardsLimit: maxCards,
@@ -84,7 +84,6 @@ export async function GET() {
       subscriptionStatus: user.subscriptionStatus,
       currentPeriodEnd: user.currentPeriodEnd || null,
       cancelAtPeriodEnd: user.cancelAtPeriodEnd || false,
-      requiresCheckout: user.requiresCheckout || false,
     });
   } catch (error: any) {
     console.error("Check card creation permission error:", error);

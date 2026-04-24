@@ -38,7 +38,7 @@ export const PLANS = {
     price: 0,
     priceId: null,
     features: [
-      "1 bingo card",
+      "3 bingo cards",
       "All grid sizes (3x3, 4x4, 5x5)",
       "5 starter templates",
       "Standard PDF export",
@@ -46,7 +46,7 @@ export const PLANS = {
       "Includes ads",
     ],
     limits: {
-      maxCards: 1,
+      maxCards: 3,
       maxSize: 5,
       maxBatchSize: 1,
       canExportPNG: false,
