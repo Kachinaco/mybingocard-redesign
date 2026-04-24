@@ -36,3 +36,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # User uploads (served by nginx)
 uploads/
+
+# local runtime data
+bingo.db

@@ -1,21 +1,10 @@
 import { NextResponse } from "next/server";
-import Database from "better-sqlite3";
-import path from "path";
 import { trackActivity, getRequestActivityContext } from "@/lib/activity";
-
-const DB_PATH = path.join(process.cwd(), "bingo.db");
-
-function getDb() {
-  const db = new Database(DB_PATH);
-  db.exec(`CREATE TABLE IF NOT EXISTS email_subscribers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL,
-    source TEXT DEFAULT 'popup',
-    subscribed_at TEXT DEFAULT (datetime('now')),
-    unsubscribed_at TEXT DEFAULT NULL
-  )`);
-  return db;
-}
+import clientPromise from "@/lib/mongodb";
+import {
+  getEmailSubscribersCollection,
+  upsertEmailSubscriber,
+} from "@/lib/email-capture/subscribers";
 
 export async function POST(request: Request) {
   try {
@@ -30,22 +19,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
     }
 
-    const db = getDb();
-    let duplicate = false;
-    try {
-      const stmt = db.prepare("INSERT OR IGNORE INTO email_subscribers (email, source) VALUES (?, ?)");
-      const result = stmt.run(email.toLowerCase().trim(), source || "popup");
-      duplicate = result.changes === 0;
-    } finally {
-      db.close();
-    }
+    const client = await clientPromise;
+    const db = client.db("mybingocard");
+    const subscribers = await getEmailSubscribersCollection(db);
+    const { email: normalizedEmail, duplicate } = await upsertEmailSubscriber(
+      subscribers,
+      email,
+      source
+    );
 
     const reqCtx = getRequestActivityContext(request);
     trackActivity({
       event: "email_captured",
       source: "server",
       userId: null,
-      email: email.toLowerCase().trim(),
+      email: normalizedEmail,
       pathname: "/api/email-capture",
       domain: reqCtx.domain,
       ipAddress: reqCtx.ipAddress,
