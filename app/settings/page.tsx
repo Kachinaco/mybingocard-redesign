@@ -215,7 +215,7 @@ export default function SettingsPage() {
         setDeleteError(data.error || "Failed to delete account");
         return;
       }
-      await signOut({ callbackUrl: "/" });
+      await signOut({ callbackUrl: "/login?callbackUrl=/dashboard" });
     } catch {
       setDeleteError("Failed to delete account");
     } finally {
@@ -225,7 +225,7 @@ export default function SettingsPage() {
 
   const handleSignOut = () => {
     trackClientActivity("sign_out_clicked", { source: "settings" }, { keepalive: true });
-    signOut({ callbackUrl: "/" });
+    signOut({ callbackUrl: "/login?callbackUrl=/dashboard" });
   };
 
   if (status === "loading" || loading) {
@@ -574,6 +574,31 @@ export default function SettingsPage() {
                 {hasPassword ? "Active" : "Set up"}
               </span>
             </div>
+          </div>
+        </div>
+
+        {/* Legal */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Legal</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Link
+              href="/privacy"
+              className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-center"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="/terms"
+              className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-center"
+            >
+              Terms of Service
+            </Link>
+            <Link
+              href="/contact"
+              className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-center"
+            >
+              Contact Support
+            </Link>
           </div>
         </div>
 

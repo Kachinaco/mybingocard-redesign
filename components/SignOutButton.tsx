@@ -12,7 +12,7 @@ export default function SignOutButton() {
     setIsLoading(true);
     try {
       trackClientActivity("sign_out_clicked", undefined, { keepalive: true });
-      await signOut({ callbackUrl: "/" });
+      await signOut({ callbackUrl: "/login?callbackUrl=/dashboard" });
     } finally {
       setIsLoading(false);
     }
