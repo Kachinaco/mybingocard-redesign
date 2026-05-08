@@ -287,7 +287,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
 
           // Auto-verify email for OAuth and magic link users
-          if (provider === "google" || provider === "nodemailer") {
+          if (provider === "google" || provider === "apple" || provider === "nodemailer") {
             const existingUser = await getUserById(event.user.id);
             if (existingUser && !existingUser.emailVerified) {
               const client = await clientPromise;
@@ -303,6 +303,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             const signupMethod =
               provider === "google"
                 ? "google"
+                : provider === "apple"
+                  ? "apple"
                 : provider === "nodemailer"
                   ? "magic_link"
                   : provider === "credentials"
