@@ -54,6 +54,7 @@ function CreateCardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionData = useSession();
+  const appleSignInEnabled = process.env.NEXT_PUBLIC_AUTH_APPLE_ENABLED === "true";
   const { track, trackOnce } = useAnalytics();
   const session = sessionData?.data;
   const searchParamsKey = searchParams.toString();
@@ -2148,6 +2149,28 @@ function CreateCardContent() {
                   </svg>
                   Continue with Google
                 </button>
+
+                {appleSignInEnabled && (
+                  <button
+                    onClick={() => {
+                      trackClientActivity("oauth_signup_started", { provider: "apple", callbackUrl: "/create" });
+                      signIn("apple", { callbackUrl: "/create" });
+                    }}
+                    style={{
+                      width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                      gap: "10px", padding: "13px 16px", borderRadius: "12px",
+                      border: "1.5px solid #000", background: "#000", cursor: "pointer",
+                      fontSize: "15px", fontWeight: 600, color: "white",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.12)", marginBottom: "16px",
+                      transition: "all 0.15s"
+                    }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M16.37 1.51c0 1.14-.42 2.14-1.25 3-.9.92-1.95 1.45-3.08 1.36-.14-1.1.43-2.28 1.25-3.12.86-.88 2.25-1.55 3.08-1.24ZM20.5 17.38c-.47 1.07-.7 1.55-1.3 2.5-.84 1.29-2.02 2.9-3.48 2.91-1.3.01-1.64-.85-3.4-.84-1.77.01-2.14.85-3.44.84-1.46-.01-2.57-1.46-3.41-2.75-2.35-3.61-2.6-7.85-1.15-10.1 1.03-1.6 2.65-2.53 4.18-2.53 1.55 0 2.53.86 3.82.86 1.25 0 2.02-.86 3.83-.86 1.37 0 2.82.75 3.84 2.04-3.37 1.85-2.82 6.67.01 7.93Z" />
+                    </svg>
+                    Continue with Apple
+                  </button>
+                )}
 
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "0 0 16px" }}>
                   <div style={{ flex: 1, height: "1px", background: "#e2e8f0" }} />

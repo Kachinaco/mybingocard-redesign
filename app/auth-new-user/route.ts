@@ -5,7 +5,10 @@ export async function GET(request: NextRequest) {
   const rawCallback = request.nextUrl.searchParams.get("callbackUrl");
   const callbackUrl = normalizeNativeCallback(rawCallback, request.nextUrl);
 
-  if (callbackUrl.startsWith("/api/native/oauth/google/complete")) {
+  if (
+    callbackUrl.startsWith("/api/native/oauth/google/complete") ||
+    callbackUrl.startsWith("/api/native/oauth/apple/complete")
+  ) {
     return NextResponse.redirect(new URL(callbackUrl, request.url));
   }
 

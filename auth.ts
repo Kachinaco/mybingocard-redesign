@@ -1,6 +1,7 @@
 import { notifySignup, notifySignIn, notifyMagicLink } from "@/lib/discord";
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import Apple from "next-auth/providers/apple";
 import Credentials from "next-auth/providers/credentials";
 import Nodemailer from "next-auth/providers/nodemailer";
 import { cookies } from "next/headers";
@@ -20,6 +21,7 @@ const authBaseUrl =
 const useSecureAuthCookies = authBaseUrl.startsWith("https://");
 const authCookiePrefix = useSecureAuthCookies ? "__Secure-" : "";
 const oauthCookieSameSite = useSecureAuthCookies ? "none" : "lax";
+const appleAuthConfigured = Boolean(process.env.AUTH_APPLE_ID && process.env.AUTH_APPLE_SECRET);
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: MongoDBAdapter(clientPromise),
@@ -66,6 +68,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
       allowDangerousEmailAccountLinking: true,
     }),
+    ...(appleAuthConfigured
+      ? [
+          Apple({
+            clientId: process.env.AUTH_APPLE_ID!,
+            clientSecret: process.env.AUTH_APPLE_SECRET!,
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
     Credentials({
       id: "guest",
       name: "guest",
