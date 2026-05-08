@@ -2,6 +2,15 @@ import crypto from "crypto";
 
 const DEFAULT_CALLBACK = "/dashboard";
 
+export function nativeOAuthBaseUrl(requestUrl: URL): URL {
+  const configuredUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL;
+  return new URL(configuredUrl || requestUrl.origin);
+}
+
+export function nativeOAuthRedirectUrl(path: string, requestUrl: URL): URL {
+  return new URL(path, nativeOAuthBaseUrl(requestUrl));
+}
+
 export function normalizeNativeCallback(value: string | null | undefined, requestUrl?: URL): string {
   if (!value) return DEFAULT_CALLBACK;
 
@@ -12,7 +21,10 @@ export function normalizeNativeCallback(value: string | null | undefined, reques
     }
     if (requestUrl) {
       const decodedUrl = new URL(decoded);
-      if (decodedUrl.origin === requestUrl.origin) {
+      if (
+        decodedUrl.origin === requestUrl.origin ||
+        decodedUrl.origin === nativeOAuthBaseUrl(requestUrl).origin
+      ) {
         return `${decodedUrl.pathname}${decodedUrl.search}`;
       }
     }
@@ -27,7 +39,10 @@ export function normalizeNativeCallback(value: string | null | undefined, reques
   if (requestUrl) {
     try {
       const rawUrl = new URL(value);
-      if (rawUrl.origin === requestUrl.origin) {
+      if (
+        rawUrl.origin === requestUrl.origin ||
+        rawUrl.origin === nativeOAuthBaseUrl(requestUrl).origin
+      ) {
         return `${rawUrl.pathname}${rawUrl.search}`;
       }
     } catch {

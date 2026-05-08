@@ -1,4 +1,4 @@
-import { normalizeNativeCallback } from "@/lib/native-oauth";
+import { nativeOAuthRedirectUrl, normalizeNativeCallback } from "@/lib/native-oauth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -9,10 +9,10 @@ export async function GET(request: NextRequest) {
     callbackUrl.startsWith("/api/native/oauth/google/complete") ||
     callbackUrl.startsWith("/api/native/oauth/apple/complete")
   ) {
-    return NextResponse.redirect(new URL(callbackUrl, request.url));
+    return NextResponse.redirect(nativeOAuthRedirectUrl(callbackUrl, request.nextUrl));
   }
 
-  const redirectUrl = new URL("/create", request.url);
+  const redirectUrl = nativeOAuthRedirectUrl("/create", request.nextUrl);
   redirectUrl.searchParams.set("new", "1");
   redirectUrl.searchParams.set("callbackUrl", callbackUrl);
 

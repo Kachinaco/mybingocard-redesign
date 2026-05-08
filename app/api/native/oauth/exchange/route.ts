@@ -1,4 +1,9 @@
-import { hashNativeOAuthToken, nativeOAuthCookieName, normalizeNativeCallback } from "@/lib/native-oauth";
+import {
+  hashNativeOAuthToken,
+  nativeOAuthCookieName,
+  nativeOAuthRedirectUrl,
+  normalizeNativeCallback,
+} from "@/lib/native-oauth";
 import clientPromise from "@/lib/mongodb";
 import { encode } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
@@ -8,7 +13,7 @@ const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get("token");
   if (!token) {
-    return NextResponse.redirect(new URL("/login?callbackUrl=/dashboard", request.url));
+    return NextResponse.redirect(nativeOAuthRedirectUrl("/login?callbackUrl=/dashboard", request.nextUrl));
   }
 
   const tokenHash = hashNativeOAuthToken(token);
@@ -29,7 +34,7 @@ export async function GET(request: NextRequest) {
   );
 
   if (!handoff) {
-    return NextResponse.redirect(new URL("/login?callbackUrl=/dashboard", request.url));
+    return NextResponse.redirect(nativeOAuthRedirectUrl("/login?callbackUrl=/dashboard", request.nextUrl));
   }
 
   const callbackUrl = normalizeNativeCallback(handoff.callbackUrl, request.nextUrl);
@@ -53,7 +58,7 @@ export async function GET(request: NextRequest) {
     maxAge: SESSION_MAX_AGE_SECONDS,
   });
 
-  const response = NextResponse.redirect(new URL(callbackUrl, request.url));
+  const response = NextResponse.redirect(nativeOAuthRedirectUrl(callbackUrl, request.nextUrl));
   response.cookies.set({
     name: cookieName,
     value: sessionToken,

@@ -3,6 +3,7 @@ import clientPromise from "@/lib/mongodb";
 import {
   createNativeOAuthToken,
   hashNativeOAuthToken,
+  nativeOAuthRedirectUrl,
   normalizeNativeCallback,
 } from "@/lib/native-oauth";
 import { NextRequest, NextResponse } from "next/server";
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
     | undefined;
 
   if (!user?.id || !user.email) {
-    return NextResponse.redirect(new URL("/login?callbackUrl=/dashboard", request.url));
+    return NextResponse.redirect(nativeOAuthRedirectUrl("/login?callbackUrl=/dashboard", request.nextUrl));
   }
 
   const callbackUrl = normalizeNativeCallback(request.nextUrl.searchParams.get("callbackUrl"), request.nextUrl);
