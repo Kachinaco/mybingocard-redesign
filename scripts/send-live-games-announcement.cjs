@@ -19,7 +19,7 @@ try {
   });
 } catch (e) { console.error('Could not load .env.local:', e.message); }
 
-const nodemailer = require('nodemailer');
+const nodemailer = require('./smtp-client.cjs');
 const { MongoClient } = require('mongodb');
 
 const MONGO_URI = 'mongodb://localhost:27017/mybingocard';

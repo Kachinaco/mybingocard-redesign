@@ -5,6 +5,8 @@ const ALLOWED_DOMAINS = [
   "mybingocard.com",
   "www.mybingocard.com",
 ];
+const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
+const FALLBACK_URL = `${APP_URL}/`;
 
 function isAllowedRedirect(rawUrl: string): boolean {
   try {
@@ -21,14 +23,15 @@ export async function GET(req: NextRequest) {
   const campaign = searchParams.get("c");
   const url = searchParams.get("u");
   const linkId = searchParams.get("l");
+  const emailId = searchParams.get("mid");
 
   if (!url) {
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(FALLBACK_URL);
   }
 
   const decodedUrl = decodeURIComponent(url);
   if (!isAllowedRedirect(decodedUrl)) {
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(FALLBACK_URL);
   }
 
   if (email && campaign) {
@@ -50,6 +53,30 @@ export async function GET(req: NextRequest) {
         },
         { upsert: true }
       );
+
+      if (emailId) {
+        await db.collection("email_messages").updateOne(
+          { emailId },
+          {
+            $set: {
+              email: decodeURIComponent(email),
+              campaignId: campaign,
+              status: "clicked",
+              lastClickedAt: new Date(),
+              updatedAt: new Date(),
+              lastClickedUrl: decodeURIComponent(url),
+              lastClickedLinkId: linkId || null,
+            },
+            $inc: { clickCount: 1 },
+            $setOnInsert: {
+              emailId,
+              createdAt: new Date(),
+            },
+            $min: { firstClickedAt: new Date() },
+          },
+          { upsert: true }
+        );
+      }
     } catch {
       // Don't block redirect on DB errors
     }

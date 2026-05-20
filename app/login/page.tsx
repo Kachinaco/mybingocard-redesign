@@ -12,6 +12,7 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const sessionState = useSession();
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const appleSignInEnabled = process.env.NEXT_PUBLIC_AUTH_APPLE_ENABLED === "true";
   const justVerified = searchParams.get("verified") === "1";
   const authError = searchParams.get("error") || "";
   const initialEmails = getInitialLoginEmails(searchParams);
@@ -23,6 +24,35 @@ function LoginContent() {
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [error, setError] = useState("");
   const [useMagicLink, setUseMagicLink] = useState(false);
+
+  const startNativeOAuth = (provider: "google" | "apple", targetCallbackUrl: string) => {
+    if (typeof window === "undefined") return false;
+
+    const nativeHandler = (window as any).webkit?.messageHandlers?.mybingocardOAuth;
+    let nativeAppFlag = false;
+    try {
+      nativeAppFlag = window.localStorage.getItem("mybingocard-ios-app") === "1";
+    } catch {
+      nativeAppFlag = false;
+    }
+    const isNativeApp =
+      searchParams.get("app") === "1" ||
+      nativeAppFlag ||
+      Boolean(nativeHandler);
+
+    if (!isNativeApp) return false;
+
+    if (nativeHandler) {
+      nativeHandler.postMessage({
+        provider,
+        callbackUrl: targetCallbackUrl || "/dashboard",
+      });
+      return true;
+    }
+
+    window.location.href = `/api/native/oauth/${provider}/start?callbackUrl=${encodeURIComponent(targetCallbackUrl || "/dashboard")}`;
+    return true;
+  };
 
   useEffect(() => {
     if (sessionState.status !== "authenticated") return;
@@ -163,8 +193,20 @@ function LoginContent() {
     trackClientActivity("oauth_login_started", {
       provider: "google",
       callbackUrl,
+      surface: "login_page",
     });
+    if (startNativeOAuth("google", callbackUrl)) return;
     signIn("google", { callbackUrl });
+  };
+
+  const handleAppleLogin = () => {
+    trackClientActivity("oauth_login_started", {
+      provider: "apple",
+      callbackUrl,
+      surface: "login_page",
+    });
+    if (startNativeOAuth("apple", callbackUrl)) return;
+    signIn("apple", { callbackUrl });
   };
 
   const handleMagicLink = async (e: React.FormEvent) => {
@@ -204,11 +246,12 @@ function LoginContent() {
       trackClientActivity("magic_link_requested", {
         callbackUrl,
       });
-      await signIn("nodemailer", {
-        email: trimmedMagicEmail,
-        callbackUrl,
-        redirect: false,
+      const response = await fetch("/api/auth/magic-link/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: trimmedMagicEmail, callbackUrl }),
       });
+      if (!response.ok) throw new Error("magic_link_failed");
       setMagicLinkSent(true);
     } catch (error) {
       const errorMsg = "Failed to send magic link. Please try again.";
@@ -299,6 +342,7 @@ function LoginContent() {
           <div className="space-y-4">
             <button
               onClick={handleGoogleLogin}
+              data-mybingocard-oauth-provider="google"
               className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -321,6 +365,19 @@ function LoginContent() {
               </svg>
               Sign in with Google
             </button>
+
+            {appleSignInEnabled && (
+              <button
+                onClick={handleAppleLogin}
+                data-mybingocard-oauth-provider="apple"
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-black border border-black rounded-xl text-white font-medium hover:bg-gray-900 transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M16.37 1.51c0 1.14-.42 2.14-1.25 3-.9.92-1.95 1.45-3.08 1.36-.14-1.1.43-2.28 1.25-3.12.86-.88 2.25-1.55 3.08-1.24ZM20.5 17.38c-.47 1.07-.7 1.55-1.3 2.5-.84 1.29-2.02 2.9-3.48 2.91-1.3.01-1.64-.85-3.4-.84-1.77.01-2.14.85-3.44.84-1.46-.01-2.57-1.46-3.41-2.75-2.35-3.61-2.6-7.85-1.15-10.1 1.03-1.6 2.65-2.53 4.18-2.53 1.55 0 2.53.86 3.82.86 1.25 0 2.02-.86 3.83-.86 1.37 0 2.82.75 3.84 2.04-3.37 1.85-2.82 6.67.01 7.93Z" />
+                </svg>
+                Sign in with Apple
+              </button>
+            )}
 
             {!useMagicLink && (
               <button

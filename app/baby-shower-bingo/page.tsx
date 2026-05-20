@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LandingPageTracker from "@/components/LandingPageTracker";
+import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
   title: "Printable Baby Shower Bingo Cards Generator | MyBingoCard",
@@ -190,7 +191,7 @@ export default function BabyShowerBingoPage() {
                   {
                     icon: "💸",
                     title: "Free to Start",
-                    desc: "Build your baby shower bingo card for free. Upgrade only when you want HD exports, premium templates, or image bingo cards.",
+                    desc: "Build your baby shower bingo card for free. Upgrade only when you want HD exports, premium templates, AI generation, or larger batches.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -225,6 +226,7 @@ export default function BabyShowerBingoPage() {
               </div>
             </div>
           </section>
+          <SeoSupportBlock slug="baby-shower-bingo" />
         </main>
 
         {/* Footer */}
@@ -241,7 +243,7 @@ export default function BabyShowerBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  The world&apos;s most popular bingo card generator for baby showers, classrooms, office parties, and more.
+                  A flexible bingo card generator for baby showers, classrooms, office parties, and more.
                 </p>
               </div>
               <div>

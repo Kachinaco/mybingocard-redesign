@@ -6,6 +6,13 @@ import { canExportHD, canRemoveBranding } from "@/lib/permissions";
 import puppeteer from "puppeteer";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyCardExported } from "@/lib/discord";
+import {
+  formatClassicCellLabel,
+  getBingoGridShape,
+  getFreeSpaceIndexForGrid,
+  isBlankClassicCell,
+  normalizeBingoVariant,
+} from "@/lib/classic-bingo";
 
 export async function POST(
   request: Request,
@@ -47,6 +54,32 @@ export async function POST(
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
+      );
+    }
+
+    if (user.planType === "FREE") {
+      await trackActivity({
+        event: "export_pdf_blocked",
+        source: "server",
+        userId: session.user.id || null,
+        email: session.user.email,
+        pathname: requestContext.pathname,
+        domain: requestContext.domain,
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+        metadata: {
+          reason: "free_requires_batch_purchase",
+          cardId: id,
+          title: card.title,
+          planType: user.planType,
+        },
+      });
+      return NextResponse.json(
+        {
+          error: "PDF export for free accounts requires a purchased batch. Choose a batch size, generate the cards, then download the batch PDF.",
+          batchPurchaseRequired: true,
+        },
+        { status: 403 }
       );
     }
 
@@ -154,7 +187,14 @@ function generateCardHTML(
   options: { grayscale: boolean; copies: number }
 ): string {
   const { title, description, size, cells, freeSpace, style } = card;
-  const freeSpaceIndex = freeSpace ? Math.floor((size * size) / 2) : -1;
+  const variant = normalizeBingoVariant(card.bingoVariant);
+  const shape = getBingoGridShape(card);
+  const freeSpaceIndex = getFreeSpaceIndexForGrid({
+    freeSpace,
+    rows: shape.rows,
+    columns: shape.columns,
+    bingoVariant: variant,
+  });
   const { grayscale, copies } = options;
 
   const bgColor = grayscale ? "#ffffff" : (style.backgroundColor || "#ffffff");
@@ -166,6 +206,7 @@ function generateCardHTML(
   const isMulti = copies > 1;
   const cardWidth = copies === 4 ? "48%" : copies === 2 ? "100%" : "100%";
   const gridMaxWidth = copies === 4 ? "3.2in" : copies === 2 ? "4.5in" : "6.5in";
+  const gridAspect = shape.columns === shape.rows ? "1" : `${shape.columns} / ${shape.rows}`;
   const titleSize = isMulti ? "14px" : "28px";
   const descSize = isMulti ? "10px" : "16px";
   const cellFontSize = isMulti
@@ -177,14 +218,17 @@ function generateCardHTML(
 
   const singleCard = `
     <div class="card-container" style="width: ${cardWidth};">
-      \${!removeBranding ? '<div class="watermark-overlay"><div class="watermark-text">MyBingoCard.com</div></div>' : ""}
+      ${!removeBranding ? '<div class="watermark-overlay"><div class="watermark-text">MyBingoCard.com</div></div>' : ""}
       <div class="card-title" style="font-size: ${titleSize};">${escapeHtml(title)}</div>
       ${description ? `<div class="card-desc" style="font-size: ${descSize};">${escapeHtml(description)}</div>` : ""}
-      <div class="bingo-grid" style="grid-template-columns: repeat(${size}, 1fr); gap: ${gridGap}; max-width: ${gridMaxWidth};">
+      ${variant === "classic75" ? `<div class="classic-header" style="grid-template-columns: repeat(${shape.columns}, 1fr); max-width: ${gridMaxWidth}; gap: ${gridGap};">${"BINGO".split("").map((letter) => `<div>${letter}</div>`).join("")}</div>` : ""}
+      ${variant === "classic90" ? `<div class="classic-header ninety" style="grid-template-columns: repeat(${shape.columns}, 1fr); max-width: ${gridMaxWidth}; gap: ${gridGap};">${["1-9", "10s", "20s", "30s", "40s", "50s", "60s", "70s", "80-90"].map((label) => `<div>${label}</div>`).join("")}</div>` : ""}
+      <div class="bingo-grid" style="grid-template-columns: repeat(${shape.columns}, 1fr); gap: ${gridGap}; max-width: ${gridMaxWidth}; aspect-ratio: ${gridAspect};">
         ${cells
           .map((cell: string, index: number) => {
             const isFreeSpace = freeSpace && index === freeSpaceIndex;
-            let cellContent = escapeHtml(cell);
+            const isBlank = isBlankClassicCell(cell, variant);
+            let cellContent = escapeHtml(formatClassicCellLabel(cell, variant));
             if (!isFreeSpace && cell.startsWith("__IMG__:")) {
               try {
                 const imgData = JSON.parse(cell.slice(8));
@@ -201,16 +245,16 @@ function generateCardHTML(
             }
             return `
               <div class="cell" style="
-                background-color: ${isFreeSpace ? freeSpaceBg : bgColor};
+                background-color: ${isBlank ? "#fff7ed" : isFreeSpace ? freeSpaceBg : bgColor};
                 color: ${txtColor};
-                border: ${isMulti ? '1px' : '2px'} solid ${borderClr};
+                border: ${isBlank ? "1px dashed #fed7aa" : `${isMulti ? '1px' : '2px'} solid ${borderClr}`};
                 font-size: ${cellFontSize};
                 font-family: ${style.fontFamily || "Arial"}, sans-serif;
                 padding: ${cellPadding};
                 border-radius: ${cellBorderRadius};
                 ${isFreeSpace ? 'font-weight: bold;' : ''}
               ">
-                ${isFreeSpace ? "FREE" : cellContent}
+                ${isBlank ? "" : isFreeSpace ? "FREE" : cellContent}
               </div>
             `;
           })
@@ -290,8 +334,27 @@ function generateCardHTML(
           .bingo-grid {
             display: grid;
             width: 100%;
-            aspect-ratio: 1;
             margin: 0 auto;
+          }
+          .classic-header {
+            display: grid;
+            width: 100%;
+            margin: 0 auto 4px;
+            color: ${grayscale ? "#000" : "#047857"};
+            font-weight: 900;
+            font-size: ${isMulti ? "9px" : "18px"};
+          }
+          .classic-header div {
+            border-radius: 6px;
+            background: ${grayscale ? "#f5f5f5" : "#ecfdf5"};
+            padding: 3px 0;
+          }
+          .classic-header.ninety {
+            color: ${grayscale ? "#000" : "#b45309"};
+            font-size: ${isMulti ? "6px" : "10px"};
+          }
+          .classic-header.ninety div {
+            background: ${grayscale ? "#f5f5f5" : "#fff7ed"};
           }
 
           .cell {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
   title: "About Us — MyBingoCard",
@@ -46,7 +47,7 @@ export default function AboutPage() {
                 <h2 className="text-xl font-bold text-slate-900 mb-3">What We Offer</h2>
                 <ul className="space-y-2 list-disc list-inside">
                   <li className="text-slate-600">A simple card editor that anyone can use in minutes</li>
-                  <li className="text-slate-600">30+ professionally designed templates for every occasion</li>
+                  <li className="text-slate-600">Starter and premium templates for common bingo occasions</li>
                   <li className="text-slate-600">Live multiplayer bingo rooms for real-time games</li>
                   <li className="text-slate-600">PDF and PNG exports for printing or sharing digitally</li>
                   <li className="text-slate-600">Batch generation for creating up to 100 unique cards at once</li>
@@ -71,7 +72,8 @@ export default function AboutPage() {
 
       <footer className="border-t border-slate-200 py-8 text-center text-slate-400 text-sm">
         <p>&copy; 2026 MyBingoCard. All rights reserved.</p>
-      </footer>
+      </footer>      <SeoSupportBlock slug="about" />
+
     </div>
   );
 }

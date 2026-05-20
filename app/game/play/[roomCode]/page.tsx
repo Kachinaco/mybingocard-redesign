@@ -9,6 +9,16 @@ import { playDabSound, playUndabSound, playBingoSound, playDingSound } from "@/l
 import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
 import { useTextFit } from "@/lib/useTextFit";
 import { trackClientActivity } from "@/lib/activity-client";
+import {
+  checkWinByGrid,
+  formatCalledItemLabel,
+  formatClassicCellLabel,
+  getFreeSpaceIndexForGrid,
+  isBlankClassicCell,
+  normalizeBingoVariant,
+  type BingoVariant,
+  type WinCondition,
+} from "@/lib/classic-bingo";
 
 interface PlayerData {
   playerId: string;
@@ -25,11 +35,10 @@ interface OtherPlayer {
   markedCount: number;
 }
 
-type WinCondition = "standard" | "four_corners" | "blackout";
-
 interface GameWinner {
   playerId: string;
   playerName: string;
+  verificationCode?: string;
 }
 
 export default function PlayGamePage() {
@@ -49,6 +58,9 @@ export default function PlayGamePage() {
   const [showNewCall, setShowNewCall] = useState(false);
   const [title, setTitle] = useState("");
   const [size, setSize] = useState(5);
+  const [rows, setRows] = useState(5);
+  const [columns, setColumns] = useState(5);
+  const [bingoVariant, setBingoVariant] = useState<BingoVariant>("custom");
   const [freeSpace, setFreeSpace] = useState(true);
   const [style, setStyle] = useState<any>({});
   const [error, setError] = useState("");
@@ -56,6 +68,7 @@ export default function PlayGamePage() {
   const [winCondition, setWinCondition] = useState<WinCondition>("standard");
   const [allowMultipleWinners, setAllowMultipleWinners] = useState(false);
   const [winners, setWinners] = useState<GameWinner[]>([]);
+  const [claimVerificationCode, setClaimVerificationCode] = useState("");
 
   const prevCalledCountRef = useRef(0);
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -65,7 +78,7 @@ export default function PlayGamePage() {
     cells: player?.cells ?? [],
     gridSize: size as 3 | 4 | 5,
     fontFamily: style.fontFamily || "sans-serif",
-    freeSpaceIndex: freeSpace ? Math.floor((size * size) / 2) : null,
+    freeSpaceIndex: getFreeSpaceIndexForGrid({ freeSpace, rows, columns, bingoVariant }),
   });
 
   // Load player data from sessionStorage
@@ -76,18 +89,18 @@ export default function PlayGamePage() {
       return;
     }
 
-    const data = JSON.parse(stored) as PlayerData;
-    if (!data.playerToken) {
+    const storedPlayer = JSON.parse(stored) as PlayerData;
+    if (!storedPlayer.playerToken) {
       sessionStorage.removeItem(`game-${roomCode}`);
       router.push(`/game/join?code=${roomCode}&error=session_expired`);
       return;
     }
-    setPlayer(data);
-    setMarked(new Set(data.marked || []));
+    setPlayer(storedPlayer);
+    setMarked(new Set(storedPlayer.marked || []));
 
     trackClientActivity("game_player_page_viewed", {
       roomCode,
-      playerName: data.playerName,
+      playerName: storedPlayer.playerName,
     });
 
     // Fetch room info
@@ -97,6 +110,9 @@ export default function PlayGamePage() {
         if (d.room) {
           setTitle(d.room.title);
           setSize(d.room.size);
+          setRows(d.room.rows || d.room.size);
+          setColumns(d.room.columns || d.room.size);
+          setBingoVariant(normalizeBingoVariant(d.room.bingoVariant));
           setFreeSpace(d.room.freeSpace);
           setStyle(d.room.style || {});
           setGameStatus(d.room.status);
@@ -105,7 +121,11 @@ export default function PlayGamePage() {
             setWinCondition(d.room.settings.winCondition || "standard");
             setAllowMultipleWinners(d.room.settings.allowMultipleWinners || false);
           }
-          if (d.room.winners) setWinners(d.room.winners);
+          if (d.room.winners) {
+            setWinners(d.room.winners);
+            const ownWinner = d.room.winners.find((winner: GameWinner) => winner.playerId === storedPlayer.playerId);
+            if (ownWinner?.verificationCode) setClaimVerificationCode(ownWinner.verificationCode);
+          }
           prevCalledCountRef.current = d.room.calledItems?.length || 0;
           if (d.room.calledItems?.length) {
             setLastCalledItem(d.room.calledItems[d.room.calledItems.length - 1]);
@@ -123,6 +143,9 @@ export default function PlayGamePage() {
         if (data.error || data.type === "connected") return;
 
         setGameStatus(data.status);
+        if (data.rows) setRows(data.rows);
+        if (data.columns) setColumns(data.columns);
+        if (data.bingoVariant) setBingoVariant(normalizeBingoVariant(data.bingoVariant));
         setOtherPlayers(data.players || []);
         if (data.settings) {
           setWinCondition(data.settings.winCondition || "standard");
@@ -150,6 +173,10 @@ export default function PlayGamePage() {
           }
           return newWinners;
         });
+        const ownWinner = newWinners.find((winner: GameWinner) => winner.playerId === storedPlayer.playerId);
+        if (ownWinner?.verificationCode) {
+          setClaimVerificationCode(ownWinner.verificationCode);
+        }
         if (data.winnerName) {
           setWinnerName(data.winnerName);
         }
@@ -162,33 +189,21 @@ export default function PlayGamePage() {
   }, [roomCode, router]);
 
   const getFreeSpaceIndex = useCallback(() => {
-    if (!freeSpace) return -1;
-    return Math.floor((size * size) / 2);
-  }, [freeSpace, size]);
+    return getFreeSpaceIndexForGrid({ freeSpace, rows, columns, bingoVariant });
+  }, [freeSpace, rows, columns, bingoVariant]);
 
   const checkBingoWin = useCallback(
     (markedSet: Set<number>): boolean => {
-      const s = size;
-      if (winCondition === "four_corners") {
-        return [0, s - 1, s * (s - 1), s * s - 1].every(idx => markedSet.has(idx));
-      }
-      if (winCondition === "blackout") {
-        return markedSet.size >= s * s;
-      }
-      const grid = Array.from({ length: s }, (_, r) =>
-        Array.from({ length: s }, (_, c) => markedSet.has(r * s + c))
+      return checkWinByGrid(
+        Array.from(markedSet),
+        player?.cells || [],
+        rows,
+        columns,
+        winCondition,
+        bingoVariant
       );
-      for (let r = 0; r < s; r++) {
-        if (grid[r]?.every(Boolean)) return true;
-      }
-      for (let c = 0; c < s; c++) {
-        if (grid.map((row) => row[c] ?? false).every(Boolean)) return true;
-      }
-      if (Array.from({ length: s }, (_, i) => grid[i]?.[i] ?? false).every(Boolean)) return true;
-      if (Array.from({ length: s }, (_, i) => grid[i]?.[s - 1 - i] ?? false).every(Boolean)) return true;
-      return false;
     },
-    [size, winCondition]
+    [player?.cells, rows, columns, winCondition, bingoVariant]
   );
 
   const toggleCell = async (index: number) => {
@@ -196,6 +211,7 @@ export default function PlayGamePage() {
     if (freeSpace && index === getFreeSpaceIndex()) return;
 
     const cellValue = player.cells[index] as string;
+    if (isBlankClassicCell(cellValue, bingoVariant)) return;
     const calledSet = new Set(calledItems);
 
     // Only allow marking cells that have been called
@@ -271,6 +287,9 @@ export default function PlayGamePage() {
 
       const data = await res.json();
       if (data.valid) {
+        if (data.verificationCode) {
+          setClaimVerificationCode(data.verificationCode);
+        }
         setShowBingoAnim(true);
         playBingoSound();
         setTimeout(() => setShowBingoAnim(false), 5000);
@@ -295,8 +314,11 @@ export default function PlayGamePage() {
   }
 
   const freeIdx = getFreeSpaceIndex();
-  const totalCells = size * size;
+  const totalCells = player.cells.filter((cell) => !isBlankClassicCell(cell, bingoVariant)).length;
+  const gridCellWidth = `calc((min(100vw, 560px) - 36px - ${(columns - 1) * 6}px) / ${columns})`;
   const calledSet = new Set(calledItems);
+  const currentPlayerWinner = winners.find((winner) => winner.playerId === player.playerId);
+  const visibleVerificationCode = currentPlayerWinner?.verificationCode || claimVerificationCode;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -328,18 +350,22 @@ export default function PlayGamePage() {
 
         {/* Game Status Bar */}
         {gameStatus === "waiting" && (
-          <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 text-center">
-            <div className="text-2xl mb-1">⏳</div>
-            <p className="text-amber-800 font-semibold">Waiting for the host to start the game...</p>
-            <p className="text-amber-600 text-sm mt-1">Room: {roomCode}</p>
+          <div className="mb-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-center">
+            <p className="text-lg font-black text-emerald-900">You are in</p>
+            <p className="mt-1 text-sm font-semibold text-emerald-700">Waiting for the host to start</p>
+            <p className="mt-2 font-mono text-sm font-bold tracking-[0.2em] text-emerald-800">{roomCode}</p>
           </div>
         )}
 
         {/* Win Condition Badge */}
         {gameStatus === "active" && winCondition !== "standard" && (
           <div className="mb-3 text-center">
-            <span className="px-3 py-1 bg-violet-100 text-violet-700 rounded-full text-xs font-bold">
-              {winCondition === "four_corners" ? "Win: Four Corners" : "Win: Blackout (Full Card)"}
+              <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
+              {winCondition === "four_corners" ? "Win: Four Corners" :
+               winCondition === "blackout" ? "Win: Blackout" :
+               winCondition === "one_line" ? "Win: One Line" :
+               winCondition === "two_lines" ? "Win: Two Lines" :
+               winCondition === "full_house" ? "Win: Full House" : "Win: Standard"}
             </span>
           </div>
         )}
@@ -348,7 +374,15 @@ export default function PlayGamePage() {
         {winners.length > 0 && gameStatus === "finished" && (
           <div className="mb-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl p-4 text-center font-black shadow-lg">
             {winners.some(w => w.playerId === player.playerId) ? (
-              <div className="text-xl">🎉 YOU WON! BINGO! 🎉</div>
+              <div>
+                <div className="text-xl">🎉 YOU WON! BINGO! 🎉</div>
+                {visibleVerificationCode && (
+                  <div className="mt-3 rounded-xl bg-white/20 px-3 py-2">
+                    <div className="text-xs uppercase tracking-[0.16em]">Verification code</div>
+                    <div className="font-mono text-2xl tracking-[0.18em]">{visibleVerificationCode}</div>
+                  </div>
+                )}
+              </div>
             ) : winners.length === 1 ? (
               <div className="text-xl">🏆 {winners[0]!.playerName} got BINGO! 🏆</div>
             ) : (
@@ -362,29 +396,44 @@ export default function PlayGamePage() {
         {winnerName && gameStatus === "active" && allowMultipleWinners && (
           <div className="mb-3 p-2.5 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800 text-sm text-center font-semibold">
             {winners.some(w => w.playerId === player.playerId)
-              ? "You got BINGO! Game continues for other players."
+              ? (
+                <span>
+                  You got BINGO! Show the host code{" "}
+                  <span className="font-mono font-black tracking-[0.14em]">{visibleVerificationCode || "pending"}</span>.
+                </span>
+              )
               : `${winnerName} got BINGO! Game continues — you can still win!`}
           </div>
         )}
         {winnerName && !allowMultipleWinners && (
           <div className="mb-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl p-4 text-center font-black text-xl shadow-lg">
             {winnerName === player.playerName
-              ? "🎉 YOU WON! BINGO! 🎉"
+              ? (
+                <div>
+                  <div>🎉 YOU WON! BINGO! 🎉</div>
+                  {visibleVerificationCode && (
+                    <div className="mt-3 rounded-xl bg-white/20 px-3 py-2">
+                      <div className="text-xs uppercase tracking-[0.16em]">Verification code</div>
+                      <div className="font-mono text-2xl tracking-[0.18em]">{visibleVerificationCode}</div>
+                    </div>
+                  )}
+                </div>
+              )
               : `🏆 ${winnerName} got BINGO! 🏆`}
           </div>
         )}
 
         {/* Current Call Display */}
         {gameStatus === "active" && lastCalledItem && (
-          <div className={`mb-4 bg-white rounded-2xl shadow-sm border border-slate-100 p-4 text-center transition-all ${showNewCall ? "ring-2 ring-indigo-400 shadow-lg" : ""}`}>
+          <div className={`mb-4 bg-white rounded-2xl shadow-sm border border-slate-100 p-4 text-center transition-all ${showNewCall ? "ring-2 ring-emerald-400 shadow-lg" : ""}`}>
             <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Current Call</div>
-            <div className={`text-2xl font-black text-indigo-600 transition-all ${showNewCall ? "scale-110" : ""}`}>
+            <div className={`text-2xl font-black text-emerald-600 transition-all ${showNewCall ? "scale-110" : ""}`}>
               {lastCalledItem && isImageCell(lastCalledItem) ? (
                 <span className="flex flex-col items-center gap-1">
                   <img src={parseImageCell(lastCalledItem)?.imageUrl} alt="" className="w-16 h-16 object-contain" />
                   {getCellDisplayText(lastCalledItem) && <span className="text-sm">{getCellDisplayText(lastCalledItem)}</span>}
                 </span>
-              ) : lastCalledItem}
+              ) : formatCalledItemLabel(lastCalledItem, bingoVariant)}
             </div>
             <div className="text-xs text-slate-400 mt-1">
               {calledItems.length} called &bull; Tap matching cells to mark them
@@ -415,14 +464,15 @@ export default function PlayGamePage() {
           <div
             ref={multiGridRef}
             className="grid gap-1.5 w-full"
-            style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}
+            style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
           >
             {player.cells.map((cell, index) => {
               const isFreeSpace = freeSpace && index === freeIdx;
+              const isBlank90 = isBlankClassicCell(cell, bingoVariant);
               const isMarked = marked.has(index);
               const isCalled = calledSet.has(cell);
-              const canMark = gameStatus === "active" && (isCalled || isMarked) && !isFreeSpace;
-              const cellSize = `calc((min(100vw, 560px) - 36px - ${(size - 1) * 6}px) / ${size})`;
+              const canMark = gameStatus === "active" && (isCalled || isMarked) && !isFreeSpace && !isBlank90;
+              const cellSize = gridCellWidth;
 
               return (
                 <button
@@ -431,12 +481,14 @@ export default function PlayGamePage() {
                   disabled={!canMark && !isFreeSpace}
                   className={`
                     flex items-center justify-center text-center rounded-xl font-semibold transition-all duration-150 select-none touch-manipulation overflow-hidden
-                    ${isFreeSpace
-                      ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-md cursor-default"
+                    ${isBlank90
+                      ? "bg-amber-50 border border-dashed border-amber-100 text-transparent cursor-default"
+                      : isFreeSpace
+                      ? "bg-emerald-600 text-white shadow-md cursor-default"
                       : isMarked
-                        ? "bg-gradient-to-br from-violet-500 to-indigo-500 text-white shadow-md ring-2 ring-indigo-300"
+                        ? "bg-emerald-600 text-white shadow-md ring-2 ring-emerald-300"
                         : isCalled
-                          ? "bg-indigo-50 text-indigo-700 border-2 border-indigo-300 animate-pulse"
+                          ? "bg-emerald-50 text-emerald-700 border-2 border-emerald-300 animate-pulse"
                           : "bg-slate-50 text-slate-500 border border-slate-200 opacity-60"
                     }
                   `}
@@ -448,7 +500,9 @@ export default function PlayGamePage() {
                     fontFamily: style.fontFamily || "inherit",
                   }}
                 >
-                  {isFreeSpace ? (
+                  {isBlank90 ? (
+                    <span className="sr-only">Blank</span>
+                  ) : isFreeSpace ? (
                     <span className="font-black text-xs">FREE</span>
                   ) : isMarked ? (
                     <span className="flex flex-col items-center gap-0.5">
@@ -460,7 +514,7 @@ export default function PlayGamePage() {
                           <img src={parseImageCell(cell)?.imageUrl} alt="" className="max-w-[60%] max-h-[40%] object-contain opacity-60" />
                         )
                       ) : (
-                        <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: fittedSizes.has(index) ? `${fittedSizes.get(index)! * 0.55}px` : "0.55em" }}>{cell}</span>
+                        <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: fittedSizes.has(index) ? `${fittedSizes.get(index)! * 0.55}px` : "0.55em" }}>{formatClassicCellLabel(cell, bingoVariant)}</span>
                       )}
                     </span>
                   ) : isImageCell(cell) ? (
@@ -476,7 +530,7 @@ export default function PlayGamePage() {
                       </span>
                     )
                   ) : (
-                    <span className="break-words leading-tight text-center" style={fittedSizes.has(index) ? { fontSize: `${fittedSizes.get(index)}px` } : undefined}>{cell}</span>
+                    <span className="break-words leading-tight text-center" style={fittedSizes.has(index) ? { fontSize: `${fittedSizes.get(index)}px` } : undefined}>{formatClassicCellLabel(cell, bingoVariant)}</span>
                   )}
                 </button>
               );
@@ -487,8 +541,8 @@ export default function PlayGamePage() {
           <div className="mt-4">
             <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-300"
-                style={{ width: `${(marked.size / totalCells) * 100}%` }}
+                className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                style={{ width: `${totalCells > 0 ? (marked.size / totalCells) * 100 : 0}%` }}
               />
             </div>
           </div>
@@ -510,7 +564,7 @@ export default function PlayGamePage() {
                       key={i}
                       className={`px-2 py-1 rounded-lg text-xs font-medium ${
                         i === 0
-                          ? "bg-indigo-100 text-indigo-700 ring-1 ring-indigo-300"
+                          ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300"
                           : isMarkedOnCard
                             ? "bg-green-100 text-green-700"
                             : isOnCard
@@ -518,7 +572,7 @@ export default function PlayGamePage() {
                               : "bg-slate-100 text-slate-500"
                       }`}
                     >
-                      {item}
+                      {formatCalledItemLabel(item, bingoVariant)}
                     </span>
                   );
                 })}

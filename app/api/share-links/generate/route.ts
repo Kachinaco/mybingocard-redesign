@@ -18,6 +18,7 @@ const appUrl = (
 ).replace(/\/$/, "");
 
 const PRICE_PER_LINK_CENTS = 10;
+const MIN_SHARE_LINKS = 5;
 const MAX_EXPIRES_DAYS = 365;
 const RATE_LIMIT_MAX = 5;
 const RATE_LIMIT_WINDOW_MS = 60_000;
@@ -117,9 +118,9 @@ export async function POST(request: Request) {
     }
     count = Math.floor(count);
 
-    if (count < 1) {
+    if (count < MIN_SHARE_LINKS) {
       return NextResponse.json(
-        { error: "count must be at least 1" },
+        { error: `count must be at least ${MIN_SHARE_LINKS}` },
         { status: 400 }
       );
     }
@@ -314,6 +315,8 @@ export async function POST(request: Request) {
     }
 
     const totalAmountCents = PRICE_PER_LINK_CENTS * count;
+    const recipientEmailCount = recipientEmails.length;
+    const selfFallbackCount = Math.max(0, count - recipientEmailCount);
 
     // Cards the webhook should attach share links to. Passed through Stripe
     // metadata so the webhook doesn't have to re-resolve synthetic batchIds.
@@ -396,6 +399,7 @@ export async function POST(request: Request) {
     const checkoutSessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: "payment",
       payment_method_types: ["card"],
+      allow_promotion_codes: true,
       line_items: [
         {
           price_data: {
@@ -409,7 +413,7 @@ export async function POST(request: Request) {
           quantity: count,
         },
       ],
-      success_url: `${appUrl}/dashboard/cards?shared=true&count=${count}`,
+      success_url: `${appUrl}/dashboard/share-links?generated=true&count=${count}&recipientCount=${recipientEmailCount}&selfCount=${selfFallbackCount}`,
       cancel_url: `${appUrl}/dashboard/cards?shareLinks=canceled&batchId=${encodeURIComponent(batchId)}`,
       client_reference_id: session.user.id,
       metadata,
@@ -427,7 +431,7 @@ export async function POST(request: Request) {
       .digest("hex");
     const idempotencyKey = crypto
       .createHash("sha256")
-      .update(`${sessionUserId}:${batchId}:${count}:${recipientEmailsHash}`)
+      .update(`share-links-v2:${sessionUserId}:${batchId}:${count}:${recipientEmailsHash}:${recipientEmailCount}:${selfFallbackCount}`)
       .digest("hex")
       .slice(0, 32);
 
@@ -451,7 +455,7 @@ export async function POST(request: Request) {
         count,
         amountCents: totalAmountCents,
         checkoutSessionId: checkoutSession.id,
-        recipientEmailCount: recipientEmails.length,
+        recipientEmailCount,
         recipientPhoneCount: recipientPhones.length,
       },
     });

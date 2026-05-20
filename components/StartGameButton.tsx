@@ -1,8 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { trackClientActivity } from "@/lib/activity-client";
 
-export default function StartGameButton({ cardId }: { cardId: string }) {
+export default function StartGameButton({
+  cardId,
+  label = "Play with friends",
+  className = "",
+  compact = false,
+}: {
+  cardId: string;
+  label?: string;
+  className?: string;
+  compact?: boolean;
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -18,11 +29,19 @@ export default function StartGameButton({ cardId }: { cardId: string }) {
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
+        trackClientActivity("game_create_failed", {
+          cardId,
+          error: data.error || "Failed to start live game.",
+        });
         setError(data.error || "Failed to start live game.");
         return;
       }
 
       if (data.room?.roomCode) {
+        trackClientActivity("game_create_clicked", {
+          cardId,
+          roomCode: data.room.roomCode,
+        });
         window.location.href = `/game/host/${data.room.roomCode}`;
         return;
       }
@@ -40,9 +59,12 @@ export default function StartGameButton({ cardId }: { cardId: string }) {
       <button
         onClick={handleClick}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 py-2 bg-violet-600 hover:bg-violet-700 disabled:opacity-60 text-white text-xs font-bold rounded-lg transition-colors"
+        className={`${className || "w-full"} flex items-center justify-center gap-2 ${compact ? "px-2.5 py-2 text-xs sm:text-sm" : "px-5 py-3 text-base"} bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold ${compact ? "rounded-lg" : "rounded-xl"} transition-colors`}
       >
-        {loading ? "Starting..." : "🎮 Start Live Game"}
+        <svg className={compact ? "h-4 w-4" : "h-5 w-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+        {loading ? "Starting..." : label}
       </button>
       {error ? (
         <p className="text-xs text-red-600 leading-snug">{error}</p>

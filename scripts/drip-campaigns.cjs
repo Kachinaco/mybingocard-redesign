@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const nodemailer = require('nodemailer');
+const crypto = require('node:crypto');
+const nodemailer = require('./smtp-client.cjs');
 const { MongoClient, ObjectId } = require('mongodb');
 
 // Load .env.local
@@ -20,7 +21,7 @@ try {
 }
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
-const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || '';
+const WEBHOOK_URL = process.env.MYBINGOCARD_EVENTS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL || '';
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://mybingocard.com').replace(/\/$/, '');
 const fromAddress = process.env.EMAIL_FROM || 'MyBingoCard <support@mybingocard.com>';
 
@@ -101,7 +102,7 @@ function wrap(headline, preheader, bodyHtml) {
     <p style="margin:0;font-size:13px;color:#64748b;">Need help? Reply to this email or contact <a href="mailto:support@mybingocard.com" style="color:#4f46e5;">support@mybingocard.com</a></p>
     <p style="margin:8px 0 0;font-size:13px;color:#94a3b8;"><a href="${escapeHtml(appUrl)}/unsubscribe?email=%%EMAIL%%" style="color:#64748b;text-decoration:underline;">Unsubscribe</a> from these emails.</p>
   </div>
-  <img src="${escapeHtml(appUrl)}/api/track/open?e=%%EMAIL%%&c=%%CAMPAIGN%%" width="1" height="1" style="display:none;" alt="" />
+  <img src="${escapeHtml(appUrl)}/api/track/open?e=%%EMAIL%%&c=%%CAMPAIGN%%&mid=%%EMAIL_ID%%" width="1" height="1" style="display:none;" alt="" />
 </td></tr>
 </table></td></tr></table></body></html>`;
 }
@@ -127,7 +128,7 @@ let _currentCampaignId = 'drip';
 
 function trackClickUrl(url, linkId) {
   const utmUrl = appendUtmParams(url, _currentCampaignId);
-  const params = `e=%%EMAIL%%&c=%%CAMPAIGN%%&u=${encodeURIComponent(utmUrl)}${linkId ? `&l=${encodeURIComponent(linkId)}` : ''}`;
+  const params = `e=%%EMAIL%%&c=%%CAMPAIGN%%&u=${encodeURIComponent(utmUrl)}${linkId ? `&l=${encodeURIComponent(linkId)}` : ''}&mid=%%EMAIL_ID%%`;
   return `${appUrl}/api/track/click?${params}`;
 }
 
@@ -342,6 +343,11 @@ async function run() {
         const name = firstName(user.name);
         const email = campaign.build({ ...user, _cardCount: cardCount });
         const subject = campaign.subject(name);
+        const emailId = crypto.randomUUID();
+        const html = email.html
+          .replace(/%%EMAIL%%/g, encodeURIComponent(user.email))
+          .replace(/%%CAMPAIGN%%/g, campaign.id)
+          .replace(/%%EMAIL_ID%%/g, encodeURIComponent(emailId));
 
         // Rate limit: wait 3 seconds between emails to avoid Porkbun limits
         await new Promise(resolve => setTimeout(resolve, 3000));
@@ -351,11 +357,13 @@ async function run() {
             from: fromAddress,
             to: user.email,
             subject,
-            html: email.html.replace(/%%EMAIL%%/g, encodeURIComponent(user.email)).replace(/%%CAMPAIGN%%/g, campaign.id),
+            html,
             text: email.text,
             headers: {
               'List-Unsubscribe': `<${appUrl}/api/unsubscribe?email=${encodeURIComponent(user.email)}>, <mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(user.email)}>`,
               'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+              'X-MyBingoCard-Email-ID': emailId,
+              'X-MyBingoCard-Campaign': campaign.id,
             },
           });
 
@@ -368,7 +376,32 @@ async function run() {
             sentAt: now,
             status: 'sent',
             messageId: sendResult.messageId || null,
+            emailId,
           });
+
+          await db.collection('email_messages').updateOne(
+            { emailId },
+            {
+              $set: {
+                messageId: sendResult.messageId || null,
+                email: user.email,
+                campaignId: campaign.id,
+                subject,
+                sentAt: now,
+                updatedAt: now,
+              },
+              $setOnInsert: {
+                emailId,
+                status: 'sent',
+                openCount: 0,
+                humanOpenCount: 0,
+                botOpenCount: 0,
+                clickCount: 0,
+                createdAt: now,
+              },
+            },
+            { upsert: true }
+          );
 
           // Update campaign progression tracking
           try {
@@ -413,6 +446,7 @@ async function run() {
               sentAt: now,
               status: 'failed',
               error: err.message,
+              emailId,
             });
           } catch (_) { /* ignore duplicate key on retry */ }
         }

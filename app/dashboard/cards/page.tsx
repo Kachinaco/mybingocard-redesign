@@ -9,6 +9,7 @@ import { useSession } from "next-auth/react";
 import PlaySoloButton from "@/components/PlaySoloButton";
 import StartGameButton from "@/components/StartGameButton";
 import ShareBatchButton from "@/components/ShareBatchButton";
+import { trackClientActivity } from "@/lib/activity-client";
 
 interface Card {
   _id: string;
@@ -109,16 +110,21 @@ function MyCardsPageInner() {
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [batchDeleting, setBatchDeleting] = useState(false);
-  const [sharedBannerCount, setSharedBannerCount] = useState<number | null>(
-    null
-  );
+  const [sharedBanner, setSharedBanner] = useState<{
+    count: number;
+    recipientCount: number;
+    selfCount: number;
+  } | null>(null);
 
   useEffect(() => {
     if (searchParams.get("shared") === "true") {
       const countParam = Number(searchParams.get("count") || "0");
-      setSharedBannerCount(
-        Number.isFinite(countParam) && countParam > 0 ? countParam : 0
-      );
+      const recipientCountParam = Number(searchParams.get("recipientCount") || "0");
+      const selfCountParam = Number(searchParams.get("selfCount") || "0");
+      const count = Number.isFinite(countParam) && countParam > 0 ? countParam : 0;
+      const recipientCount = Number.isFinite(recipientCountParam) && recipientCountParam > 0 ? recipientCountParam : 0;
+      const selfCount = Number.isFinite(selfCountParam) && selfCountParam > 0 ? selfCountParam : Math.max(0, count - recipientCount);
+      setSharedBanner({ count, recipientCount, selfCount });
     }
   }, [searchParams]);
 
@@ -224,9 +230,22 @@ function MyCardsPageInner() {
     }
   };
 
-  const copyShareLink = (shareLink: string) => {
+  const copyShareLink = (card: Card) => {
+    if (!card.shareLink) return;
+    const shareLink = card.shareLink;
     const url = `${window.location.origin}/share/${shareLink}`;
     navigator.clipboard.writeText(url);
+    trackClientActivity("share_link_copied", {
+      cardId: card._id,
+      title: card.title,
+      source: "dashboard_cards",
+      context: "owner_card",
+    });
+    trackClientActivity("card_share_link_copied", {
+      cardId: card._id,
+      title: card.title,
+      source: "dashboard_cards",
+    });
     alert("Share link copied to clipboard!");
   };
 
@@ -396,26 +415,33 @@ function MyCardsPageInner() {
             </div>
           )}
 
-          {sharedBannerCount !== null && (
+          {sharedBanner !== null && (
             <div className="mb-8 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 flex items-center justify-between gap-3 animate-fade-in-up">
               <div className="flex items-center gap-3">
                 <svg className="w-5 h-5 flex-shrink-0 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div>
-                  <p className="font-semibold">Share links ready</p>
+                  <p className="font-semibold">Your share links are ready</p>
                   <p className="text-sm text-emerald-800">
-                    {sharedBannerCount > 0
-                      ? `${sharedBannerCount} link${sharedBannerCount !== 1 ? "s" : ""} generated.`
-                      : "Your share links are being generated."}{" "}
-                    <Link href="/dashboard/share-links" className="underline font-semibold">
-                      View them
-                    </Link>
+                    {sharedBanner.count > 0
+                      ? `${sharedBanner.count} unique link${sharedBanner.count !== 1 ? "s" : ""} created.`
+                      : "Your share links are being generated."}
                   </p>
+                  {sharedBanner.count > 0 && (
+                    <p className="text-sm text-emerald-800 mt-1">
+                      {sharedBanner.recipientCount > 0
+                        ? `We’ll email ${sharedBanner.recipientCount} recipient${sharedBanner.recipientCount !== 1 ? "s" : ""}${sharedBanner.selfCount > 0 ? ` and send ${sharedBanner.selfCount} link${sharedBanner.selfCount !== 1 ? "s" : ""} to you.` : "."}`
+                        : `We created ${sharedBanner.count} unique player link${sharedBanner.count !== 1 ? "s" : ""}. Copy one group invite from the dashboard.`}{" "}
+                      <Link href="/dashboard/share-links" className="underline font-semibold">
+                        Open Share Links dashboard
+                      </Link>
+                    </p>
+                  )}
                 </div>
               </div>
               <button
-                onClick={() => setSharedBannerCount(null)}
+                onClick={() => setSharedBanner(null)}
                 className="text-emerald-600 hover:text-emerald-800 transition-colors"
                 aria-label="Dismiss"
               >
@@ -432,14 +458,14 @@ function MyCardsPageInner() {
                 <div>
                   <h2 className="text-xl font-bold text-slate-900">Your Batches</h2>
                   <p className="text-sm text-slate-500 mt-1">
-                    Share each card in a batch with a different person — $0.10 per link.
+                    Send unique cards from a batch to friends, coworkers, or classmates. Starts at $0.50 for up to 5 links.
                   </p>
                 </div>
                 <Link
                   href="/dashboard/share-links"
                   className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
                 >
-                  Manage share links
+                  View sent links
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
@@ -555,9 +581,15 @@ function MyCardsPageInner() {
 
                     {/* Actions */}
                     <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         <PlaySoloButton cardId={card._id} />
-                        <StartGameButton cardId={card._id} />
+                        <StartGameButton cardId={card._id} label="Friends" compact />
+                        <Link
+                          href={`/cards/${card._id}?next=share`}
+                          className="text-center px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg hover:bg-emerald-100 hover:border-emerald-200 transition-colors text-sm font-semibold"
+                        >
+                          Share
+                        </Link>
                       </div>
 
                       <div className="grid grid-cols-2 gap-2">
@@ -587,7 +619,7 @@ function MyCardsPageInner() {
 
                       {card.isPublic && card.shareLink && (
                         <button
-                          onClick={() => copyShareLink(card.shareLink!)}
+                          onClick={() => copyShareLink(card)}
                           className="w-full px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg hover:bg-emerald-100 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

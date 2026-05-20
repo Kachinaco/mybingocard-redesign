@@ -41,7 +41,8 @@ export const PLANS = {
       "3 bingo cards",
       "All grid sizes (3x3, 4x4, 5x5)",
       "5 starter templates",
-      "Standard PDF export",
+      "Image bingo cards",
+      "Browser print and paid batch PDF packs",
       "Share links",
       "Includes ads",
     ],
@@ -55,8 +56,8 @@ export const PLANS = {
       canUseCustomColors: false,
       canUseAdvancedTemplates: false,
       canShuffleSharedCards: false,
-      canUploadImages: false,
-      maxImageUploads: 0,
+      canUploadImages: true,
+      maxImageUploads: 25,
       canUseAiGenerate: false,
       adFree: false,
     },
@@ -116,4 +117,3 @@ export function canUserAccessFeature(
   const plan = PLANS[userPlan];
   return (plan.limits as any)[feature] !== false;
 }
-

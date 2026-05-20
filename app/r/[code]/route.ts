@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ code: string }> }
@@ -7,10 +9,10 @@ export async function GET(
   const { code } = await params;
 
   if (!code || typeof code !== "string" || code.length > 64 || !/^[A-Za-z0-9_-]+$/.test(code)) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(`${APP_URL}/`);
   }
 
-  const targetUrl = new URL("/signup", request.url);
+  const targetUrl = new URL("/signup", APP_URL);
   targetUrl.searchParams.set("ref", code);
 
   const response = NextResponse.redirect(targetUrl);

@@ -2,60 +2,69 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { stripe, PLANS, getPlanByPriceId, LIFETIME_PRICE_ID } from "@/lib/stripe/config";
 import { getUserByEmail } from "@/lib/db/users";
+import { getCardById } from "@/lib/db/cards";
 import { getBatchPack, isBatchCount } from "@/lib/batchPacks";
+import { getShareEmailPack } from "@/lib/shareEmailPacks";
 import { upsertBatchPurchaseFromCheckout } from "@/lib/db/batchPurchases";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
-import clientPromise from "@/lib/mongodb";
 import { notifyCheckoutStarted } from "@/lib/discord";
-import { hasPremiumAccess, isActiveLikeSubscriptionStatus } from "@/lib/subscription-status";
+import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
 import type Stripe from "stripe";
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
-const TRIAL_CHECKOUT_REUSE_WINDOW_MS = 30 * 60 * 1000;
+const appOrigin = new URL(appUrl).origin;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+let shareEmailCheckoutRefsIndexEnsured = false;
 
-async function findReusableTrialCheckoutSession(email: string) {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const recentStarted = await db.collection("activity_events")
-    .find(
-      {
-        event: "checkout_started",
-        email,
-        "metadata.purchaseType": "trial",
-        createdAt: { $gte: new Date(Date.now() - TRIAL_CHECKOUT_REUSE_WINDOW_MS) },
-      },
-      { projection: { "metadata.checkoutSessionId": 1 } }
+function normalizeEmails(input: unknown): string[] {
+  const rawEmails = Array.isArray(input)
+    ? input
+    : typeof input === "string"
+      ? input.split(/[,;\n]+/)
+      : [];
+
+  return Array.from(
+    new Set(
+      rawEmails
+        .map((email) => String(email).trim().toLowerCase())
+        .filter(Boolean)
     )
-    .sort({ createdAt: -1 })
-    .limit(5)
-    .toArray();
+  );
+}
 
-  const seen = new Set<string>();
+async function ensureShareEmailCheckoutRefsIndex() {
+  if (shareEmailCheckoutRefsIndexEnsured) return;
+  try {
+    const client = await clientPromise;
+    await client.db("mybingocard").collection("share_email_checkout_refs").createIndex(
+      { createdAt: 1 },
+      { expireAfterSeconds: 24 * 60 * 60, name: "share_email_checkout_refs_ttl" }
+    );
+  } catch (error) {
+    console.error("share_email_checkout_refs index setup failed:", error);
+  }
+  shareEmailCheckoutRefsIndexEnsured = true;
+}
 
-  for (const entry of recentStarted) {
-    const checkoutSessionId = (entry as { metadata?: { checkoutSessionId?: string } })?.metadata?.checkoutSessionId;
-    if (!checkoutSessionId || seen.has(checkoutSessionId)) {
-      continue;
-    }
-
-    seen.add(checkoutSessionId);
-
-    try {
-      const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
-      if (
-        session.mode === "subscription" &&
-        session.status === "open" &&
-        typeof session.client_secret === "string" &&
-        session.client_secret.length > 0
-      ) {
-        return session;
-      }
-    } catch (error) {
-      console.error("Failed to inspect existing trial checkout session:", error);
-    }
+function sanitizeReturnPath(path: unknown, fallback: string): string {
+  if (typeof path !== "string" || !path.startsWith("/") || path.startsWith("//")) {
+    return fallback;
   }
 
-  return null;
+  try {
+    const parsed = new URL(path, appOrigin);
+    if (parsed.origin !== appOrigin) return fallback;
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return fallback;
+  }
+}
+
+function buildReturnUrl(path: unknown, fallback: string): string {
+  const safePath = sanitizeReturnPath(path, fallback);
+  const separator = safePath.includes("?") ? "&" : "?";
+  return `${appOrigin}${safePath}${separator}session_id={CHECKOUT_SESSION_ID}`;
 }
 
 export async function POST(request: Request) {
@@ -119,12 +128,18 @@ export async function POST(request: Request) {
           metadata: { purchaseType: "batch_pack", batchCount: batchPack.count, amount: 0 },
         });
 
-        const redirectUrl = returnPath || `/create?batchPurchase=success&batchCount=${batchCount}`;
+        const redirectUrl = sanitizeReturnPath(
+          returnPath,
+          `/create?batchPurchase=success&batchCount=${batchCount}`
+        );
         return NextResponse.json({ free: true, batchCount: batchPack.count, redirectUrl });
       }
 
       // Paid batch pack — embedded checkout
-      const batchReturnUrl = `${appUrl}${returnPath || `/create?batchPurchase=success&batchCount=${batchCount}`}&session_id={CHECKOUT_SESSION_ID}`;
+      const batchReturnUrl = buildReturnUrl(
+        returnPath,
+        `/create?batchPurchase=success&batchCount=${batchCount}`
+      );
 
       const checkoutParams: Stripe.Checkout.SessionCreateParams = {
         ui_mode: "embedded",
@@ -187,6 +202,138 @@ export async function POST(request: Request) {
       return NextResponse.json({ clientSecret: checkoutSession.client_secret, sessionId: checkoutSession.id });
     }
 
+    // ---- EMAIL SHARE PACK CHECKOUT ----
+    if (purchaseType === "email_share_batch") {
+      const cardId = typeof body.cardId === "string" ? body.cardId : "";
+      const emails = normalizeEmails(body.emails ?? body.recipients);
+
+      if (!cardId) {
+        return NextResponse.json({ error: "cardId is required" }, { status: 400 });
+      }
+
+      if (!emails.length) {
+        return NextResponse.json({ error: "Enter at least one email address." }, { status: 400 });
+      }
+
+      if (emails.length > 500) {
+        return NextResponse.json({ error: "You can send to up to 500 emails at a time." }, { status: 400 });
+      }
+
+      const invalidEmails = emails.filter((email) => !EMAIL_PATTERN.test(email));
+      if (invalidEmails.length) {
+        return NextResponse.json(
+          { error: `These emails do not look right: ${invalidEmails.join(", ")}` },
+          { status: 400 }
+        );
+      }
+
+      const card = await getCardById(cardId);
+      if (!card) {
+        return NextResponse.json({ error: "Card not found" }, { status: 404 });
+      }
+
+      if (card.userId.toString() !== session.user.id) {
+        return NextResponse.json({ error: "You do not own this card" }, { status: 403 });
+      }
+
+      if (user?.planType === "PREMIUM") {
+        return NextResponse.json({ error: "Premium already includes email sharing." }, { status: 400 });
+      }
+
+      const emailPack = getShareEmailPack(emails.length);
+      if (!emailPack) {
+        return NextResponse.json({ error: "Too many email recipients." }, { status: 400 });
+      }
+
+      await ensureShareEmailCheckoutRefsIndex();
+      const refId = new ObjectId();
+      const client = await clientPromise;
+      await client.db("mybingocard").collection("share_email_checkout_refs").insertOne({
+        _id: refId,
+        userId: session.user.id,
+        userEmail: session.user.email,
+        cardId,
+        emails,
+        createdAt: new Date(),
+      });
+
+      const shareEmailReturnUrl = buildReturnUrl(
+        returnPath,
+        `/cards/${cardId}?shareEmail=sent`
+      );
+
+      const checkoutParams: Stripe.Checkout.SessionCreateParams = {
+        ui_mode: "embedded",
+        mode: "payment",
+        payment_method_types: ["card"],
+        allow_promotion_codes: true,
+        line_items: [{
+          price_data: {
+            currency: emailPack.currency,
+            unit_amount: emailPack.amount,
+            product_data: {
+              name: `${emailPack.size} Email Share Pack`,
+              description: `Send unique bingo card links to ${emails.length} ${emails.length === 1 ? "recipient" : "recipients"}.`,
+            },
+          },
+          quantity: 1,
+        }],
+        return_url: shareEmailReturnUrl,
+        client_reference_id: session.user.id,
+        metadata: {
+          purchaseType: "email_share_batch",
+          userId: session.user.id,
+          userEmail: session.user.email,
+          cardId,
+          recipientCount: String(emails.length),
+          packSize: String(emailPack.size),
+          amount: String(emailPack.amount),
+          currency: emailPack.currency,
+          refId: refId.toString(),
+        },
+      };
+
+      if (customerId) {
+        checkoutParams.customer = customerId;
+      } else {
+        checkoutParams.customer_email = session.user.email;
+      }
+
+      const checkoutSession = await stripe.checkout.sessions.create(checkoutParams);
+
+      await trackActivity({
+        event: "checkout_started",
+        source: "server",
+        userId: session.user.id,
+        email: session.user.email,
+        pathname: requestContext.pathname,
+        domain: requestContext.domain,
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+        metadata: {
+          purchaseType: "email_share_batch",
+          cardId,
+          recipientCount: emails.length,
+          packSize: emailPack.size,
+          amount: emailPack.amount,
+          checkoutSessionId: checkoutSession.id,
+          checkoutMode: "embedded",
+        },
+      });
+
+      notifyCheckoutStarted(
+        session.user.email,
+        session.user.name || "",
+        "one_time",
+        `${emailPack.size} Email Share Pack`,
+        emailPack.amount,
+        emailPack.currency,
+        checkoutSession.id
+      ).catch(console.error);
+
+      return NextResponse.json({ clientSecret: checkoutSession.client_secret, sessionId: checkoutSession.id });
+    }
+
     // ---- LIFETIME PREMIUM CHECKOUT ----
     if (purchaseType === "lifetime") {
       // Check if user already has premium
@@ -194,7 +341,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "You already have Premium access." }, { status: 409 });
       }
 
-      const lifetimeReturnUrl = `${appUrl}${returnPath || "/dashboard?checkout=complete"}&session_id={CHECKOUT_SESSION_ID}`;
+      const lifetimeReturnUrl = buildReturnUrl(returnPath, "/dashboard?checkout=complete");
 
       const checkoutParams: Stripe.Checkout.SessionCreateParams = {
         ui_mode: "embedded",
@@ -244,91 +391,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ clientSecret: checkoutSession.client_secret, sessionId: checkoutSession.id });
     }
 
-    // ---- TRIAL SUBSCRIPTION CHECKOUT (7-day free trial) ----
-    if (purchaseType === "trial") {
-      const trialPriceId = process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID;
-      if (!trialPriceId) {
-        return NextResponse.json({ error: "Trial not configured" }, { status: 500 });
-      }
-
-      if (hasPremiumAccess(user)) {
-        return NextResponse.json({ error: "Already subscribed", alreadySubscribed: true }, { status: 409 });
-      }
-
-      if (customerId) {
-        const subs = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 10 });
-        const existingSubscription = subs.data.find((subscription) => isActiveLikeSubscriptionStatus(subscription.status));
-        if (existingSubscription) {
-          return NextResponse.json({ error: "Already subscribed", alreadySubscribed: true }, { status: 409 });
-        }
-      }
-
-      const existingCheckoutSession = await findReusableTrialCheckoutSession(session.user.email);
-      if (existingCheckoutSession?.client_secret) {
-        return NextResponse.json({
-          clientSecret: existingCheckoutSession.client_secret,
-          sessionId: existingCheckoutSession.id,
-          reused: true,
-        });
-      }
-
-      const trialReturnUrl = `${appUrl}${returnPath || "/create?trial=started"}&session_id={CHECKOUT_SESSION_ID}`;
-
-      const checkoutParams: Stripe.Checkout.SessionCreateParams = {
-        ui_mode: "embedded",
-        mode: "subscription",
-        payment_method_types: ["card"],
-        line_items: [{ price: trialPriceId, quantity: 1 }],
-        return_url: trialReturnUrl,
-        client_reference_id: session.user.email,
-        metadata: {
-          userId: session.user.email,
-          planType: "PREMIUM",
-          purchaseType: "trial",
-        },
-        subscription_data: {
-          trial_period_days: 7,
-          metadata: { userId: session.user.email, planType: "PREMIUM" },
-        },
-      };
-
-      if (customerId) {
-        checkoutParams.customer = customerId;
-      } else {
-        checkoutParams.customer_email = session.user.email;
-      }
-
-      const checkoutSession = await stripe.checkout.sessions.create(checkoutParams);
-
-      await trackActivity({
-        event: "checkout_started",
-        source: "server",
-        userId: session.user.id || null,
-        email: session.user.email,
-        pathname: requestContext.pathname,
-        domain: requestContext.domain,
-        ipAddress: requestContext.ipAddress,
-        userAgent: requestContext.userAgent,
-        metadata: {
-          purchaseType: "trial",
-          trialDays: 7,
-          checkoutSessionId: checkoutSession.id,
-          checkoutMode: "embedded",
-        },
-      });
-
-      notifyCheckoutStarted(
-        session.user.email, session.user.name || "", "subscription",
-        "7-Day Free Trial", 0, "usd", checkoutSession.id
-      ).catch(console.error);
-
-      return NextResponse.json({
-        clientSecret: checkoutSession.client_secret,
-        sessionId: checkoutSession.id,
-        reused: false,
-      });
-    }
-
     // ---- SUBSCRIPTION CHECKOUT ----
     if (!priceId) {
       return NextResponse.json({ error: "Price ID is required" }, { status: 400 });
@@ -352,7 +414,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const subReturnUrl = `${appUrl}${returnPath || "/dashboard?checkout=complete"}&session_id={CHECKOUT_SESSION_ID}`;
+    const subReturnUrl = buildReturnUrl(returnPath, "/dashboard?checkout=complete");
 
     const checkoutParams: Stripe.Checkout.SessionCreateParams = {
       ui_mode: "embedded",

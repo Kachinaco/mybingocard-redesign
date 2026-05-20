@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import BlogTracker, { BlogPostLink } from "./BlogTracker";
+import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
   title: "Blog — Bingo Card Ideas, Tips & Guides",
@@ -220,7 +221,8 @@ export default function BlogPage() {
             <p>&copy; 2025 MyBingoCard. All rights reserved.</p>
           </div>
         </div>
-      </footer>
+      </footer>      <SeoSupportBlock slug="blog" />
+
     </div>
   );
 }

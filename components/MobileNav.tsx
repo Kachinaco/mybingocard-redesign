@@ -11,16 +11,16 @@ export default function MobileNav() {
   const isLoggedIn = !!session?.user;
 
   return (
-    <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
-      <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
+    <header className="fixed top-0 left-0 right-0 w-full max-w-full z-50 overflow-x-clip bg-white/80 backdrop-blur-md border-b border-slate-200/50">
+      <div className="container mx-auto max-w-full px-4 lg:px-8 h-20 flex items-center justify-between gap-3">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
+        <Link href="/" className="min-w-0 flex items-center gap-2 group">
           <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-all duration-300">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
           </div>
-          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
+          <span className="truncate text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
             MyBingoCard
           </span>
         </Link>
@@ -73,7 +73,7 @@ export default function MobileNav() {
         </nav>
 
         {/* Mobile: Sign In/Dashboard + hamburger */}
-        <div className="md:hidden flex items-center gap-2">
+        <div className="md:hidden flex shrink-0 items-center gap-2">
           <Link
             href={isLoggedIn ? "/dashboard" : "/login"}
             className="text-sm font-semibold text-indigo-600 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-50 transition-colors"

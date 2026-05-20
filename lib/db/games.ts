@@ -2,6 +2,18 @@ import crypto from "crypto";
 import clientPromise from "../mongodb";
 import { ObjectId } from "mongodb";
 import { trackActivity } from "@/lib/activity";
+import {
+  checkWinByGrid,
+  createSeededRng,
+  generateClassicBingoCard,
+  getBingoGridShape,
+  getCallPoolForVariant,
+  getDefaultWinCondition,
+  getFreeSpaceIndexForGrid,
+  normalizeBingoVariant,
+  type BingoVariant,
+  type WinCondition,
+} from "@/lib/classic-bingo";
 
 export interface CalledItem {
   item: string;
@@ -27,8 +39,6 @@ export interface GamePlayer {
 }
 
 export type CallMode = "random" | "manual" | "auto" | "sequential";
-export type WinCondition = "standard" | "four_corners" | "blackout";
-
 export interface GameSettings {
   callMode: CallMode;
   winCondition: WinCondition;
@@ -45,6 +55,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
 export interface GameWinner {
   playerId: string;
   playerName: string;
+  verificationCode: string;
   claimedAt: Date;
 }
 
@@ -58,6 +69,9 @@ export interface GameRoom {
   title: string;
   wordList: string[];
   size: 3 | 4 | 5;
+  rows?: number;
+  columns?: number;
+  bingoVariant?: BingoVariant;
   freeSpace: boolean;
   calledItems: string[];
   callHistory: CalledItem[];
@@ -97,6 +111,10 @@ function generatePlayerToken(): { raw: string; hash: string } {
   return { raw, hash };
 }
 
+function generateWinnerVerificationCode(): string {
+  return crypto.randomBytes(3).toString("hex").toUpperCase();
+}
+
 function shuffleArray<T>(arr: T[]): T[] {
   const shuffled = [...arr];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -115,10 +133,23 @@ export async function createGameRoom(
   freeSpace: boolean,
   style: GameRoom["style"],
   hostName?: string,
-  hostEmail?: string
+  hostEmail?: string,
+  options: {
+    rows?: number;
+    columns?: number;
+    bingoVariant?: BingoVariant;
+  } = {}
 ): Promise<GameRoom> {
   const client = await clientPromise;
   const db = client.db("mybingocard");
+  const bingoVariant = normalizeBingoVariant(options.bingoVariant);
+  const gridShape = getBingoGridShape({
+    size,
+    rows: options.rows,
+    columns: options.columns,
+    bingoVariant,
+  });
+  const callPool = getCallPoolForVariant(bingoVariant, wordList.filter(w => w.trim()));
 
   let roomCode = generateRoomCode();
   // Ensure unique
@@ -135,14 +166,17 @@ export async function createGameRoom(
     hostEmail: hostEmail || undefined,
     sourceCardId,
     title,
-    wordList: wordList.filter(w => w.trim()),
+    wordList: callPool,
     size,
-    freeSpace,
+    rows: gridShape.rows,
+    columns: gridShape.columns,
+    bingoVariant,
+    freeSpace: bingoVariant === "classic90" ? false : freeSpace,
     calledItems: [],
     callHistory: [],
     players: [],
     status: "waiting",
-    settings: { ...DEFAULT_SETTINGS },
+    settings: { ...DEFAULT_SETTINGS, winCondition: getDefaultWinCondition(bingoVariant) },
     winners: [],
     style,
     createdAt: new Date(),
@@ -235,6 +269,15 @@ function generateCardCells(wordList: string[], size: number, freeSpace: boolean)
   return cells;
 }
 
+function generatePlayerCells(room: GameRoom): string[] {
+  const variant = normalizeBingoVariant(room.bingoVariant);
+  if (variant === "classic75" || variant === "classic90") {
+    const seed = Date.now() ^ crypto.randomInt(0, 0xffffffff);
+    return generateClassicBingoCard(variant, createSeededRng(seed));
+  }
+  return generateCardCells(room.wordList, room.size, room.freeSpace);
+}
+
 const MAX_PLAYERS_PER_ROOM = 50;
 
 export async function joinGameRoom(
@@ -295,8 +338,14 @@ export async function joinGameRoom(
     finalName = `${finalName} ${counter}`;
   }
 
-  const totalCells = room.size * room.size;
-  const cells = generateCardCells(room.wordList, room.size, room.freeSpace);
+  const gridShape = getBingoGridShape(room);
+  const cells = generatePlayerCells(room);
+  const freeSpaceIndex = getFreeSpaceIndexForGrid({
+    freeSpace: room.freeSpace,
+    rows: gridShape.rows,
+    columns: gridShape.columns,
+    bingoVariant: room.bingoVariant,
+  });
 
   const playerId = new ObjectId().toString();
   const { raw: playerToken, hash: playerTokenHash } = generatePlayerToken();
@@ -307,7 +356,7 @@ export async function joinGameRoom(
     email: email || undefined,
     playerName: finalName,
     cells,
-    marked: room.freeSpace ? [Math.floor(totalCells / 2)] : [],
+    marked: freeSpaceIndex >= 0 ? [freeSpaceIndex] : [],
     markHistory: [],
     hasBingo: false,
     joinedAt: new Date(),
@@ -366,8 +415,14 @@ export async function startGame(
   let hostPlayer: GamePlayer | undefined;
 
   if (hostPlaysAlong) {
-    const cells = generateCardCells(room.wordList, room.size, room.freeSpace);
-    const totalCells = room.size * room.size;
+    const gridShape = getBingoGridShape(room);
+    const cells = generatePlayerCells(room);
+    const freeSpaceIndex = getFreeSpaceIndexForGrid({
+      freeSpace: room.freeSpace,
+      rows: gridShape.rows,
+      columns: gridShape.columns,
+      bingoVariant: room.bingoVariant,
+    });
     const { hash: hostTokenHash } = generatePlayerToken();
     hostPlayer = {
       playerId: new ObjectId().toString(),
@@ -376,7 +431,7 @@ export async function startGame(
       email: room.hostEmail || undefined,
       playerName: (room.hostName || "Host") + " (Host)",
       cells,
-      marked: room.freeSpace ? [Math.floor(totalCells / 2)] : [],
+      marked: freeSpaceIndex >= 0 ? [freeSpaceIndex] : [],
       markHistory: [],
       hasBingo: false,
       joinedAt: now,
@@ -410,8 +465,15 @@ export async function callItem(
   const db = client.db("mybingocard");
   const now = new Date();
 
+  const room = await db.collection<GameRoom>("game_rooms").findOne({
+    roomCode,
+    hostUserId,
+    status: "active",
+  });
+  if (!room || !room.wordList.includes(item) || room.calledItems.includes(item)) return null;
+
   const result = await db.collection<GameRoom>("game_rooms").findOneAndUpdate(
-    { roomCode, hostUserId, status: "active" },
+    { _id: room._id },
     {
       $push: {
         calledItems: item,
@@ -564,60 +626,58 @@ export async function unmarkCell(
   return result.modifiedCount > 0;
 }
 
-function checkStandardBingo(marked: number[], size: number): boolean {
-  const grid = Array.from({ length: size }, (_, r) =>
-    Array.from({ length: size }, (_, c) => marked.includes(r * size + c))
-  );
-  for (let r = 0; r < size; r++) {
-    if (grid[r]?.every(Boolean)) return true;
+export function checkWinByCondition(
+  marked: number[],
+  cells: string[],
+  rows: number,
+  columns: number,
+  winCondition: WinCondition,
+  variant: BingoVariant = "custom"
+): boolean {
+  return checkWinByGrid(marked, cells, rows, columns, winCondition, variant);
+}
+
+export function detectWinPattern(
+  marked: number[],
+  cells: string[],
+  rows: number,
+  columns: number,
+  variant: BingoVariant = "custom"
+): string | null {
+  if (variant === "classic90") {
+    const markedSet = new Set(marked);
+    const completedRows = Array.from({ length: rows }, (_, row) => {
+      const rowIndices = Array.from({ length: columns }, (_, column) => row * columns + column)
+        .filter((index) => (cells[index] || "").trim());
+      return rowIndices.length > 0 && rowIndices.every((index) => markedSet.has(index));
+    }).filter(Boolean).length;
+    if (completedRows >= 3) return "full_house";
+    if (completedRows >= 2) return "two_lines";
+    if (completedRows >= 1) return "one_line";
+    return null;
   }
-  for (let c = 0; c < size; c++) {
-    if (grid.map(row => row[c] ?? false).every(Boolean)) return true;
-  }
-  if (Array.from({ length: size }, (_, i) => grid[i]?.[i] ?? false).every(Boolean)) return true;
-  if (Array.from({ length: size }, (_, i) => grid[i]?.[size - 1 - i] ?? false).every(Boolean)) return true;
-  return false;
-}
 
-function checkFourCorners(marked: number[], size: number): boolean {
-  const corners = [0, size - 1, size * (size - 1), size * size - 1];
-  return corners.every(idx => marked.includes(idx));
-}
-
-function checkBlackout(marked: number[], size: number): boolean {
-  return marked.length >= size * size;
-}
-
-export function checkWinByCondition(marked: number[], size: number, winCondition: WinCondition): boolean {
-  switch (winCondition) {
-    case "four_corners": return checkFourCorners(marked, size);
-    case "blackout": return checkBlackout(marked, size);
-    default: return checkStandardBingo(marked, size);
-  }
-}
-
-export function detectWinPattern(marked: number[], size: number): string | null {
-  const grid = Array.from({ length: size }, (_, r) =>
-    Array.from({ length: size }, (_, c) => marked.includes(r * size + c))
+  const grid = Array.from({ length: rows }, (_, r) =>
+    Array.from({ length: columns }, (_, c) => marked.includes(r * columns + c))
   );
   // Check rows
-  for (let r = 0; r < size; r++) {
+  for (let r = 0; r < rows; r++) {
     if (grid[r]?.every(Boolean)) return "row";
   }
   // Check columns
-  for (let c = 0; c < size; c++) {
+  for (let c = 0; c < columns; c++) {
     if (grid.map(row => row[c] ?? false).every(Boolean)) return "column";
   }
   // Check main diagonal (top-left to bottom-right)
-  if (Array.from({ length: size }, (_, i) => grid[i]?.[i] ?? false).every(Boolean)) return "diagonal";
+  if (rows === columns && Array.from({ length: rows }, (_, i) => grid[i]?.[i] ?? false).every(Boolean)) return "diagonal";
   // Check anti-diagonal (top-right to bottom-left)
-  if (Array.from({ length: size }, (_, i) => grid[i]?.[size - 1 - i] ?? false).every(Boolean)) return "diagonal";
+  if (rows === columns && Array.from({ length: rows }, (_, i) => grid[i]?.[columns - 1 - i] ?? false).every(Boolean)) return "diagonal";
   // Check four corners
   if (
     grid[0]?.[0] &&
-    grid[0]?.[size - 1] &&
-    grid[size - 1]?.[0] &&
-    grid[size - 1]?.[size - 1]
+    grid[0]?.[columns - 1] &&
+    grid[rows - 1]?.[0] &&
+    grid[rows - 1]?.[columns - 1]
   ) {
     return "four_corners";
   }
@@ -629,7 +689,7 @@ export async function claimBingo(
   playerId: string,
   rawToken: string,
   bypassTokenCheck = false
-): Promise<{ valid: boolean; playerName?: string; gameEnded?: boolean }> {
+): Promise<{ valid: boolean; playerName?: string; verificationCode?: string; gameEnded?: boolean }> {
   if (!bypassTokenCheck && !(await verifyPlayerToken(roomCode, playerId, rawToken))) return { valid: false };
 
   const client = await clientPromise;
@@ -645,22 +705,38 @@ export async function claimBingo(
   if (player.hasBingo) return { valid: false };
 
   const settings = room.settings ?? DEFAULT_SETTINGS;
+  const variant = normalizeBingoVariant(room.bingoVariant);
+  const gridShape = getBingoGridShape(room);
 
   // Verify that all marked cells correspond to called items or free space
   const calledSet = new Set(room.calledItems);
-  const freeIdx = room.freeSpace ? Math.floor(room.size * room.size / 2) : -1;
+  const freeIdx = getFreeSpaceIndexForGrid({
+    freeSpace: room.freeSpace,
+    rows: gridShape.rows,
+    columns: gridShape.columns,
+    bingoVariant: variant,
+  });
 
   for (const idx of player.marked) {
     if (idx === freeIdx) continue;
     const cellValue = player.cells[idx]!;
+    if (!cellValue.trim()) continue;
     if (!calledSet.has(cellValue)) return { valid: false };
   }
 
   // Check win by configured condition
-  if (!checkWinByCondition(player.marked, room.size, settings.winCondition)) return { valid: false };
+  if (!checkWinByCondition(
+    player.marked,
+    player.cells,
+    gridShape.rows,
+    gridShape.columns,
+    settings.winCondition,
+    variant
+  )) return { valid: false };
 
   const now = new Date();
-  const winner: GameWinner = { playerId, playerName: player.playerName, claimedAt: now };
+  const verificationCode = generateWinnerVerificationCode();
+  const winner: GameWinner = { playerId, playerName: player.playerName, verificationCode, claimedAt: now };
   const isFirstWinner = (room.winners ?? []).length === 0;
 
   if (settings.allowMultipleWinners) {
@@ -683,7 +759,7 @@ export async function claimBingo(
       }
     );
 
-    return { valid: true, playerName: player.playerName, gameEnded: false };
+    return { valid: true, playerName: player.playerName, verificationCode, gameEnded: false };
   } else {
     // Single winner — end the game
     await db.collection<GameRoom>("game_rooms").updateOne(
@@ -701,7 +777,7 @@ export async function claimBingo(
       }
     );
 
-    return { valid: true, playerName: player.playerName, gameEnded: true };
+    return { valid: true, playerName: player.playerName, verificationCode, gameEnded: true };
   }
 }
 

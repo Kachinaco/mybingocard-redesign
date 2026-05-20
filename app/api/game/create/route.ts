@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getCardById } from "@/lib/db/cards";
-import { getUserById, addFeatureUsed } from "@/lib/db/users";
+import { addFeatureUsed } from "@/lib/db/users";
 import { createGameRoom } from "@/lib/db/games";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { getCallPoolForVariant, normalizeBingoVariant } from "@/lib/classic-bingo";
 
 export async function POST(request: Request) {
   try {
@@ -11,16 +12,6 @@ export async function POST(request: Request) {
     const requestContext = getRequestActivityContext(request);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Only premium users (or whitelisted users) can host live games
-    const user = await getUserById(session.user.id);
-    const planType = user?.planType || "FREE";
-    if (planType === "FREE" && !(user as any)?.canHostGames) {
-      return NextResponse.json(
-        { error: "Upgrade to Premium to host live games" },
-        { status: 403 }
-      );
     }
 
     const { cardId } = await request.json();
@@ -37,8 +28,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "You can only create games from your own cards" }, { status: 403 });
     }
 
-    const wordList = card.cells.filter(c => c.trim());
-    if (wordList.length < (card.freeSpace ? card.size * card.size - 1 : card.size * card.size)) {
+    const bingoVariant = normalizeBingoVariant(card.bingoVariant);
+    const wordList = getCallPoolForVariant(bingoVariant, card.cells.filter(c => c.trim() && c !== "FREE"));
+    if (bingoVariant === "custom" && wordList.length < (card.freeSpace ? card.size * card.size - 1 : card.size * card.size)) {
       return NextResponse.json({ error: "Card needs more filled cells to create a game" }, { status: 400 });
     }
 
@@ -51,7 +43,12 @@ export async function POST(request: Request) {
       card.freeSpace,
       card.style || {},
       session.user.name || undefined,
-      session.user.email || undefined
+      session.user.email || undefined,
+      {
+        rows: card.rows,
+        columns: card.columns,
+        bingoVariant,
+      }
     );
 
     await trackActivity({
@@ -68,6 +65,9 @@ export async function POST(request: Request) {
         roomCode: room.roomCode,
         title: room.title,
         size: room.size,
+        rows: room.rows,
+        columns: room.columns,
+        bingoVariant: room.bingoVariant,
       },
     });
 

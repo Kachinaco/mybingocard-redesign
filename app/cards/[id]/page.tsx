@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import AdUnit from "@/components/AdUnit";
 import FavoriteButton from "@/components/FavoriteButton";
+import StartGameButton from "@/components/StartGameButton";
 import { trackClientActivity } from "@/lib/activity-client";
 import { redirectToCheckout } from "@/lib/upgrade";
 import {
@@ -19,12 +20,31 @@ import {
   isBatchCount,
   type BatchCount,
 } from "@/lib/batchPacks";
+import {
+  checkWinByGrid,
+  formatClassicCellLabel,
+  getBingoGridShape,
+  getFreeSpaceIndexForGrid,
+  isBlankClassicCell,
+  normalizeBingoVariant,
+  type BingoVariant,
+} from "@/lib/classic-bingo";
+
+const CARD_COUNT_OPTIONS = [30, 100, 250, 500] as const;
+
+function formatPerCard(count: BatchCount) {
+  const cents = BATCH_PACKS[count].amount / count;
+  return `${Math.ceil(cents)}¢/card`;
+}
 
 interface Card {
   _id: string;
   title: string;
   description?: string;
   size: 3 | 4 | 5;
+  rows?: number;
+  columns?: number;
+  bingoVariant?: BingoVariant;
   cells: string[];
   freeSpace: boolean;
   style: {
@@ -44,6 +64,7 @@ interface Card {
 interface UserPlan {
   planType: string;
   canExportHD: boolean;
+  canExportPNG: boolean;
   canRemoveBranding: boolean;
 }
 
@@ -53,6 +74,9 @@ export default function CardViewPage() {
   const cardId = params.id as string;
   const cardRef = useRef<HTMLDivElement>(null);
   const cardContainerRef = useRef<HTMLDivElement>(null);
+  const sharePanelRef = useRef<HTMLDivElement>(null);
+  const playStartedTrackedRef = useRef(false);
+  const cardViewTrackedRef = useRef(false);
 
   const [card, setCard] = useState<Card | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,7 +84,7 @@ export default function CardViewPage() {
   const [exporting, setExporting] = useState<"pdf" | "png" | null>(null);
   const [pdfGrayscale, setPdfGrayscale] = useState(false);
   const [pdfCopies, setPdfCopies] = useState(1);
-  const [activeTab, setActiveTab] = useState<"play" | "export" | "batch">("play");
+  const [activeTab, setActiveTab] = useState<"play" | "share" | "download">("play");
   const [marked, setMarked] = useState<Set<number>>(new Set());
   const [undoStack, setUndoStack] = useState<number[]>([]);
   const [bingo, setBingo] = useState(false);
@@ -71,11 +95,14 @@ export default function CardViewPage() {
   const [batchLoading, setBatchLoading] = useState(false);
   const [batchResult, setBatchResult] = useState<{ count: number; cardIds: string[] } | null>(null);
   const [batchPdfLoading, setBatchPdfLoading] = useState<string | null>(null);
+  const [batchPdfDownloaded, setBatchPdfDownloaded] = useState(false);
   const [batchCheckoutLoading, setBatchCheckoutLoading] = useState(false);
   const [availableBatchCounts, setAvailableBatchCounts] = useState<Partial<Record<BatchCount, number>>>({});
-  const [barExpanded, setBarExpanded] = useState(true);
+  const [barExpanded, setBarExpanded] = useState(false);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [entryNotice, setEntryNotice] = useState<"created" | "saved" | "continue" | null>(null);
+  const [shareEmailOpenTrigger, setShareEmailOpenTrigger] = useState(0);
 
   const sessionData = useSession();
   const session = sessionData?.data;
@@ -87,7 +114,14 @@ export default function CardViewPage() {
     cells: card?.cells ?? [],
     gridSize: (card?.size ?? 5) as 3 | 4 | 5,
     fontFamily: card?.style.fontFamily || "sans-serif",
-    freeSpaceIndex: card?.freeSpace ? Math.floor(((card?.size ?? 5) * (card?.size ?? 5)) / 2) : null,
+    freeSpaceIndex: card
+      ? getFreeSpaceIndexForGrid({
+          freeSpace: card.freeSpace,
+          rows: getBingoGridShape(card).rows,
+          columns: getBingoGridShape(card).columns,
+          bingoVariant: card.bingoVariant,
+        })
+      : null,
   });
 
   useEffect(() => { fetchCard(); }, [cardId]);
@@ -115,6 +149,49 @@ export default function CardViewPage() {
       localStorage.setItem(key, JSON.stringify(filtered.slice(0, 10)));
     } catch {}
   }, [card]);
+
+  useEffect(() => {
+    if (!card || cardViewTrackedRef.current) return;
+    cardViewTrackedRef.current = true;
+
+    const params = new URLSearchParams(window.location.search);
+    const created = params.get("created") === "1";
+    const saved = params.get("saved") === "1";
+    const next = params.get("next");
+    const notice = created ? "created" : saved ? "saved" : next ? "continue" : null;
+
+    if (notice) setEntryNotice(notice);
+    if (next === "export" || next === "batch" || next === "download") {
+      setActiveTab("download");
+      loadBatchPurchases();
+    }
+    if (next === "share") {
+      setActiveTab("share");
+      window.setTimeout(() => sharePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
+    }
+
+    const viewedAt = Date.now();
+    const seenKey = `mybingo_card_last_seen_${card._id}`;
+    const previousSeenAt = Number(localStorage.getItem(seenKey) || 0);
+    localStorage.setItem(seenKey, String(viewedAt));
+
+    trackClientActivity(notice ? "post_save_card_viewed" : "card_viewed", {
+      cardId: card._id,
+      title: card.title,
+      source: notice || next || "direct",
+      context: "owner_card",
+    });
+
+    if (!notice && previousSeenAt > 0 && viewedAt - previousSeenAt > 60 * 60 * 1000) {
+      trackClientActivity("returned_to_card", {
+        cardId: card._id,
+        title: card.title,
+        hoursSinceLastView: Math.round((viewedAt - previousSeenAt) / (60 * 60 * 1000)),
+        context: "owner_card",
+      });
+    }
+  }, [card]);
+
   const fetchCard = async () => {
     try {
       setLoading(true);
@@ -136,7 +213,13 @@ export default function CardViewPage() {
         }
       } catch {}
       if (data.card?.freeSpace) {
-        const freeIdx = Math.floor((data.card.size * data.card.size) / 2);
+        const shape = getBingoGridShape(data.card);
+        const freeIdx = getFreeSpaceIndexForGrid({
+          freeSpace: data.card.freeSpace,
+          rows: shape.rows,
+          columns: shape.columns,
+          bingoVariant: data.card.bingoVariant,
+        });
         setMarked(new Set([freeIdx]));
       }
     } catch (err: any) {
@@ -154,6 +237,7 @@ export default function CardViewPage() {
         setUserPlan({
           planType: data.plan.planName || data.planType,
           canExportHD: data.plan?.canExportHD || false,
+          canExportPNG: data.plan?.canExportPNG || false,
           canRemoveBranding: data.plan?.canRemoveBranding || false,
         });
       }
@@ -161,20 +245,29 @@ export default function CardViewPage() {
   };
 
   const getFreeSpaceIndex = useCallback(() => {
-    if (!card?.freeSpace) return -1;
-    return Math.floor((card.size * card.size) / 2);
+    if (!card) return -1;
+    const shape = getBingoGridShape(card);
+    return getFreeSpaceIndexForGrid({
+      freeSpace: card.freeSpace,
+      rows: shape.rows,
+      columns: shape.columns,
+      bingoVariant: card.bingoVariant,
+    });
   }, [card]);
 
-  const checkBingo = useCallback((markedSet: Set<number>, size: number): boolean => {
-    const grid = Array.from({ length: size }, (_, r) =>
-      Array.from({ length: size }, (_, c) => markedSet.has(r * size + c))
+  const checkBingo = useCallback((markedSet: Set<number>): boolean => {
+    if (!card) return false;
+    const variant = normalizeBingoVariant(card.bingoVariant);
+    const shape = getBingoGridShape(card);
+    return checkWinByGrid(
+      Array.from(markedSet),
+      card.cells,
+      shape.rows,
+      shape.columns,
+      variant === "classic90" ? "one_line" : "standard",
+      variant
     );
-    for (let r = 0; r < size; r++) { if (grid[r]?.every(Boolean)) return true; }
-    for (let c = 0; c < size; c++) { if (grid.map(row => row[c] ?? false).every(Boolean)) return true; }
-    if (Array.from({ length: size }, (_, i) => grid[i]?.[i] ?? false).every(Boolean)) return true;
-    if (Array.from({ length: size }, (_, i) => grid[i]?.[size - 1 - i] ?? false).every(Boolean)) return true;
-    return false;
-  }, []);
+  }, [card]);
 
   const triggerHaptic = () => {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
@@ -185,7 +278,17 @@ export default function CardViewPage() {
   const toggleCell = (index: number) => {
     if (!card) return;
     if (card.freeSpace && index === getFreeSpaceIndex()) return;
+    if (isBlankClassicCell(card.cells[index] || "", normalizeBingoVariant(card.bingoVariant))) return;
     triggerHaptic();
+    if (!playStartedTrackedRef.current) {
+      playStartedTrackedRef.current = true;
+      trackClientActivity("play_started", {
+        cardId: card._id,
+        title: card.title,
+        gridSize: card.size,
+        context: "owner_card",
+      });
+    }
     setMarked(prev => {
       const next = new Set(prev);
       if (next.has(index)) {
@@ -196,8 +299,8 @@ export default function CardViewPage() {
         setUndoStack(s => [...s, index + 1]);
       }
       // Save to localStorage
-      try { localStorage.setItem(`mybingo_state_${cardId}`, JSON.stringify({ marked: Array.from(next), bingo: checkBingo(next, card.size), undoStack: [...(undoStack || []), next.has(index) ? index + 1 : -(index + 1)], timestamp: Date.now() })); } catch {}
-      const hasBingo = checkBingo(next, card.size);
+      try { localStorage.setItem(`mybingo_state_${cardId}`, JSON.stringify({ marked: Array.from(next), bingo: checkBingo(next), undoStack: [...(undoStack || []), next.has(index) ? index + 1 : -(index + 1)], timestamp: Date.now() })); } catch {}
+      const hasBingo = checkBingo(next);
       if (hasBingo && !bingo) {
         setBingo(true);
         setShowBingo(true);
@@ -218,7 +321,7 @@ export default function CardViewPage() {
           cardTitle: card.title,
           gridSize: card.size,
           markedCount: next.size,
-          totalCells: card.size * card.size,
+          totalCells: card.cells.filter((cell) => !isBlankClassicCell(cell, normalizeBingoVariant(card.bingoVariant))).length,
           timeToBingoSeconds: duration,
           context: "owner_card",
         });
@@ -231,7 +334,7 @@ export default function CardViewPage() {
         cellIndex: index,
         action: next.has(index) ? "marked" : "unmarked",
         markedCount: next.size,
-        totalCells: card.size * card.size,
+        totalCells: card.cells.filter((cell) => !isBlankClassicCell(cell, normalizeBingoVariant(card.bingoVariant))).length,
         context: "owner_card",
       });
       return next;
@@ -250,7 +353,7 @@ export default function CardViewPage() {
       } else {
         next.add(-(lastAction) - 1);
       }
-      const hasBingo = checkBingo(next, card.size);
+      const hasBingo = checkBingo(next);
       if (hasBingo && !bingo) {
         setBingo(true);
       } else if (!hasBingo) {
@@ -258,14 +361,14 @@ export default function CardViewPage() {
         setShowBingo(false);
       }
       // Save to localStorage
-      try { localStorage.setItem(`mybingo_state_${cardId}`, JSON.stringify({ marked: Array.from(next), bingo: checkBingo(next, card.size), undoStack: undoStack.slice(0, -1), timestamp: Date.now() })); } catch {}
+      try { localStorage.setItem(`mybingo_state_${cardId}`, JSON.stringify({ marked: Array.from(next), bingo: checkBingo(next), undoStack: undoStack.slice(0, -1), timestamp: Date.now() })); } catch {}
       return next;
     });
   };
 
   const resetGame = () => {
     if (!card) return;
-    const freeIdx = card.freeSpace ? Math.floor((card.size * card.size) / 2) : -1;
+    const freeIdx = getFreeSpaceIndex();
     setMarked(freeIdx >= 0 ? new Set([freeIdx]) : new Set());
     setUndoStack([]);
     setBingo(false);
@@ -287,6 +390,11 @@ export default function CardViewPage() {
 
   const handlePrint = () => {
     if (typeof window !== "undefined") {
+      trackClientActivity("print_started", {
+        cardId,
+        title: card?.title || "",
+        context: "owner_card",
+      });
       trackCardPrinted(cardId, "print");
       trackClientActivity("card_printed", {
         cardId,
@@ -297,8 +405,15 @@ export default function CardViewPage() {
   };
 
   const handleExportPDF = async () => {
+    if (shouldUseBatchForPdf) {
+      openBatchForPdf("single_pdf_export");
+      return;
+    }
+
     try {
+      trackExportButtonClicked("single_pdf_export", "single_pdf");
       setExporting("pdf");
+      trackClientActivity("export_pdf_started", { cardId, format: "pdf", context: "owner_card" });
       const response = await fetch(`/api/cards/${cardId}/export/pdf`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -322,6 +437,7 @@ export default function CardViewPage() {
   const handleExportPNG = async () => {
     try {
       setExporting("png");
+      trackClientActivity("export_png_started", { cardId, format: "png", context: "owner_card" });
       const response = await fetch(`/api/cards/${cardId}/export/png`, { method: "POST" });
       if (!response.ok) { const d = await response.json(); throw new Error(d.error || "Failed"); }
       const blob = await response.blob();
@@ -338,10 +454,17 @@ export default function CardViewPage() {
     finally { setExporting(null); }
   };
 
-  const copyShareLink = async () => {
+  const copyShareLink = async (source: unknown = "card_page") => {
     if (card?.shareLink) {
+      const eventSource = typeof source === "string" ? source : "card_page";
       const url = `${window.location.origin}/share/${card.shareLink}`;
       await navigator.clipboard.writeText(url);
+      trackClientActivity("share_link_copied", {
+        cardId,
+        title: card.title,
+        source: eventSource,
+        context: "owner_card",
+      });
       trackClientActivity("card_share_link_copied", {
         cardId,
         title: card.title,
@@ -351,9 +474,10 @@ export default function CardViewPage() {
     }
   };
 
-  const generateShareLink = async () => {
-    if (!card) return;
+  const generateShareLink = async (source: unknown = "card_page") => {
+    if (!card) return false;
     try {
+      const eventSource = typeof source === "string" ? source : "card_page";
       setGeneratingLink(true);
       const response = await fetch(`/api/cards/${cardId}/share`, { method: "POST" });
       const data = await response.json();
@@ -361,6 +485,13 @@ export default function CardViewPage() {
       setCard({ ...card, shareLink: data.shareLink, isPublic: true });
       const url = `${window.location.origin}/share/${data.shareLink}`;
       await navigator.clipboard.writeText(url);
+      trackClientActivity("share_link_copied", {
+        cardId,
+        title: card.title,
+        generated: true,
+        source: eventSource,
+        context: "owner_card",
+      });
       trackClientActivity("card_share_link_copied", {
         cardId,
         title: card.title,
@@ -368,11 +499,100 @@ export default function CardViewPage() {
       });
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      return true;
     } catch (err: any) {
       alert(err.message || "Failed to generate share link");
+      return false;
     } finally {
       setGeneratingLink(false);
     }
+  };
+
+  const openShareEmailFromMobile = async () => {
+    if (!card || generatingLink) return;
+
+    setActiveTab("share");
+    setBarExpanded(true);
+
+    if (!card.shareLink) {
+      const created = await generateShareLink("mobile_share_email");
+      if (!created) return;
+    }
+
+    setShareEmailOpenTrigger((value) => value + 1);
+  };
+
+  const trackNextStep = (action: string) => {
+    if (!card) return;
+    trackClientActivity("post_save_next_step_clicked", {
+      cardId: card._id,
+      title: card.title,
+      action,
+      source: entryNotice || "card_page",
+      context: "owner_card",
+    });
+  };
+
+  const trackExportButtonClicked = (source: string, exportType: string) => {
+    trackClientActivity("export_button_clicked", {
+      source,
+      export_type: exportType,
+      cardId,
+      title: card?.title || "",
+      plan_type: userPlan?.planType || "UNKNOWN",
+      batch_count: batchCount,
+      context: "owner_card",
+    });
+  };
+
+  const trackBatchButtonClicked = (
+    action: string,
+    source: string,
+    nextBatchCount: BatchCount = batchCount,
+    extra: Record<string, unknown> = {}
+  ) => {
+    trackClientActivity("batch_button_clicked", {
+      action,
+      source,
+      cardId,
+      title: card?.title || "",
+      batch_count: nextBatchCount,
+      price: formatBatchPackPrice(nextBatchCount),
+      plan_type: userPlan?.planType || "UNKNOWN",
+      has_ready_purchase: (availableBatchCounts[nextBatchCount] || 0) > 0,
+      is_premium_batch_user: isPremiumBatchUser,
+      context: "owner_card",
+      ...extra,
+    });
+  };
+
+  const selectBatchCount = (nextBatchCount: BatchCount, source: string) => {
+    setBatchCount(nextBatchCount);
+    trackClientActivity("batch_tier_selected", {
+      source,
+      cardId,
+      title: card?.title || "",
+      batch_count: nextBatchCount,
+      price: formatBatchPackPrice(nextBatchCount),
+      plan_type: userPlan?.planType || "UNKNOWN",
+      has_ready_purchase: (availableBatchCounts[nextBatchCount] || 0) > 0,
+      context: "owner_card",
+    });
+  };
+
+  const openBatchForPdf = (source: string = "export_tab") => {
+    trackExportButtonClicked(source, "batch_pdf");
+    trackBatchButtonClicked("open_panel_for_pdf", source);
+    trackClientActivity("export_pdf_batch_required", {
+      cardId,
+      title: card?.title || "",
+      source,
+      batchCount,
+      context: "owner_card",
+    });
+    setActiveTab("download");
+    setBarExpanded(true);
+    loadBatchPurchases();
   };
 
   // --- Batch functions ---
@@ -399,12 +619,22 @@ export default function CardViewPage() {
 
   const handleBatchCheckout = async () => {
     if (!session?.user) return;
+    trackClientActivity("batch_primary_clicked", {
+      action: "buy",
+      source: "card_page",
+      cardId,
+      title: card?.title || "",
+      batch_count: batchCount,
+      price: selectedBatchPrice,
+      plan_type: userPlan?.planType || "UNKNOWN",
+      context: "owner_card",
+    });
     setBatchCheckoutLoading(true);
     try {
       await redirectToCheckout({
         purchaseType: "batch_pack",
         batchCount,
-        label: `${batchCount} Card Batch`,
+        label: `${batchCount} Card Download`,
         successPath: `/cards/${cardId}?batchPurchase=success&batchCount=${batchCount}`,
       });
     } catch {
@@ -415,13 +645,28 @@ export default function CardViewPage() {
 
   const handleBatchGenerate = async () => {
     if (!card) return;
+    trackClientActivity("batch_primary_clicked", {
+      action: "generate",
+      source: "card_page",
+      cardId,
+      title: card.title,
+      batch_count: batchCount,
+      price: selectedBatchPrice,
+      plan_type: userPlan?.planType || "UNKNOWN",
+      has_ready_purchase: hasSelectedBatchPurchase,
+      is_premium_batch_user: isPremiumBatchUser,
+      context: "owner_card",
+    });
     setBatchLoading(true);
     setBatchResult(null);
+    setBatchPdfDownloaded(false);
     try {
-      const filledCells = card.cells.filter((c) => c.trim()).length;
-      const neededCells = card.freeSpace ? card.size * card.size - 1 : card.size * card.size;
-      if (filledCells < neededCells) {
-        alert(`Need at least ${neededCells} filled items for ${card.size}x${card.size} batch generation`);
+      const variant = normalizeBingoVariant(card.bingoVariant);
+      const shape = getBingoGridShape(card);
+      const filledCells = card.cells.filter((c) => c.trim() && c !== "FREE").length;
+      const neededCells = variant === "classic90" ? 15 : card.freeSpace ? shape.rows * shape.columns - 1 : shape.rows * shape.columns;
+      if (variant === "custom" && filledCells < neededCells) {
+        alert(`Need at least ${neededCells} filled items for a ${card.size}x${card.size} card set`);
         setBatchLoading(false);
         return;
       }
@@ -431,7 +676,10 @@ export default function CardViewPage() {
         body: JSON.stringify({
           title: card.title,
           size: card.size,
-          cells: card.cells.filter((c) => c.trim()),
+          rows: shape.rows,
+          columns: shape.columns,
+          bingoVariant: variant,
+          cells: variant === "custom" ? card.cells.filter((c) => c.trim()) : card.cells,
           freeSpace: card.freeSpace,
           style: card.style,
           count: batchCount,
@@ -442,14 +690,14 @@ export default function CardViewPage() {
         if (response.status === 403 && data.batchPurchaseRequired) {
           await loadBatchPurchases();
         }
-        alert(data.error || "Failed to generate batch cards");
+        alert(data.error || "Failed to generate cards");
         setBatchLoading(false);
         return;
       }
       setBatchResult({ count: data.count, cardIds: data.cards.map((c: any) => c._id) });
       await loadBatchPurchases();
     } catch {
-      alert("An error occurred during batch generation");
+      alert("An error occurred while generating cards");
     } finally {
       setBatchLoading(false);
     }
@@ -459,29 +707,59 @@ export default function CardViewPage() {
     if (!batchResult) return;
     const loadingKey = grayscale ? "pdf-gray" : `pdf-${cardsPerPage}`;
     setBatchPdfLoading(loadingKey);
+    setBatchPdfDownloaded(false);
+    const pdfMetadata = {
+      source: "card_page",
+      action: "pdf_layout",
+      cardId: card?._id || cardId,
+      title: card?.title || "",
+      batch_count: batchResult.count,
+      price: selectedBatchPrice,
+      plan_type: userPlan?.planType || "UNKNOWN",
+      batchCount: batchResult.count,
+      cardCount: batchResult.cardIds.length,
+      cardsPerPage,
+      grayscale,
+      showCutLines: true,
+    };
+    trackClientActivity("batch_pdf_export_started", pdfMetadata);
     try {
       const response = await fetch("/api/cards/batch/pdf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cardIds: batchResult.cardIds, cardsPerPage, grayscale, showCutLines: true }),
       });
-      if (!response.ok) throw new Error("Failed to generate PDF");
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to generate PDF");
+      }
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const w = window.open(url, "_blank");
-      if (!w) {
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `bingo-batch-${batchResult.count}-cards.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bingo-cards-${batchResult.count}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.setTimeout(() => window.URL.revokeObjectURL(url), 30000);
+      setBatchPdfDownloaded(true);
+      const delivery: "download" = "download";
+      trackClientActivity("batch_pdf_export_succeeded", { ...pdfMetadata, delivery });
     } catch (err: any) {
-      alert(err.message || "Failed to download batch PDF");
+      trackClientActivity("batch_pdf_export_failed", {
+        ...pdfMetadata,
+        error: err.message || "Failed to download cards",
+      });
+      alert(err.message || "Failed to download cards");
     } finally {
       setBatchPdfLoading(null);
     }
+  };
+
+  const returnToCard = () => {
+    setActiveTab("play");
+    setBarExpanded(false);
+    window.setTimeout(() => cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
   };
 
   if (loading) return (
@@ -505,7 +783,9 @@ export default function CardViewPage() {
   );
 
   const freeSpaceIdx = getFreeSpaceIndex();
-  const totalCells = card.size * card.size;
+  const variant = normalizeBingoVariant(card.bingoVariant);
+  const shape = getBingoGridShape(card);
+  const totalCells = card.cells.filter((cell) => !isBlankClassicCell(cell, variant)).length;
   const markedCount = marked.size;
   const progressPercent = Math.round((markedCount / totalCells) * 100);
   const remainingSquares = Math.max(totalCells - markedCount, 0);
@@ -513,18 +793,48 @@ export default function CardViewPage() {
   const qrCodeUrl = shareUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(shareUrl)}` : "";
 
   const isPremiumBatchUser = userPlan?.planType === "Premium";
+  const shouldUseBatchForPdf = status === "authenticated" && !isPremiumBatchUser;
   const selectedBatchPrice = formatBatchPackPrice(batchCount);
+  const selectedPack = BATCH_PACKS[batchCount];
   const hasSelectedBatchPurchase = (availableBatchCounts[batchCount] || 0) > 0;
   const batchActionLabel = batchLoading
     ? `Generating ${batchCount} cards...`
     : batchCheckoutLoading
       ? "Redirecting to checkout..."
       : isPremiumBatchUser || hasSelectedBatchPurchase
-        ? `Generate ${batchCount} Unique Cards`
-        : `Buy ${batchCount}-Card Batch \u2022 ${selectedBatchPrice}`;
+        ? `Generate ${batchCount} Cards`
+        : `Pay ${selectedBatchPrice} & Generate Cards`;
   const handleBatchPrimaryAction = isPremiumBatchUser || hasSelectedBatchPurchase
     ? handleBatchGenerate
     : handleBatchCheckout;
+  const sharePanel = card.isPublic && card.shareLink ? (
+    <SocialShare
+      url={shareUrl}
+      title={card.title}
+      cardId={card._id}
+      userPlanType={userPlan?.planType}
+      openEmailTrigger={shareEmailOpenTrigger}
+    />
+  ) : (
+    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-left">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm font-bold text-slate-900">Create a player link</p>
+          <p className="text-xs text-slate-600">Players can open this card on any device and mark squares in their browser.</p>
+        </div>
+        <button
+          onClick={() => generateShareLink("owner_share_panel")}
+          disabled={generatingLink}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 0 0-5.656 0l-4 4a4 4 0 1 0 5.656 5.656l1.102-1.101m-.758-4.899a4 4 0 0 0 5.656 0l4-4a4 4 0 0 0-5.656-5.656l-1.1 1.1" />
+          </svg>
+          {generatingLink ? "Creating..." : "Create player link"}
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div
@@ -546,18 +856,18 @@ export default function CardViewPage() {
         <header className={`border-b sticky top-0 z-10 print:hidden ${
           "bg-white border-slate-100"
         }`}>
-          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex justify-between items-center gap-2">
             <div className="flex items-center gap-3">
               <Link href="/dashboard" className="p-2 -ml-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </Link>
-              <Link href="/dashboard" className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
+              <Link href="/dashboard" className="hidden min-[390px]:inline text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
                 MyBingoCard
               </Link>
             </div>
-            <div className="flex gap-2 items-center">
+            <div className="flex shrink-0 gap-1.5 sm:gap-2 items-center">
               <FavoriteButton cardId={card._id} />
-              <Link href={`/create?cardId=${card._id}`} className="px-4 py-2 text-sm border rounded-lg font-medium transition-colors border-slate-200 text-slate-700 hover:bg-slate-50">
+              <Link href={`/create?cardId=${card._id}`} className="px-3 sm:px-4 py-2 text-sm border rounded-lg font-medium transition-colors border-slate-200 text-slate-700 hover:bg-slate-50">
                 Edit
               </Link>
               <Link href="/dashboard/cards" className="hidden sm:inline px-4 py-2 text-sm transition-colors text-slate-500 hover:text-slate-700">
@@ -569,76 +879,64 @@ export default function CardViewPage() {
         </header>
       )}
 
-      <main className={`container mx-auto px-4 py-6 max-w-5xl ${isFullscreen ? "" : "pb-24 md:pb-6"}`}>
+      <main className={`container mx-auto px-4 py-4 sm:py-6 max-w-5xl ${isFullscreen ? "" : "pb-24 md:pb-6"}`}>
         {bingo && !isFullscreen && (
           <div className="mb-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl p-3 text-center font-black text-xl shadow-lg print:hidden">
             🎉 BINGO! You got it! 🎉
           </div>
         )}
 
-        {!isFullscreen && (
-          <section className="mb-6 rounded-[28px] bg-gradient-to-br from-slate-900 via-indigo-900 to-violet-700 text-white p-5 md:p-6 shadow-xl shadow-indigo-200/50 print:hidden relative overflow-hidden">
-            <div className="absolute -top-16 -right-12 w-40 h-40 rounded-full bg-white/10 blur-3xl" />
-            <div className="absolute -bottom-12 -left-8 w-32 h-32 rounded-full bg-fuchsia-400/20 blur-3xl" />
-
-            <div className="relative z-10">
-              <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-                <div className="max-w-2xl">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-indigo-100">
-                    <span>Solo Mode</span>
-                    {bingo ? <span className="text-yellow-200">BINGO</span> : null}
-                  </div>
-                  <h1 className="mt-3 text-2xl md:text-4xl font-black tracking-tight">{card.title}</h1>
-                  <p className="mt-2 text-sm md:text-base text-indigo-100/90">
-                    {card.description || "Play at your own pace. Tap any square to mark it, and complete a row, column, or diagonal to win."}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-3 backdrop-blur-sm md:min-w-[220px]">
-                  <div className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-100/80">Progress</div>
-                  <div className="mt-2 flex items-end gap-2">
-                    <span className="text-3xl font-black">{progressPercent}%</span>
-                    <span className="pb-1 text-sm text-indigo-100/80">{markedCount}/{totalCells} marked</span>
-                  </div>
-                  <div className="mt-3 h-2 rounded-full bg-white/15 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-cyan-300 to-white transition-all duration-300"
-                      style={{ width: `${progressPercent}%` }}
-                    />
-                  </div>
-                </div>
+        {entryNotice && !isFullscreen && (
+          <section className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm print:hidden">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">
+                  {entryNotice === "created" ? "Card created" : entryNotice === "saved" ? "Card saved" : "Continue"}
+                </p>
+                <h2 className="mt-1 text-lg font-black text-slate-900">{card.title}</h2>
               </div>
-
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl bg-white/10 border border-white/10 p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-100/75">Goal</div>
-                  <p className="mt-2 text-sm font-semibold">Complete any row, column, or diagonal.</p>
-                </div>
-                <div className="rounded-2xl bg-white/10 border border-white/10 p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-100/75">Remaining</div>
-                  <p className="mt-2 text-sm font-semibold">{remainingSquares} squares left to fill.</p>
-                </div>
-                <div className="rounded-2xl bg-white/10 border border-white/10 p-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-indigo-100/75">Autosave</div>
-                  <p className="mt-2 text-sm font-semibold">Your solo progress is saved on this device.</p>
-                </div>
-              </div>
-
-              <div className="mt-5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:hidden">
-                <button onClick={resetGame} className="rounded-xl bg-white text-slate-900 px-4 py-2.5 text-sm font-bold shadow-sm hover:bg-indigo-50 transition-colors">
-                  Reset
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                <button
+                  onClick={() => {
+                    trackNextStep("play");
+                    setActiveTab("play");
+                    cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700"
+                >
+                  Play now
                 </button>
-                <button onClick={undoLast} disabled={undoStack.length === 0} className="rounded-xl bg-white/10 border border-white/15 px-4 py-2.5 text-sm font-bold text-white transition-colors disabled:opacity-40">
-                  Undo
+                <StartGameButton cardId={card._id} label="Play with friends" compact />
+                <button
+                  onClick={() => {
+                    trackNextStep("share");
+                    setActiveTab("share");
+                    sharePanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    if (!card.shareLink) generateShareLink("post_save_notice");
+                  }}
+                  disabled={generatingLink}
+                  className="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 ring-1 ring-emerald-200 transition hover:bg-emerald-100 disabled:opacity-60"
+                >
+                  {generatingLink ? "Creating link..." : "Share"}
                 </button>
-                <button onClick={toggleFullscreen} className="rounded-xl bg-white/10 border border-white/15 px-4 py-2.5 text-sm font-bold text-white transition-colors">
-                  Fullscreen
+                <button
+                  onClick={() => {
+                    trackNextStep("download_cards");
+                    setActiveTab("download");
+                    handleExportPDF();
+                  }}
+                  disabled={exporting !== null}
+                  className="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:opacity-60"
+                >
+                  Download Cards
                 </button>
-                {card.isPublic && card.shareLink && (
-                  <button onClick={copyShareLink} className="rounded-xl bg-white/10 border border-white/15 px-4 py-2.5 text-sm font-bold text-white transition-colors">
-                    {copied ? "Copied" : "Share"}
-                  </button>
-                )}
+                <Link
+                  href="/create"
+                  onClick={() => trackNextStep("create_another")}
+                  className="rounded-xl bg-white px-4 py-2.5 text-center text-sm font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50"
+                >
+                  New card
+                </Link>
               </div>
             </div>
           </section>
@@ -646,45 +944,54 @@ export default function CardViewPage() {
 
         <div className={isFullscreen ? "" : "space-y-6"}>
           {!isFullscreen && (
-            <div className="flex flex-wrap gap-3 items-start print:hidden">
+            <div className="hidden md:flex flex-wrap gap-3 items-start print:hidden">
               <div className={`flex-1 min-w-[300px] rounded-2xl shadow-sm border overflow-hidden ${
                 "bg-white border-slate-100"
               }`}>
                 <div className={`flex border-b ${"border-slate-100"}`}>
                   <button
                     onClick={() => setActiveTab("play")}
-                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "play" ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "play" ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
                   >
                     🎮 Play
                   </button>
                   <button
-                    onClick={() => setActiveTab("export")}
-                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "export" ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+                    onClick={() => setActiveTab("share")}
+                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "share" ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
                   >
-                    📥 Export
+                    🔗 Share
                   </button>
                   <button
-                    onClick={() => { setActiveTab("batch"); loadBatchPurchases(); }}
-                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "batch" ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+                    onClick={() => {
+                      trackExportButtonClicked("desktop_tab", "download_cards");
+                      trackBatchButtonClicked("open_panel", "desktop_tab");
+                      setActiveTab("download");
+                      loadBatchPurchases();
+                    }}
+                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "download" ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
                   >
-                    📋 Batch
+                    💳 Download Cards
                   </button>
                 </div>
 
                 {activeTab === "play" && (
                   <div className="p-4 space-y-4">
+                    <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3">
+                      <p className="mb-2 text-sm font-bold text-emerald-900">Play together live</p>
+                      <StartGameButton cardId={card._id} label="Start room" />
+                    </div>
                     <div>
                       <div className={`flex justify-between text-sm mb-1 ${"text-slate-500"}`}>
                         <span>Progress</span>
                         <span>{markedCount}/{totalCells} marked</span>
                       </div>
                       <div className={`h-2 rounded-full overflow-hidden ${"bg-slate-100"}`}>
-                        <div className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+                        <div className="h-full bg-emerald-500 rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
                       </div>
                     </div>
                     <p className={`text-xs ${"text-slate-400"}`}>Tap any cell on the card to mark it. Get a row, column, or diagonal to win!</p>
                     <div className="flex gap-2">
-                      <button onClick={resetGame} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl transition-all ${"border-slate-200 text-slate-600 hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50"}`}>
+                      <button onClick={resetGame} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl transition-all ${"border-slate-200 text-slate-600 hover:border-emerald-200 hover:text-emerald-600 hover:bg-emerald-50"}`}>
                         🔄 Reset
                       </button>
                       <button onClick={undoLast} disabled={undoStack.length === 0} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed ${"border-slate-200 text-slate-600 hover:border-amber-200 hover:text-amber-600 hover:bg-amber-50"}`}>
@@ -694,157 +1001,218 @@ export default function CardViewPage() {
                     <button onClick={toggleFullscreen} className={`w-full py-2.5 text-sm font-semibold border-2 rounded-xl transition-all ${"border-slate-200 text-slate-600 hover:border-emerald-200 hover:text-emerald-600 hover:bg-emerald-50"}`}>
                       ⛶ Fullscreen
                     </button>
-                    {card.isPublic && card.shareLink && (
-                      <button onClick={copyShareLink} className="w-full py-2.5 text-sm font-semibold bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all">
-                        {copied ? "✅ Copied!" : "🔗 Copy Share Link"}
-                      </button>
-                    )}
+                    <button
+                      onClick={() => card.shareLink ? copyShareLink("play_tab") : generateShareLink("play_tab")}
+                      disabled={generatingLink}
+                      className="w-full py-2.5 text-sm font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-60"
+                    >
+                      {generatingLink ? "Creating link..." : copied ? "Copied!" : card.shareLink ? "Copy Player Link" : "Create Player Link"}
+                    </button>
                   </div>
                 )}
 
-                {activeTab === "export" && (
-                  <div className="p-4 space-y-3">
-                    {userPlan && !userPlan.canRemoveBranding && (
-                      <div className="bg-gradient-to-br from-violet-50 to-indigo-50 border border-indigo-100 rounded-xl p-3 mb-1">
-                        <p className="text-xs font-semibold text-indigo-900 mb-1">Exports include watermark</p>
-                        <p className="text-xs text-indigo-700 mb-2">Remove the MyBingoCard.com watermark and unlock HD exports.</p>
-                        <button onClick={() => redirectToCheckout()} className="w-full py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-lg text-xs font-bold hover:shadow-md transition-all">
-                          Remove Watermark — $4.99/mo
-                        </button>
+                {activeTab === "share" && (
+                  <div ref={sharePanelRef} className="p-4">
+                    {sharePanel}
+                  </div>
+                )}
+
+                {activeTab === "download" && (
+                  <div className="p-4">
+                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                      <div className="border-b border-slate-200 bg-amber-50 p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <p className="text-xs font-black uppercase tracking-wide text-amber-700">
+                              {isPremiumBatchUser ? "Premium PDF packs" : "Paid PDF checkout"}
+                            </p>
+                            <h3 className="mt-1 text-lg font-black text-slate-950">
+                              {isPremiumBatchUser ? "Generate printable cards" : "Paid printable card download"}
+                            </h3>
+                            <p className="mt-1 text-sm text-slate-600">
+                              {isPremiumBatchUser
+                                ? "Choose how many unique cards to generate, then download the PDF."
+                                : "Choose a paid pack. The selected dollar amount updates below before checkout."}
+                            </p>
+                          </div>
+                          {!isPremiumBatchUser && (
+                            <div className="shrink-0 rounded-xl bg-white px-3 py-2 text-right shadow-sm ring-1 ring-amber-200">
+                              <p className="text-[11px] font-black uppercase text-slate-500">Selected</p>
+                              <p className="text-2xl font-black text-slate-950">
+                                {hasSelectedBatchPurchase ? "$0" : selectedBatchPrice}
+                              </p>
+                              <p className="text-[11px] font-bold text-slate-500">
+                                {hasSelectedBatchPurchase ? "Already paid" : "due today"}
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                    <button onClick={handleExportPDF} disabled={exporting !== null} className="w-full px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition disabled:opacity-50 flex items-center justify-center gap-2 font-semibold text-sm">
-                      {exporting === "pdf" ? (
-                        <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Generating...</span></>
-                      ) : (
-                        <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg><span>Download PDF</span></>
-                      )}
-                    </button>
-                    <button onClick={handleExportPNG} disabled={exporting !== null} className="w-full px-4 py-3 bg-violet-600 text-white rounded-xl hover:bg-violet-700 transition disabled:opacity-50 flex items-center justify-center gap-2 font-semibold text-sm">
-                      {exporting === "png" ? (
-                        <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Generating...</span></>
-                      ) : (
-                        <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg><span>Download PNG</span></>
-                      )}
-                    </button>
-                    <button onClick={handlePrint} className="w-full px-4 py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-800 transition flex items-center justify-center gap-2 font-semibold text-sm">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                      <span>Print</span>
-                    </button>
-                    {userPlan && (
-                      <p className={`text-xs text-center ${"text-slate-400"}`}>
-                        {userPlan.canExportHD ? "✨ HD Quality (2400px)" : "📄 Standard Quality (1200px)"}
-                      </p>
-                    )}
-                  </div>
-                )}
 
-                {activeTab === "batch" && (
-                  <div className="p-4 space-y-4">
-                    <p className="text-xs text-slate-500">
-                      Generate multiple unique cards from the same items. Each card gets a different shuffled arrangement.
-                    </p>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                        Number of cards
-                      </label>
-                      <div className="grid grid-cols-4 gap-2">
-                        {([30, 100, 250, 500] as const).map((n) => (
-                          <button
-                            key={n}
-                            onClick={() => setBatchCount(n)}
-                            className={`py-2 rounded-lg border text-sm font-medium transition-all ${
-                              batchCount === n
-                                ? "border-indigo-600 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600"
-                                : "border-slate-200 bg-white text-slate-600 hover:border-indigo-300"
-                            }`}
-                          >
-                            <div className="font-semibold">{n}</div>
-                            {!isPremiumBatchUser && (
-                              <div className="mt-0.5 text-[11px] font-medium text-slate-500">
-                                {BATCH_PACKS[n].label}
-                              </div>
-                            )}
-                            {!isPremiumBatchUser && (availableBatchCounts[n] || 0) > 0 && (
-                              <div className="mt-1 text-[10px] font-semibold text-emerald-600">
-                                Ready x{availableBatchCounts[n]}
-                              </div>
+                      <div className="p-4">
+                        {!shouldUseBatchForPdf && (
+                          <button onClick={handleExportPDF} disabled={exporting !== null} className="mb-4 w-full px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition disabled:opacity-50 flex items-center justify-center gap-2 font-semibold text-sm">
+                            {exporting === "pdf" ? (
+                              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Generating...</span></>
+                            ) : (
+                              <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 0 0 2-2V9.414a1 1 0 0 0-.293-.707l-5.414-5.414A1 1 0 0 0 12.586 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z" /></svg><span>Download Cards</span></>
                             )}
                           </button>
-                        ))}
+                        )}
+
+                        <div className="space-y-2">
+                          {CARD_COUNT_OPTIONS.map((n) => {
+                            const isSelected = batchCount === n;
+                            const isReady = !isPremiumBatchUser && (availableBatchCounts[n] || 0) > 0;
+                            const isPaidDue = !isPremiumBatchUser && !isReady;
+
+                            return (
+                              <button
+                                key={n}
+                                onClick={() => selectBatchCount(n, "card_page_desktop")}
+                                className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition ${
+                                  isSelected
+                                    ? isPremiumBatchUser || isReady
+                                      ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500"
+                                      : "border-amber-500 bg-amber-50 ring-1 ring-amber-500"
+                                    : "border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50/40"
+                                }`}
+                              >
+                                <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                                  isSelected
+                                    ? isPremiumBatchUser || isReady
+                                      ? "border-emerald-600 bg-emerald-600"
+                                      : "border-amber-600 bg-amber-600"
+                                    : "border-slate-300"
+                                }`}>
+                                  {isSelected && <span className="h-2 w-2 rounded-full bg-white" />}
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="flex flex-wrap items-center gap-2">
+                                    <span className="text-sm font-black text-slate-950">{n} printable cards</span>
+                                    {n === 500 && isPaidDue && (
+                                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black uppercase text-amber-700">Best value</span>
+                                    )}
+                                    {isReady && (
+                                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">Already paid</span>
+                                    )}
+                                    {isPaidDue && (
+                                      <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-black uppercase text-white">Paid</span>
+                                    )}
+                                  </span>
+                                  <span className="mt-0.5 block text-xs font-semibold text-slate-500">
+                                    {isPremiumBatchUser ? "Included with Premium" : isReady ? "Ready to generate" : `${formatPerCard(n)} one-time`}
+                                  </span>
+                                </span>
+                                <span className="text-right">
+                                  <span className={`block text-lg font-black ${isPaidDue ? "text-amber-700" : "text-slate-950"}`}>
+                                    {isPremiumBatchUser ? "Included" : isReady ? "$0" : BATCH_PACKS[n].label}
+                                  </span>
+                                  {isSelected && (
+                                    <span className={`block text-[11px] font-black uppercase ${
+                                      isPremiumBatchUser || isReady ? "text-emerald-700" : "text-amber-700"
+                                    }`}>
+                                      Selected
+                                    </span>
+                                  )}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        {batchResult ? (
+                          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 space-y-3">
+                            <div>
+                              <p className="text-sm font-black text-emerald-900">
+                                {batchPdfDownloaded ? "Your PDF download started." : `${batchResult.count} cards are ready.`}
+                              </p>
+                              <p className="mt-1 text-xs text-emerald-700">
+                                {batchPdfDownloaded
+                                  ? "You can go back to the card or download the PDF again."
+                                  : "Download the PDF now or create another set."}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => handleBatchPdfDownload(1)}
+                              disabled={batchPdfLoading !== null}
+                              className={`w-full rounded-xl py-3 text-sm font-black transition ${
+                                batchPdfLoading === "pdf-1" ? "bg-red-700 text-white cursor-wait" : "bg-red-600 text-white hover:bg-red-700"
+                              }`}
+                            >
+                              {batchPdfLoading === "pdf-1"
+                                ? "Generating PDF..."
+                                : batchPdfDownloaded
+                                  ? "Download Again"
+                                  : "Download Cards"}
+                            </button>
+                            {batchPdfDownloaded && (
+                              <button
+                                onClick={returnToCard}
+                                className="w-full rounded-xl bg-emerald-700 py-3 text-sm font-black text-white transition hover:bg-emerald-800"
+                              >
+                                Back to Card
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setBatchResult(null)}
+                              className="w-full py-2 text-sm font-semibold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+                            >
+                              Create More
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                            <div className="mb-3 flex items-center justify-between gap-3">
+                              <div>
+                                <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                                  {isPremiumBatchUser ? "Premium included" : hasSelectedBatchPurchase ? "Paid pack ready" : "Order summary"}
+                                </p>
+                                <p className="mt-0.5 text-base font-black text-slate-950">{batchCount} cards</p>
+                                <p className="text-xs text-slate-600">
+                                  {isPremiumBatchUser || hasSelectedBatchPurchase
+                                    ? "Generate now, then download as PDF."
+                                    : "One-time paid download. No subscription required."}
+                                </p>
+                              </div>
+                              {!isPremiumBatchUser && (
+                                <div className="text-right">
+                                  <p className="text-[11px] font-black uppercase text-slate-500">
+                                    {hasSelectedBatchPurchase ? "Already paid" : "Due today"}
+                                  </p>
+                                  <p className="text-3xl font-black text-slate-950">
+                                    {hasSelectedBatchPurchase ? "$0" : selectedPack.label}
+                                  </p>
+                                  <p className="text-[11px] font-semibold text-slate-500">
+                                    {hasSelectedBatchPurchase ? "Already paid" : formatPerCard(batchCount)}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                            <button
+                              onClick={handleBatchPrimaryAction}
+                              disabled={batchLoading || batchCheckoutLoading}
+                              className="w-full rounded-xl bg-slate-950 px-4 py-3 text-sm font-black text-white transition hover:bg-slate-800 disabled:opacity-50"
+                            >
+                              {batchActionLabel}
+                            </button>
+                            {!isPremiumBatchUser && !hasSelectedBatchPurchase && (
+                              <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50 p-3">
+                                <p className="text-xs font-bold text-indigo-950">
+                                  Or subscribe for $4.99/mo and batches up to 500 cards are included.
+                                </p>
+                                <button
+                                  onClick={() => redirectToCheckout()}
+                                  className="mt-2 w-full rounded-lg bg-indigo-600 px-3 py-2 text-xs font-black text-white transition hover:bg-indigo-700"
+                                >
+                                  Subscribe for $4.99/mo
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
-
-                    {isPremiumBatchUser ? (
-                      <p className="text-xs text-slate-500">
-                        Batch generation is included in your Premium plan.
-                      </p>
-                    ) : (
-                      <p className="text-xs text-slate-500">
-                        Free accounts can buy one-time batch packs. Premium includes unlimited batch generation.
-                      </p>
-                    )}
-
-                    {batchResult ? (
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-3">
-                        <p className="text-sm font-semibold text-emerald-800">
-                          {batchResult.count} cards generated!
-                        </p>
-                        <div className="space-y-2">
-                          <button
-                            onClick={() => handleBatchPdfDownload(1)}
-                            disabled={batchPdfLoading !== null}
-                            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
-                              batchPdfLoading === "pdf-1" ? "bg-red-700 text-white cursor-wait" : "bg-red-600 text-white hover:bg-red-700"
-                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-1" ? "cursor-not-allowed" : ""}`}
-                          >
-                            {batchPdfLoading === "pdf-1" ? "Generating PDF..." : "Download PDF (1 per page)"}
-                          </button>
-                          <button
-                            onClick={() => handleBatchPdfDownload(2)}
-                            disabled={batchPdfLoading !== null}
-                            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
-                              batchPdfLoading === "pdf-2" ? "bg-red-600 text-white cursor-wait" : "bg-red-500 text-white hover:bg-red-600"
-                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-2" ? "cursor-not-allowed" : ""}`}
-                          >
-                            {batchPdfLoading === "pdf-2" ? "Generating PDF..." : "Download PDF (2 per page)"}
-                          </button>
-                          <button
-                            onClick={() => handleBatchPdfDownload(4)}
-                            disabled={batchPdfLoading !== null}
-                            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition ${
-                              batchPdfLoading === "pdf-4" ? "bg-red-500 text-white cursor-wait" : "bg-red-400 text-white hover:bg-red-500"
-                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-4" ? "cursor-not-allowed" : ""}`}
-                          >
-                            {batchPdfLoading === "pdf-4" ? "Generating PDF..." : "Download PDF (4 per page)"}
-                          </button>
-                          <button
-                            onClick={() => handleBatchPdfDownload(1, true)}
-                            disabled={batchPdfLoading !== null}
-                            className={`w-full py-2 rounded-lg text-sm font-semibold transition ${
-                              batchPdfLoading === "pdf-gray" ? "bg-slate-700 text-white cursor-wait" : "bg-slate-600 text-white hover:bg-slate-700"
-                            } ${batchPdfLoading !== null && batchPdfLoading !== "pdf-gray" ? "cursor-not-allowed" : ""}`}
-                          >
-                            {batchPdfLoading === "pdf-gray" ? "Generating..." : "Download Grayscale PDF"}
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => setBatchResult(null)}
-                          className="w-full py-2 text-sm font-semibold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
-                        >
-                          Generate More
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={handleBatchPrimaryAction}
-                        disabled={batchLoading || batchCheckoutLoading}
-                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-3 rounded-xl hover:shadow-lg transition-all disabled:opacity-50 font-bold text-sm"
-                      >
-                        {batchActionLabel}
-                      </button>
-                    )}
                   </div>
                 )}
               </div>
@@ -858,7 +1226,7 @@ export default function CardViewPage() {
             <div className={`rounded-2xl shadow-sm border p-3 md:p-6 print-card ${"bg-white border-slate-100"}`} ref={cardRef}>
               <div className="text-center mb-3 md:mb-6">
                 <div className="flex flex-wrap items-center justify-center gap-2 mb-3 print:hidden">
-                  <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wide">
+                  <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wide">
                     Solo Play
                   </span>
                   <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
@@ -875,15 +1243,23 @@ export default function CardViewPage() {
                 <p className={`text-xs mt-1 print:hidden ${"text-slate-400"}`}>Tap a cell to mark it</p>
                 <div className="mt-3 h-2 rounded-full bg-slate-100 overflow-hidden print:hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-300"
+                    className="h-full bg-emerald-500 rounded-full transition-all duration-300"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
               </div>
 
-              <div ref={gridRef} className="grid gap-1.5 md:gap-2 w-full bingo-grid-print" style={{ gridTemplateColumns: `repeat(${card.size}, 1fr)` }}>
+              {variant === "classic75" && (
+                <div className="mb-2 grid gap-1.5 md:gap-2 text-center text-sm font-black text-emerald-700" style={{ gridTemplateColumns: `repeat(${shape.columns}, 1fr)` }}>
+                  {"BINGO".split("").map((letter) => (
+                    <div key={letter} className="rounded-lg bg-emerald-50 py-1">{letter}</div>
+                  ))}
+                </div>
+              )}
+              <div ref={gridRef} className="grid gap-1.5 md:gap-2 w-full bingo-grid-print" style={{ gridTemplateColumns: `repeat(${shape.columns}, 1fr)` }}>
                 {card.cells.map((cell, index) => {
                   const isFreeSpace = card.freeSpace && index === freeSpaceIdx;
+                  const isBlank90 = isBlankClassicCell(cell, variant);
                   const isMarked = marked.has(index);
 
                   return (
@@ -892,15 +1268,17 @@ export default function CardViewPage() {
                       onClick={() => toggleCell(index)}
                       className={`
                         aspect-square flex items-center justify-center text-center rounded-xl font-semibold transition-all duration-150 select-none touch-manipulation overflow-hidden
-                        ${isFreeSpace
-                          ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white cursor-default shadow-md"
+                        ${isBlank90
+                          ? "bg-amber-50 border border-dashed border-amber-100 text-transparent cursor-default"
+                          : isFreeSpace
+                          ? "bg-emerald-600 text-white cursor-default shadow-md"
                           : isMarked
-                            ? "bg-gradient-to-br from-violet-500 to-indigo-500 text-white shadow-md ring-2 ring-indigo-300"
-                            : "bg-slate-50 text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 active:scale-95"
+                            ? "bg-emerald-600 text-white shadow-md ring-2 ring-emerald-300"
+                            : "bg-slate-50 text-slate-700 border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 active:scale-95"
                         }
                       `}
                       style={{
-                        fontSize: `clamp(0.55rem, ${card.size === 3 ? "3.5vw" : card.size === 4 ? "2.8vw" : "2.2vw"}, ${card.size === 3 ? "1rem" : card.size === 4 ? "0.9rem" : "0.8rem"})`,
+                        fontSize: `clamp(0.5rem, ${card.size === 3 ? "3vw" : card.size === 4 ? "2.35vw" : "1.75vw"}, ${card.size === 3 ? "0.95rem" : card.size === 4 ? "0.82rem" : "0.72rem"})`,
                         padding: "4px",
                         fontFamily: card.style.fontFamily || "inherit",
                         ...(isMarked || isFreeSpace ? {} : {
@@ -909,9 +1287,11 @@ export default function CardViewPage() {
                           borderColor: card.style.borderColor || undefined,
                         }),
                       }}
-                      aria-label={isFreeSpace ? "Free space" : `${cell} - ${isMarked ? "marked" : "not marked"}`}
+                      aria-label={isBlank90 ? "Blank" : isFreeSpace ? "Free space" : `${formatClassicCellLabel(cell, variant)} - ${isMarked ? "marked" : "not marked"}`}
                     >
-                      {isFreeSpace ? (
+                      {isBlank90 ? (
+                        <span className="sr-only">Blank</span>
+                      ) : isFreeSpace ? (
                         <span className="font-black text-xs">FREE</span>
                       ) : isMarked ? (
                         <span className="flex flex-col items-center gap-0.5">
@@ -923,7 +1303,7 @@ export default function CardViewPage() {
                               <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-[60%] max-h-[40%] object-contain opacity-60" />
                             )
                           ) : (
-                            <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: fittedSizes.has(index) ? `${fittedSizes.get(index)! * 0.55}px` : "0.6em" }}>{cell}</span>
+                            <span className="w-full min-w-0 max-w-full opacity-60 line-through leading-tight break-words text-center [overflow-wrap:anywhere]" style={{ fontSize: fittedSizes.has(index) ? `${fittedSizes.get(index)! * 0.55}px` : "0.6em" }}>{formatClassicCellLabel(cell, variant)}</span>
                           )}
                         </span>
                       ) : isImageCell(cell) ? (
@@ -939,7 +1319,7 @@ export default function CardViewPage() {
                           </span>
                         )
                       ) : (
-                        <span className="break-words leading-tight text-center" style={fittedSizes.has(index) ? { fontSize: `${fittedSizes.get(index)}px` } : undefined}>{cell}</span>
+                        <span className="w-full min-w-0 max-w-full break-words leading-tight text-center [overflow-wrap:anywhere]" style={fittedSizes.has(index) ? { fontSize: `${Math.min(fittedSizes.get(index)!, card.size === 5 ? 13 : 16)}px` } : undefined}>{formatClassicCellLabel(cell, variant)}</span>
                       )}
                     </button>
                   );
@@ -951,12 +1331,6 @@ export default function CardViewPage() {
                   <button onClick={undoLast} disabled={undoStack.length === 0} className="px-4 py-2 bg-amber-500 text-white rounded-xl font-semibold text-sm disabled:opacity-30 transition-all">↩ Undo</button>
                   <button onClick={resetGame} className="px-4 py-2 bg-slate-600 text-white rounded-xl font-semibold text-sm">🔄 Reset</button>
                   <button onClick={toggleFullscreen} className="px-4 py-2 bg-red-500 text-white rounded-xl font-semibold text-sm">✕ Exit</button>
-                </div>
-              )}
-
-              {card.isPublic && card.shareLink && !isFullscreen && (
-                <div className="mt-5 flex justify-center print:hidden">
-                  <SocialShare url={shareUrl} title={card.title} cardId={card._id} />
                 </div>
               )}
 
@@ -994,7 +1368,7 @@ export default function CardViewPage() {
                 {activeTab === "play" && (
                   <div className="space-y-2">
                     <div className={`h-1.5 rounded-full overflow-hidden ${"bg-slate-100"}`}>
-                      <div className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+                      <div className="h-full bg-emerald-500 rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
                     </div>
                     <div className="flex gap-2">
                       <button onClick={resetGame} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl ${"border-slate-200 text-slate-600"}`}>🔄 Reset</button>
@@ -1002,64 +1376,147 @@ export default function CardViewPage() {
                     </div>
                     <div className="flex gap-2">
                       <button onClick={toggleFullscreen} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl ${"border-slate-200 text-slate-600"}`}>⛶ Fullscreen</button>
-                      {card.isPublic && card.shareLink && (
-                        <button onClick={copyShareLink} className="flex-1 py-2.5 text-sm font-semibold bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl">
-                          {copied ? "✅ Copied" : "🔗 Share"}
-                        </button>
-                      )}
+                      <button
+                        onClick={openShareEmailFromMobile}
+                        disabled={generatingLink}
+                        className="flex-1 py-2.5 text-sm font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl disabled:opacity-60"
+                      >
+                        {generatingLink ? "..." : "Email share"}
+                      </button>
                     </div>
                   </div>
                 )}
-                {activeTab === "export" && (
+                {activeTab === "share" && (
                   <div className="space-y-2">
-                    <div className="flex gap-2">
-                      <button onClick={handleExportPDF} disabled={exporting !== null} className="flex-1 py-2.5 bg-red-600 text-white rounded-xl disabled:opacity-50 font-semibold text-sm">{exporting === "pdf" ? "..." : "📄 PDF"}</button>
-                      <button onClick={handleExportPNG} disabled={exporting !== null} className="flex-1 py-2.5 bg-violet-600 text-white rounded-xl disabled:opacity-50 font-semibold text-sm">{exporting === "png" ? "..." : "🖼 PNG"}</button>
-                    </div>
-                    <button onClick={handlePrint} className="w-full py-2.5 bg-slate-700 text-white rounded-xl font-semibold text-sm">🖨 Print</button>
+                    {sharePanel}
                   </div>
                 )}
-                {activeTab === "batch" && (
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {([30, 100, 250, 500] as const).map((n) => (
+                {activeTab === "download" && (
+                  <div className="space-y-3">
+                    <div className="rounded-2xl border border-slate-200 bg-amber-50 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <p className="text-[11px] font-black uppercase tracking-wide text-amber-700">
+                            {isPremiumBatchUser ? "Premium PDF packs" : "Paid PDF packs"}
+                          </p>
+                          <p className="mt-0.5 text-xs text-slate-700">
+                            {isPremiumBatchUser ? "Included with Premium." : `Selected: ${selectedBatchPrice}`}
+                          </p>
+                        </div>
+                        {!isPremiumBatchUser && (
+                          <div className="rounded-xl bg-white px-3 py-2 text-right text-slate-950 shadow-sm ring-1 ring-amber-200">
+                            <p className="text-[11px] font-black uppercase">{hasSelectedBatchPurchase ? "Paid" : "Due today"}</p>
+                            <p className="text-xl font-black">{hasSelectedBatchPurchase ? "$0" : selectedBatchPrice}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {!shouldUseBatchForPdf && (
+                      <button onClick={handleExportPDF} disabled={exporting !== null} className="w-full py-2.5 bg-red-600 text-white rounded-xl disabled:opacity-50 font-semibold text-sm">
+                        {exporting === "pdf" ? "..." : "📄 Download Cards"}
+                      </button>
+                    )}
+                    <div className="space-y-2">
+                      {CARD_COUNT_OPTIONS.map((n) => (
                         <button
                           key={n}
-                          onClick={() => setBatchCount(n)}
-                          className={`py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                          onClick={() => selectBatchCount(n, "card_page_mobile")}
+                          className={`flex w-full items-center gap-2 rounded-xl border p-2 text-left text-xs transition-all ${
                             batchCount === n
-                              ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                              : "border-slate-200 text-slate-600"
+                              ? isPremiumBatchUser || (availableBatchCounts[n] || 0) > 0
+                                ? "border-emerald-600 bg-emerald-50 text-emerald-800"
+                                : "border-amber-600 bg-amber-50 text-amber-900"
+                              : "border-slate-200 bg-white text-slate-600"
                           }`}
                         >
-                          {n}
+                          <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
+                            batchCount === n
+                              ? isPremiumBatchUser || (availableBatchCounts[n] || 0) > 0
+                                ? "border-emerald-600 bg-emerald-600"
+                                : "border-amber-600 bg-amber-600"
+                              : "border-slate-300"
+                          }`}>
+                            {batchCount === n && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                          </span>
+                          <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
+                            <div>
+                              <p className="font-black text-slate-900">{n} cards</p>
+                              <p className="text-[11px] text-slate-500">
+                                {isPremiumBatchUser
+                                  ? "Included"
+                                  : (availableBatchCounts[n] || 0) > 0
+                                    ? "Already paid"
+                                    : `${formatPerCard(n)} one-time`}
+                              </p>
+                              {n === 500 && !isPremiumBatchUser && (
+                                <p className="mt-0.5 text-[10px] font-black uppercase text-amber-700">Best value</p>
+                              )}
+                            </div>
+                            {!isPremiumBatchUser && (
+                              <div className="text-right">
+                                <p className={`font-black ${(availableBatchCounts[n] || 0) > 0 ? "text-slate-900" : "text-amber-700"}`}>
+                                  {(availableBatchCounts[n] || 0) > 0 ? "$0" : BATCH_PACKS[n].label}
+                                </p>
+                                <p className="text-[10px] text-slate-500">
+                                  {batchCount === n ? "Selected" : (availableBatchCounts[n] || 0) > 0 ? "Paid" : "Paid"}
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </button>
                       ))}
                     </div>
                     {batchResult ? (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleBatchPdfDownload(1)}
-                          disabled={batchPdfLoading !== null}
-                          className="flex-1 py-2.5 bg-red-600 text-white rounded-xl disabled:opacity-50 font-semibold text-sm"
-                        >
-                          {batchPdfLoading ? "..." : "📄 Download PDF"}
-                        </button>
-                        <button
-                          onClick={() => setBatchResult(null)}
-                          className="py-2.5 px-3 border-2 border-slate-200 text-slate-600 rounded-xl font-semibold text-sm"
-                        >
-                          More
-                        </button>
+                      <div className="space-y-2">
+                        {batchPdfDownloaded && (
+                          <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
+                            Download started. You can go back to the card or download again.
+                          </p>
+                        )}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleBatchPdfDownload(1)}
+                            disabled={batchPdfLoading !== null}
+                            className="flex-1 py-2.5 bg-red-600 text-white rounded-xl disabled:opacity-50 font-semibold text-sm"
+                          >
+                            {batchPdfLoading ? "..." : batchPdfDownloaded ? "Download Again" : "📄 Download Cards"}
+                          </button>
+                          <button
+                            onClick={batchPdfDownloaded ? returnToCard : () => setBatchResult(null)}
+                            className="py-2.5 px-3 border-2 border-slate-200 text-slate-600 rounded-xl font-semibold text-sm"
+                          >
+                            {batchPdfDownloaded ? "Back" : "More"}
+                          </button>
+                        </div>
                       </div>
                     ) : (
+                      <>
+                      {!isPremiumBatchUser && !hasSelectedBatchPurchase && (
+                        <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900">
+                          Selected paid download: {selectedBatchPrice} due at checkout for {batchCount} printable cards.
+                        </p>
+                      )}
                       <button
                         onClick={handleBatchPrimaryAction}
                         disabled={batchLoading || batchCheckoutLoading}
-                        className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white py-2.5 rounded-xl disabled:opacity-50 font-bold text-sm"
+                        className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 rounded-xl disabled:opacity-50 font-black text-sm"
                       >
                         {batchActionLabel}
                       </button>
+                      {!isPremiumBatchUser && !hasSelectedBatchPurchase && (
+                        <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2">
+                          <p className="text-xs font-bold text-indigo-950">
+                            Or subscribe for $4.99/mo and batches are included.
+                          </p>
+                          <button
+                            onClick={() => redirectToCheckout()}
+                            className="mt-2 w-full rounded-lg bg-indigo-600 py-2 text-xs font-black text-white"
+                          >
+                            Subscribe
+                          </button>
+                        </div>
+                      )}
+                      </>
                     )}
                   </div>
                 )}
@@ -1069,21 +1526,28 @@ export default function CardViewPage() {
             <div className="flex items-center px-3 py-2 gap-2">
               <button
                 onClick={() => { setActiveTab("play"); setBarExpanded(v => activeTab === "play" ? !v : true); }}
-                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "play" && barExpanded ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"}`}
+                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "play" && barExpanded ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"}`}
               >
                 🎮 Play · {markedCount}/{totalCells}
               </button>
               <button
-                onClick={() => { setActiveTab("export"); setBarExpanded(v => activeTab === "export" ? !v : true); }}
-                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "export" && barExpanded ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"}`}
+                onClick={openShareEmailFromMobile}
+                disabled={generatingLink}
+                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "share" && barExpanded ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"}`}
               >
-                📥 Export
+                {generatingLink ? "..." : "🔗 Share"}
               </button>
               <button
-                onClick={() => { setActiveTab("batch"); setBarExpanded(v => activeTab === "batch" ? !v : true); loadBatchPurchases(); }}
-                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "batch" && barExpanded ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-600"}`}
+                onClick={() => {
+                  trackExportButtonClicked("mobile_tab", "download_cards");
+                  trackBatchButtonClicked("open_panel", "mobile_tab");
+                  setActiveTab("download");
+                  setBarExpanded(v => activeTab === "download" ? !v : true);
+                  loadBatchPurchases();
+                }}
+                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "download" && barExpanded ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"}`}
               >
-                📋 Batch
+                💳 Download
               </button>
             </div>
           </div>

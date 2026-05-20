@@ -22,7 +22,7 @@ export default function UpgradeBanner() {
           </svg>
         </div>
         <div>
-          <p className="font-semibold text-slate-900">Upgrade for AI, image cards, and HD export</p>
+          <p className="font-semibold text-slate-900">Upgrade for AI, HD export, and larger batches</p>
           <p className="text-sm text-slate-500">Get premium templates, custom styles, larger batches, and cleaner shared cards.</p>
         </div>
       </div>

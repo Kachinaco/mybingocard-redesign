@@ -16,9 +16,16 @@ export interface ActivityInput {
   metadata?: Record<string, unknown> | null;
 }
 
-function sanitizeValue(value: unknown, depth = 0): unknown {
+const SENSITIVE_METADATA_KEY_PATTERN =
+  /(password|passcode|secret|token|authorization|cookie|session|csrf|card[_-]?number|cvc|cvv|ssn)/i;
+
+function sanitizeValue(value: unknown, depth = 0, key = ""): unknown {
   if (value === null || value === undefined) {
     return value;
+  }
+
+  if (key && SENSITIVE_METADATA_KEY_PATTERN.test(key)) {
+    return "[redacted]";
   }
 
   if (depth > 4) {
@@ -46,7 +53,7 @@ function sanitizeValue(value: unknown, depth = 0): unknown {
     case "object": {
       const result: Record<string, unknown> = {};
       for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
-        const sanitized = sanitizeValue(item, depth + 1);
+        const sanitized = sanitizeValue(item, depth + 1, key);
         if (sanitized !== undefined) {
           result[key] = sanitized;
         }
@@ -56,6 +63,10 @@ function sanitizeValue(value: unknown, depth = 0): unknown {
     default:
       return String(value);
   }
+}
+
+export function sanitizeActivityMetadata(metadata?: Record<string, unknown> | null): Record<string, unknown> {
+  return (sanitizeValue(metadata || {}) as Record<string, unknown>) || {};
 }
 
 export function getRequestActivityContext(request: Request) {
@@ -101,7 +112,7 @@ export async function trackActivity(input: ActivityInput): Promise<void> {
       domain: input.domain || null,
       ipAddress: input.ipAddress || null,
       userAgent: input.userAgent || null,
-      metadata: (sanitizeValue(input.metadata || {}) as Record<string, unknown>) || {},
+      metadata: sanitizeActivityMetadata(input.metadata),
       createdAt: new Date(),
     });
   } catch (error) {

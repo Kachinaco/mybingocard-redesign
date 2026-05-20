@@ -56,6 +56,11 @@ interface ActivityEvent {
   source?: string;
   metadata?: Record<string, unknown>;
   pathname?: string;
+  sessionId?: string;
+  anonymousId?: string;
+  domain?: string;
+  ipAddress?: string;
+  userAgent?: string;
   createdAt: string;
 }
 
@@ -72,9 +77,17 @@ const EVENT_LABELS: Record<string, string> = {
   card_creation_check: "Checked card limit",
   batch_cards_created: "Created batch cards",
   export_pdf: "Exported PDF",
+  export_pdf_blocked: "PDF export blocked",
   export_png: "Exported PNG",
   export_bulk_pdf: "Exported bulk PDF",
   batch_pdf_exported: "Exported batch PDF",
+  batch_pdf_export_blocked: "Batch PDF blocked",
+  batch_pdf_export_started: "Started batch PDF",
+  batch_pdf_export_succeeded: "Generated batch PDF",
+  batch_pdf_export_failed: "Batch PDF failed",
+  export_button_clicked: "Clicked export",
+  batch_button_clicked: "Clicked batch",
+  batch_primary_clicked: "Clicked batch CTA",
   share_link_generated: "Generated share link",
   share_link_reused: "Reused share link",
   shared_card_viewed: "Shared card viewed",
@@ -152,6 +165,21 @@ function getEventMeta(evt: ActivityEvent): string | null {
   if (typeof m.count === "number") return `${m.count} cards`;
   if (typeof m.error === "string") return m.error.slice(0, 80);
   return null;
+}
+
+function getEventDetails(evt: ActivityEvent): Record<string, unknown> {
+  return {
+    event: evt.event,
+    source: evt.source || null,
+    pathname: evt.pathname || null,
+    sessionId: evt.sessionId || null,
+    anonymousId: evt.anonymousId || null,
+    domain: evt.domain || null,
+    ipAddress: evt.ipAddress || null,
+    userAgent: evt.userAgent || null,
+    metadata: evt.metadata || {},
+    createdAt: evt.createdAt,
+  };
 }
 
 function timeAgo(dateStr: string): string {
@@ -992,15 +1020,19 @@ export default function AdminUserDetailPage() {
       {/* Recent Activity Timeline */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm mt-6">
         <div className="px-6 py-4 border-b border-slate-100">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
-            Recent Activity
-          </h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+              Recent Activity
+            </h2>
+            <span className="text-xs text-slate-400">Latest {activityEvents.length} events</span>
+          </div>
         </div>
         {activityEvents.length > 0 ? (
           <div className="px-6 py-4">
             <div className="relative">
               {activityEvents.map((evt, i) => {
                 const meta = getEventMeta(evt);
+                const details = getEventDetails(evt);
                 return (
                   <div key={evt._id} className="relative flex gap-3 pb-4 last:pb-0">
                     {i < activityEvents.length - 1 && (
@@ -1021,6 +1053,19 @@ export default function AdminUserDetailPage() {
                       {meta && (
                         <p className="text-xs text-slate-500 mt-0.5 truncate">{meta}</p>
                       )}
+                      <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-slate-400">
+                        {evt.source && <span className="rounded bg-slate-100 px-1.5 py-0.5">{evt.source}</span>}
+                        {evt.pathname && <span className="max-w-full truncate rounded bg-slate-100 px-1.5 py-0.5">{evt.pathname}</span>}
+                        {evt.sessionId && <span className="rounded bg-slate-100 px-1.5 py-0.5">session {evt.sessionId.slice(0, 16)}</span>}
+                      </div>
+                      <details className="mt-2 rounded-lg border border-slate-100 bg-slate-50/70">
+                        <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700">
+                          Raw event data
+                        </summary>
+                        <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words border-t border-slate-100 px-3 py-2 text-[11px] leading-relaxed text-slate-600">
+                          {JSON.stringify(details, null, 2)}
+                        </pre>
+                      </details>
                     </div>
                   </div>
                 );

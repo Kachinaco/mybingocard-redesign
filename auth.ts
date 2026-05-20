@@ -1,15 +1,16 @@
-import { notifySignup, notifySignIn, notifyMagicLink } from "@/lib/discord";
+import { notifySignup, notifySignIn } from "@/lib/discord";
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import Apple from "next-auth/providers/apple";
 import Credentials from "next-auth/providers/credentials";
-import Nodemailer from "next-auth/providers/nodemailer";
 import { cookies } from "next/headers";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import clientPromise from "./lib/mongodb";
 import bcrypt from "bcryptjs";
+import crypto from "node:crypto";
 import { ATTRIBUTION_COOKIE_NAME, parseAttributionCookie, stripOAuthReferrer } from "@/lib/attribution";
-import { ensureUserDefaults, getUserByEmail, getUserById, incrementUserCounter, updateUserAttribution, updateUserLastAttribution, updateUserSignupMethod } from "./lib/db/users";
-import { sendMagicLinkEmail, sendWelcomeEmail } from "./lib/email";
+import { createUser, ensureUserDefaults, getUserByEmail, getUserById, incrementUserCounter, updateUserAttribution, updateUserLastAttribution, updateUserSignupMethod } from "./lib/db/users";
+import { sendWelcomeEmail } from "./lib/email";
 import { trackActivity } from "./lib/activity";
 import { IMPERSONATION_COOKIE_NAME, parseImpersonationCookie } from "@/lib/impersonation";
 
@@ -20,13 +21,14 @@ const authBaseUrl =
 const useSecureAuthCookies = authBaseUrl.startsWith("https://");
 const authCookiePrefix = useSecureAuthCookies ? "__Secure-" : "";
 const oauthCookieSameSite = useSecureAuthCookies ? "none" : "lax";
+const appleAuthConfigured = Boolean(process.env.AUTH_APPLE_ID && process.env.AUTH_APPLE_SECRET);
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: MongoDBAdapter(clientPromise),
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
-    newUser: "/create",
+    newUser: "/auth-new-user",
     error: "/auth-error",
   },
   cookies: {
@@ -66,6 +68,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
       allowDangerousEmailAccountLinking: true,
     }),
+    ...(appleAuthConfigured
+      ? [
+          Apple({
+            clientId: process.env.AUTH_APPLE_ID!,
+            clientSecret: process.env.AUTH_APPLE_SECRET!,
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
     Credentials({
       id: "guest",
       name: "guest",
@@ -117,6 +128,60 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           };
         } catch (error) {
           console.error("Guest authorize error:", error);
+          return null;
+        }
+      },
+    }),
+    Credentials({
+      id: "magic-link",
+      name: "magic-link",
+      credentials: {
+        token: { label: "Token", type: "text" },
+      },
+      async authorize(credentials) {
+        const token = typeof credentials?.token === "string" ? credentials.token : "";
+        if (token.length < 32 || token.length > 256) return null;
+
+        try {
+          const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+          const client = await clientPromise;
+          const db = client.db("mybingocard");
+          const record = await db.collection("magic_link_tokens").findOneAndDelete({
+            tokenHash,
+            expiresAt: { $gt: new Date() },
+          });
+
+          if (!record?.email || record.email.endsWith("@guest.mybingocard.com")) {
+            return null;
+          }
+
+          let user = await getUserByEmail(record.email);
+          if (!user) {
+            user = await createUser({
+              email: record.email,
+              name: record.email.split("@")[0],
+              signupMethod: "magic_link",
+            });
+            await db.collection("users").updateOne(
+              { _id: user._id },
+              { $set: { emailVerified: new Date(), updatedAt: new Date() } }
+            );
+            user.emailVerified = new Date();
+          } else if (!user.emailVerified) {
+            await db.collection("users").updateOne(
+              { _id: user._id },
+              { $set: { emailVerified: new Date(), updatedAt: new Date() } }
+            );
+          }
+
+          return {
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name || user.email.split("@")[0],
+            image: user.image,
+          };
+        } catch (error) {
+          console.error("Magic link authorize error:", error);
           return null;
         }
       },
@@ -204,39 +269,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         };
       },
     }),
-    Nodemailer({
-      server: {
-        host: process.env.EMAIL_SERVER_HOST!,
-        port: Number(process.env.EMAIL_SERVER_PORT),
-        auth: {
-          user: process.env.EMAIL_SERVER_USER!,
-          pass: process.env.EMAIL_SERVER_PASSWORD!,
-        },
-      },
-      from: process.env.EMAIL_FROM!,
-      async sendVerificationRequest(params: { identifier: string; url: string }) {
-        // Block magic-link emails for guest placeholder addresses — guests
-        // never receive email, and this prevents abuse via the guest domain.
-        if (params.identifier.toLowerCase().endsWith("@guest.mybingocard.com")) {
-          return;
-        }
-
-        await sendMagicLinkEmail(params.identifier, params.url);
-        try {
-          await trackActivity({
-            event: "magic_link_requested",
-            source: "auth",
-            email: params.identifier,
-            metadata: {
-              provider: "nodemailer",
-            },
-          });
-        } catch (e) {
-          console.error("Failed to track magic link activity:", e);
-        }
-        notifyMagicLink(params.identifier).catch(console.error);
-      },
-    }),
   ],
   events: {
     async signIn(message) {
@@ -276,7 +308,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
 
           // Auto-verify email for OAuth and magic link users
-          if (provider === "google" || provider === "nodemailer") {
+          if (provider === "google" || provider === "apple" || provider === "magic-link") {
             const existingUser = await getUserById(event.user.id);
             if (existingUser && !existingUser.emailVerified) {
               const client = await clientPromise;
@@ -292,7 +324,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             const signupMethod =
               provider === "google"
                 ? "google"
-                : provider === "nodemailer"
+                : provider === "apple"
+                  ? "apple"
+                : provider === "magic-link"
                   ? "magic_link"
                   : provider === "credentials"
                     ? "credentials"
@@ -329,7 +363,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           },
         });
 
-        if (provider === "nodemailer") {
+        if (provider === "magic-link") {
           await trackActivity({
             event: "magic_link_opened",
             source: "auth",

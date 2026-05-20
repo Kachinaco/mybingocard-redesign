@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
-import { notifyBingoAchieved, notifyUpgradeDismissed, notifyBatchSelected } from "@/lib/discord";
+import {
+  notifyBatchButtonClicked,
+  notifyBatchSelected,
+  notifyBingoAchieved,
+  notifyExportButtonClicked,
+  notifyUpgradeDismissed,
+} from "@/lib/discord";
 
 export async function POST(request: Request) {
   try {
@@ -55,6 +61,40 @@ export async function POST(request: Request) {
         metadata.price || "$0",
         metadata.plan_type || "GUEST",
         !session?.user
+      ).catch(() => {});
+    }
+
+    if (event === "export_button_clicked") {
+      notifyExportButtonClicked(
+        session?.user?.email || null,
+        {
+          source: String(metadata.source || "unknown"),
+          exportType: String(metadata.export_type || metadata.exportType || "unknown"),
+          cardTitle: typeof metadata.title === "string" ? metadata.title : typeof metadata.cardTitle === "string" ? metadata.cardTitle : null,
+          planType: typeof metadata.plan_type === "string" ? metadata.plan_type : typeof metadata.planType === "string" ? metadata.planType : null,
+          batchCount: typeof metadata.batch_count === "number" ? metadata.batch_count : typeof metadata.batchCount === "number" ? metadata.batchCount : null,
+          isGuest: !session?.user,
+        }
+      ).catch(() => {});
+    }
+
+    if (
+      event === "batch_button_clicked" ||
+      event === "batch_primary_clicked" ||
+      event === "batch_pdf_export_started"
+    ) {
+      notifyBatchButtonClicked(
+        session?.user?.email || null,
+        {
+          action: String(metadata.action || event),
+          source: String(metadata.source || "unknown"),
+          batchCount: typeof metadata.batch_count === "number" ? metadata.batch_count : typeof metadata.batchCount === "number" ? metadata.batchCount : null,
+          price: typeof metadata.price === "string" ? metadata.price : null,
+          planType: typeof metadata.plan_type === "string" ? metadata.plan_type : typeof metadata.planType === "string" ? metadata.planType : null,
+          cardsPerPage: typeof metadata.cardsPerPage === "number" ? metadata.cardsPerPage : null,
+          grayscale: typeof metadata.grayscale === "boolean" ? metadata.grayscale : undefined,
+          isGuest: !session?.user,
+        }
       ).catch(() => {});
     }
 

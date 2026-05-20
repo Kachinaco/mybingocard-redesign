@@ -6,6 +6,13 @@ import { canExportHD, canRemoveBranding } from "@/lib/permissions";
 import puppeteer from "puppeteer";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyCardExported } from "@/lib/discord";
+import {
+  formatClassicCellLabel,
+  getBingoGridShape,
+  getFreeSpaceIndexForGrid,
+  isBlankClassicCell,
+  normalizeBingoVariant,
+} from "@/lib/classic-bingo";
 
 export async function POST(
   request: Request,
@@ -47,6 +54,16 @@ export async function POST(
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
+      );
+    }
+
+    if (user.planType === "FREE") {
+      return NextResponse.json(
+        {
+          error: "PNG export requires Premium.",
+          upgradeRequired: true,
+        },
+        { status: 403 }
       );
     }
 
@@ -133,7 +150,14 @@ export async function POST(
 
 function generateCardHTML(card: any, removeBranding: boolean, isHD: boolean): string {
   const { title, description, size, cells, freeSpace, style } = card;
-  const freeSpaceIndex = freeSpace ? Math.floor((size * size) / 2) : -1;
+  const variant = normalizeBingoVariant(card.bingoVariant);
+  const shape = getBingoGridShape(card);
+  const freeSpaceIndex = getFreeSpaceIndexForGrid({
+    freeSpace,
+    rows: shape.rows,
+    columns: shape.columns,
+    bingoVariant: variant,
+  });
 
   // Scale factors based on HD permission
   const scaleFactor = isHD ? 2 : 1;
@@ -200,10 +224,27 @@ function generateCardHTML(card: any, removeBranding: boolean, isHD: boolean): st
 
           .bingo-grid {
             display: grid;
-            grid-template-columns: repeat(${size}, 1fr);
+            grid-template-columns: repeat(${shape.columns}, 1fr);
             gap: ${gridGap}px;
             width: 100%;
-            aspect-ratio: 1;
+            aspect-ratio: ${shape.columns} / ${shape.rows};
+          }
+
+          .classic-header {
+            display: grid;
+            grid-template-columns: repeat(${shape.columns}, 1fr);
+            gap: ${gridGap}px;
+            margin-bottom: ${Math.floor(gridGap / 2)}px;
+            color: ${variant === "classic90" ? "#b45309" : "#047857"};
+            font-weight: 900;
+            text-align: center;
+          }
+
+          .classic-header div {
+            background: ${variant === "classic90" ? "#fff7ed" : "#ecfdf5"};
+            border-radius: ${borderRadius}px;
+            padding: ${Math.max(4, Math.floor(cellPadding / 3))}px 0;
+            font-size: ${variant === "classic90" ? Math.floor(baseFontSize * 0.62) : baseFontSize}px;
           }
 
           .cell {
@@ -265,11 +306,14 @@ function generateCardHTML(card: any, removeBranding: boolean, isHD: boolean): st
             ${description ? `<div class="description">${escapeHtml(description)}</div>` : ""}
           </div>
 
+          ${variant === "classic75" ? `<div class="classic-header">${"BINGO".split("").map((letter) => `<div>${letter}</div>`).join("")}</div>` : ""}
+          ${variant === "classic90" ? `<div class="classic-header">${["1-9", "10s", "20s", "30s", "40s", "50s", "60s", "70s", "80-90"].map((label) => `<div>${label}</div>`).join("")}</div>` : ""}
           <div class="bingo-grid">
             ${cells
               .map((cell: string, index: number) => {
                 const isFreeSpace = freeSpace && index === freeSpaceIndex;
-                let cellContent = escapeHtml(cell);
+                const isBlank = isBlankClassicCell(cell, variant);
+                let cellContent = escapeHtml(formatClassicCellLabel(cell, variant));
                 let extraStyle = "";
                 if (!isFreeSpace && cell.startsWith("__IMG__:")) {
                   try {
@@ -289,8 +333,11 @@ function generateCardHTML(card: any, removeBranding: boolean, isHD: boolean): st
                     }
                   } catch { /* fall through to text */ }
                 }
+                if (isBlank) {
+                  extraStyle += "background:#fff7ed;border-style:dashed;border-color:#fed7aa;";
+                }
                 return '<div class="cell ' + (isFreeSpace ? "free-space" : "") + '" style="' + extraStyle + '">'
-                  + (isFreeSpace ? "FREE" : cellContent)
+                  + (isBlank ? "" : isFreeSpace ? "FREE" : cellContent)
                   + '</div>';
               })
               .join("")}

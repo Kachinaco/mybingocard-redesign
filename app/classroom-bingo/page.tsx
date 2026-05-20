@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LandingPageTracker from "@/components/LandingPageTracker";
+import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
   title: "Bingo Cards for Teachers — Free Classroom Bingo Generator | MyBingoCard",
@@ -146,7 +147,7 @@ export default function ClassroomBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free for teachers · Print unlimited · Sign up in seconds</p>
+                  <p className="text-sm text-slate-400">Free to start · PDF export and online play · Sign up in seconds</p>
                 </div>
 
                 <div className="relative">
@@ -206,6 +207,7 @@ export default function ClassroomBingoPage() {
               </div>
             </div>
           </section>
+          <SeoSupportBlock slug="classroom-bingo" />
         </main>
 
         {/* Footer */}

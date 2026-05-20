@@ -132,7 +132,7 @@ export function canUploadImages(planType: PlanType): PermissionCheck {
   if (!(plan.limits as any).canUploadImages) {
     return {
       allowed: false,
-      reason: "Custom image uploads require Premium plan. Free users can use the clip-art library.",
+      reason: "Custom image uploads are not included with this plan.",
       upgradeRequired: true,
     };
   }
@@ -158,6 +158,7 @@ export function getPlanPermissions(planType: PlanType) {
     maxCards: plan.limits.maxCards,
     maxGridSize: plan.limits.maxSize,
     canExportHD: plan.limits.canExportHD,
+    canUploadImages: plan.limits.canUploadImages,
     canAccessAllTemplates: plan.limits.canUseAdvancedTemplates,
     canRemoveBranding: plan.limits.adFree,
     hasPrioritySupport: (plan.features as readonly string[]).includes("Priority support"),

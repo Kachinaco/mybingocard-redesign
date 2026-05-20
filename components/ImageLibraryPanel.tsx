@@ -28,7 +28,7 @@ interface ImageLibraryPanelProps {
   onSelectImage: (imageId: string, imageUrl: string) => void;
   /** Currently selected cell index, or null if none */
   selectedCellIndex: number | null;
-  /** Whether the user has a Premium plan */
+  /** Whether the user can upload custom images */
   isPremium?: boolean;
 }
 
@@ -300,13 +300,13 @@ export default function ImageLibraryPanel({
           ) : (
             <div className="border border-amber-200 bg-amber-50 rounded-xl p-3 text-center">
               <p className="text-xs text-amber-700 font-medium">
-                Custom image uploads require Premium
+                Custom image uploads are not available on this plan
               </p>
               <a
                 href="/pricing"
                 className="text-[10px] text-[#007AFF] font-semibold underline mt-1 inline-block"
               >
-                Upgrade to upload your own images
+                See plan options
               </a>
             </div>
           )}

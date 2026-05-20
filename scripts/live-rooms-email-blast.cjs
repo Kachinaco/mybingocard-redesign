@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const nodemailer = require('nodemailer');
+const nodemailer = require('./smtp-client.cjs');
 const { MongoClient } = require('mongodb');
 
 // Load .env.local
@@ -20,7 +20,7 @@ try {
 }
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
-const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || '';
+const WEBHOOK_URL = process.env.MYBINGOCARD_EVENTS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL || '';
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://mybingocard.com').replace(/\/$/, '');
 const fromAddress = process.env.EMAIL_FROM || 'MyBingoCard <support@mybingocard.com>';
 

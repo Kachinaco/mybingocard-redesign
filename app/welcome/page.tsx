@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Welcome - Create Your Bingo Card | MyBingoCard",
-  description: "Create custom bingo cards in seconds. No signup required to start. Perfect for parties, classrooms, team building, and more.",
+  description: "Create custom bingo cards in seconds. Free to start, then save or export when you are ready. Perfect for parties, classrooms, team building, and more.",
   robots: "noindex",
 };
 
@@ -65,7 +65,7 @@ export default function WelcomePage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            No signup required to start
+            Free to start
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">

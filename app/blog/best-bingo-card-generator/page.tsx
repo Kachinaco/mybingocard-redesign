@@ -62,7 +62,7 @@ export default function BestBingoCardGeneratorPage() {
           If you need the best bingo card generator in 2026, the real question is not just who can make a printable card. It is who can help you create custom bingo cards quickly, print them cleanly, share them online, and reuse them across different events without friction.
         </p>
         <p>
-          For most people, <Link href="/">MyBingoCard</Link> is the best all-around choice because it covers both printable and online bingo in one workflow. You can start free, create custom cards in minutes, export PDFs, share links, and upgrade only if you want Premium tools like AI generation, image bingo cards, HD export, and advanced templates.
+          For most people, <Link href="/">MyBingoCard</Link> is the best all-around choice because it covers both printable and online bingo in one workflow. You can start free, create custom text or image cards in minutes, export PDFs, share links, and upgrade only if you want Premium tools like AI generation, HD export, and advanced templates.
         </p>
 
         <h2>What Makes a Bingo Card Generator Worth Using?</h2>
@@ -85,11 +85,11 @@ export default function BestBingoCardGeneratorPage() {
           MyBingoCard is the best bingo card generator for people who want one tool for both printable and online games. It is especially strong if you host recurring events, want better-looking exports, or need to move quickly from idea to finished cards.
         </p>
         <ul>
-          <li><strong>Start free:</strong> create up to 3 bingo cards with starter templates and standard PDF export</li>
+          <li><strong>Start free:</strong> create up to 3 bingo cards with starter templates, browser printing, and optional paid PDF batches</li>
           <li><strong>Printable and online:</strong> print your cards or share them digitally from the same setup</li>
           <li><strong>Built for custom events:</strong> create cards for <Link href="/wedding-bingo">weddings</Link>, <Link href="/baby-shower-bingo">baby showers</Link>, <Link href="/classroom-bingo">classrooms</Link>, and <Link href="/party-bingo">parties</Link></li>
           <li><strong>Faster setup:</strong> use templates or <Link href="/create">build a custom bingo card from scratch</Link></li>
-          <li><strong>Premium workflow when you need it:</strong> AI generation, image bingo cards, premium templates, HD export, and larger batches</li>
+          <li><strong>Premium workflow when you need it:</strong> AI generation, premium templates, HD export, and larger batches</li>
         </ul>
 
         <h2>Why MyBingoCard Wins for Printable and Online Games</h2>

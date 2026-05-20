@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LandingPageTracker from "@/components/LandingPageTracker";
+import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
   title: "Team Building Bingo Cards Generator — MyBingoCard",
@@ -225,6 +226,7 @@ export default function TeamBuildingBingoPage() {
               </div>
             </div>
           </section>
+          <SeoSupportBlock slug="team-building-bingo" />
         </main>
 
         {/* Footer */}
@@ -241,7 +243,7 @@ export default function TeamBuildingBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  The world&apos;s most popular bingo card generator for team building, classrooms, office parties, and more.
+                  A flexible bingo card generator for team building, classrooms, office parties, and more.
                 </p>
               </div>
               <div>

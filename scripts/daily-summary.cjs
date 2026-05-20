@@ -18,7 +18,7 @@ try {
   console.error('Could not load .env.local:', e.message);
 }
 
-const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+const WEBHOOK_URL = process.env.MYBINGOCARD_EVENTS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 
 function getSignupSourceLabel(user) {
@@ -27,6 +27,52 @@ function getSignupSourceLabel(user) {
     try { return new URL(user.referrer).hostname.replace(/^www\./, ''); } catch (e) { return user.referrer; }
   }
   return 'direct';
+}
+
+function isReportableRetentionUser(user) {
+  const email = String(user.email || '').toLowerCase();
+  const name = String(user.name || '').toLowerCase();
+  const customerType = String(user.customerType || '').toLowerCase();
+
+  if (!email || email.includes('@guest.mybingocard.local') || email.startsWith('guest-')) return false;
+  if (['guest', 'test', 'admin'].includes(customerType)) return false;
+  if (name.includes('cory')) return false;
+
+  return true;
+}
+
+function formatCohort(cohort) {
+  return cohort.eligible > 0
+    ? cohort.returned + '/' + cohort.eligible + ' (' + cohort.pct + '%)'
+    : '0/0 (0%)';
+}
+
+function formatDate(value) {
+  if (!value) return 'unknown';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'unknown';
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'America/Phoenix',
+  });
+}
+
+function formatBillingAtRiskLine(user, now) {
+  const name = user.name || user.email || 'Unknown';
+  const since = user.billingPastDueSince || user.billingLastPaymentFailedAt || user.updatedAt;
+  const daysPastDue = since
+    ? Math.floor((now.getTime() - new Date(since).getTime()) / 86400000)
+    : 0;
+  const retry = user.billingNextPaymentAttempt
+    ? 'next retry ' + formatDate(user.billingNextPaymentAttempt)
+    : 'no retry scheduled';
+  const attempt = user.billingFailedAttemptCount
+    ? 'attempt ' + user.billingFailedAttemptCount
+    : 'attempt unknown';
+  const manual = daysPastDue >= 14 ? ' - MANUAL FOLLOW-UP' : '';
+
+  return name + ' - ' + daysPastDue + 'd past due, ' + attempt + ', ' + retry + manual;
 }
 
 async function sendDiscord(payload) {
@@ -65,9 +111,14 @@ async function run() {
 
     // --- Subscription Metrics ---
     const paidUsers = await db.collection('users').countDocuments({
-      planType: { $ne: 'FREE' }, subscriptionStatus: 'active'
+      planType: { $ne: 'FREE' },
+      subscriptionStatus: { $in: ['active', 'trialing', 'lifetime'] },
     });
-    const freeUsers = totalUsers - paidUsers;
+    const pastDueUsers = await db.collection('users').countDocuments({
+      planType: { $ne: 'FREE' },
+      subscriptionStatus: 'past_due',
+    });
+    const freeUsers = totalUsers - paidUsers - pastDueUsers;
 
     const planBreakdown = await db.collection('users').aggregate([
       { $group: { _id: '$planType', count: { $sum: 1 } } }
@@ -97,22 +148,74 @@ async function run() {
     const ghostCount = allUserIds.filter(u => !usersWithCards.has(u._id.toString())).length;
     const ghostPct = totalUsers > 0 ? ((ghostCount / totalUsers) * 100).toFixed(0) : '0';
 
-    // --- Retention (came back after signup day) ---
-    const allUsersForRetention = await db.collection('users').find(
-      { createdAt: { $lte: yesterday } },
-      { projection: { email: 1, createdAt: 1 } }
-    ).toArray();
-    let returnedCount = 0;
-    for (const u of allUsersForRetention) {
-      if (!u.email || !u.createdAt) continue;
-      const dayAfter = new Date(new Date(u.createdAt).getTime() + 86400000);
-      const came_back = await db.collection('activity_events').countDocuments({
-        email: u.email, createdAt: { $gte: dayAfter }
-      });
-      if (came_back > 0) returnedCount++;
+    // --- Retention (reportable users only; excludes test/admin/guest and Cory-owned accounts) ---
+    async function calculateReturnCohort(days) {
+      const cutoff = new Date(now.getTime() - days * 86400000);
+      const users = (await db.collection('users').find(
+        { createdAt: { $lte: cutoff } },
+        { projection: { name: 1, email: 1, createdAt: 1, customerType: 1, lastLoginAt: 1 } }
+      ).toArray()).filter(isReportableRetentionUser);
+
+      let returned = 0;
+      for (const user of users) {
+        if (!user.createdAt) continue;
+
+        const userId = user._id.toString();
+        const email = String(user.email || '').toLowerCase();
+        const threshold = new Date(new Date(user.createdAt).getTime() + days * 86400000);
+        const activity = await db.collection('activity_events').findOne({
+          createdAt: { $gte: threshold },
+          $or: [
+            { userId },
+            { email },
+          ],
+        }, { projection: { _id: 1 } });
+
+        const loginReturned = user.lastLoginAt && new Date(user.lastLoginAt) >= threshold;
+        if (activity || loginReturned) returned++;
+      }
+
+      return {
+        returned,
+        eligible: users.length,
+        pct: users.length > 0 ? ((returned / users.length) * 100).toFixed(0) : '0',
+      };
     }
-    const retentionPct = allUsersForRetention.length > 0
-      ? ((returnedCount / allUsersForRetention.length) * 100).toFixed(0) : '0';
+
+    const retention24h = await calculateReturnCohort(1);
+    const retention48h = await calculateReturnCohort(2);
+    const retention14d = await calculateReturnCohort(14);
+    const retention30d = await calculateReturnCohort(30);
+
+    // --- Billing At Risk ---
+    const billingAtRiskUsers = await db.collection('users')
+      .find(
+        {
+          planType: { $ne: 'FREE' },
+          subscriptionStatus: 'past_due',
+        },
+        {
+          projection: {
+            name: 1,
+            email: 1,
+            billingPastDueSince: 1,
+            billingLastPaymentFailedAt: 1,
+            billingNextPaymentAttempt: 1,
+            billingFailedAttemptCount: 1,
+            updatedAt: 1,
+          },
+        }
+      )
+      .sort({ billingPastDueSince: 1, billingLastPaymentFailedAt: 1 })
+      .toArray();
+    const billingManualFollowups = billingAtRiskUsers.filter((user) => {
+      const since = user.billingPastDueSince || user.billingLastPaymentFailedAt || user.updatedAt;
+      if (!since) return false;
+      return now.getTime() - new Date(since).getTime() >= 14 * 86400000;
+    });
+    const billingAtRiskList = billingAtRiskUsers
+      .map((user) => formatBillingAtRiskLine(user, now))
+      .join('\n');
 
     // --- Recent signups ---
     const recentSignups = await db.collection('users')
@@ -187,8 +290,11 @@ async function run() {
           name: 'Users',
           value: [
             'Total: **' + totalUsers + '** | Paid: **' + paidUsers + '** | Free: **' + freeUsers + '**',
+            'Payment failed / at risk: **' + pastDueUsers + '** | Manual follow-up: **' + billingManualFollowups.length + '**',
             'New (24h): **' + newUsers24h + '** | (7d): **' + newUsers7d + '** | (30d): **' + newUsers30d + '**',
-            'Conversion: **' + conversionRate + '%** | Retention: **' + retentionPct + '%**',
+            'Conversion: **' + conversionRate + '%**',
+            'Retention: 24h **' + formatCohort(retention24h) + '** | 48h **' + formatCohort(retention48h) + '**',
+            'Retention: 14d **' + formatCohort(retention14d) + '** | 30d **' + formatCohort(retention30d) + '**',
             'Ghost users (0 cards): **' + ghostCount + '** (' + ghostPct + '%)',
           ].join('\n'),
           inline: false,
@@ -196,6 +302,11 @@ async function run() {
         {
           name: 'Plans',
           value: Object.entries(planMap).map(([p, c]) => p + ': **' + c + '**').join(' | ') || 'No data',
+          inline: false,
+        },
+        {
+          name: 'Billing At Risk',
+          value: billingAtRiskList || 'No past-due Premium users',
           inline: false,
         },
         {

@@ -53,6 +53,227 @@ const CATEGORIES = [
   { id: "other", name: "Other" },
 ];
 
+type IndexableTemplate = {
+  slug: string;
+  title: string;
+  description: string;
+  category: string;
+  cells: string[];
+  style: Template["style"];
+};
+
+const INDEXABLE_TEMPLATES: IndexableTemplate[] = [
+  {
+    slug: "wedding-bingo",
+    title: "Wedding Bingo",
+    description: "Reception moments guests can spot during dinner, speeches, photos, and dancing.",
+    category: "bridal-shower",
+    cells: ["First dance", "Cake cutting", "Toast speech", "Group photo", "FREE", "Bouquet toss", "Happy tears", "Dance floor", "Photo booth"],
+    style: { backgroundColor: "#fff7ed", textColor: "#7c2d12", borderColor: "#fed7aa" },
+  },
+  {
+    slug: "baby-shower-gift-bingo",
+    title: "Baby Shower Gift Bingo",
+    description: "Classic gift-opening bingo with common baby items and registry surprises.",
+    category: "baby-shower",
+    cells: ["Diapers", "Blanket", "Bottles", "Onesie", "FREE", "Wipes", "Pacifier", "Books", "Stuffed toy"],
+    style: { backgroundColor: "#fdf2f8", textColor: "#9d174d", borderColor: "#fbcfe8" },
+  },
+  {
+    slug: "classroom-vocabulary-bingo",
+    title: "Classroom Vocabulary Bingo",
+    description: "A ready-to-edit vocabulary bingo card for review days and small groups.",
+    category: "classroom",
+    cells: ["Define it", "Synonym", "Antonym", "Use in a sentence", "FREE", "Root word", "Prefix", "Suffix", "Example"],
+    style: { backgroundColor: "#eff6ff", textColor: "#1d4ed8", borderColor: "#bfdbfe" },
+  },
+  {
+    slug: "office-meeting-bingo",
+    title: "Office Meeting Bingo",
+    description: "Light team-building bingo for recurring meetings and remote calls.",
+    category: "team-building",
+    cells: ["You're muted", "Circle back", "Share screen", "Action item", "FREE", "Quick sync", "Pet cameo", "Hard stop", "Follow up"],
+    style: { backgroundColor: "#f8fafc", textColor: "#334155", borderColor: "#cbd5e1" },
+  },
+  {
+    slug: "christmas-bingo",
+    title: "Christmas Bingo",
+    description: "Holiday party bingo with festive words, decorations, and traditions.",
+    category: "holiday",
+    cells: ["Santa", "Reindeer", "Snowman", "Gift", "FREE", "Tree", "Cookies", "Carols", "Lights"],
+    style: { backgroundColor: "#fef2f2", textColor: "#991b1b", borderColor: "#fecaca" },
+  },
+  {
+    slug: "graduation-ceremony-bingo",
+    title: "Graduation Ceremony Bingo",
+    description: "A ceremony-friendly card for speeches, caps, photos, and proud-family moments.",
+    category: "other",
+    cells: ["Cap toss", "Class photo", "Proud parent", "Speech", "FREE", "Diploma", "Tassel", "Applause", "Group selfie"],
+    style: { backgroundColor: "#f5f3ff", textColor: "#5b21b6", borderColor: "#ddd6fe" },
+  },
+  {
+    slug: "birthday-party-bingo",
+    title: "Birthday Party Bingo",
+    description: "Party moments for kids, adults, milestone birthdays, and family celebrations.",
+    category: "birthday",
+    cells: ["Cake time", "Make a wish", "Presents", "Party hat", "FREE", "Photo time", "Dance break", "Balloons", "Goodie bag"],
+    style: { backgroundColor: "#f0fdf4", textColor: "#166534", borderColor: "#bbf7d0" },
+  },
+  {
+    slug: "bridal-shower-bingo",
+    title: "Bridal Shower Bingo",
+    description: "Gift and celebration squares for bridal showers, brunches, and wedding parties.",
+    category: "bridal-shower",
+    cells: ["Towels", "Cookware", "Gift card", "Candles", "FREE", "Wine glasses", "Something blue", "Luggage", "Photo frame"],
+    style: { backgroundColor: "#faf5ff", textColor: "#7e22ce", borderColor: "#e9d5ff" },
+  },
+  {
+    slug: "esl-vocabulary-bingo",
+    title: "ESL Vocabulary Bingo",
+    description: "Simple language-practice prompts for ESL classes and conversation groups.",
+    category: "classroom",
+    cells: ["Greeting", "Food word", "Question word", "Place", "FREE", "Verb", "Adjective", "Number", "Weather"],
+    style: { backgroundColor: "#ecfeff", textColor: "#155e75", borderColor: "#a5f3fc" },
+  },
+  {
+    slug: "math-facts-bingo",
+    title: "Math Facts Bingo",
+    description: "Fast math review bingo for multiplication, addition, subtraction, or mixed facts.",
+    category: "classroom",
+    cells: ["6 x 7", "8 + 9", "12 - 5", "9 x 4", "FREE", "15 / 3", "7 x 8", "20 - 11", "6 + 13"],
+    style: { backgroundColor: "#eef2ff", textColor: "#3730a3", borderColor: "#c7d2fe" },
+  },
+  {
+    slug: "halloween-bingo",
+    title: "Halloween Bingo",
+    description: "Spooky-but-friendly bingo for classroom parties, trunk-or-treat, and family nights.",
+    category: "holiday",
+    cells: ["Pumpkin", "Costume", "Candy", "Spider", "FREE", "Ghost", "Witch", "Bat", "Trick or treat"],
+    style: { backgroundColor: "#fff7ed", textColor: "#9a3412", borderColor: "#fed7aa" },
+  },
+  {
+    slug: "team-building-bingo",
+    title: "Team Building Bingo",
+    description: "Icebreaker squares that work for new teams, retreats, and all-hands meetings.",
+    category: "team-building",
+    cells: ["Has a pet", "Coffee fan", "Traveled abroad", "Speaks 2 languages", "FREE", "Morning person", "Has a hobby", "Remote worker", "Loves cooking"],
+    style: { backgroundColor: "#f0fdfa", textColor: "#0f766e", borderColor: "#99f6e4" },
+  },
+  {
+    slug: "conference-bingo",
+    title: "Conference Bingo",
+    description: "Keep attendees engaged during sessions, booths, networking, and keynotes.",
+    category: "team-building",
+    cells: ["Keynote quote", "New contact", "Booth demo", "Panel question", "FREE", "Swag item", "Coffee line", "Name badge", "Breakout session"],
+    style: { backgroundColor: "#f1f5f9", textColor: "#0f172a", borderColor: "#cbd5e1" },
+  },
+  {
+    slug: "family-reunion-bingo",
+    title: "Family Reunion Bingo",
+    description: "Conversation-starting squares for reunions, picnics, and family weekends.",
+    category: "icebreaker",
+    cells: ["Old photo", "Shared recipe", "Family story", "Group picture", "FREE", "Long drive", "Matching shirts", "Favorite cousin", "Dessert table"],
+    style: { backgroundColor: "#fffbeb", textColor: "#92400e", borderColor: "#fde68a" },
+  },
+  {
+    slug: "training-bingo",
+    title: "Training Bingo",
+    description: "A practical card for onboarding, workshops, safety meetings, and staff training.",
+    category: "team-building",
+    cells: ["Best practice", "Policy review", "Question asked", "Demo shown", "FREE", "Checklist", "Scenario", "Group activity", "Next step"],
+    style: { backgroundColor: "#eff6ff", textColor: "#1e3a8a", borderColor: "#bfdbfe" },
+  },
+  {
+    slug: "back-to-school-bingo",
+    title: "Back-to-School Bingo",
+    description: "First-week classroom bingo for names, routines, supplies, and student icebreakers.",
+    category: "classroom",
+    cells: ["New friend", "Pencil", "Backpack", "Class rule", "FREE", "Favorite subject", "Desk label", "Lunch box", "School bus"],
+    style: { backgroundColor: "#fefce8", textColor: "#854d0e", borderColor: "#fde047" },
+  },
+  {
+    slug: "remote-meeting-bingo",
+    title: "Remote Meeting Bingo",
+    description: "A cleaner virtual-call bingo card for remote teams and online workshops.",
+    category: "virtual",
+    cells: ["Camera off", "Chat message", "Screen share", "Audio lag", "FREE", "Pet cameo", "Hand raise", "Late joiner", "Can you hear me?"],
+    style: { backgroundColor: "#eef2ff", textColor: "#4338ca", borderColor: "#c7d2fe" },
+  },
+  {
+    slug: "fundraiser-bingo",
+    title: "Fundraiser Bingo",
+    description: "Event bingo for auctions, raffles, school fundraisers, and benefit nights.",
+    category: "other",
+    cells: ["Raffle ticket", "Sponsor shoutout", "Donation", "Silent auction", "FREE", "Prize table", "Volunteer", "Thank-you speech", "Photo moment"],
+    style: { backgroundColor: "#ecfdf5", textColor: "#047857", borderColor: "#a7f3d0" },
+  },
+  {
+    slug: "baby-prediction-bingo",
+    title: "Baby Prediction Bingo",
+    description: "Prediction squares for due dates, baby traits, names, and first milestones.",
+    category: "baby-shower",
+    cells: ["Boy", "Girl", "Brown eyes", "Blue eyes", "FREE", "Early arrival", "Late arrival", "Looks like mom", "Looks like dad"],
+    style: { backgroundColor: "#f0f9ff", textColor: "#0369a1", borderColor: "#bae6fd" },
+  },
+  {
+    slug: "movie-night-bingo",
+    title: "Movie Night Bingo",
+    description: "Movie trope bingo for watch parties, family nights, and themed screenings.",
+    category: "other",
+    cells: ["Plot twist", "Jump scare", "Love story", "Chase scene", "FREE", "Dramatic music", "Flashback", "Hero moment", "Post-credit scene"],
+    style: { backgroundColor: "#f8fafc", textColor: "#1e293b", borderColor: "#cbd5e1" },
+  },
+  {
+    slug: "sight-word-bingo",
+    title: "Sight Word Bingo",
+    description: "A starter sight-word card for early readers and small-group literacy practice.",
+    category: "classroom",
+    cells: ["the", "and", "you", "said", "FREE", "was", "they", "have", "with"],
+    style: { backgroundColor: "#fff1f2", textColor: "#9f1239", borderColor: "#fecdd3" },
+  },
+  {
+    slug: "office-party-bingo",
+    title: "Office Party Bingo",
+    description: "Lightweight party bingo for holiday lunches, team events, and happy hours.",
+    category: "team-building",
+    cells: ["Group selfie", "Snack table", "Work story", "Prize winner", "FREE", "Music request", "Inside joke", "Late arrival", "Dessert"],
+    style: { backgroundColor: "#f5f3ff", textColor: "#6d28d9", borderColor: "#ddd6fe" },
+  },
+  {
+    slug: "new-years-goals-bingo",
+    title: "New Year's Goals Bingo",
+    description: "Goal-setting bingo for resolutions, social challenges, and annual planning.",
+    category: "holiday",
+    cells: ["Fitness goal", "Read more", "Save money", "New hobby", "FREE", "Travel plan", "Drink water", "Declutter", "Learn skill"],
+    style: { backgroundColor: "#f0fdfa", textColor: "#115e59", borderColor: "#99f6e4" },
+  },
+  {
+    slug: "icebreaker-bingo",
+    title: "Icebreaker Bingo",
+    description: "Find-someone-who squares for networking, classrooms, groups, and workshops.",
+    category: "icebreaker",
+    cells: ["Has a sibling", "Plays music", "Likes hiking", "Has met a celebrity", "FREE", "Loves tea", "Has a tattoo", "Reads daily", "Owns a bike"],
+    style: { backgroundColor: "#f0fdf4", textColor: "#166534", borderColor: "#bbf7d0" },
+  },
+];
+
+function getCategoryName(categoryId: string) {
+  return CATEGORIES.find((category) => category.id === categoryId)?.name || "Template";
+}
+
+function getIndexableTemplateHref(template: IndexableTemplate) {
+  const params = new URLSearchParams({
+    templateId: `seo-${template.slug}`,
+    title: template.title,
+    size: "3",
+    cells: JSON.stringify(template.cells),
+    freeSpace: "true",
+    style: JSON.stringify(template.style),
+  });
+
+  return `/create?${params.toString()}`;
+}
+
 export default function TemplatesPage() {
   const router = useRouter();
   const sessionData = useSession();
@@ -369,6 +590,57 @@ export default function TemplatesPage() {
             </p>
           </div>
 
+          <section className="mb-16 animate-fade-in-up animation-delay-100">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Popular bingo card templates</h2>
+                <p className="mt-2 text-slate-600 max-w-2xl">
+                  Start with a ready-made idea, customize the squares, then print a PDF or share the card online.
+                </p>
+              </div>
+              <Link href="/create" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">
+                Start from a blank card
+              </Link>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {INDEXABLE_TEMPLATES.map((template) => (
+                <article key={template.slug} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
+                  <div className="p-5 bg-slate-50 border-b border-slate-100">
+                    <div className="grid grid-cols-3 gap-1.5 rounded-xl bg-white p-2 shadow-sm" aria-label={`${template.title} preview`}>
+                      {template.cells.map((cell, index) => (
+                        <div
+                          key={`${template.slug}-${cell}-${index}`}
+                          className="aspect-square flex items-center justify-center text-center text-[9px] leading-tight font-semibold rounded-md p-1 overflow-hidden"
+                          style={{
+                            backgroundColor: template.style.backgroundColor || "#ffffff",
+                            color: template.style.textColor || "#334155",
+                            border: `1px solid ${template.style.borderColor || "#e2e8f0"}`,
+                          }}
+                        >
+                          {cell}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="p-5 flex flex-col flex-grow">
+                    <div className="text-xs font-bold uppercase tracking-wide text-indigo-600 mb-2">
+                      {getCategoryName(template.category)}
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900 mb-2">{template.title}</h3>
+                    <p className="text-sm text-slate-500 leading-relaxed mb-5 flex-grow">{template.description}</p>
+                    <Link
+                      href={getIndexableTemplateHref(template)}
+                      className="w-full bg-white text-indigo-600 border border-indigo-200 px-4 py-2.5 rounded-xl hover:bg-indigo-50 hover:border-indigo-300 transition-all font-semibold text-sm shadow-sm text-center"
+                    >
+                      Use This Template
+                    </Link>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+
           {/* Filters and Search */}
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-12 animate-fade-in-up animation-delay-100">
             <div className="grid md:grid-cols-2 gap-6 mb-6">
@@ -445,7 +717,7 @@ export default function TemplatesPage() {
           {loading ? (
             <div className="text-center py-24">
               <div className="inline-block w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="mt-4 text-slate-500 font-medium">Loading templates...</p>
+              <p className="mt-4 text-slate-500 font-medium">Loading more templates...</p>
             </div>
           ) : filteredTemplates.length === 0 && templates.length > 0 ? (
             <div className="text-center py-24 bg-white rounded-3xl border border-slate-200 border-dashed">

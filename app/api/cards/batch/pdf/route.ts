@@ -7,6 +7,19 @@ import { canRemoveBranding } from "@/lib/permissions";
 import { PLANS } from "@/lib/stripe/config";
 import puppeteer from "puppeteer";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { materializePdfImageCells } from "@/lib/pdf-image-assets";
+import { notifyBatchPdfExported } from "@/lib/discord";
+import { mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { rmSync } from "node:fs";
+import {
+  formatClassicCellLabel,
+  getBingoGridShape,
+  getFreeSpaceIndexForGrid,
+  isBlankClassicCell,
+  normalizeBingoVariant,
+} from "@/lib/classic-bingo";
 
 function escapeHtml(text: string): string {
   const map: { [key: string]: string } = {
@@ -28,29 +41,40 @@ function generateBatchHTML(
 
   const cardHTMLs = cards.map((card) => {
     const { title, size, cells, freeSpace, style } = card;
-    const freeSpaceIndex = freeSpace ? Math.floor((size * size) / 2) : -1;
+    const variant = normalizeBingoVariant(card.bingoVariant);
+    const shape = getBingoGridShape(card);
+    const freeSpaceIndex = getFreeSpaceIndexForGrid({
+      freeSpace,
+      rows: shape.rows,
+      columns: shape.columns,
+      bingoVariant: variant,
+    });
 
     const cellFontSize = size === 3 ? "11px" : size === 4 ? "9px" : "8px";
 
     return `
       <div class="card-container">
         <div class="card-title">${escapeHtml(title)}</div>
-        <div class="bingo-grid grid-${size}">
+        ${variant === "classic75" ? `<div class="classic-header grid-cols-${shape.columns}">${"BINGO".split("").map((letter) => `<div>${letter}</div>`).join("")}</div>` : ""}
+        ${variant === "classic90" ? `<div class="classic-header classic-90 grid-cols-${shape.columns}">${["1-9", "10s", "20s", "30s", "40s", "50s", "60s", "70s", "80-90"].map((label) => `<div>${label}</div>`).join("")}</div>` : ""}
+        <div class="bingo-grid grid-cols-${shape.columns}" style="aspect-ratio:${shape.columns} / ${shape.rows}">
           ${cells
             .map((cell: string, index: number) => {
               const isFreeSpace = freeSpace && index === freeSpaceIndex;
+              const isBlank = isBlankClassicCell(cell, variant);
               const bgColor = grayscale ? "#ffffff" : (style.backgroundColor || "#ffffff");
               const txtColor = grayscale ? "#000000" : (style.textColor || "#000000");
               const borderClr = grayscale ? "#666666" : (style.borderColor || "#000000");
+              const cellText = formatClassicCellLabel(cell, variant);
 
               return `
                 <div class="cell" style="
-                  background-color: ${isFreeSpace && !grayscale ? '#e0e7ff' : bgColor};
+                  background-color: ${isBlank ? "#fff7ed" : isFreeSpace && !grayscale ? '#e0e7ff' : bgColor};
                   color: ${txtColor};
-                  border: 1.5px solid ${borderClr};
+                  border: ${isBlank ? "1px dashed #fed7aa" : `1.5px solid ${borderClr}`};
                   font-size: ${cellFontSize};
                 ">
-                  ${isFreeSpace ? '<span class="free">FREE</span>' : cell.startsWith("__IMG__:") ? (() => { try { const d = JSON.parse(cell.slice(8)); const u = d.imageUrl?.startsWith("/") ? "https://mybingocard.com" + d.imageUrl : d.imageUrl; const lblStyle = d.fit === 'cover' ? 'position:relative;z-index:1;background:rgba(0,0,0,0.4);color:#fff;border-radius:3px;padding:1px 3px;' : ''; const lbl = d.label ? `<div style="font-size:0.6em;margin-top:1px;text-align:center;${lblStyle}">${escapeHtml(d.label)}</div>` : ""; if (d.fit === "cover") { return `<img src="${u}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;" />${lbl}`; } return `<img src="${u}" style="max-width:90%;max-height:${d.label ? '65%' : '85%'};object-fit:contain;" />${lbl}`; } catch { return escapeHtml(cell); } })() : escapeHtml(cell)}
+                  ${isBlank ? "" : isFreeSpace ? '<span class="free">FREE</span>' : cell.startsWith("__IMG__:") ? (() => { try { const d = JSON.parse(cell.slice(8)); const u = d.imageUrl?.startsWith("/") ? "https://mybingocard.com" + d.imageUrl : d.imageUrl; const lblStyle = d.fit === 'cover' ? 'position:relative;z-index:1;background:rgba(0,0,0,0.4);color:#fff;border-radius:3px;padding:1px 3px;' : ''; const lbl = d.label ? `<div style="font-size:0.6em;margin-top:1px;text-align:center;${lblStyle}">${escapeHtml(d.label)}</div>` : ""; if (d.fit === "cover") { return `<img src="${u}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;" />${lbl}`; } return `<img src="${u}" style="max-width:90%;max-height:${d.label ? '65%' : '85%'};object-fit:contain;" />${lbl}`; } catch { return escapeHtml(cellText); } })() : escapeHtml(cellText)}
                 </div>
               `;
             })
@@ -185,9 +209,36 @@ function generateBatchHTML(
             max-width: 4in;
           }
 
-          .grid-3 { grid-template-columns: repeat(3, 1fr); }
-          .grid-4 { grid-template-columns: repeat(4, 1fr); }
-          .grid-5 { grid-template-columns: repeat(5, 1fr); }
+          .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+          .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+          .grid-cols-5 { grid-template-columns: repeat(5, 1fr); }
+          .grid-cols-9 { grid-template-columns: repeat(9, 1fr); }
+
+          .classic-header {
+            display: grid;
+            gap: 3px;
+            width: 100%;
+            max-width: 6in;
+            margin: 0 auto 3px;
+            color: #047857;
+            font-weight: 900;
+            font-size: 10px;
+          }
+
+          .classic-header div {
+            border-radius: 4px;
+            background: #ecfdf5;
+            padding: 2px 0;
+          }
+
+          .classic-header.classic-90 {
+            color: #b45309;
+            font-size: 6px;
+          }
+
+          .classic-header.classic-90 div {
+            background: #fff7ed;
+          }
 
           .cell {
             display: flex;
@@ -273,6 +324,8 @@ function generateBatchHTML(
 }
 
 export async function POST(request: Request) {
+  let tempAssetDir: string | null = null;
+
   try {
     const session = await auth();
     const requestContext = getRequestActivityContext(request);
@@ -315,13 +368,6 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!hasPremiumBatchAccess && cardIds.length > 100) {
-      return NextResponse.json(
-        { error: "Batch PDF download supports up to 100 cards per batch." },
-        { status: 403 }
-      );
-    }
-
     // Fetch all cards and ensure they belong to the signed-in user.
     const cards = [];
     for (const id of cardIds) {
@@ -355,8 +401,54 @@ export async function POST(request: Request) {
     if (!hasPremiumBatchAccess) {
       const purchasedBatch = await findGeneratedBatchPurchaseForCards(session.user.id, cardIds);
       if (!purchasedBatch) {
+        await trackActivity({
+          event: "batch_pdf_export_blocked",
+          source: "server",
+          userId: session.user.id || null,
+          email: session.user.email,
+          pathname: requestContext.pathname,
+          domain: requestContext.domain,
+          ipAddress: requestContext.ipAddress,
+          userAgent: requestContext.userAgent,
+          metadata: {
+            reason: "purchased_batch_required",
+            cardCount: cardIds.length,
+            cardsPerPage,
+            grayscale,
+            showCutLines,
+            planType: user.planType,
+          },
+        });
         return NextResponse.json(
           { error: "Batch PDF download requires a purchased batch for these cards." },
+          { status: 403 }
+        );
+      }
+
+      if (cardIds.length > purchasedBatch.batchCount) {
+        await trackActivity({
+          event: "batch_pdf_export_blocked",
+          source: "server",
+          userId: session.user.id || null,
+          email: session.user.email,
+          pathname: requestContext.pathname,
+          domain: requestContext.domain,
+          ipAddress: requestContext.ipAddress,
+          userAgent: requestContext.userAgent,
+          metadata: {
+            reason: "card_count_exceeds_purchased_batch",
+            cardCount: cardIds.length,
+            purchasedBatchCount: purchasedBatch.batchCount,
+            cardsPerPage,
+            grayscale,
+            showCutLines,
+            planType: user.planType,
+          },
+        });
+        return NextResponse.json(
+          {
+            error: `This PDF has ${cardIds.length} cards, but the purchased pack includes ${purchasedBatch.batchCount}.`,
+          },
           { status: 403 }
         );
       }
@@ -364,7 +456,23 @@ export async function POST(request: Request) {
 
     const brandingPermission = canRemoveBranding(user.planType as any);
 
-    const html = generateBatchHTML(cards, brandingPermission.allowed, {
+    tempAssetDir = await mkdtemp(join(tmpdir(), "mybingocard-batch-pdf-"));
+    const imageAssetCache = new Map<string, string>();
+    const pdfCards = await Promise.all(
+      cards.map(async (card) => {
+        const materialized = await materializePdfImageCells(card.cells, {
+          assetDir: tempAssetDir!,
+          cache: imageAssetCache,
+        });
+
+        return {
+          ...card,
+          cells: materialized.cells,
+        };
+      })
+    );
+
+    const html = generateBatchHTML(pdfCards, brandingPermission.allowed, {
       grayscale,
       cardsPerPage: [1, 2, 4].includes(cardsPerPage) ? cardsPerPage : 1,
       showCutLines,
@@ -402,8 +510,24 @@ export async function POST(request: Request) {
         grayscale,
         cardsPerPage,
         showCutLines,
+        planType: user.planType,
+        hasPremiumBatchAccess,
+        firstCardTitle: cards[0]?.title || null,
       },
     });
+
+    notifyBatchPdfExported(
+      user.name || "Unknown",
+      session.user.email,
+      {
+        cardCount: cards.length,
+        cardsPerPage,
+        grayscale,
+        showCutLines,
+        planType: user.planType,
+        firstCardTitle: cards[0]?.title || null,
+      }
+    ).catch(() => {});
 
     return new NextResponse(Buffer.from(pdfBuffer), {
       headers: {
@@ -418,5 +542,9 @@ export async function POST(request: Request) {
       { error: "Failed to generate batch PDF" },
       { status: 500 }
     );
+  } finally {
+    if (tempAssetDir) {
+      rmSync(tempAssetDir, { recursive: true, force: true });
+    }
   }
 }

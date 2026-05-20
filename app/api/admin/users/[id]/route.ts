@@ -55,12 +55,17 @@ export async function GET(
       .collection("activity_events")
       .find({ $or: activityFilter })
       .sort({ createdAt: -1 })
-      .limit(20)
+      .limit(100)
       .project({
         event: 1,
         source: 1,
         metadata: 1,
         pathname: 1,
+        sessionId: 1,
+        anonymousId: 1,
+        domain: 1,
+        ipAddress: 1,
+        userAgent: 1,
         createdAt: 1,
       })
       .toArray();

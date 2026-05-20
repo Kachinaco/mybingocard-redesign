@@ -5,6 +5,8 @@ import { getAdminSessionEmail, isAdminSession } from "@/lib/admin";
 import clientPromise from "@/lib/mongodb";
 import { AdminMobileNav } from "./admin-mobile-nav";
 
+export { metadata } from "./metadata";
+
 const navItems = [
   {
     label: "Overview",
@@ -21,6 +23,24 @@ const navItems = [
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Visitors",
+    href: "/admin/visitors",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    label: "Errors",
+    href: "/admin/errors",
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
       </svg>
     ),
   },
@@ -57,15 +77,18 @@ async function getLayoutBadges() {
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
-  const [openTickets, pastDueUsers, paidUsers] = await Promise.all([
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const [openTickets, pastDueUsers, paidUsers, recentErrorGroups] = await Promise.all([
     db.collection("support_tickets").countDocuments({ status: "open" }),
     db.collection("users").countDocuments({ subscriptionStatus: "past_due" }),
     db.collection("users").countDocuments({ subscriptionStatus: "active" }),
+    db.collection("error_fingerprints").countDocuments({ lastSeenAt: { $gte: since } }),
   ]);
 
   return {
     openTickets,
     pastDueUsers,
+    recentErrorGroups,
     mrr: paidUsers * 4.99,
     activeUsers: paidUsers,
   };
@@ -100,6 +123,8 @@ export default async function AdminLayout({
         ? badges.openTickets
         : item.label === "Users"
           ? badges.pastDueUsers
+          : item.label === "Errors"
+            ? badges.recentErrorGroups
           : undefined,
   }));
 
@@ -163,6 +188,8 @@ export default async function AdminLayout({
                   ? badges.openTickets
                   : item.label === "Users"
                     ? badges.pastDueUsers
+                    : item.label === "Errors"
+                      ? badges.recentErrorGroups
                     : 0;
               return (
                 <Link

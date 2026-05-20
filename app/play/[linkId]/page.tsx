@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import PlayClient from "./PlayClient";
 import { getSharedLinkByLinkId } from "@/lib/db/sharedLinks";
 import { getCardById } from "@/lib/db/cards";
@@ -69,5 +70,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PlayLinkPage({ params }: PageProps) {
   const { linkId } = await params;
-  return <PlayClient linkId={linkId} />;
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-indigo-50">
+          <div className="text-center">
+            <div className="inline-block w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4" />
+            <p className="text-slate-500">Loading your bingo card...</p>
+          </div>
+        </div>
+      }
+    >
+      <PlayClient linkId={linkId} />
+    </Suspense>
+  );
 }

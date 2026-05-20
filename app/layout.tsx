@@ -32,28 +32,57 @@ const satisfy = Satisfy({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://mybingocard.com"),
+  applicationName: "MyBingoCard",
   title: "Free Bingo Card Generator | Printable & Online Bingo Cards | MyBingoCard",
   description:
     "Create printable and online bingo cards for classrooms, baby showers, weddings, team building, holidays, and parties. Free bingo card generator with templates, AI help, PDF export, and live play.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: [{ url: "/favicon.ico" }],
+    apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
   openGraph: {
     title: "Free Bingo Card Generator | MyBingoCard",
     description: "Create printable and online bingo cards for classrooms, parties, baby showers, weddings, and team building.",
     url: "https://mybingocard.com",
     siteName: "MyBingoCard",
     type: "website",
+    locale: "en_US",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "MyBingoCard free bingo card generator preview",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Free Bingo Card Generator | MyBingoCard",
     description: "Create printable and online bingo cards for classrooms, parties, baby showers, weddings, and team building.",
+    images: ["/opengraph-image"],
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "MyBingoCard",
   },
-  alternates: {},
 };
 
 export const viewport: Viewport = {
@@ -85,6 +114,7 @@ export default function RootLayout({
               "@graph": [
                 {
                   "@type": "Organization",
+                  "@id": "https://mybingocard.com/#organization",
                   "name": "MyBingoCard",
                   "url": "https://mybingocard.com",
                   "description": "Free bingo card generator for printable and online bingo games.",
@@ -96,19 +126,33 @@ export default function RootLayout({
                   },
                 },
                 {
-                  "@type": "SoftwareApplication",
+                  "@type": "WebApplication",
+                  "@id": "https://mybingocard.com/#app",
                   "name": "MyBingoCard",
                   "url": "https://mybingocard.com",
-                  "applicationCategory": "UtilitiesApplication",
+                  "applicationCategory": "GameApplication",
                   "operatingSystem": "Web",
+                  "browserRequirements": "Requires JavaScript and a modern web browser.",
+                  "isAccessibleForFree": true,
                   "description": "Create printable and online bingo cards for classrooms, parties, baby showers, weddings, team building, holidays, and more.",
+                  "featureList": [
+                    "Printable bingo card PDFs",
+                    "Online bingo card sharing",
+                    "Live multiplayer bingo games",
+                    "Custom words and image bingo cards",
+                    "AI bingo card idea generation",
+                    "Batch generation for unique cards"
+                  ],
+                  "publisher": {
+                    "@id": "https://mybingocard.com/#organization"
+                  },
                   "offers": [
                     {
                       "@type": "Offer",
                       "price": "0",
                       "priceCurrency": "USD",
                       "name": "Free",
-                      "description": "Free bingo card generator with starter templates and standard PDF export",
+                      "description": "Free bingo card generator with starter templates, browser printing, and paid batch PDF packs",
                     },
                     {
                       "@type": "Offer",

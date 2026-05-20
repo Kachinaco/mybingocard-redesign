@@ -1,5 +1,6 @@
 import Link from "next/link";
 import SuppliesTracker from "./SuppliesTracker";
+import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 const supplies = [
   {
@@ -275,7 +276,8 @@ export default function SuppliesPage() {
             </div>
           </div>
         </div>
-      </footer>
+      </footer>      <SeoSupportBlock slug="supplies" />
+
     </div>
   );
 }

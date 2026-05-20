@@ -22,6 +22,9 @@ export async function GET(
         roomCode: room.roomCode,
         title: room.title,
         size: room.size,
+        rows: room.rows,
+        columns: room.columns,
+        bingoVariant: room.bingoVariant || "custom",
         freeSpace: room.freeSpace,
         calledItems: room.calledItems,
         players: room.players.map(p => ({
@@ -38,7 +41,11 @@ export async function GET(
         settings: room.settings ?? DEFAULT_SETTINGS,
         ...(isHost ? { wordList: room.wordList } : {}),
         wordListCount: room.wordList.length,
-        winners: (room.winners ?? []).map(w => ({ playerId: w.playerId, playerName: w.playerName })),
+        winners: (room.winners ?? []).map(w => ({
+          playerId: w.playerId,
+          playerName: w.playerName,
+          verificationCode: w.verificationCode,
+        })),
         createdAt: room.createdAt,
       },
     });

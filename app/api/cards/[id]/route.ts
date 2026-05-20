@@ -4,6 +4,11 @@ import { auth } from "@/auth";
 import { getCardById, updateCard } from "@/lib/db/cards";
 import { getUserById } from "@/lib/db/users";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import {
+  getBingoGridShape,
+  normalizeBingoVariant,
+  validateClassicCells,
+} from "@/lib/classic-bingo";
 
 export async function GET(
   request: Request,
@@ -82,6 +87,13 @@ export async function PUT(
 
     const body = await request.json();
     const { title, description, size, cells, freeSpace, isPublic, style } = body;
+    const bingoVariant = normalizeBingoVariant(body.bingoVariant);
+    const gridShape = getBingoGridShape({
+      size,
+      rows: body.rows,
+      columns: body.columns,
+      bingoVariant,
+    });
 
     // Validate required fields
     if (!title?.trim()) {
@@ -98,9 +110,9 @@ export async function PUT(
       );
     }
 
-    if (!Array.isArray(cells) || cells.length !== size * size) {
+    if (!Array.isArray(cells) || cells.length !== gridShape.rows * gridShape.columns) {
       return NextResponse.json(
-        { error: `Invalid cells array - must have ${size * size} cells` },
+        { error: `Invalid cells array - must have ${gridShape.rows * gridShape.columns} cells` },
         { status: 400 }
       );
     }
@@ -109,6 +121,12 @@ export async function PUT(
     const sanitizedTitle = sanitizeText(title.trim(), 100);
     const sanitizedDescription = sanitizeText(description?.trim() || "", 500);
     const sanitizedCells = sanitizeCells(cells);
+    if (!validateClassicCells(bingoVariant, sanitizedCells)) {
+      return NextResponse.json(
+        { error: "Classic bingo cards must use the correct number ranges and layout." },
+        { status: 400 }
+      );
+    }
     // Sharing is a premium feature — force isPublic to false for free users
     const cardOwner = await getUserById(session.user.id);
     const ownerPlan = cardOwner?.planType || "FREE";
@@ -119,8 +137,11 @@ export async function PUT(
       title: sanitizedTitle,
       description: sanitizedDescription,
       size,
+      rows: gridShape.rows,
+      columns: gridShape.columns,
+      bingoVariant,
       cells: sanitizedCells,
-      freeSpace: !!freeSpace,
+      freeSpace: bingoVariant === "classic90" ? false : !!freeSpace,
       isPublic: finalIsPublic,
       style: style || {},
     });
@@ -138,6 +159,9 @@ export async function PUT(
         cardId: id,
         title: sanitizedTitle,
         size,
+        rows: gridShape.rows,
+        columns: gridShape.columns,
+        bingoVariant,
         isPublic: !!isPublic,
       },
     });

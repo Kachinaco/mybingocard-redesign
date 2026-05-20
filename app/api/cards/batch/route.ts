@@ -12,6 +12,12 @@ import { getUserByEmail } from "@/lib/db/users";
 import { notifyBatchCardsCreated } from "@/lib/discord";
 import { PLANS } from "@/lib/stripe/config";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import {
+  generateClassicBingoCard,
+  getBingoGridShape,
+  normalizeBingoVariant,
+  validateClassicCells,
+} from "@/lib/classic-bingo";
 
 // Fisher-Yates shuffle
 function shuffleArray<T>(array: T[]): T[] {
@@ -80,6 +86,13 @@ export async function POST(request: Request) {
 
     const data = await request.json();
     const { title, description, size, cells, freeSpace, style, count } = data;
+    const bingoVariant = normalizeBingoVariant(data.bingoVariant);
+    const gridShape = getBingoGridShape({
+      size,
+      rows: data.rows,
+      columns: data.columns,
+      bingoVariant,
+    });
 
     // Validate
     if (!title || !size || !cells || !count) {
@@ -111,14 +124,20 @@ export async function POST(request: Request) {
       );
     }
 
-    const totalCells = size * size;
-    const nonFreeCells = freeSpace ? totalCells - 1 : totalCells;
+    const totalCells = gridShape.rows * gridShape.columns;
+    const nonFreeCells = bingoVariant === "classic90" ? 15 : freeSpace ? totalCells - 1 : totalCells;
 
     // Need at least enough unique cells to fill a card
     const uniqueCells = cells.filter((c: string) => c.trim() !== "" && c.toUpperCase() !== "FREE");
-    if (uniqueCells.length < nonFreeCells) {
+    if (bingoVariant === "custom" && uniqueCells.length < nonFreeCells) {
       return NextResponse.json(
-        { error: `Need at least ${nonFreeCells} unique items to generate cards for a ${size}x${size} grid` },
+        { error: `Need at least ${nonFreeCells} unique items to generate cards for a ${gridShape.rows}x${gridShape.columns} grid` },
+        { status: 400 }
+      );
+    }
+    if (bingoVariant !== "custom" && cells.length > 0 && !validateClassicCells(bingoVariant, cells)) {
+      return NextResponse.json(
+        { error: "Classic bingo cards must use the correct number ranges and layout." },
         { status: 400 }
       );
     }
@@ -139,7 +158,9 @@ export async function POST(request: Request) {
     }
 
     // Generate shuffled card arrangements
-    const shuffledCards = generateShuffledCards(cells, size, freeSpace, count);
+    const shuffledCards = bingoVariant === "custom"
+      ? generateShuffledCards(cells, size, freeSpace, count)
+      : Array.from({ length: count }, () => generateClassicBingoCard(bingoVariant));
     const batchGroupId = claimedPurchase?._id.toString() || new ObjectId().toString();
 
     // Create all cards in DB
@@ -153,8 +174,11 @@ export async function POST(request: Request) {
           title: `${title} #${createdCards.length + 1}`,
           description: description || `Batch card ${createdCards.length + 1} of ${count}`,
           size,
+          rows: gridShape.rows,
+          columns: gridShape.columns,
+          bingoVariant,
           cells: cardCells,
-          freeSpace,
+          freeSpace: bingoVariant === "classic90" ? false : freeSpace,
           style: style || {},
           isPublic: true,
           shareLink,
@@ -196,6 +220,9 @@ export async function POST(request: Request) {
       metadata: {
         count: createdCards.length,
         size,
+        rows: gridShape.rows,
+        columns: gridShape.columns,
+        bingoVariant,
         title,
         purchaseType: hasPremiumBatchAccess ? "premium" : "batch_pack",
       },

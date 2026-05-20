@@ -38,7 +38,7 @@ export interface User {
   last_utm_term?: string;
   last_referrer?: string;
   anonymousId?: string;
-  signupMethod?: "google" | "credentials" | "magic_link" | "share_link";
+  signupMethod?: "google" | "apple" | "credentials" | "magic_link" | "share_link";
   signupDevice?: string;   // "Chrome 146 / Windows" parsed from UA
   signupCountry?: string;  // "PH" from IP geolocation
   signupLanguage?: string; // "en-PH" from Accept-Language header
@@ -94,7 +94,7 @@ export async function createUser(data: {
   last_utm_content?: string;
   last_utm_term?: string;
   last_referrer?: string;
-  signupMethod?: "google" | "credentials" | "magic_link";
+  signupMethod?: "google" | "apple" | "credentials" | "magic_link";
   signupDevice?: string;
   signupLanguage?: string;
 }): Promise<User> {

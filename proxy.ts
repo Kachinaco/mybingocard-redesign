@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth } from "./auth";
+import {
+  decodeNativeOAuthPending,
+  nativeOAuthRedirectUrl,
+  NATIVE_OAUTH_PENDING_COOKIE,
+  normalizeNativeCallback,
+} from "./lib/native-oauth-pending";
 
 const PROTECTED_PATHS = ["/dashboard", "/settings", "/game/host"];
 const VALID_ACTION = /^[0-9a-f]{40,}$/i;
@@ -21,6 +27,22 @@ export default auth(async (req) => {
 
   const { nextUrl } = req;
   const pathname = nextUrl.pathname;
+  const pendingNativeOAuth = decodeNativeOAuthPending(
+    req.cookies.get(NATIVE_OAUTH_PENDING_COOKIE)?.value
+  );
+
+  if (
+    req.auth?.user?.email &&
+    pendingNativeOAuth &&
+    !pathname.startsWith("/api/native/oauth/")
+  ) {
+    const completePath = `/api/native/oauth/${pendingNativeOAuth.provider}/complete?callbackUrl=${encodeURIComponent(
+      normalizeNativeCallback(pendingNativeOAuth.callbackUrl, nextUrl)
+    )}`;
+    const response = NextResponse.redirect(nativeOAuthRedirectUrl(completePath, nextUrl));
+    response.cookies.delete(NATIVE_OAUTH_PENDING_COOKIE);
+    return response;
+  }
 
   // Auth wall for protected paths (dashboard, settings)
   if (!isProtectedPath(pathname)) {

@@ -9,13 +9,27 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import AdUnit from "@/components/AdUnit";
 import { trackClientActivity, getAnonymousId } from "@/lib/activity-client";
-import { shuffleBingoCells } from "@/lib/shuffle";
+import { hashStringToSeed, shuffleBingoCells } from "@/lib/shuffle";
+import {
+  checkWinByGrid,
+  createSeededRng,
+  formatClassicCellLabel,
+  generateClassicBingoCard,
+  getBingoGridShape,
+  getFreeSpaceIndexForGrid,
+  isBlankClassicCell,
+  normalizeBingoVariant,
+  type BingoVariant,
+} from "@/lib/classic-bingo";
 
 interface Card {
   _id: string;
   title: string;
   description?: string;
   size: 3 | 4 | 5;
+  rows?: number;
+  columns?: number;
+  bingoVariant?: BingoVariant;
   cells: string[];
   freeSpace: boolean;
   style: {
@@ -66,6 +80,8 @@ export default function SharedCardPage() {
   const params = useParams();
   const shareLink = params.shareLink as string;
   const cardContainerRef = useRef<HTMLDivElement>(null);
+  const playStartedTrackedRef = useRef(false);
+  const shareViewTrackedRef = useRef(false);
 
   const [card, setCard] = useState<Card | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,16 +100,39 @@ export default function SharedCardPage() {
   const [shuffleEnabled, setShuffleEnabled] = useState(false);
   const [adFree, setAdFree] = useState(false);
   const [displayCells, setDisplayCells] = useState<string[]>([]);
+  const variant = normalizeBingoVariant(card?.bingoVariant);
+  const shape = card ? getBingoGridShape(card) : { rows: 5, columns: 5 };
+  const activeCells = displayCells.length > 0 ? displayCells : (card?.cells ?? []);
+  const freeSpaceIndex = card
+    ? getFreeSpaceIndexForGrid({
+        freeSpace: card.freeSpace,
+        rows: shape.rows,
+        columns: shape.columns,
+        bingoVariant: variant,
+      })
+    : -1;
+  const totalPlayableCells = activeCells.filter((cell) => !isBlankClassicCell(cell, variant)).length;
   const gameStartTime = useRef(Date.now());
   const shareGridRef = useRef<HTMLDivElement>(null);
   const fittedSizes = useTextFit(shareGridRef, {
-    cells: displayCells.length > 0 ? displayCells : (card?.cells ?? []),
+    cells: activeCells,
     gridSize: (card?.size ?? 5) as 3 | 4 | 5,
     fontFamily: card?.style.fontFamily || "sans-serif",
-    freeSpaceIndex: card?.freeSpace ? Math.floor(((card?.size ?? 5) * (card?.size ?? 5)) / 2) : null,
+    freeSpaceIndex: freeSpaceIndex >= 0 ? freeSpaceIndex : null,
   });
 
   useEffect(() => { fetchCard(); }, [shareLink]);
+
+  useEffect(() => {
+    if (!card || shareViewTrackedRef.current) return;
+    shareViewTrackedRef.current = true;
+    trackClientActivity("share_link_viewed", {
+      cardId: card._id,
+      title: card.title,
+      shareLink,
+      context: "shared_card",
+    });
+  }, [card, shareLink]);
 
   useEffect(() => {
     const handler = () => setIsFullscreen(!!document.fullscreenElement);
@@ -107,27 +146,32 @@ export default function SharedCardPage() {
     const local = loadLocalState(card._id);
     if (local && local.marked.length > 0) {
       const restoredMarked = new Set<number>(local.marked);
-      if (card.freeSpace) {
-        restoredMarked.add(Math.floor((card.size * card.size) / 2));
+      if (freeSpaceIndex >= 0) {
+        restoredMarked.add(freeSpaceIndex);
       }
       setMarked(restoredMarked);
       setBingo(local.bingo);
-    } else if (card.freeSpace) {
-      setMarked(new Set([Math.floor((card.size * card.size) / 2)]));
+    } else if (freeSpaceIndex >= 0) {
+      setMarked(new Set([freeSpaceIndex]));
     }
     setStateRestored(true);
-  }, [card, stateRestored]);
+  }, [card, stateRestored, freeSpaceIndex]);
 
   // Compute display cells — shuffle per viewer if Premium, otherwise show original order
   useEffect(() => {
     if (!card) return;
     if (shuffleEnabled) {
       const viewerId = getAnonymousId() || "fallback";
-      setDisplayCells(shuffleBingoCells(card.cells, card.size, card.freeSpace, viewerId, card._id));
+      if (variant === "custom") {
+        setDisplayCells(shuffleBingoCells(card.cells, card.size, card.freeSpace, viewerId, card._id));
+      } else {
+        const seed = hashStringToSeed(`${viewerId}:${card._id}:${variant}`);
+        setDisplayCells(generateClassicBingoCard(variant, createSeededRng(seed)));
+      }
     } else {
       setDisplayCells(card.cells);
     }
-  }, [card, shuffleEnabled]);
+  }, [card, shuffleEnabled, variant]);
 
   const fetchCard = async () => {
     try {
@@ -191,21 +235,18 @@ export default function SharedCardPage() {
     }
   };
 
-  const getFreeSpaceIndex = useCallback(() => {
-    if (!card?.freeSpace) return -1;
-    return Math.floor((card.size * card.size) / 2);
-  }, [card]);
+  const getFreeSpaceIndex = useCallback(() => freeSpaceIndex, [freeSpaceIndex]);
 
-  const checkBingo = useCallback((markedSet: Set<number>, size: number): boolean => {
-    const grid = Array.from({ length: size }, (_, r) =>
-      Array.from({ length: size }, (_, c) => markedSet.has(r * size + c))
+  const checkBingo = useCallback((markedSet: Set<number>): boolean => {
+    return checkWinByGrid(
+      Array.from(markedSet),
+      activeCells,
+      shape.rows,
+      shape.columns,
+      variant === "classic90" ? "one_line" : "standard",
+      variant,
     );
-    for (let r = 0; r < size; r++) { if (grid[r]?.every(Boolean)) return true; }
-    for (let c = 0; c < size; c++) { if (grid.map(row => row[c] ?? false).every(Boolean)) return true; }
-    if (Array.from({ length: size }, (_, i) => grid[i]?.[i] ?? false).every(Boolean)) return true;
-    if (Array.from({ length: size }, (_, i) => grid[i]?.[size - 1 - i] ?? false).every(Boolean)) return true;
-    return false;
-  }, []);
+  }, [activeCells, shape.rows, shape.columns, variant]);
 
   const triggerHaptic = () => {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
@@ -217,7 +258,19 @@ export default function SharedCardPage() {
     if (!card) return;
     const isFreeSpace = card.freeSpace && index === getFreeSpaceIndex();
     if (isFreeSpace) return;
+    if (isBlankClassicCell(activeCells[index] || "", variant)) return;
     triggerHaptic();
+    if (!playStartedTrackedRef.current) {
+      playStartedTrackedRef.current = true;
+      trackClientActivity("play_started", {
+        cardId: card._id,
+        title: card.title,
+        gridSize: shape.columns,
+        shareLink,
+        context: "shared_card",
+        bingoVariant: variant,
+      });
+    }
 
     setMarked(prev => {
       const next = new Set(prev);
@@ -228,7 +281,7 @@ export default function SharedCardPage() {
         next.add(index);
         setUndoStack(s => [...s, index + 1]);
       }
-      const hasBingo = checkBingo(next, card.size);
+      const hasBingo = checkBingo(next);
       if (hasBingo && !bingo) {
         setBingo(true);
         setShowConfetti(true);
@@ -241,11 +294,12 @@ export default function SharedCardPage() {
         trackClientActivity("bingo_achieved", {
           cardId: card._id,
           cardTitle: card.title,
-          gridSize: card.size,
+          gridSize: shape.columns,
           markedCount: next.size,
-          totalCells: card.size * card.size,
+          totalCells: totalPlayableCells,
           timeToBingoSeconds: duration,
           context: "shared_card",
+          bingoVariant: variant,
         });
         // Save game history for shared card plays
         fetch("/api/game-history/shared", {
@@ -262,8 +316,9 @@ export default function SharedCardPage() {
         cellIndex: index,
         action: next.has(index) ? "marked" : "unmarked",
         markedCount: next.size,
-        totalCells: card.size * card.size,
+        totalCells: totalPlayableCells,
         context: "shared_card",
+        bingoVariant: variant,
       });
       // Persist game state
       saveLocalState(card._id, next, hasBingo);
@@ -283,7 +338,7 @@ export default function SharedCardPage() {
       } else {
         next.add(-(lastAction) - 1);
       }
-      const hasBingo = checkBingo(next, card.size);
+      const hasBingo = checkBingo(next);
       if (hasBingo && !bingo) { setBingo(true); }
       else if (!hasBingo) { setBingo(false); setShowConfetti(false); }
       // Persist game state
@@ -294,8 +349,7 @@ export default function SharedCardPage() {
 
   const resetCard = () => {
     if (!card) return;
-    const freeIdx = card.freeSpace ? Math.floor((card.size * card.size) / 2) : -1;
-    setMarked(freeIdx >= 0 ? new Set([freeIdx]) : new Set());
+    setMarked(freeSpaceIndex >= 0 ? new Set([freeSpaceIndex]) : new Set());
     setUndoStack([]);
     setBingo(false);
     setShowConfetti(false);
@@ -391,8 +445,10 @@ export default function SharedCardPage() {
   }
 
   const freeSpaceIdx = getFreeSpaceIndex();
-  const markedCount = marked.size;
-  const totalCells = card.size * card.size;
+  const markedCount = Array.from(marked).filter((index) =>
+    !isBlankClassicCell(activeCells[index] || "", variant)
+  ).length;
+  const totalCells = totalPlayableCells || activeCells.length || card.cells.length;
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(currentUrl)}`;
 
@@ -455,23 +511,54 @@ export default function SharedCardPage() {
             <p className={`text-xs mt-2 print:hidden ${"text-slate-400"}`}>Tap cells to mark • {markedCount}/{totalCells} marked</p>
           </div>
 
+          {variant === "classic75" && (
+            <div
+              className="grid gap-1.5 md:gap-2 w-full mb-1 text-center text-sm md:text-base font-black text-emerald-700"
+              style={{ gridTemplateColumns: `repeat(${shape.columns}, 1fr)` }}
+            >
+              {"BINGO".split("").map((letter) => (
+                <div key={letter} className="rounded-lg bg-emerald-50 py-1">
+                  {letter}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {variant === "classic90" && (
+            <div
+              className="grid gap-1.5 md:gap-2 w-full mb-1 text-center text-[10px] md:text-xs font-bold text-amber-700"
+              style={{ gridTemplateColumns: `repeat(${shape.columns}, 1fr)` }}
+            >
+              {["1-9", "10s", "20s", "30s", "40s", "50s", "60s", "70s", "80-90"].map((label) => (
+                <div key={label} className="rounded-md bg-amber-50 py-1">
+                  {label}
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Grid */}
           <div
             ref={shareGridRef}
             className="grid gap-1.5 md:gap-2 w-full bingo-grid-print"
-            style={{ gridTemplateColumns: `repeat(${card.size}, 1fr)` }}
+            style={{ gridTemplateColumns: `repeat(${shape.columns}, 1fr)` }}
           >
-            {displayCells.map((cell, index) => {
+            {activeCells.map((cell, index) => {
               const isFreeSpace = card.freeSpace && index === freeSpaceIdx;
+              const isBlank = isBlankClassicCell(cell, variant);
               const isMarked = marked.has(index);
+              const displayLabel = formatClassicCellLabel(cell, variant);
 
               return (
                 <button
                   key={index}
                   onClick={() => toggleCell(index)}
+                  disabled={isBlank}
                   className={`
                     aspect-square flex items-center justify-center text-center rounded-xl font-semibold transition-all duration-150 select-none touch-manipulation overflow-hidden
-                    ${isFreeSpace
+                    ${isBlank
+                      ? "bg-amber-50/70 text-amber-300 border border-dashed border-amber-200 cursor-default"
+                      : isFreeSpace
                       ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-indigo-200 shadow-md cursor-default"
                       : isMarked
                         ? "bg-gradient-to-br from-violet-500 to-indigo-500 text-white shadow-indigo-200 shadow-md ring-2 ring-indigo-300"
@@ -479,13 +566,17 @@ export default function SharedCardPage() {
                     }
                   `}
                   style={{
-                    fontSize: `clamp(0.55rem, ${card.size === 3 ? "3.5vw" : card.size === 4 ? "2.8vw" : "2.2vw"}, ${card.size === 3 ? "1rem" : card.size === 4 ? "0.9rem" : "0.8rem"})`,
+                    fontSize: shape.columns >= 9
+                      ? "clamp(0.45rem, 1.4vw, 0.8rem)"
+                      : `clamp(0.55rem, ${card.size === 3 ? "3.5vw" : card.size === 4 ? "2.8vw" : "2.2vw"}, ${card.size === 3 ? "1rem" : card.size === 4 ? "0.9rem" : "0.8rem"})`,
                     padding: "4px",
                     fontFamily: card.style.fontFamily || "inherit",
                   }}
-                  aria-label={isFreeSpace ? "Free space" : `${cell} - ${isMarked ? "marked" : "not marked"}`}
+                  aria-label={isBlank ? "Blank space" : isFreeSpace ? "Free space" : `${displayLabel} - ${isMarked ? "marked" : "not marked"}`}
                 >
-                  {isFreeSpace ? (
+                  {isBlank ? (
+                    <span aria-hidden="true" />
+                  ) : isFreeSpace ? (
                     <span className="font-black text-xs">FREE</span>
                   ) : isMarked ? (
                     <span className="flex flex-col items-center gap-0.5">
@@ -493,7 +584,7 @@ export default function SharedCardPage() {
                       {isImageCell(cell) ? (
                         <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="max-w-[60%] max-h-[40%] object-contain opacity-60" />
                       ) : (
-                        <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: fittedSizes.has(index) ? `${fittedSizes.get(index)! * 0.55}px` : "0.6em" }}>{cell}</span>
+                        <span className="opacity-60 line-through leading-tight break-words text-center" style={{ fontSize: fittedSizes.has(index) ? `${fittedSizes.get(index)! * 0.55}px` : "0.6em" }}>{displayLabel}</span>
                       )}
                     </span>
                   ) : isImageCell(cell) ? (
@@ -502,7 +593,7 @@ export default function SharedCardPage() {
                       {getCellDisplayText(cell) && <span className="text-[0.55em] leading-tight text-center w-full truncate">{getCellDisplayText(cell)}</span>}
                     </span>
                   ) : (
-                    <span className="break-words leading-tight text-center" style={fittedSizes.has(index) ? { fontSize: `${fittedSizes.get(index)}px` } : undefined}>{cell}</span>
+                    <span className="break-words leading-tight text-center" style={fittedSizes.has(index) ? { fontSize: `${fittedSizes.get(index)}px` } : undefined}>{displayLabel}</span>
                   )}
                 </button>
               );

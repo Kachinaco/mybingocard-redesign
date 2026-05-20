@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { redirectToCheckout } from "@/lib/upgrade";
@@ -47,9 +47,6 @@ export default function SettingsPage() {
   // Connected accounts
   const [connectedAccounts, setConnectedAccounts] = useState<string[]>([]);
 
-  // Tracking
-  const hasTrackedView = useRef(false);
-
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login?callbackUrl=/settings");
@@ -62,13 +59,6 @@ export default function SettingsPage() {
       fetchAll();
     }
   }, [session]);
-
-  useEffect(() => {
-    if (!loading && planInfo && !hasTrackedView.current) {
-      hasTrackedView.current = true;
-      trackClientActivity("settings_page_viewed", { plan_type: planInfo.planType || "FREE" });
-    }
-  }, [loading, planInfo]);
 
   const fetchAll = async () => {
     try {
@@ -215,7 +205,7 @@ export default function SettingsPage() {
         setDeleteError(data.error || "Failed to delete account");
         return;
       }
-      await signOut({ callbackUrl: "/" });
+      await signOut({ callbackUrl: "/login?callbackUrl=/dashboard" });
     } catch {
       setDeleteError("Failed to delete account");
     } finally {
@@ -225,7 +215,7 @@ export default function SettingsPage() {
 
   const handleSignOut = () => {
     trackClientActivity("sign_out_clicked", { source: "settings" }, { keepalive: true });
-    signOut({ callbackUrl: "/" });
+    signOut({ callbackUrl: "/login?callbackUrl=/dashboard" });
   };
 
   if (status === "loading" || loading) {
@@ -311,7 +301,7 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-2 mb-1">
                   <p className="font-semibold text-slate-900">{session.user?.name || "User"}</p>
                   <button
-                    onClick={() => { setEditingName(true); trackClientActivity("settings_section_expanded", { section: "name" }); }}
+                    onClick={() => setEditingName(true)}
                     className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
                   >
                     Edit
@@ -334,7 +324,7 @@ export default function SettingsPage() {
             <h2 className="text-lg font-semibold text-slate-900">Password</h2>
             {!showPasswordForm && (
               <button
-                onClick={() => { setShowPasswordForm(true); trackClientActivity("settings_section_expanded", { section: "password" }); }}
+                onClick={() => setShowPasswordForm(true)}
                 className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
               >
                 {hasPassword ? "Change Password" : "Set Password"}
@@ -577,6 +567,31 @@ export default function SettingsPage() {
           </div>
         </div>
 
+        {/* Legal */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Legal</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Link
+              href="/privacy"
+              className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-center"
+            >
+              Privacy Policy
+            </Link>
+            <Link
+              href="/terms"
+              className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-center"
+            >
+              Terms of Service
+            </Link>
+            <Link
+              href="/contact"
+              className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-center"
+            >
+              Contact Support
+            </Link>
+          </div>
+        </div>
+
         {/* Sign Out & Delete Account */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Account</h2>
@@ -590,7 +605,7 @@ export default function SettingsPage() {
             </button>
 
             <button
-              onClick={() => { const next = !showDeleteConfirm; setShowDeleteConfirm(next); if (next) trackClientActivity("settings_section_expanded", { section: "delete_account" }); }}
+              onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
               className="px-6 py-3 bg-red-50 text-red-600 rounded-xl font-semibold hover:bg-red-100 transition-colors text-sm"
             >
               Delete Account

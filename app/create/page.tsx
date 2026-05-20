@@ -8,11 +8,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import AdUnit from "@/components/AdUnit";
-import StartTrialButton from "@/components/StartTrialButton";
+import PremiumCheckoutButton from "@/components/PremiumCheckoutButton";
 import UpgradeModal from "@/components/UpgradeModal";
 import ImagePickerModal from "@/components/ImagePickerModal";
 import BingoCell from "@/components/BingoCell";
 import AiGenerateSection from "@/components/AiGenerateSection";
+import ShareBatchButton from "@/components/ShareBatchButton";
+import StartGameButton from "@/components/StartGameButton";
 import { isImageCell, parseImageCell, encodeImageCell } from "@/lib/cellContent";
 import {
   BATCH_PACKS,
@@ -22,6 +24,14 @@ import {
 } from "@/lib/batchPacks";
 import { redirectToCheckout } from "@/lib/upgrade";
 import { t } from "@/lib/i18n";
+import {
+  formatClassicCellLabel,
+  generateClassicBingoCard,
+  getBingoGridShape,
+  getFreeSpaceIndexForGrid,
+  normalizeBingoVariant,
+  type BingoVariant,
+} from "@/lib/classic-bingo";
 
 type GridSize = 3 | 4 | 5;
 type PlanType = "FREE" | "PREMIUM";
@@ -44,6 +54,9 @@ type CardPayload = {
   title: string;
   description: string;
   size: GridSize;
+  rows: number;
+  columns: number;
+  bingoVariant: BingoVariant;
   cells: string[];
   freeSpace: boolean;
   isPublic: boolean;
@@ -54,11 +67,41 @@ function CreateCardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionData = useSession();
+  const appleSignInEnabled = process.env.NEXT_PUBLIC_AUTH_APPLE_ENABLED === "true";
   const { track, trackOnce } = useAnalytics();
   const session = sessionData?.data;
   const searchParamsKey = searchParams.toString();
   const cardIdFromUrl = searchParams.get("cardId");
+  const startNativeOAuth = (provider: "google" | "apple", targetCallbackUrl: string) => {
+    if (typeof window === "undefined") return false;
+
+    const nativeHandler = (window as any).webkit?.messageHandlers?.mybingocardOAuth;
+    let nativeAppFlag = false;
+    try {
+      nativeAppFlag = window.localStorage.getItem("mybingocard-ios-app") === "1";
+    } catch {
+      nativeAppFlag = false;
+    }
+
+    if (searchParams.get("app") !== "1" && !nativeAppFlag && !nativeHandler) {
+      return false;
+    }
+
+    if (nativeHandler) {
+      nativeHandler.postMessage({
+        provider,
+        callbackUrl: targetCallbackUrl || "/dashboard",
+      });
+      return true;
+    }
+
+    window.location.href = `/api/native/oauth/${provider}/start?callbackUrl=${encodeURIComponent(targetCallbackUrl || "/dashboard")}`;
+    return true;
+  };
   const [size, setSize] = useState<GridSize>(3);
+  const [rows, setRows] = useState(3);
+  const [columns, setColumns] = useState(3);
+  const [bingoVariant, setBingoVariant] = useState<BingoVariant>("custom");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [cells, setCells] = useState<string[]>(Array(9).fill(""));
@@ -104,13 +147,14 @@ function CreateCardContent() {
   const [mobileToast, setMobileToast] = useState("");
   const [mobileToastKey, setMobileToastKey] = useState(0);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [upgradeReason, setUpgradeReason] = useState<"card_limit" | "image_picker" | "ai_generate" | "batch_generate">("card_limit");
+  const [upgradeReason, setUpgradeReason] = useState<"card_limit" | "ai_generate" | "batch_generate">("card_limit");
   const [imagePickerCellIndex, setImagePickerCellIndex] = useState<number | null>(null);
   const [showNewUserTip, setShowNewUserTip] = useState(false);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedSnapshotRef = useRef("");
   const currentCardIdRef = useRef<string | null>(cardIdFromUrl);
   const createInFlightRef = useRef(false);
+  const cellTextareaRefs = useRef<Array<HTMLTextAreaElement | null>>([]);
 
   // Tracking refs
   const firstCellAddedAtRef = useRef<number | null>(null);
@@ -202,6 +246,10 @@ function CreateCardContent() {
     const batchCountFromUrl = Number(searchParams.get("batchCount"));
     if (isBatchCount(batchCountFromUrl)) {
       setBatchCount(batchCountFromUrl);
+      if (searchParams.get("batchMode") === "1" || searchParams.get("batchMode") === "true") {
+        setBatchMode(true);
+        setBatchResult(null);
+      }
     }
   }, [searchParamsKey]);
 
@@ -243,7 +291,10 @@ function CreateCardContent() {
 
   // Update cells array when grid size changes
   useEffect(() => {
+    if (bingoVariant !== "custom") return;
     const totalCells = size * size;
+    setRows(size);
+    setColumns(size);
     setCells((prev) => {
       const newCells = Array(totalCells).fill("");
       // Copy existing values up to the new size
@@ -252,7 +303,19 @@ function CreateCardContent() {
       }
       return newCells;
     });
-  }, [size]);
+  }, [size, bingoVariant]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    window.requestAnimationFrame(() => {
+      cellTextareaRefs.current.forEach((textarea) => {
+        if (!textarea) return;
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+      });
+    });
+  }, [cells, showPreview]);
 
   useEffect(() => {
     let cancelled = false;
@@ -282,7 +345,17 @@ function CreateCardContent() {
         setCurrentCardId(data.card._id);
         setTitle(data.card.title || "");
         setDescription(data.card.description || "");
+        const nextVariant = normalizeBingoVariant(data.card.bingoVariant);
+        const nextShape = getBingoGridShape({
+          size: data.card.size,
+          rows: data.card.rows,
+          columns: data.card.columns,
+          bingoVariant: nextVariant,
+        });
+        setBingoVariant(nextVariant);
         setSize(data.card.size);
+        setRows(nextShape.rows);
+        setColumns(nextShape.columns);
         setCells(Array.isArray(data.card.cells) ? data.card.cells : []);
         setFreeSpace(Boolean(data.card.freeSpace));
         setIsPublic(Boolean(data.card.isPublic));
@@ -294,6 +367,9 @@ function CreateCardContent() {
           title: data.card.title || "",
           description: data.card.description || "",
           size: data.card.size,
+          rows: nextShape.rows,
+          columns: nextShape.columns,
+          bingoVariant: nextVariant,
           cells: Array.isArray(data.card.cells) ? data.card.cells : [],
           freeSpace: Boolean(data.card.freeSpace),
           isPublic: Boolean(data.card.isPublic),
@@ -325,7 +401,17 @@ function CreateCardContent() {
           const draft = JSON.parse(saved);
           if (draft.title) { setTitle(draft.title); draftHasTitle = true; }
           if (draft.description) setDescription(draft.description);
+          const draftVariant = normalizeBingoVariant(draft.bingoVariant);
+          const draftShape = getBingoGridShape({
+            size: draft.size,
+            rows: draft.rows,
+            columns: draft.columns,
+            bingoVariant: draftVariant,
+          });
+          setBingoVariant(draftVariant);
           if (draft.size) setSize(draft.size as GridSize);
+          setRows(draftShape.rows);
+          setColumns(draftShape.columns);
           if (draft.cells) { setCells(draft.cells); draftCells = draft.cells; }
           if (typeof draft.freeSpace === "boolean") setFreeSpace(draft.freeSpace);
           if (typeof draft.isPublic === "boolean") setIsPublic(draft.isPublic);
@@ -341,12 +427,22 @@ function CreateCardContent() {
 
       const urlTitle = searchParams.get("title");
       const urlSize = searchParams.get("size");
+      const urlVariant = normalizeBingoVariant(searchParams.get("bingoVariant"));
       const urlCells = searchParams.get("cells");
       const urlFreeSpace = searchParams.get("freeSpace");
       const urlStyle = searchParams.get("style");
       const templateId = searchParams.get("templateId");
 
       if (urlTitle) { setTitle(urlTitle); draftHasTitle = true; }
+      if (urlVariant !== "custom") {
+        const nextShape = getBingoGridShape({ size: urlVariant === "classic90" ? 3 : 5, bingoVariant: urlVariant });
+        setBingoVariant(urlVariant);
+        setSize(urlVariant === "classic90" ? 3 : 5);
+        setRows(nextShape.rows);
+        setColumns(nextShape.columns);
+        setFreeSpace(urlVariant === "classic75");
+        setCells(generateClassicBingoCard(urlVariant));
+      }
       if (urlSize) setSize(parseInt(urlSize) as GridSize);
       if (urlCells) {
         try {
@@ -416,6 +512,9 @@ function CreateCardContent() {
                 title: draft.title,
                 description: draft.description || "",
                 size: draft.size || 3,
+                rows: draft.rows || draft.size || 3,
+                columns: draft.columns || draft.size || 3,
+                bingoVariant: normalizeBingoVariant(draft.bingoVariant),
                 cells: draft.cells,
                 freeSpace: draft.freeSpace ?? true,
                 isPublic: draft.isPublic ?? false,
@@ -428,7 +527,7 @@ function CreateCardContent() {
                 currentCardIdRef.current = data.card._id;
               }
               localStorage.removeItem("mybingo_card_draft");
-              router.replace("/dashboard");
+              router.replace(`/cards/${data.card._id}?created=1`);
               return;
             }
           }
@@ -463,8 +562,11 @@ function CreateCardContent() {
     title: title.trim(),
     description,
     size,
+    rows,
+    columns,
+    bingoVariant,
     cells,
-    freeSpace,
+    freeSpace: bingoVariant === "classic90" ? false : freeSpace,
     isPublic,
     style,
   });
@@ -586,15 +688,27 @@ function CreateCardContent() {
         });
       }
 
-      const data = await response.json();
+      let data: any = {};
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
 
       if (!response.ok) {
+        const failureMetadata = {
+          title: payload.title,
+          size: payload.size,
+          cells_filled: cellsFilledCount,
+          status: response.status,
+          server_error: typeof data?.error === "string" ? data.error.substring(0, 200) : "",
+          is_update: Boolean(currentCardIdRef.current),
+        };
+
         if (response.status === 401) {
           trackClientActivity("card_save_blocked", {
             reason: "not_logged_in",
-            title: payload.title,
-            size: payload.size,
-            cells_filled: cellsFilledCount,
+            ...failureMetadata,
           });
           redirectToSignupForCreation();
           return false;
@@ -602,9 +716,7 @@ function CreateCardContent() {
         if (response.status === 403 && !currentCardIdRef.current) {
           trackClientActivity("card_save_blocked", {
             reason: "card_limit_reached",
-            title: payload.title,
-            size: payload.size,
-            cells_filled: cellsFilledCount,
+            ...failureMetadata,
           });
           setError(data.error || "Card limit reached. Please upgrade your plan.");
           setUpgradeReason("card_limit");
@@ -613,9 +725,7 @@ function CreateCardContent() {
         } else {
           trackClientActivity("card_save_blocked", {
             reason: "validation_error",
-            title: payload.title,
-            size: payload.size,
-            cells_filled: cellsFilledCount,
+            ...failureMetadata,
           });
           setError(data.error || "Failed to save card");
         }
@@ -663,7 +773,7 @@ function CreateCardContent() {
       setAutoSaveState("saved");
 
       if (options?.redirectAfterSave) {
-        router.push("/dashboard");
+        router.push(`/cards/${savedCard?._id || currentCardIdRef.current}?${isNewCard ? "created" : "saved"}=1`);
       }
 
       return true;
@@ -728,6 +838,9 @@ function CreateCardContent() {
     title,
     description,
     size,
+    rows,
+    columns,
+    bingoVariant,
     cells,
     freeSpace,
     isPublic,
@@ -749,16 +862,12 @@ function CreateCardContent() {
   };
 
   const handleAiCellsGenerated = (newCells: string[]) => {
+    if (bingoVariant !== "custom") return;
     setCells(newCells);
     trackOnce("ai_cells_applied", { size, cell_count: newCells.filter(c => c.trim()).length });
   };
 
   const openImagePicker = (index: number) => {
-    if (permissionStatus?.planType !== "PREMIUM" && session?.user) {
-      setUpgradeReason("image_picker");
-      setShowUpgradeModal(true);
-      return;
-    }
     setImagePickerCellIndex(index);
   };
 
@@ -783,8 +892,13 @@ function CreateCardContent() {
   };
 
   const handleShuffleCells = () => {
-    const totalCells = size * size;
-    const freeIdx = freeSpace ? Math.floor(totalCells / 2) : -1;
+    if (bingoVariant === "classic75" || bingoVariant === "classic90") {
+      setCells(generateClassicBingoCard(bingoVariant));
+      return;
+    }
+
+    const totalCells = rows * columns;
+    const freeIdx = getFreeSpaceIndexForGrid({ freeSpace, rows, columns, bingoVariant });
 
     // Collect all non-empty, non-free-space cells
     const filledCells: string[] = [];
@@ -825,8 +939,11 @@ function CreateCardContent() {
         title,
         description,
         size,
+        rows,
+        columns,
+        bingoVariant,
         cells,
-        freeSpace,
+        freeSpace: bingoVariant === "classic90" ? false : freeSpace,
         isPublic,
         style,
       }));
@@ -887,7 +1004,7 @@ function CreateCardContent() {
     return () => {
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     };
-  }, [title, description, size, cells, freeSpace, isPublic, style, currentCardId, isLoadingCard]);
+  }, [title, description, size, rows, columns, bingoVariant, cells, freeSpace, isPublic, style, currentCardId, isLoadingCard]);
 
   // Track card_draft_lost on beforeunload (navigating away with unsaved changes)
   useEffect(() => {
@@ -909,7 +1026,7 @@ function CreateCardContent() {
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [title, cells, size, freeSpace, isPublic, style, description]);
+  }, [title, cells, size, rows, columns, bingoVariant, freeSpace, isPublic, style, description]);
 
   const redirectToSignupForCreation = () => {
     persistDraft();
@@ -921,7 +1038,12 @@ function CreateCardContent() {
     setMagicLoading(true);
     try {
       track("magic_link_requested", { callbackUrl: "/create", context: "create_page" });
-      await signIn("nodemailer", { email: magicEmail, callbackUrl: "/create", redirect: false });
+      const response = await fetch("/api/auth/magic-link/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: magicEmail, callbackUrl: "/create" }),
+      });
+      if (!response.ok) throw new Error("magic_link_failed");
       setMagicSent(true);
     } catch (e) {
       console.error(e);
@@ -943,6 +1065,14 @@ function CreateCardContent() {
   };
 
   const handleBatchCheckout = async () => {
+    trackClientActivity("batch_primary_clicked", {
+      action: "buy",
+      source: "create_page",
+      batch_count: batchCount,
+      price: formatBatchPackPrice(batchCount),
+      plan_type: permissionStatus?.planType || "GUEST",
+      context: "create_page",
+    });
     setBatchCheckoutLoading(true);
     setError("");
 
@@ -980,6 +1110,16 @@ function CreateCardContent() {
   };
 
   const handleBatchGenerate = async () => {
+    trackClientActivity("batch_primary_clicked", {
+      action: "generate",
+      source: "create_page",
+      batch_count: batchCount,
+      price: formatBatchPackPrice(batchCount),
+      plan_type: permissionStatus?.planType || "GUEST",
+      has_ready_purchase: hasSelectedBatchPurchase,
+      is_premium_batch_user: isPremiumBatchUser,
+      context: "create_page",
+    });
     setBatchLoading(true);
     setError("");
     setBatchResult(null);
@@ -992,11 +1132,32 @@ function CreateCardContent() {
       }
 
       const filledCells = cells.filter((cell) => cell.trim()).length;
-      const neededCells = freeSpace ? size * size - 1 : size * size;
-      if (filledCells < neededCells) {
-        setError(`Need at least ${neededCells} filled items for batch generation of ${size}x${size} cards`);
+      const neededCells = bingoVariant === "classic90" ? 15 : freeSpace ? rows * columns - 1 : rows * columns;
+      if (bingoVariant === "custom" && filledCells < neededCells) {
+        setError(`Need at least ${neededCells} filled items for batch generation of ${rows}x${columns} cards`);
         setBatchLoading(false);
         return;
+      }
+
+      let cellsToBatch = cells.filter(c => c.trim());
+      const filledCellIndexes = cells.reduce<number[]>((indexes, cell, index) => {
+        if (cell.trim()) indexes.push(index);
+        return indexes;
+      }, []);
+      const hasDataUrlImages = cellsToBatch.some((cell) => {
+        const imgData = parseImageCell(cell);
+        return imgData && imgData.imageId.startsWith("temp_") && imgData.imageUrl.startsWith("data:");
+      });
+
+      if (hasDataUrlImages && session?.user) {
+        cellsToBatch = await uploadDataUrlImages(cellsToBatch);
+        setCells((prev) => {
+          const next = [...prev];
+          filledCellIndexes.forEach((cellIndex, idx) => {
+            next[cellIndex] = cellsToBatch[idx] ?? next[cellIndex] ?? "";
+          });
+          return next;
+        });
       }
 
       const response = await fetch("/api/cards/batch", {
@@ -1006,8 +1167,11 @@ function CreateCardContent() {
           title,
           description,
           size,
-          cells: cells.filter(c => c.trim()),
-          freeSpace,
+          rows,
+          columns,
+          bingoVariant,
+          cells: bingoVariant === "custom" ? cellsToBatch : cells,
+          freeSpace: bingoVariant === "classic90" ? false : freeSpace,
           style,
           count: batchCount,
         }),
@@ -1053,6 +1217,20 @@ function CreateCardContent() {
           : "pdf-1";
     setBatchPdfLoading(loadingKey);
 
+    const pdfMetadata = {
+      source: "create_page",
+      action: "pdf_layout",
+      batch_count: batchResult.count,
+      price: formatBatchPackPrice(batchResult.count as BatchCount),
+      plan_type: permissionStatus?.planType || "GUEST",
+      batchCount: batchResult.count,
+      cardCount: batchResult.cardIds.length,
+      cardsPerPage,
+      grayscale,
+      showCutLines: true,
+    };
+    trackClientActivity("batch_pdf_export_started", pdfMetadata);
+
     try {
       const response = await fetch("/api/cards/batch/pdf", {
         method: "POST",
@@ -1074,8 +1252,10 @@ function CreateCardContent() {
       const url = window.URL.createObjectURL(blob);
       // Open in new tab for preview/printing, then also offer download
       const newTab = window.open(url, "_blank");
+      let delivery: "new_tab" | "download" = "new_tab";
       if (!newTab) {
         // Popup blocked — fall back to direct download
+        delivery = "download";
         const a = document.createElement("a");
         a.href = url;
         a.download = `bingo-batch-${batchResult.count}-cards.pdf`;
@@ -1083,7 +1263,12 @@ function CreateCardContent() {
         a.click();
         document.body.removeChild(a);
       }
+      trackClientActivity("batch_pdf_export_succeeded", { ...pdfMetadata, delivery });
     } catch (err: any) {
+      trackClientActivity("batch_pdf_export_failed", {
+        ...pdfMetadata,
+        error: err.message || "Failed to download batch PDF",
+      });
       alert(err.message || "Failed to download batch PDF");
     } finally {
       setBatchPdfLoading(null);
@@ -1091,8 +1276,45 @@ function CreateCardContent() {
   };
 
   const getFreeSpaceIndex = () => {
-    if (!freeSpace) return -1;
-    return Math.floor((size * size) / 2);
+    return getFreeSpaceIndexForGrid({ freeSpace, rows, columns, bingoVariant });
+  };
+
+  const applyBingoVariant = (nextVariant: BingoVariant) => {
+    setBingoVariant(nextVariant);
+    setBatchResult(null);
+
+    if (nextVariant === "classic75") {
+      setSize(5);
+      setRows(5);
+      setColumns(5);
+      setFreeSpace(true);
+      if (!title.trim() || title === "90-Ball Bingo Ticket") setTitle("75-Ball Bingo Card");
+      setCells(generateClassicBingoCard("classic75"));
+      trackClientActivity("classic_bingo_mode_selected", { bingoVariant: nextVariant });
+      return;
+    }
+
+    if (nextVariant === "classic90") {
+      setSize(3);
+      setRows(3);
+      setColumns(9);
+      setFreeSpace(false);
+      if (!title.trim() || title === "75-Ball Bingo Card") setTitle("90-Ball Bingo Ticket");
+      setCells(generateClassicBingoCard("classic90"));
+      trackClientActivity("classic_bingo_mode_selected", { bingoVariant: nextVariant });
+      return;
+    }
+
+    setRows(size);
+    setColumns(size);
+    setCells((prev) => {
+      const nextCells = Array(size * size).fill("");
+      for (let index = 0; index < Math.min(prev.length, nextCells.length); index++) {
+        nextCells[index] = prev[index];
+      }
+      return nextCells;
+    });
+    trackClientActivity("classic_bingo_mode_selected", { bingoVariant: nextVariant });
   };
 
   const canUseGridSize = (gridSize: GridSize): boolean => {
@@ -1168,38 +1390,41 @@ function CreateCardContent() {
   const handleBatchPrimaryAction = isPremiumBatchUser || hasSelectedBatchPurchase
     ? handleBatchGenerate
     : handleBatchCheckout;
+  const batchShareBatchId = batchResult?.cardIds[0] || "";
+  const batchResultTitle = title.trim() || `${batchCount}-card bingo batch`;
 
   return (
     <>
     <div className="min-h-screen bg-[#f2f2f7] selection:bg-blue-100 selection:text-blue-900">
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50">
-        <div className="container mx-auto px-4 lg:px-8 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-[#007AFF] rounded-lg flex items-center justify-center shadow-sm transition-all duration-300">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-8 h-14 flex items-center justify-between gap-2">
+          <Link href="/" className="flex min-w-0 items-center gap-2 group">
+            <div className="w-8 h-8 shrink-0 bg-[#007AFF] rounded-lg flex items-center justify-center shadow-sm transition-all duration-300">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
             </div>
-            <span className="text-xl font-bold text-gray-900">
+            <span className="hidden min-[390px]:inline truncate text-lg sm:text-xl font-bold text-gray-900">
               MyBingoCard
             </span>
           </Link>
           
-          <div className="flex gap-4 items-center">
+          <div className="flex shrink-0 gap-1.5 sm:gap-4 items-center">
             <button
               onClick={() => {
                 const nextPreview = !showPreview;
                 setShowPreview(nextPreview);
                 trackClientActivity("preview_toggled", { enabled: nextPreview });
               }}
-              className="text-sm font-medium text-gray-600 hover:text-[#007AFF] transition-colors"
+              className="px-2 py-2 text-sm font-semibold text-gray-600 hover:text-[#007AFF] transition-colors"
             >
-              {showPreview ? "Back to Edit" : "Preview Card"}
+              <span className="sm:hidden">{showPreview ? "Edit" : "Preview"}</span>
+              <span className="hidden sm:inline">{showPreview ? "Back to Edit" : "Preview Card"}</span>
             </button>
             <Link
               href="/dashboard"
-              className="px-5 py-2.5 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-all duration-200"
+              className="px-3 sm:px-5 py-2.5 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-all duration-200"
             >
               Cancel
             </Link>
@@ -1207,7 +1432,7 @@ function CreateCardContent() {
         </div>
       </header>
 
-      <main className="pt-16 pb-32 md:pb-24 px-4">
+      <main className="pt-16 pb-44 md:pb-24 px-4">
         <div className="container mx-auto max-w-7xl">
           <div className="mb-3 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -1235,10 +1460,10 @@ function CreateCardContent() {
                       : `${permissionStatus.cardsCreated}/${permissionStatus.cardsLimit} used`}
                   </span>
                   {session?.user && permissionStatus.planType === "FREE" && (
-                    <StartTrialButton
+                    <PremiumCheckoutButton
                       source="create_plan_banner"
                       className="ml-2 px-3 py-1 bg-white rounded-full text-xs font-bold shadow-sm hover:shadow transition-all"
-                      label="Start 7-Day Trial"
+                      label="Upgrade"
                     />
                   )}
                    {permissionStatus.upgradeRequired && !isEditingExistingCard && (
@@ -1297,7 +1522,7 @@ function CreateCardContent() {
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">This feature requires Premium</h2>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Unlock AI generation, image bingo cards, HD export, premium templates, and bigger batch generation.
+                Unlock AI generation, HD export, premium templates, and bigger batch generation.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
@@ -1390,6 +1615,39 @@ function CreateCardContent() {
 
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Bingo Type
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {([
+                        ["custom", "Custom"],
+                        ["classic75", "75-Ball"],
+                        ["classic90", "90-Ball"],
+                      ] as [BingoVariant, string][]).map(([variant, label]) => (
+                        <button
+                          key={variant}
+                          type="button"
+                          onClick={() => applyBingoVariant(variant)}
+                          disabled={showPreview}
+                          className={`w-full rounded-lg border px-2 py-2 text-sm font-semibold transition-all duration-200 ${
+                            bingoVariant === variant
+                              ? "border-[#007AFF] bg-blue-50 text-[#007AFF] ring-1 ring-[#007AFF]"
+                              : "border-gray-200 bg-white text-gray-600 hover:border-[#007AFF]/30 hover:bg-gray-50"
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="mt-1.5 text-xs text-gray-500">
+                      {bingoVariant === "classic75" && "Strict B-I-N-G-O columns, 1-75 call pool, center FREE."}
+                      {bingoVariant === "classic90" && "Traditional 3x9 ticket, 15 numbers, 1-90 call pool."}
+                      {bingoVariant === "custom" && "Use your own words, images, numbers, or prompts."}
+                    </p>
+                  </div>
+
+                  {bingoVariant === "custom" && (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
                       Grid Size
                     </label>
                     <div className="grid grid-cols-3 gap-2">
@@ -1433,8 +1691,25 @@ function CreateCardContent() {
                       })}
                     </div>
                   </div>
+                  )}
 
                   <div className="space-y-3 pt-2">
+                    {bingoVariant !== "custom" && (
+                      <button
+                        type="button"
+                        onClick={handleShuffleCells}
+                        disabled={showPreview}
+                        className="flex items-center gap-3 p-3 w-full border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <div className="w-5 h-5 flex items-center justify-center text-[#007AFF]">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                        </div>
+                        <span className="text-sm font-medium text-gray-700">Regenerate classic card</span>
+                      </button>
+                    )}
+                    {bingoVariant === "custom" && (
                      <label htmlFor="free-space-toggle" className={`flex items-center gap-3 p-3 border border-gray-200 rounded-xl transition-colors ${showPreview ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"}`}>
                       <div className="relative flex items-center">
                         <input
@@ -1451,7 +1726,9 @@ function CreateCardContent() {
                       </div>
                       <span className="text-sm font-medium text-gray-700">Include free space</span>
                     </label>
+                    )}
 
+                    {bingoVariant === "custom" && (
                     <button
                       type="button"
                       onClick={handleShuffleCells}
@@ -1465,6 +1742,7 @@ function CreateCardContent() {
                       </div>
                       <span className="text-sm font-medium text-gray-700">Shuffle cells</span>
                     </button>
+                    )}
 
                     <label htmlFor="public-toggle" className={`flex items-center gap-3 p-3 border border-gray-200 rounded-xl transition-colors ${showPreview ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"}`}>
                       <div className="relative flex items-center">
@@ -1491,18 +1769,20 @@ function CreateCardContent() {
             {/* Right Panel - AI, Style & Batch */}
             <div className="lg:order-3 space-y-4 min-w-0">
               {/* AI Generate */}
-              <AiGenerateSection
-                size={size}
-                freeSpace={freeSpace}
-                title={title}
-                onCellsGenerated={handleAiCellsGenerated}
-                isPremium={permissionStatus?.planType === "PREMIUM"}
-                disabled={showPreview}
-                onUpgradeNeeded={() => {
-                  setUpgradeReason("ai_generate");
-                  setShowUpgradeModal(true);
-                }}
-              />
+              {bingoVariant === "custom" && (
+                <AiGenerateSection
+                  size={size}
+                  freeSpace={freeSpace}
+                  title={title}
+                  onCellsGenerated={handleAiCellsGenerated}
+                  isPremium={permissionStatus?.planType === "PREMIUM"}
+                  disabled={showPreview}
+                  onUpgradeNeeded={() => {
+                    setUpgradeReason("ai_generate");
+                    setShowUpgradeModal(true);
+                  }}
+                />
+              )}
 
               {/* Style Customization */}
               <div className="bg-white/60 rounded-2xl border border-gray-200/50 p-4">
@@ -1661,6 +1941,7 @@ function CreateCardContent() {
                             batch_count: n,
                             price: BATCH_PACKS[n].label,
                             plan_type: permissionStatus?.planType || "GUEST",
+                            source: "create_page",
                           });
                         }}
                         className={`relative py-1.5 px-1 rounded-lg border-2 text-center transition-all ${
@@ -1698,6 +1979,11 @@ function CreateCardContent() {
                     }`}
                   >
                     {batchStatusMessage}
+                    {batchPurchaseStatus === "success" && (
+                      <p className="mt-1 font-medium text-emerald-800">
+                        Next: generate the batch, then send players unique cards or host a live game. Use PDFs only when you need paper copies.
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -1727,7 +2013,38 @@ function CreateCardContent() {
                       </svg>
                       {batchResult.count} cards generated!
                     </p>
-                    <div className="grid grid-cols-2 gap-2">
+                    {batchShareBatchId && (
+                      <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3 space-y-3">
+                        <div>
+                          <p className="text-sm font-bold text-indigo-950">
+                            Make the batch playable before you print.
+                          </p>
+                          <p className="text-xs text-indigo-700 mt-1">
+                            Each player gets a unique card link they can open on their phone. PDF is still here for paper backups.
+                          </p>
+                        </div>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          <ShareBatchButton
+                            batchId={batchShareBatchId}
+                            cardCount={batchResult.count}
+                            batchTitle={batchResultTitle}
+                            variant="primary"
+                            className="w-full"
+                          />
+                          <StartGameButton
+                            cardId={batchShareBatchId}
+                            label="Host Live Game"
+                            className="w-full"
+                            compact
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
+                        Need paper copies?
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
                       <button
                         onClick={() => handleBatchPdfDownload(1)}
                         disabled={batchPdfLoading !== null}
@@ -1764,6 +2081,7 @@ function CreateCardContent() {
                       >
                         {batchPdfLoading === "pdf-gray" ? "..." : "Grayscale"}
                       </button>
+                      </div>
                     </div>
                     <button
                       onClick={() => router.push("/dashboard/cards")}
@@ -1786,7 +2104,18 @@ function CreateCardContent() {
 
                 {!batchMode && (
                   <button
-                    onClick={() => { setBatchMode(true); setBatchResult(null); }}
+                    onClick={() => {
+                      trackClientActivity("batch_button_clicked", {
+                        action: "open_panel",
+                        source: "create_page_select_batch_size",
+                        batch_count: batchCount,
+                        price: formatBatchPackPrice(batchCount),
+                        plan_type: permissionStatus?.planType || "GUEST",
+                        context: "create_page",
+                      });
+                      setBatchMode(true);
+                      setBatchResult(null);
+                    }}
                     className="w-full bg-blue-600 text-white px-4 py-3 rounded-xl hover:bg-blue-700 hover:shadow-md transition-all font-bold text-sm flex items-center justify-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1807,7 +2136,7 @@ function CreateCardContent() {
                   </h2>
                   {!showPreview && (
                     <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-100 px-3 py-1 rounded-full">
-                      {size}×{size} grid • {size * size} cells
+                      {rows}×{columns} grid • {cells.length} cells
                     </span>
                   )}
                 </div>
@@ -1818,7 +2147,7 @@ function CreateCardContent() {
                       {/* Grid Header - matches grid columns */}
                       <div
                         className="grid mb-1.5 md:mb-2 text-center font-bold tracking-widest text-gray-900 opacity-90"
-                        style={{ gridTemplateColumns: `repeat(${size}, 1fr)`, gap: size === 5 ? "3px" : "8px" }}
+                        style={{ gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: columns >= 5 ? "3px" : "8px" }}
                       >
                          <div
                            className={`font-bold text-center text-[#007AFF] truncate px-2 ${size === 5 ? "py-1 text-xs md:text-sm" : "py-1.5 text-sm"}`}
@@ -1826,17 +2155,28 @@ function CreateCardContent() {
                          >
                            {title || "My Bingo Card"}
                          </div>
+                         {bingoVariant === "classic75" && "BINGO".split("").map((letter) => (
+                           <div key={letter} className="rounded-md bg-blue-50 py-1 text-xs font-black text-[#007AFF]">
+                             {letter}
+                           </div>
+                         ))}
+                         {bingoVariant === "classic90" && ["1-9", "10s", "20s", "30s", "40s", "50s", "60s", "70s", "80-90"].map((label) => (
+                           <div key={label} className="rounded-md bg-amber-50 py-1 text-[10px] font-black text-amber-700">
+                             {label}
+                           </div>
+                         ))}
                       </div>
 
                       <div
                         className="grid"
                         style={{
-                          gridTemplateColumns: `repeat(${size}, 1fr)`,
-                          gap: size === 5 ? "3px" : size === 4 ? "6px" : "8px",
+                          gridTemplateColumns: `repeat(${columns}, 1fr)`,
+                          gap: columns >= 5 ? "3px" : size === 4 ? "6px" : "8px",
                         }}
                       >
                         {cells.map((cell, index) => {
                           const isFreeSpace = freeSpace && index === getFreeSpaceIndex();
+                          const isBlank90 = bingoVariant === "classic90" && !cell.trim();
                           const cellIsImage = isImageCell(cell);
                           const imageData = cellIsImage ? parseImageCell(cell) : null;
 
@@ -1853,7 +2193,9 @@ function CreateCardContent() {
                                 borderColor: style.borderColor,
                               }}
                             >
-                              {isFreeSpace ? (
+                              {isBlank90 ? (
+                                <div className="w-full h-full rounded-md md:rounded-lg border border-dashed border-amber-100 bg-amber-50/50" />
+                              ) : isFreeSpace ? (
                                 <div
                                   className={`w-full h-full flex items-center justify-center border-2 font-bold p-1 text-center shadow-inner bg-opacity-90 ${size === 5 ? "rounded-md md:rounded-xl text-xs md:text-base" : "rounded-lg md:rounded-xl"}`}
                                   style={{
@@ -1866,8 +2208,8 @@ function CreateCardContent() {
                                 >
                                   FREE
                                 </div>
-                              ) : showPreview ? (
-                                <BingoCell cell={cell} style={style} size={size} />
+                              ) : showPreview || bingoVariant !== "custom" ? (
+                                <BingoCell cell={formatClassicCellLabel(cell, bingoVariant)} style={style} size={size} />
                               ) : cellIsImage && imageData ? (
                                 /* Image cell in edit mode — shows image with swap/remove/fit buttons */
                                 <div
@@ -1935,6 +2277,9 @@ function CreateCardContent() {
                                     style={{ borderColor: style.borderColor }}
                                   >
                                     <textarea
+                                      ref={(el) => {
+                                        cellTextareaRefs.current[index] = el;
+                                      }}
                                       value={cell}
                                       onChange={(e) => {
                                         handleCellChange(index, e.target.value);
@@ -1983,14 +2328,11 @@ function CreateCardContent() {
 
                 {/* Desktop sticky bottom CTA bar */}
                 <div className="hidden md:block fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-                  <div className="container mx-auto max-w-xl px-4 py-3 flex flex-col items-center gap-1.5">
-                    {!session?.user && !isEditingExistingCard && (
-                      <p className="text-xs text-gray-500 font-medium">Free to create — no credit card needed</p>
-                    )}
+                  <div className="container mx-auto max-w-xl px-4 py-3 flex items-center justify-center">
                     {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
                       <button
                         onClick={redirectToCheckout}
-                        className="w-full max-w-md bg-gradient-to-r from-orange-500 to-pink-600 text-white px-8 py-4 rounded-xl hover:shadow-lg hover:shadow-orange-500/20 transition-all font-bold text-lg shadow-md shadow-orange-200 text-center"
+                        className="w-full max-w-md bg-gradient-to-r from-orange-500 to-pink-600 text-white px-6 py-3 rounded-xl hover:shadow-lg hover:shadow-orange-500/20 transition-all font-bold text-base shadow-md shadow-orange-200 text-center"
                       >
                         {t("btn.limit_reached")}
                       </button>
@@ -2002,9 +2344,9 @@ function CreateCardContent() {
                         showPreview ||
                         isLoadingCard
                       }
-                      className="w-full max-w-md bg-[#007AFF] text-white px-8 py-4 rounded-xl hover:bg-[#0066DD] hover:shadow-lg hover:shadow-blue-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-lg shadow-md"
+                      className="w-full max-w-md bg-[#007AFF] text-white px-6 py-3 rounded-xl hover:bg-[#0066DD] hover:shadow-lg hover:shadow-blue-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-base shadow-md"
                     >
-                      {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save_dashboard") : session?.user ? t("btn.create_save_full") : t("btn.signup_to_save_full")}
+                      {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save_dashboard") : session?.user ? t("btn.create_save_full") : "Save Card"}
                     </button>
                     )}
                   </div>
@@ -2046,16 +2388,8 @@ function CreateCardContent() {
               </button>
             </div>
           )}
-          {/* Signup nudge for anonymous users */}
-          {!session?.user && (
-            <div className="mx-3 mb-1">
-              <div className="bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-2 rounded-xl text-xs font-semibold text-center">
-                Free to create — no credit card needed
-              </div>
-            </div>
-          )}
           <div className="bg-white border-t border-gray-200 shadow-lg">
-            <div className="container mx-auto px-4 py-3">
+            <div className="container mx-auto px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
                 {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
                   <button
                     onClick={redirectToCheckout}
@@ -2069,7 +2403,7 @@ function CreateCardContent() {
                   disabled={loading || showPreview || isLoadingCard}
                   className="w-full bg-[#007AFF] text-white px-4 py-3.5 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed font-bold text-base shadow-md"
                 >
-                  {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save") : session?.user ? t("btn.create_save") : t("btn.signup_to_save")}
+                  {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save") : session?.user ? t("btn.create_save") : "Save"}
                 </button>
                 )}
             </div>
@@ -2130,7 +2464,12 @@ function CreateCardContent() {
               <>
                 {/* Google */}
                 <button
-                  onClick={() => signIn("google", { callbackUrl: "/create" })}
+                  data-mybingocard-oauth-provider="google"
+                  onClick={() => {
+                    trackClientActivity("oauth_signup_started", { provider: "google", callbackUrl: "/create" });
+                    if (startNativeOAuth("google", "/create")) return;
+                    signIn("google", { callbackUrl: "/create" });
+                  }}
                   style={{
                     width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
                     gap: "10px", padding: "13px 16px", borderRadius: "12px",
@@ -2148,6 +2487,30 @@ function CreateCardContent() {
                   </svg>
                   Continue with Google
                 </button>
+
+                {appleSignInEnabled && (
+                  <button
+                    data-mybingocard-oauth-provider="apple"
+                    onClick={() => {
+                      trackClientActivity("oauth_signup_started", { provider: "apple", callbackUrl: "/create" });
+                      if (startNativeOAuth("apple", "/create")) return;
+                      signIn("apple", { callbackUrl: "/create" });
+                    }}
+                    style={{
+                      width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                      gap: "10px", padding: "13px 16px", borderRadius: "12px",
+                      border: "1.5px solid #000", background: "#000", cursor: "pointer",
+                      fontSize: "15px", fontWeight: 600, color: "white",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.12)", marginBottom: "16px",
+                      transition: "all 0.15s"
+                    }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M16.37 1.51c0 1.14-.42 2.14-1.25 3-.9.92-1.95 1.45-3.08 1.36-.14-1.1.43-2.28 1.25-3.12.86-.88 2.25-1.55 3.08-1.24ZM20.5 17.38c-.47 1.07-.7 1.55-1.3 2.5-.84 1.29-2.02 2.9-3.48 2.91-1.3.01-1.64-.85-3.4-.84-1.77.01-2.14.85-3.44.84-1.46-.01-2.57-1.46-3.41-2.75-2.35-3.61-2.6-7.85-1.15-10.1 1.03-1.6 2.65-2.53 4.18-2.53 1.55 0 2.53.86 3.82.86 1.25 0 2.02-.86 3.83-.86 1.37 0 2.82.75 3.84 2.04-3.37 1.85-2.82 6.67.01 7.93Z" />
+                    </svg>
+                    Continue with Apple
+                  </button>
+                )}
 
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "0 0 16px" }}>
                   <div style={{ flex: 1, height: "1px", background: "#e2e8f0" }} />
@@ -2211,7 +2574,7 @@ function CreateCardContent() {
         open={imagePickerCellIndex !== null}
         onClose={() => setImagePickerCellIndex(null)}
         onPick={handleImagePicked}
-        isPremium={permissionStatus?.planType === "PREMIUM"}
+        canUploadImages={true}
         isLoggedIn={Boolean(session?.user)}
         context="cell_image"
         cellIndex={imagePickerCellIndex ?? undefined}

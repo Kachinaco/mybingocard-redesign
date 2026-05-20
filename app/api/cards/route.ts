@@ -9,6 +9,11 @@ import { getGeneratedBatchIdMapForCards } from "@/lib/db/batchPurchases";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyCardCreated, notifyFirstCard } from "@/lib/discord";
 import { isUserOnTrial } from "@/lib/subscription-status";
+import {
+  getBingoGridShape,
+  normalizeBingoVariant,
+  validateClassicCells,
+} from "@/lib/classic-bingo";
 
 export async function GET(request: Request) {
   try {
@@ -82,6 +87,14 @@ export async function POST(request: Request) {
       );
     }
 
+    const bingoVariant = normalizeBingoVariant(data.bingoVariant);
+    const gridShape = getBingoGridShape({
+      size: data.size,
+      rows: data.rows,
+      columns: data.columns,
+      bingoVariant,
+    });
+
     // Validate grid size
     if (![3, 4, 5].includes(data.size)) {
       return NextResponse.json(
@@ -90,12 +103,25 @@ export async function POST(request: Request) {
       );
     }
 
+    if (
+      !Number.isInteger(gridShape.rows) ||
+      !Number.isInteger(gridShape.columns) ||
+      gridShape.rows < 3 ||
+      gridShape.rows > 5 ||
+      gridShape.columns < 3 ||
+      gridShape.columns > 9
+    ) {
+      return NextResponse.json(
+        { error: "Invalid grid layout" },
+        { status: 400 }
+      );
+    }
 
     // Validate cells array length
-    const expectedCells = data.size * data.size;
+    const expectedCells = gridShape.rows * gridShape.columns;
     if (data.cells.length !== expectedCells) {
       return NextResponse.json(
-        { error: `Expected ${expectedCells} cells for ${data.size}x${data.size} grid` },
+        { error: `Expected ${expectedCells} cells for ${gridShape.rows}x${gridShape.columns} grid` },
         { status: 400 }
       );
     }
@@ -104,6 +130,13 @@ export async function POST(request: Request) {
     data.title = sanitizeText(data.title, 100);
     data.description = sanitizeText(data.description || '', 500);
     data.cells = sanitizeCells(data.cells);
+
+    if (!validateClassicCells(bingoVariant, data.cells)) {
+      return NextResponse.json(
+        { error: "Classic bingo cards must use the correct number ranges and layout." },
+        { status: 400 }
+      );
+    }
 
     // Sharing is a premium feature — force isPublic to false for free users
     const user = await getUserById(session.user.id);
@@ -120,8 +153,11 @@ export async function POST(request: Request) {
       title: data.title,
       description: data.description,
       size: data.size,
+      rows: gridShape.rows,
+      columns: gridShape.columns,
+      bingoVariant,
       cells: data.cells,
-      freeSpace: data.freeSpace ?? true,
+      freeSpace: bingoVariant === "classic90" ? false : data.freeSpace ?? true,
       style: data.style ?? {},
       templateId: data.templateId,
       isPublic: data.isPublic ?? false,
@@ -141,6 +177,9 @@ export async function POST(request: Request) {
         cardId: card._id.toString(),
         title: card.title,
         size: card.size,
+        rows: gridShape.rows,
+        columns: gridShape.columns,
+        bingoVariant,
         isPublic: card.isPublic,
         templateId: data.templateId || null,
       },
@@ -240,6 +279,41 @@ export async function PUT(request: Request) {
         { status: 403 }
       );
     }
+
+    const nextVariant = normalizeBingoVariant(data.bingoVariant ?? existingCard.bingoVariant);
+    const gridShape = getBingoGridShape({
+      size: data.size ?? existingCard.size,
+      rows: data.rows ?? existingCard.rows,
+      columns: data.columns ?? existingCard.columns,
+      bingoVariant: nextVariant,
+    });
+
+    if (
+      data.cells &&
+      (!Array.isArray(data.cells) || data.cells.length !== gridShape.rows * gridShape.columns)
+    ) {
+      return NextResponse.json(
+        { error: `Invalid cells array - must have ${gridShape.rows * gridShape.columns} cells` },
+        { status: 400 }
+      );
+    }
+
+    if (data.cells) {
+      data.cells = sanitizeCells(data.cells);
+      if (!validateClassicCells(nextVariant, data.cells)) {
+        return NextResponse.json(
+          { error: "Classic bingo cards must use the correct number ranges and layout." },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (data.title !== undefined) data.title = sanitizeText(data.title, 100);
+    if (data.description !== undefined) data.description = sanitizeText(data.description || "", 500);
+    data.rows = gridShape.rows;
+    data.columns = gridShape.columns;
+    data.bingoVariant = nextVariant;
+    if (nextVariant === "classic90") data.freeSpace = false;
 
     const card = await updateCard(data.cardId, data);
 

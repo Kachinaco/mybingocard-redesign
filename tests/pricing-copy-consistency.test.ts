@@ -21,4 +21,14 @@ describe("pricing page copy consistency", () => {
     expect(pricingPageSource).toContain('"Up to 500 cards per batch"');
     expect(pricingPageSource).toContain('["Batch generation", "-", "Up to 500", "Up to 500"]');
   });
+
+  test("links one-time event packs into the selected batch purchase flow", () => {
+    expect(pricingPageSource).toContain('href={`/create?batchCount=${pack.count}&batchMode=1`}');
+    expect(pricingPageSource).toContain("Select pack");
+  });
+
+  test("shows image bingo cells available on the free plan", () => {
+    expect(stripeConfigSource).toContain("maxImageUploads: 25");
+    expect(pricingPageSource).toContain('["Image bingo cells", "Yes", "Yes", "Yes"]');
+  });
 });

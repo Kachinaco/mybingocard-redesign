@@ -13,8 +13,14 @@ import {
   sendSubscriptionActivatedEmail,
   sendSubscriptionCanceledEmail,
 } from "@/lib/email";
-import { createSubscription, updateSubscription, getSubscriptionByUserId, PLAN_LIMITS } from "@/lib/db/subscriptions";
-import { generateLinkId, type SharedLink } from "@/lib/db/sharedLinks";
+import {
+  createSubscription,
+  updateSubscription,
+  getSubscriptionByUserId,
+  PLAN_LIMITS,
+  type SubscriptionPlan,
+} from "@/lib/db/subscriptions";
+import { createSharedLink, generateLinkId, type SharedLink } from "@/lib/db/sharedLinks";
 import type { BatchPurchase } from "@/lib/db/batchPurchases";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
@@ -72,6 +78,146 @@ function getPlanName(priceId?: string | null) {
   if (!priceId) return "Subscription";
   const planType = getPlanByPriceId(priceId);
   return planType ? PLANS[planType].name : "Subscription";
+}
+
+function getLocalSubscriptionPlan(planType: keyof typeof PLANS): SubscriptionPlan {
+  return planType === "PREMIUM" ? "unlimited" : "free";
+}
+
+function mapLocalSubscriptionStatus(
+  status: Stripe.Subscription.Status
+): "active" | "trialing" | "past_due" | "canceled" {
+  switch (status) {
+    case "trialing":
+      return "trialing";
+    case "active":
+      return "active";
+    case "past_due":
+    case "unpaid":
+      return "past_due";
+    default:
+      return "canceled";
+  }
+}
+
+async function upsertLocalSubscriptionFromStripe(
+  email: string,
+  subscription: Stripe.Subscription,
+  customerId?: string
+) {
+  const priceId = subscription.items.data[0]?.price.id;
+  const planType = priceId ? getPlanByPriceId(priceId) : null;
+  if (!planType) return;
+
+  const userRecord = await getUserByEmail(email);
+  if (!userRecord?._id) return;
+
+  const userId = userRecord._id.toString();
+  const plan = getLocalSubscriptionPlan(planType);
+  const stripeCustomerId =
+    customerId ||
+    (typeof subscription.customer === "string" ? subscription.customer : undefined);
+  const updateData = {
+    plan,
+    status: mapLocalSubscriptionStatus(subscription.status),
+    ...(stripeCustomerId ? { stripeCustomerId } : {}),
+    stripeSubscriptionId: subscription.id,
+    stripePriceId: priceId,
+    limits: PLAN_LIMITS[plan],
+    currentPeriodStart: toDate(subscription.items.data[0]?.current_period_start) ?? undefined,
+    currentPeriodEnd: toDate(subscription.items.data[0]?.current_period_end) ?? undefined,
+    cancelAtPeriodEnd: subscription.cancel_at_period_end,
+  };
+
+  const existingSub = await getSubscriptionByUserId(userId);
+  if (existingSub) {
+    await updateSubscription(userId, updateData);
+  } else {
+    await createSubscription({
+      userId,
+      plan,
+      stripeCustomerId,
+      stripeSubscriptionId: subscription.id,
+      stripePriceId: priceId,
+    });
+    await updateSubscription(userId, updateData);
+  }
+}
+
+async function cancelLocalSubscription(email: string, subscription?: Stripe.Subscription) {
+  const userRecord = await getUserByEmail(email);
+  if (!userRecord?._id) return;
+
+  const userId = userRecord._id.toString();
+  const existingSub = await getSubscriptionByUserId(userId);
+  if (!existingSub) return;
+
+  await updateSubscription(userId, {
+    plan: "free",
+    status: "canceled",
+    ...(subscription ? { stripeSubscriptionId: subscription.id } : {}),
+    stripePriceId: undefined,
+    limits: PLAN_LIMITS.free,
+    currentPeriodStart: undefined,
+    currentPeriodEnd: undefined,
+    cancelAtPeriodEnd: false,
+  });
+}
+
+async function updateBillingRecoveryState(
+  email: string,
+  data: {
+    status: "failed" | "recovered" | "canceled";
+    invoiceId?: string | null;
+    attemptCount?: number | null;
+    nextPaymentAttempt?: Date | null;
+  }
+) {
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  const now = new Date();
+
+  if (data.status === "failed") {
+    const existing = await db.collection("users").findOne(
+      { email },
+      { projection: { subscriptionStatus: 1, billingPastDueSince: 1 } }
+    );
+
+    await db.collection("users").updateOne(
+      { email },
+      {
+        $set: {
+          billingPastDueSince:
+            existing?.subscriptionStatus === "past_due" && existing?.billingPastDueSince
+              ? existing.billingPastDueSince
+              : now,
+          billingLastPaymentFailedAt: now,
+          billingNextPaymentAttempt: data.nextPaymentAttempt || null,
+          billingFailedAttemptCount: data.attemptCount ?? null,
+          billingLastInvoiceId: data.invoiceId || null,
+          updatedAt: now,
+        },
+      }
+    );
+    return;
+  }
+
+  await db.collection("users").updateOne(
+    { email },
+    {
+      $set: {
+        billingRecoveredAt: data.status === "recovered" ? now : null,
+        updatedAt: now,
+      },
+      $unset: {
+        billingPastDueSince: "",
+        billingLastPaymentFailedAt: "",
+        billingNextPaymentAttempt: "",
+        billingFailedAttemptCount: "",
+        billingLastInvoiceId: "",
+      },
+    }
+  );
 }
 
 async function findAlternateActiveSubscription(
@@ -226,33 +372,8 @@ export async function POST(request: Request) {
 
               // Also upsert subscription record so canCreateCard() works correctly
               try {
-                const userRecord = await getUserByEmail(userId);
-                if (userRecord?._id) {
-                  const planKey = planType === "PREMIUM" ? "unlimited" : "free";
-                  const existingSub = await getSubscriptionByUserId(userRecord._id.toString());
-                  if (existingSub) {
-                    await updateSubscription(userRecord._id.toString(), {
-                      plan: planKey as any,
-                      status: "active",
-                      stripeCustomerId: session.customer as string,
-                      stripeSubscriptionId: subscriptionId,
-                      stripePriceId: priceId,
-                      limits: PLAN_LIMITS[planKey],
-                      currentPeriodStart: toDate(subscription.items.data[0]?.current_period_start) ?? undefined,
-                      currentPeriodEnd: toDate(subscription.items.data[0]?.current_period_end) ?? undefined,
-                      cancelAtPeriodEnd: subscription.cancel_at_period_end,
-                    });
-                  } else {
-                    await createSubscription({
-                      userId: userRecord._id.toString(),
-                      plan: planKey as any,
-                      stripeCustomerId: session.customer as string,
-                      stripeSubscriptionId: subscriptionId,
-                      stripePriceId: priceId,
-                    });
-                  }
-                  console.log(`Subscription record upserted for user ${userId}: ${planKey}`);
-                }
+                await upsertLocalSubscriptionFromStripe(userId, subscription, session.customer as string);
+                console.log(`Subscription record upserted for user ${userId}: ${planType}`);
               } catch (subErr) {
                 console.error("Failed to upsert subscription record:", subErr);
                 // Non-fatal — user still has planType set on users collection
@@ -453,6 +574,143 @@ export async function POST(request: Request) {
                 session.currency || batchPack.currency,
                 session.id
               ).catch(console.error);
+            }
+          }
+        } else if (
+          session.mode === "payment" &&
+          session.metadata?.purchaseType === "email_share_batch"
+        ) {
+          const ownerUserId = session.metadata?.userId || session.client_reference_id || null;
+          const ownerEmail =
+            session.metadata?.userEmail ||
+            session.customer_details?.email ||
+            (typeof session.customer_email === "string" ? session.customer_email : null);
+          const cardId = session.metadata?.cardId || null;
+          const refId = session.metadata?.refId || null;
+          const recipientCount = Number(session.metadata?.recipientCount);
+
+          if (
+            session.payment_status === "paid" &&
+            ownerUserId &&
+            ownerEmail &&
+            cardId &&
+            refId &&
+            Number.isFinite(recipientCount) &&
+            recipientCount > 0
+          ) {
+            try {
+              const client = await clientPromise;
+              const db = client.db("mybingocard");
+              const sharedLinksCollection = db.collection<SharedLink>("shared_links");
+
+              const existingLinksForSession = await sharedLinksCollection.countDocuments({
+                stripeSessionId: session.id,
+              });
+              if (existingLinksForSession > 0) {
+                console.log(
+                  `email_share_batch webhook: session ${session.id} already processed (${existingLinksForSession} links exist); skipping`
+                );
+                break;
+              }
+
+              const refObjectId = new ObjectId(refId);
+              const refDoc = await db
+                .collection("share_email_checkout_refs")
+                .findOne({ _id: refObjectId, userId: ownerUserId, cardId });
+
+              const recipientEmails = Array.isArray((refDoc as any)?.emails)
+                ? ((refDoc as any).emails as unknown[]).filter(
+                    (value): value is string => typeof value === "string"
+                  )
+                : [];
+
+              if (!refDoc || recipientEmails.length === 0) {
+                console.error(`email_share_batch webhook: missing checkout ref ${refId}`);
+                break;
+              }
+
+              const cardObjectId = new ObjectId(cardId);
+              const card = await db.collection("cards").findOne({ _id: cardObjectId });
+              const cardOwnerId = (card as any)?.userId?.toString?.() || "";
+
+              if (!card || cardOwnerId !== ownerUserId) {
+                console.error(`email_share_batch webhook: card ${cardId} owner mismatch`);
+                break;
+              }
+
+              const owner = await getUserByEmail(ownerEmail);
+              const ownerName = owner?.name || ownerEmail;
+              const perRecipientAmount = Math.max(
+                0,
+                Math.round((session.amount_total || 0) / recipientEmails.length)
+              );
+              const sent: string[] = [];
+              const failed: string[] = [];
+
+              for (const recipientEmail of recipientEmails) {
+                try {
+                  const sharedLink = await createSharedLink({
+                    batchId: `email-share:${cardId}`,
+                    cardId,
+                    ownerUserId,
+                    ownerEmail,
+                    recipientEmail,
+                    stripeSessionId: session.id,
+                    amountCents: perRecipientAmount,
+                  });
+                  const linkUrl = `${appUrl}/play/${sharedLink.linkId}`;
+                  const didSend = await sendShareLinkInvitationEmail(
+                    recipientEmail,
+                    null,
+                    ownerName,
+                    linkUrl,
+                    (card as any).title || "Bingo Card"
+                  );
+
+                  if (didSend) {
+                    sent.push(recipientEmail);
+                  } else {
+                    failed.push(recipientEmail);
+                  }
+                } catch (emailErr) {
+                  console.error(`email_share_batch webhook: failed for ${recipientEmail}:`, emailErr);
+                  failed.push(recipientEmail);
+                }
+              }
+
+              await db.collection("share_email_checkout_refs").deleteOne({ _id: refObjectId });
+
+              await trackActivity({
+                event: "email_share_batch_sent",
+                source: "webhook",
+                userId: ownerUserId,
+                email: ownerEmail,
+                metadata: {
+                  cardId,
+                  requestedCount: recipientEmails.length,
+                  sentCount: sent.length,
+                  failedCount: failed.length,
+                  amountCents: session.amount_total,
+                  currency: (session.currency || "usd").toUpperCase(),
+                  stripeSessionId: session.id,
+                },
+              });
+
+              notifyCheckoutActivated(
+                ownerEmail,
+                ownerName,
+                "one_time",
+                `Email Share Pack (${sent.length}/${recipientEmails.length} sent)`,
+                session.amount_total,
+                session.currency || "usd",
+                session.id
+              ).catch(console.error);
+
+              console.log(
+                `Email share batch sent for user ${ownerEmail}: ${sent.length}/${recipientEmails.length} emails`
+              );
+            } catch (shareEmailErr) {
+              console.error("Failed to send email share batch after checkout:", shareEmailErr);
             }
           }
         } else if (
@@ -1025,6 +1283,11 @@ export async function POST(request: Request) {
                   cancelAtPeriodEnd: replacement.subscription.cancel_at_period_end,
                   cancelAt: toDate(replacement.subscription.cancel_at),
                 });
+                await upsertLocalSubscriptionFromStripe(
+                  userId,
+                  replacement.subscription,
+                  replacement.customerId
+                );
 
                 console.log(
                   `Ignored subscription update for ${userId}; active replacement subscription ${replacement.subscription.id} remains`
@@ -1045,6 +1308,7 @@ export async function POST(request: Request) {
             cancellationReason: subscription.cancellation_details?.reason ?? null,
             cancellationFeedback: subscription.cancellation_details?.feedback ?? null,
           });
+          await upsertLocalSubscriptionFromStripe(userId, subscription);
 
           await trackActivity({
             event: "subscription_updated",
@@ -1099,6 +1363,11 @@ export async function POST(request: Request) {
                 cancelAtPeriodEnd: replacement.subscription.cancel_at_period_end,
                 cancelAt: toDate(replacement.subscription.cancel_at),
               });
+              await upsertLocalSubscriptionFromStripe(
+                userId,
+                replacement.subscription,
+                replacement.customerId
+              );
 
               console.log(
                 `Ignored subscription cancellation for ${userId}; active replacement subscription ${replacement.subscription.id} remains`
@@ -1118,6 +1387,10 @@ export async function POST(request: Request) {
             cancelAt: toDate(subscription.canceled_at),
             cancellationReason: subscription.cancellation_details?.reason ?? null,
             cancellationFeedback: subscription.cancellation_details?.feedback ?? null,
+          });
+          await cancelLocalSubscription(userId, subscription);
+          await updateBillingRecoveryState(userId, {
+            status: "canceled",
           });
 
           await trackActivity({
@@ -1162,12 +1435,22 @@ export async function POST(request: Request) {
           const userId = subscription.metadata?.userId;
 
           if (userId) {
+            const priceId = subscription.items.data[0]?.price.id;
+            const planType = priceId ? getPlanByPriceId(priceId) : null;
             await updateUserSubscription(userId, {
+              ...(planType ? { planType } : {}),
+              stripeSubscriptionId: subscription.id,
+              stripePriceId: priceId || null,
               status: mapSubscriptionStatus(subscription.status),
               currentPeriodStart: toDate(subscription.items.data[0]?.current_period_start),
               currentPeriodEnd: toDate(subscription.items.data[0]?.current_period_end),
               cancelAtPeriodEnd: subscription.cancel_at_period_end,
               cancelAt: toDate(subscription.cancel_at),
+            });
+            await upsertLocalSubscriptionFromStripe(userId, subscription);
+            await updateBillingRecoveryState(userId, {
+              status: "recovered",
+              invoiceId: invoice.id,
             });
 
             await trackActivity({
@@ -1232,10 +1515,25 @@ export async function POST(request: Request) {
           const userId = subscription.metadata?.userId;
 
           if (userId) {
+            const priceId = subscription.items.data[0]?.price.id;
+            const planType = priceId ? getPlanByPriceId(priceId) : null;
+            const nextPaymentAttempt = toDate(invoice.next_payment_attempt);
             await updateUserSubscription(userId, {
+              ...(planType ? { planType } : {}),
+              stripeSubscriptionId: subscription.id,
+              stripePriceId: priceId || null,
               status: mapSubscriptionStatus(subscription.status),
+              currentPeriodStart: toDate(subscription.items.data[0]?.current_period_start),
+              currentPeriodEnd: toDate(subscription.items.data[0]?.current_period_end),
               cancelAtPeriodEnd: subscription.cancel_at_period_end,
               cancelAt: toDate(subscription.cancel_at),
+            });
+            await upsertLocalSubscriptionFromStripe(userId, subscription);
+            await updateBillingRecoveryState(userId, {
+              status: "failed",
+              invoiceId: invoice.id,
+              attemptCount: invoice.attempt_count ?? null,
+              nextPaymentAttempt,
             });
 
             await trackActivity({
@@ -1248,7 +1546,7 @@ export async function POST(request: Request) {
                 currency: (invoice.currency || "usd").toUpperCase(),
                 status: subscription.status,
                 attemptCount: invoice.attempt_count ?? null,
-                nextPaymentAttempt: toDate(invoice.next_payment_attempt),
+                nextPaymentAttempt,
                 billingReason: invoice.billing_reason,
               },
             });
@@ -1263,7 +1561,9 @@ export async function POST(request: Request) {
                 user?.name || userId,
                 invoice.amount_due || invoice.amount_paid || 0,
                 (invoice.currency || "usd").toUpperCase(),
-                `${appUrl}/settings`
+                `${appUrl}/settings`,
+                invoice.attempt_count ?? null,
+                nextPaymentAttempt
               ),
               `sendBillingFailedEmail(${userId})`
             );
@@ -1273,7 +1573,9 @@ export async function POST(request: Request) {
               product,
               invoice.amount_due || invoice.amount_paid || 0,
               invoice.currency || "usd",
-              invoice.id
+              invoice.id,
+              invoice.attempt_count ?? null,
+              nextPaymentAttempt
             ).catch(console.error);
           }
         }

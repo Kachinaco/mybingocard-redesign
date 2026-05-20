@@ -6,6 +6,10 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { trackClientActivity } from "@/lib/activity-client";
 
+function makeGuestName() {
+  return `Player ${Math.floor(100 + Math.random() * 900)}`;
+}
+
 function JoinGameContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -18,6 +22,7 @@ function JoinGameContent() {
 
   useEffect(() => {
     trackClientActivity("game_join_page_viewed");
+    setPlayerName(makeGuestName());
   }, []);
 
   useEffect(() => {
@@ -64,16 +69,17 @@ function JoinGameContent() {
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!roomCode.trim() || !playerName.trim()) return;
+    if (!roomCode.trim()) return;
 
     setLoading(true);
     setError("");
+    const resolvedName = playerName.trim() || makeGuestName();
 
     try {
       const res = await fetch(`/api/game/${roomCode}/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerName: playerName.trim() }),
+        body: JSON.stringify({ playerName: resolvedName }),
       });
 
       const data = await res.json();
@@ -92,6 +98,10 @@ function JoinGameContent() {
         marked: data.marked,
       }));
 
+      trackClientActivity("game_join_started", {
+        roomCode,
+        usedDefaultName: !playerName.trim(),
+      });
       router.push(`/game/play/${roomCode}`);
     } catch {
       setError("Failed to join game");
@@ -100,19 +110,19 @@ function JoinGameContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-emerald-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
+            <span className="text-3xl font-black text-emerald-700">
               MyBingoCard
             </span>
           </Link>
-          <p className="text-slate-500 mt-2">Join a live bingo game</p>
+          <p className="text-emerald-800 mt-2 font-semibold">Tap one button to join</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-emerald-100 p-6">
           {authStatus === "loading" ? (
             <div className="text-center py-8">
               <div className="inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
@@ -136,12 +146,12 @@ function JoinGameContent() {
                 onChange={(e) => handleCodeChange(e.target.value)}
                 placeholder="ABCDEF"
                 maxLength={6}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-center text-2xl font-mono font-bold tracking-[0.3em] uppercase focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                className="w-full px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center text-2xl font-mono font-bold tracking-[0.3em] uppercase focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
               />
               {roomInfo && (
-                <div className="mt-2 p-2 bg-green-50 border border-green-100 rounded-lg text-sm text-green-700 text-center">
+                <div className="mt-2 p-2 bg-emerald-50 border border-emerald-100 rounded-lg text-sm text-emerald-700 text-center">
                   <span className="font-semibold">{roomInfo.title}</span>
-                  <span className="text-green-500 mx-1">&bull;</span>
+                  <span className="text-emerald-500 mx-1">&bull;</span>
                   <span>{roomInfo.playerCount} player{roomInfo.playerCount !== 1 ? "s" : ""}</span>
                   {roomInfo.status === "finished" && (
                     <span className="text-red-500 ml-1">(Game ended)</span>
@@ -153,16 +163,23 @@ function JoinGameContent() {
             {/* Player Name */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Your Name
+                Name
               </label>
               <input
                 type="text"
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
-                placeholder="Enter your name"
+                placeholder="Player name"
                 maxLength={30}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
               />
+              <button
+                type="button"
+                onClick={() => setPlayerName(makeGuestName())}
+                className="mt-2 text-xs font-semibold text-emerald-700 hover:text-emerald-800"
+              >
+                Pick a simple name
+              </button>
             </div>
 
             {error && (
@@ -173,17 +190,17 @@ function JoinGameContent() {
 
             <button
               type="submit"
-              disabled={loading || roomCode.length !== 6 || !playerName.trim() || roomInfo?.status === "finished"}
-              className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || roomCode.length !== 6 || roomInfo?.status === "finished"}
+              className="w-full py-5 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition font-black text-2xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Joining..." : "Join Game"}
+              {loading ? "Joining..." : "Join"}
             </button>
           </form>
           )}
         </div>
 
         <div className="text-center mt-6">
-          <Link href="/create" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+          <Link href="/create" className="text-sm text-emerald-700 hover:text-emerald-800 font-medium">
             Or create your own bingo card
           </Link>
         </div>

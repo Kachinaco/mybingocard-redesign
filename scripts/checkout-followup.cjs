@@ -9,7 +9,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const nodemailer = require('nodemailer');
+const nodemailer = require('./smtp-client.cjs');
 const { MongoClient } = require('mongodb');
 
 // Load .env.local

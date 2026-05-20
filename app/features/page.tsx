@@ -1,11 +1,21 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Features - MyBingoCard",
-  description: "Everything you need to create, customize, and share beautiful bingo cards. Smart editor, theme library, PDF export, virtual play, and more.",
+  title: "Bingo Card Maker Features - Printable PDFs, Online Play, AI & Templates",
+  description:
+    "Explore MyBingoCard features: custom bingo card editor, printable PDF export, online sharing, live bingo games, AI-generated squares, image bingo cards, and batch card creation.",
   alternates: {
     canonical: "https://mybingocard.com/features",
+  },
+  openGraph: {
+    title: "Bingo Card Maker Features | MyBingoCard",
+    description:
+      "Create custom bingo cards with printable PDFs, online sharing, AI help, image squares, templates, and live play.",
+    url: "https://mybingocard.com/features",
+    siteName: "MyBingoCard",
+    type: "website",
   },
 };
 
@@ -27,8 +37,8 @@ const features = [
       </svg>
     ),
     title: "Theme Library",
-    description: "Choose from 30+ professionally designed templates for any occasion — weddings, birthdays, baby showers, holidays, classrooms, team events, and more.",
-    highlights: ["30+ premium templates", "Holiday & seasonal themes", "Classroom & education", "Custom occasion themes"],
+    description: "Choose from starter and premium templates for weddings, birthdays, baby showers, holidays, classrooms, team events, and more.",
+    highlights: ["Premium templates", "Holiday & seasonal themes", "Classroom & education", "Custom occasion themes"],
   },
   {
     icon: (
@@ -36,9 +46,9 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
       </svg>
     ),
-    title: "Instant PDF Export",
-    description: "Generate high-quality, print-ready PDFs in one click. Print multiple unique cards per page to save paper and prep faster.",
-    highlights: ["Print-ready PDF quality", "Multiple cards per page", "3×3, 4×4, and 5×5 grids", "PNG export available"],
+    title: "Print and Batch PDFs",
+    description: "Print small games from your browser, or use Premium and event packs for HD exports, PNG files, and larger PDF batches.",
+    highlights: ["Browser printing", "HD exports on Premium", "Batch PDF packs", "3x3, 4x4, and 5x5 grids"],
   },
   {
     icon: (
@@ -47,8 +57,8 @@ const features = [
       </svg>
     ),
     title: "Virtual Play",
-    description: "Host games remotely over Zoom, Teams, or any video call. Share a link and players mark their cards right on their phones or laptops — no printing needed.",
-    highlights: ["Shareable play links", "Mobile-friendly cards", "Players mark online", "Perfect for remote teams"],
+    description: "Host games remotely or in the room. Share a browser link and players mark cards on their phones or laptops, no app required.",
+    highlights: ["Shareable play links", "Mobile-friendly cards", "Players mark online", "No app required"],
   },
   {
     icon: (
@@ -57,8 +67,8 @@ const features = [
       </svg>
     ),
     title: "Magic Shuffle",
-    description: "Our algorithm generates a unique card for every player — no two cards are the same. Winners are distributed evenly so every game is fair and exciting.",
-    highlights: ["Unique cards per player", "Fair winner distribution", "Unlimited shuffle", "Bulk generation"],
+    description: "Create unique shuffled cards for players so the whole room does not get the same layout.",
+    highlights: ["Unique cards per player", "Fairer games", "Batch generation", "Reusable square lists"],
   },
   {
     icon: (
@@ -67,8 +77,8 @@ const features = [
       </svg>
     ),
     title: "Privacy First",
-    description: "We don't track your players. Your card content and game data stay private. No third-party ads, no data selling, no surprises.",
-    highlights: ["No player tracking", "Private by default", "No third-party ads", "Secure data storage"],
+    description: "We do not sell data or track players for ads. Logged-in creators may have basic usage analytics so we can improve the product.",
+    highlights: ["No data selling", "No ad targeting", "Creator analytics", "Secure data storage"],
   },
   {
     icon: (
@@ -141,10 +151,10 @@ export default function FeaturesPage() {
       <section className="py-12 px-4 border-y border-slate-100 bg-white">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
-            { value: "50K+", label: "Active Users" },
-            { value: "1M+", label: "Cards Generated" },
-            { value: "30+", label: "Premium Templates" },
-            { value: "4.9/5", label: "Customer Rating" },
+            { value: "3", label: "Free Cards" },
+            { value: "3x3-5x5", label: "Grid Sizes" },
+            { value: "PDF", label: "Print Exports" },
+            { value: "Links", label: "Online Play" },
           ].map((stat) => (
             <div key={stat.label}>
               <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">{stat.value}</div>
@@ -193,7 +203,7 @@ export default function FeaturesPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-black text-slate-900 mb-4">Built for every occasion</h2>
-            <p className="text-slate-500 text-lg">Join 50,000+ creators who use MyBingoCard for all kinds of events.</p>
+            <p className="text-slate-500 text-lg">Create printable cards, share online links, or host live games for all kinds of events.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {useCases.map((uc) => (
@@ -221,7 +231,8 @@ export default function FeaturesPage() {
             </Link>
           </div>
         </div>
-      </section>
+      </section>      <SeoSupportBlock slug="features" />
+
     </div>
   );
 }

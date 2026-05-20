@@ -24,7 +24,14 @@ type ClickRecord = {
   time: number;
 };
 
-const INTERACTIVE_SELECTORS = "a, button, input, select, textarea, [role='button'], [onclick]";
+const INTERACTIVE_SELECTORS = "a, button, input, select, textarea, [role='button'], [onclick], [tabindex]";
+const FORM_FIELD_SELECTOR = "input, select, textarea";
+
+type FormFieldState = {
+  focusedAt: number;
+  changes: number;
+  initialLength: number | null;
+};
 
 function getClickTargetInfo(el: Element): Record<string, string> {
   const tag = el.tagName.toLowerCase();
@@ -55,6 +62,69 @@ function isInteractiveElement(el: Element): boolean {
     parent = parent.parentElement;
   }
   return false;
+}
+
+function shouldTrackDeadClick(el: Element): boolean {
+  let current: Element | null = el;
+  let depth = 0;
+
+  while (current && current !== document.body && depth < 4) {
+    const className = typeof current.className === "string" ? current.className : "";
+    if (
+      current.hasAttribute("data-track") ||
+      current.hasAttribute("data-dead-click") ||
+      current.hasAttribute("aria-label") ||
+      current.hasAttribute("role") ||
+      current.hasAttribute("tabindex") ||
+      /(^|\s)(cursor-pointer|[^\s]*hover:[^\s]*)($|\s)/.test(className)
+    ) {
+      return true;
+    }
+
+    current = current.parentElement;
+    depth += 1;
+  }
+
+  return false;
+}
+
+function isSensitiveField(el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement): boolean {
+  const type = el instanceof HTMLInputElement ? el.type : "";
+  const combined = `${el.id || ""} ${el.name || ""} ${el.getAttribute("autocomplete") || ""}`.toLowerCase();
+  return type === "password" || /(password|passcode|token|secret|card|cvc|cvv|ssn)/.test(combined);
+}
+
+function getFieldLength(el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement): number | null {
+  if (isSensitiveField(el)) return null;
+  if (el instanceof HTMLSelectElement) return el.selectedOptions.length;
+  if (el instanceof HTMLInputElement && ["checkbox", "radio"].includes(el.type)) return null;
+  return typeof el.value === "string" ? el.value.length : null;
+}
+
+function getFormFieldInfo(el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement): Record<string, unknown> {
+  const form = el.closest("form");
+  const type = el instanceof HTMLInputElement ? el.type : el.tagName.toLowerCase();
+  const rect = el.getBoundingClientRect();
+
+  return {
+    tag: el.tagName.toLowerCase(),
+    type,
+    id: el.id || "",
+    name: el.name || "",
+    autocomplete: el.getAttribute("autocomplete") || "",
+    required: Boolean(el.required),
+    disabled: Boolean(el.disabled),
+    readOnly: "readOnly" in el ? Boolean(el.readOnly) : false,
+    checked: el instanceof HTMLInputElement && ["checkbox", "radio"].includes(el.type) ? el.checked : null,
+    value_length: getFieldLength(el),
+    form_id: form?.id || "",
+    form_name: form?.getAttribute("name") || "",
+    page: `${window.location.pathname}${window.location.search}`,
+    x: Math.round(rect.left),
+    y: Math.round(rect.top),
+    width: Math.round(rect.width),
+    height: Math.round(rect.height),
+  };
 }
 
 function distance(a: ClickRecord, b: ClickRecord): number {
@@ -235,6 +305,7 @@ export default function VisitorTracker() {
   const startedAtRef = useRef<number>(Date.now());
   const recentClicksRef = useRef<ClickRecord[]>([]);
   const tabHiddenAtRef = useRef<number | null>(null);
+  const fieldStatesRef = useRef<Map<Element, FormFieldState>>(new Map());
 
   useEffect(() => {
     const sessionId = getSessionId();
@@ -261,7 +332,7 @@ export default function VisitorTracker() {
           },
           { sessionId }
         );
-      } else {
+      } else if (shouldTrackDeadClick(target)) {
         // --- Dead click detection (non-interactive element) ---
         trackClientActivity(
           "dead_click",
@@ -320,6 +391,59 @@ export default function VisitorTracker() {
       }
     };
 
+    const onFieldFocus = (event: FocusEvent) => {
+      const target = event.target as Element | null;
+      if (!target?.matches(FORM_FIELD_SELECTOR)) return;
+
+      const field = target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+      fieldStatesRef.current.set(field, {
+        focusedAt: Date.now(),
+        changes: 0,
+        initialLength: getFieldLength(field),
+      });
+      trackClientActivity("form_field_focused", getFormFieldInfo(field), { sessionId });
+    };
+
+    const onFieldChange = (event: Event) => {
+      const target = event.target as Element | null;
+      if (!target?.matches(FORM_FIELD_SELECTOR)) return;
+
+      const field = target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+      const current = fieldStatesRef.current.get(field);
+      if (current) {
+        current.changes += 1;
+      }
+      trackClientActivity(
+        "form_field_changed",
+        {
+          ...getFormFieldInfo(field),
+          changes: current?.changes || 1,
+          initial_value_length: current?.initialLength ?? null,
+        },
+        { sessionId }
+      );
+    };
+
+    const onFieldBlur = (event: FocusEvent) => {
+      const target = event.target as Element | null;
+      if (!target?.matches(FORM_FIELD_SELECTOR)) return;
+
+      const field = target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+      const current = fieldStatesRef.current.get(field);
+      const focusedForMs = current ? Date.now() - current.focusedAt : 0;
+      trackClientActivity(
+        "form_field_blurred",
+        {
+          ...getFormFieldInfo(field),
+          changes: current?.changes || 0,
+          initial_value_length: current?.initialLength ?? null,
+          focused_for_ms: focusedForMs,
+        },
+        { sessionId }
+      );
+      fieldStatesRef.current.delete(field);
+    };
+
     const onScroll = () => {
       const top = window.scrollY || document.documentElement.scrollTop;
       const max =
@@ -332,12 +456,18 @@ export default function VisitorTracker() {
     };
 
     document.body.addEventListener("click", onClick, { passive: true });
+    document.body.addEventListener("focusin", onFieldFocus);
+    document.body.addEventListener("change", onFieldChange, { passive: true });
+    document.body.addEventListener("focusout", onFieldBlur);
     window.addEventListener("mousemove", onMouseMove, { passive: true });
     window.addEventListener("input", onInput, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
       document.body.removeEventListener("click", onClick);
+      document.body.removeEventListener("focusin", onFieldFocus);
+      document.body.removeEventListener("change", onFieldChange);
+      document.body.removeEventListener("focusout", onFieldBlur);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("input", onInput);
       window.removeEventListener("scroll", onScroll);

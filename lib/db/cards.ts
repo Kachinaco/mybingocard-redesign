@@ -1,5 +1,6 @@
 import clientPromise from "../mongodb";
 import { ObjectId } from "mongodb";
+import type { BingoVariant } from "@/lib/classic-bingo";
 
 export interface BingoCard {
   _id: ObjectId;
@@ -8,6 +9,9 @@ export interface BingoCard {
   title: string;
   description?: string;
   size: 3 | 4 | 5; // Grid size (3x3, 4x4, 5x5)
+  rows?: number; // Non-square layouts, such as 90-ball 3x9 tickets
+  columns?: number;
+  bingoVariant?: BingoVariant;
   cells: string[]; // Array of cell values
   freeSpace: boolean; // Whether center is a free space
   style: {

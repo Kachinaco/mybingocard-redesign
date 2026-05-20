@@ -1,23 +1,31 @@
 "use client";
 import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from "react";
-import { loadStripe } from "@stripe/stripe-js";
+import { loadStripe } from "@stripe/stripe-js/pure";
+import type { Stripe } from "@stripe/stripe-js";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { registerCheckoutOpener } from "@/lib/upgrade";
 import { trackClientActivity } from "@/lib/activity-client";
 import { getBatchPack } from "@/lib/batchPacks";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
-
 interface CheckoutState {
   isOpen: boolean;
   clientSecret: string | null;
+  stripe: Stripe | null;
   loading: boolean;
   error: string;
   label: string;
 }
 
 interface CheckoutContextType {
-  openCheckout: (options?: { priceId?: string; purchaseType?: string; batchCount?: number; label?: string; returnPath?: string }) => Promise<void>;
+  openCheckout: (options?: {
+    priceId?: string;
+    purchaseType?: string;
+    batchCount?: number;
+    cardId?: string;
+    emails?: string[];
+    label?: string;
+    returnPath?: string;
+  }) => Promise<void>;
 }
 
 const CheckoutContext = createContext<CheckoutContextType>({
@@ -32,6 +40,7 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<CheckoutState>({
     isOpen: false,
     clientSecret: null,
+    stripe: null,
     loading: false,
     error: "",
     label: "Premium — $4.99/mo",
@@ -42,6 +51,25 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
   const checkoutPlanRef = useRef<string>("premium");
   const checkoutSessionIdRef = useRef<string>("");
   const isOpeningRef = useRef(false);
+  const stripePromiseRef = useRef<Promise<Stripe | null> | null>(null);
+
+  const getStripe = useCallback(async () => {
+    const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
+    if (!publishableKey) {
+      throw new Error("Stripe publishable key is not configured.");
+    }
+
+    if (!stripePromiseRef.current) {
+      stripePromiseRef.current = loadStripe(publishableKey);
+    }
+
+    const stripe = await stripePromiseRef.current;
+    if (!stripe) {
+      throw new Error("Stripe could not load.");
+    }
+
+    return stripe;
+  }, []);
 
   const close = useCallback(() => {
     // Track time spent and cancel when the user closes the embedded checkout modal
@@ -67,13 +95,15 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
       checkoutOpenedAtRef.current = null;
     }
 
-    setState({ isOpen: false, clientSecret: null, loading: false, error: "", label: "" });
+    setState({ isOpen: false, clientSecret: null, stripe: null, loading: false, error: "", label: "" });
   }, []);
 
   const openCheckout = useCallback(async (options?: {
     priceId?: string;
     purchaseType?: string;
     batchCount?: number;
+    cardId?: string;
+    emails?: string[];
     label?: string;
     returnPath?: string;
   }) => {
@@ -87,9 +117,7 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
       : process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_PRICE_ID);
     const label = options?.label || (purchaseType === "lifetime"
       ? "Premium Lifetime — $14.99 one-time"
-      : purchaseType === "trial"
-        ? "7-day free trial — then $4.99/mo. Cancel anytime."
-        : "Premium — $4.99/mo · Cancel anytime");
+      : "Premium — $4.99/mo · Cancel anytime");
 
     if (!priceId && purchaseType === "subscription") {
       setState(s => ({ ...s, isOpen: true, error: "Checkout is temporarily unavailable." }));
@@ -97,16 +125,21 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
     }
 
     isOpeningRef.current = true;
-    setState({ isOpen: true, clientSecret: null, loading: true, error: "", label });
+    setState({ isOpen: true, clientSecret: null, stripe: null, loading: true, error: "", label });
 
     try {
       let body: Record<string, unknown>;
       if (purchaseType === "batch_pack") {
         body = { purchaseType: "batch_pack", batchCount: options?.batchCount, returnPath: options?.returnPath };
+      } else if (purchaseType === "email_share_batch") {
+        body = {
+          purchaseType: "email_share_batch",
+          cardId: options?.cardId,
+          emails: options?.emails,
+          returnPath: options?.returnPath,
+        };
       } else if (purchaseType === "lifetime") {
         body = { purchaseType: "lifetime", returnPath: options?.returnPath };
-      } else if (purchaseType === "trial") {
-        body = { purchaseType: "trial", returnPath: options?.returnPath };
       } else {
         body = { priceId, returnPath: options?.returnPath };
       }
@@ -142,19 +175,33 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      setState(s => ({ ...s, loading: false, clientSecret: data.clientSecret }));
+      let stripe: Stripe;
+      try {
+        stripe = await getStripe();
+      } catch {
+        setState(s => ({
+          ...s,
+          loading: false,
+          clientSecret: null,
+          stripe: null,
+          error: "Checkout could not load. Please disable script blockers or try again.",
+        }));
+        return;
+      }
+
+      setState(s => ({ ...s, loading: false, clientSecret: data.clientSecret, stripe }));
 
       const checkoutPlan = purchaseType === "batch_pack"
         ? "batch_pack"
-        : purchaseType === "trial"
-          ? "trial"
-          : "premium";
+        : purchaseType === "email_share_batch"
+          ? "email_share_batch"
+        : "premium";
       const batchPack = purchaseType === "batch_pack" ? getBatchPack(options?.batchCount) : null;
       const checkoutPrice = batchPack
         ? batchPack.amount / 100
-        : purchaseType === "trial"
-          ? 0
-          : 4.99;
+        : purchaseType === "email_share_batch"
+          ? undefined
+        : 4.99;
 
       // Store context for close/cancel tracking
       checkoutOpenedAtRef.current = Date.now();
@@ -171,7 +218,7 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
     } finally {
       isOpeningRef.current = false;
     }
-  }, [close, state.clientSecret, state.loading]);
+  }, [close, getStripe, state.clientSecret, state.loading]);
 
   // Register global checkout opener so redirectToCheckout() uses the modal
   useEffect(() => {
@@ -212,8 +259,8 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
               </div>
             )}
 
-            {state.clientSecret && !state.loading && (
-              <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret: state.clientSecret }}>
+            {state.clientSecret && state.stripe && !state.loading && (
+              <EmbeddedCheckoutProvider stripe={state.stripe} options={{ clientSecret: state.clientSecret }}>
                 <EmbeddedCheckout />
               </EmbeddedCheckoutProvider>
             )}

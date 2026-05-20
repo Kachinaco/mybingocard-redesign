@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LandingPageTracker from "@/components/LandingPageTracker";
+import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
   title: "Icebreaker Bingo Cards — Free People Bingo & Get to Know You Bingo | MyBingoCard",
@@ -194,7 +195,7 @@ export default function IcebreakerBingoPage() {
                 Turn strangers into friends in five minutes
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Create icebreaker bingo cards in under 2 minutes. Free to start — no sign-up required.
+                Create icebreaker bingo cards in under 2 minutes. Free to start, then save or export when you are ready.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-sky-50 transition-all duration-300 shadow-xl">
@@ -206,6 +207,7 @@ export default function IcebreakerBingoPage() {
               </div>
             </div>
           </section>
+          <SeoSupportBlock slug="icebreaker-bingo" />
         </main>
 
         {/* Footer */}

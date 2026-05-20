@@ -5,6 +5,7 @@ import Link from "next/link";
 import SignOutButton from "@/components/SignOutButton";
 import ShareLinksTracker from "./ShareLinksTracker";
 import CopyShareLinkButton from "./CopyShareLinkButton";
+import CopyGroupInviteButton from "@/components/CopyGroupInviteButton";
 import { getCardById } from "@/lib/db/cards";
 
 export const dynamic = "force-dynamic";
@@ -91,6 +92,15 @@ function statusStyle(status: SharedLinkDTO["status"]): string {
   }
 }
 
+function getInviteSeed(links: SharedLinkDTO[]): SharedLinkDTO | null {
+  return (
+    links.find((link) => link.status === "pending") ||
+    links.find((link) => link.status !== "expired" && link.status !== "refunded") ||
+    links[0] ||
+    null
+  );
+}
+
 export default async function ShareLinksPage() {
   const session = await auth();
   if (!session?.user) {
@@ -103,6 +113,7 @@ export default async function ShareLinksPage() {
   const totalLinks = links.length;
   const claimedCount = links.filter((l) => l.status === "claimed").length;
   const pendingCount = links.filter((l) => l.status === "pending").length;
+  const claimRate = totalLinks > 0 ? Math.round((claimedCount / totalLinks) * 100) : 0;
 
   // Resolve a friendly title for each batch from its first link's card.
   const batchTitles: Record<string, string> = {};
@@ -173,16 +184,16 @@ export default async function ShareLinksPage() {
         <div className="container mx-auto max-w-6xl">
           <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              <h1 className="text-3xl font-black text-slate-900 mb-2">
                 Share Links
               </h1>
               <p className="text-slate-600">
-                Track every share link you&rsquo;ve generated, grouped by batch.
+                Copy one group invite, check who has claimed a card, and manage every player link.
               </p>
             </div>
             <Link
               href="/dashboard/cards"
-              className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-indigo-200 transition-all"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-indigo-200 transition-all"
             >
               <svg
                 className="w-4 h-4"
@@ -197,12 +208,12 @@ export default async function ShareLinksPage() {
                   d="M12 4v16m8-8H4"
                 />
               </svg>
-              Generate more
+              Create more links
             </Link>
           </div>
 
           {totalLinks > 0 && (
-            <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="grid gap-4 mb-8 sm:grid-cols-2 lg:grid-cols-4">
               <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">
                   Total links
@@ -225,11 +236,17 @@ export default async function ShareLinksPage() {
                   {pendingCount}
                 </p>
               </div>
+              <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-sm">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">
+                  Claim rate
+                </p>
+                <p className="text-2xl font-bold text-indigo-600">{claimRate}%</p>
+              </div>
             </div>
           )}
 
           {totalLinks === 0 ? (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 border-dashed p-16 text-center">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 border-dashed p-8 sm:p-12 text-center">
               <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg
                   className="w-10 h-10 text-indigo-400"
@@ -249,8 +266,7 @@ export default async function ShareLinksPage() {
                 No share links yet
               </h3>
               <p className="text-slate-500 mb-8 max-w-md mx-auto">
-                Generate a batch of cards, then share each one with a different
-                person. You pay $0.10 per link and recipients play in the browser.
+                Generate a batch, then send each player a unique card link. You can email recipients directly or copy the links yourself.
               </p>
               <Link
                 href="/dashboard/cards"
@@ -262,23 +278,51 @@ export default async function ShareLinksPage() {
           ) : (
             <div className="space-y-8">
               {batches.map(([batchId, batchLinks]) => (
+                (() => {
+                  const batchTitle = batchTitles[batchId] || "Untitled batch";
+                  const pendingForBatch = batchLinks.filter((link) => link.status === "pending").length;
+                  const claimedForBatch = batchLinks.filter((link) => link.status === "claimed").length;
+                  const inviteSeed = getInviteSeed(batchLinks);
+
+                  return (
                 <div
                   key={batchId}
                   className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
                 >
-                  <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                  <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                         Batch
                       </p>
                       <p className="text-base font-semibold text-slate-900 break-words">
-                        {batchTitles[batchId] || "Untitled batch"}
+                        {batchTitle}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        Send one group invite. Each friend gets the next unused card automatically.
                       </p>
                     </div>
-                    <span className="text-sm font-semibold text-slate-600">
-                      {batchLinks.length} link
-                      {batchLinks.length !== 1 ? "s" : ""}
-                    </span>
+                    <div className="flex flex-col gap-3 sm:items-end">
+                      <div className="flex flex-wrap gap-2 text-xs font-semibold sm:justify-end">
+                        <span className="rounded-full bg-white px-3 py-1 text-slate-600 ring-1 ring-slate-200">
+                          {batchLinks.length} link{batchLinks.length !== 1 ? "s" : ""}
+                        </span>
+                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 ring-1 ring-emerald-100">
+                          {claimedForBatch} claimed
+                        </span>
+                        <span className="rounded-full bg-amber-50 px-3 py-1 text-amber-700 ring-1 ring-amber-100">
+                          {pendingForBatch} left
+                        </span>
+                      </div>
+                      {inviteSeed && (
+                        <CopyGroupInviteButton
+                          inviteCode={inviteSeed.linkId}
+                          batchId={batchId}
+                          batchTitle={batchTitle}
+                          totalLinks={batchLinks.length}
+                          pendingLinks={pendingForBatch}
+                        />
+                      )}
+                    </div>
                   </div>
                   <div className="divide-y divide-slate-100">
                     {batchLinks.map((link) => (
@@ -314,6 +358,8 @@ export default async function ShareLinksPage() {
                     ))}
                   </div>
                 </div>
+                  );
+                })()
               ))}
             </div>
           )}

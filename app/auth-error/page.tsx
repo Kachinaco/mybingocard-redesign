@@ -47,6 +47,32 @@ function AuthErrorContent() {
   const error = searchParams.get("error") || "Default";
   const info = errorMessages[error] ?? errorMessages.Default!;
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const startNativeOAuth = (provider: "google" | "apple", targetCallbackUrl: string) => {
+    if (typeof window === "undefined") return false;
+
+    const nativeHandler = (window as any).webkit?.messageHandlers?.mybingocardOAuth;
+    let nativeAppFlag = false;
+    try {
+      nativeAppFlag = window.localStorage.getItem("mybingocard-ios-app") === "1";
+    } catch {
+      nativeAppFlag = false;
+    }
+
+    if (searchParams.get("app") !== "1" && !nativeAppFlag && !nativeHandler) {
+      return false;
+    }
+
+    if (nativeHandler) {
+      nativeHandler.postMessage({
+        provider,
+        callbackUrl: targetCallbackUrl || "/dashboard",
+      });
+      return true;
+    }
+
+    window.location.href = `/api/native/oauth/${provider}/start?callbackUrl=${encodeURIComponent(targetCallbackUrl || "/dashboard")}`;
+    return true;
+  };
 
   useEffect(() => {
     if (sessionState.status !== "authenticated") return;
@@ -95,7 +121,11 @@ function AuthErrorContent() {
               <div style={{ flex: 1, height: "1px", background: "#e2e8f0" }} />
             </div>
             <button
-              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+              data-mybingocard-oauth-provider="google"
+              onClick={() => {
+                if (startNativeOAuth("google", "/dashboard")) return;
+                signIn("google", { callbackUrl: "/dashboard" });
+              }}
               style={{
                 display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
                 width: "100%", padding: "14px 24px", borderRadius: "12px",

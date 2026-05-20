@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackClientActivity } from "@/lib/activity-client";
 
 interface CopyShareLinkButtonProps {
   linkId: string;
@@ -19,6 +20,10 @@ export default function CopyShareLinkButton({
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
+      trackClientActivity("share_link_copied", {
+        linkId,
+        source: "share_links_dashboard",
+      });
       setTimeout(() => setCopied(false), 1500);
     } catch {
       // Fallback for older browsers — keep the textarea off-screen so it never flashes.
@@ -35,6 +40,10 @@ export default function CopyShareLinkButton({
       try {
         document.execCommand("copy");
         setCopied(true);
+        trackClientActivity("share_link_copied", {
+          linkId,
+          source: "share_links_dashboard_fallback",
+        });
         setTimeout(() => setCopied(false), 1500);
       } catch {
         // Ignore
@@ -44,8 +53,8 @@ export default function CopyShareLinkButton({
   };
 
   return (
-    <div className="flex items-center gap-2 shrink-0">
-      <code className="hidden lg:inline text-xs font-mono text-slate-500 truncate max-w-[240px]">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-2 shrink-0">
+      <code className="text-xs font-mono text-slate-500 truncate max-w-[260px] rounded-lg bg-slate-50 px-2 py-1">
         /play/{linkId}
       </code>
       <span
@@ -111,6 +120,14 @@ export default function CopyShareLinkButton({
           </>
         )}
       </button>
+      <a
+        href={`/play/${linkId}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+      >
+        Open
+      </a>
     </div>
   );
 }

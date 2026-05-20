@@ -34,7 +34,7 @@ export default function ShareBatchButton({
         type="button"
         onClick={() => setOpen(true)}
         className={`${baseClasses} ${variantClasses} ${className}`}
-        aria-label={`Share Batch: ${batchTitle}`}
+        aria-label={`Create group invite for ${batchTitle}`}
       >
         <svg
           className="w-4 h-4"
@@ -49,14 +49,14 @@ export default function ShareBatchButton({
             d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
           />
         </svg>
-        <span>Share Batch</span>
+        <span>Create Group Invite</span>
 
         {/* Tooltip */}
         <span
           className="pointer-events-none absolute -top-11 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg z-20"
           role="tooltip"
         >
-          Send each card to a different person · $0.10 per link
+          One link for your group chat. Starts at $0.50 for up to 5 cards.
           <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
         </span>
       </button>

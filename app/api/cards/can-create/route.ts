@@ -76,7 +76,7 @@ export async function GET() {
 
     return NextResponse.json({
       allowed,
-      reason: allowed ? undefined : `You've reached the free plan limit of ${maxCards} cards. Upgrade to Premium for more cards plus AI generation, image uploads, and advanced exports.`,
+      reason: allowed ? undefined : `You've reached the free plan limit of ${maxCards} cards. Upgrade to Premium for more cards plus AI generation, larger batches, and advanced exports.`,
       upgradeRequired: !allowed,
       cardsCreated: totalCards,
       cardsLimit: maxCards,

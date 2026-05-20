@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { trackClientActivity } from "@/lib/activity-client";
 import PlayCard, { type PlayCardData } from "./PlayCard";
@@ -67,8 +68,13 @@ function trackPlayingOnce(
 
 export default function PlayClient({ linkId }: PlayClientProps) {
   const { data: session, status: sessionStatus } = useSession();
+  const searchParams = useSearchParams();
   const visitTrackedRef = useRef(false);
+  const autoGuestAttemptedRef = useRef(false);
   const linkIdValid = LINK_ID_PATTERN.test(linkId);
+  const autoJoin = searchParams.get("autoJoin") === "1";
+  const groupCode = searchParams.get("group") || "";
+  const groupFull = searchParams.get("groupFull") === "1";
 
   const [viewState, setViewState] = useState<ViewState>(
     linkIdValid ? "loading" : "invalid",
@@ -128,7 +134,11 @@ export default function PlayClient({ linkId }: PlayClientProps) {
       }
 
       if (data.link.status === "claimed" && !data.canPlay) {
-        setErrorMessage("This share link has already been claimed.");
+        setErrorMessage(
+          groupFull
+            ? "All cards from this group invite have already been taken."
+            : "This share link has already been claimed.",
+        );
         setViewState("invalid");
         return;
       }
@@ -155,7 +165,7 @@ export default function PlayClient({ linkId }: PlayClientProps) {
       setErrorMessage("Something went wrong loading this link. Please try again.");
       setViewState("invalid");
     }
-  }, [linkId, sessionStatus, session?.user?.id]);
+  }, [linkId, sessionStatus, session?.user?.id, groupFull]);
 
   useEffect(() => {
     if (!linkIdValid) return;
@@ -184,11 +194,14 @@ export default function PlayClient({ linkId }: PlayClientProps) {
     }
   };
 
-  const handleContinueAsGuest = async () => {
+  const handleContinueAsGuest = useCallback(async () => {
     setClaimError("");
     setClaimMode("guest");
     setViewState("claiming");
-    trackClientActivity("share_link_guest_clicked", { linkId });
+    trackClientActivity(autoJoin ? "share_group_auto_join_started" : "share_link_guest_clicked", {
+      linkId,
+      groupCode: groupCode || null,
+    });
 
     try {
       const response = await fetch(`/api/share-links/${encodeURIComponent(linkId)}/claim`, {
@@ -200,6 +213,15 @@ export default function PlayClient({ linkId }: PlayClientProps) {
       const data = (await response.json().catch(() => ({}))) as ClaimResponse;
 
       if (!response.ok || !data.ok) {
+        if (
+          autoJoin &&
+          groupCode &&
+          !groupFull &&
+          (response.status === 409 || response.status === 410)
+        ) {
+          window.location.href = `/b/${encodeURIComponent(groupCode)}`;
+          return;
+        }
         setClaimError(data.error || "Unable to join as a guest. Please try again.");
         setClaimMode(null);
         setViewState("unclaimed");
@@ -225,7 +247,8 @@ export default function PlayClient({ linkId }: PlayClientProps) {
       trackClientActivity("share_link_claimed", {
         linkId,
         cardId: data.card?._id,
-        method: "guest",
+        method: autoJoin ? "group_guest" : "guest",
+        groupCode: groupCode || null,
       });
 
       if (data.card) {
@@ -243,7 +266,16 @@ export default function PlayClient({ linkId }: PlayClientProps) {
       setClaimMode(null);
       setViewState("unclaimed");
     }
-  };
+  }, [autoJoin, groupCode, groupFull, linkId]);
+
+  useEffect(() => {
+    if (!autoJoin) return;
+    if (autoGuestAttemptedRef.current) return;
+    if (viewState !== "unclaimed") return;
+    if (sessionStatus !== "unauthenticated") return;
+    autoGuestAttemptedRef.current = true;
+    handleContinueAsGuest();
+  }, [autoJoin, viewState, sessionStatus, handleContinueAsGuest]);
 
   // Auto-claim when a signed-in user hits an unclaimed link.
   // If the signed-in user is actually the link's owner, the API responds with

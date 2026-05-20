@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LandingPageTracker from "@/components/LandingPageTracker";
+import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
   title: "Office Bingo Card Generator — Free Work Party Bingo | MyBingoCard",
@@ -194,7 +195,7 @@ export default function OfficePartyBingoPage() {
                 Make the office party one they&apos;ll talk about Monday
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Create your office bingo cards in under 2 minutes. Free — no sign-up required.
+                Create your office bingo cards in under 2 minutes. Free to start, then save or export when you are ready.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-amber-50 transition-all duration-300 shadow-xl">
@@ -206,6 +207,7 @@ export default function OfficePartyBingoPage() {
               </div>
             </div>
           </section>
+          <SeoSupportBlock slug="office-party-bingo" />
         </main>
 
         {/* Footer */}

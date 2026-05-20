@@ -7,6 +7,34 @@ import { getRequestActivityContext } from "@/lib/activity";
 import { PLANS } from "@/lib/stripe/config";
 import { notifySharedCardViewed } from "@/lib/discord";
 
+const PASSWORD_ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
+const PASSWORD_ATTEMPT_MAX = 10;
+const passwordAttemptHits = new Map<string, number[]>();
+
+function getClientIp(request: Request): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+function checkPasswordAttemptLimit(shareLink: string, request: Request): boolean {
+  const key = `${shareLink}:${getClientIp(request)}`;
+  const now = Date.now();
+  const cutoff = now - PASSWORD_ATTEMPT_WINDOW_MS;
+  const recent = (passwordAttemptHits.get(key) || []).filter((timestamp) => timestamp > cutoff);
+
+  if (recent.length >= PASSWORD_ATTEMPT_MAX) {
+    passwordAttemptHits.set(key, recent);
+    return false;
+  }
+
+  recent.push(now);
+  passwordAttemptHits.set(key, recent);
+  return true;
+}
+
 async function getOwnerFlags(db: any, userId: string) {
   try {
     const owner = await db.collection("users").findOne(
@@ -141,6 +169,13 @@ export async function POST(
     // If no password set, return the card directly
     if (!card.sharePassword) {
       return NextResponse.json({ card, ...flags });
+    }
+
+    if (!checkPasswordAttemptLimit(shareLink, request)) {
+      return NextResponse.json(
+        { error: "Too many password attempts. Please try again later." },
+        { status: 429 }
+      );
     }
 
     const valid = await bcrypt.compare(password, card.sharePassword);

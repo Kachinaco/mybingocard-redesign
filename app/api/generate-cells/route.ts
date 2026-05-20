@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "node:crypto";
 import { auth } from "@/auth";
-import { getUserByEmail, addFeatureUsed } from "@/lib/db/users";
-import { PLANS } from "@/lib/stripe/config";
+import { getUserByEmail, addFeatureUsed, type User } from "@/lib/db/users";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
-import { getTrialDaysLeft, isUserOnTrial } from "@/lib/subscription-status";
+import { getTrialDaysLeft, hasPremiumAccess, isUserOnTrial } from "@/lib/subscription-status";
 import clientPromise from "@/lib/mongodb";
 import { notifyFirstAiGeneration } from "@/lib/discord";
-
-const PROXY_URL = "http://127.0.0.1:3456/v1/chat/completions";
+import { generateBingoCells } from "@/lib/ai-generation";
 
 // Rate limiter: 50 generations per hour per IP
 const rateBuckets = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 50;
 const RATE_WINDOW_MS = 3_600_000;
+const configuredFreeDailyLimit = Number.parseInt(process.env.AI_FREE_DAILY_LIMIT || "5", 10);
+const FREE_DAILY_LIMIT = Number.isFinite(configuredFreeDailyLimit) && configuredFreeDailyLimit > 0 ? configuredFreeDailyLimit : 5;
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
@@ -38,164 +39,245 @@ function getIp(req: NextRequest): string {
   return req.headers.get("x-real-ip") || "unknown";
 }
 
-const TONE_MAP: Record<string, string> = {
-  funny: "Humorous and playful. Include witty observations, exaggerations, and things that would make people laugh.",
-  serious: "Straightforward and realistic. Items should be genuine, commonly expected occurrences.",
-  mix: "A mix of funny and serious. Some items humorous, some genuine and relatable.",
-};
+function getErrorSummary(err: unknown): string {
+  if (err instanceof Error) return err.message.replace(/\s+/g, " ").trim().substring(0, 500);
+  return String(err || "Unknown error").replace(/\s+/g, " ").trim().substring(0, 500);
+}
 
-function buildPrompt(theme: string, tone: string, cellCount: number, title?: string): string {
-  const toneDesc = TONE_MAP[tone] || `Tone: ${tone}`;
-  return `Generate exactly ${cellCount} unique bingo card items for the theme: "${theme}"
-${title ? `The card is titled "${title}".` : ""}
+function cleanPromptDetails(value: unknown): Record<string, string> | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
 
-Tone: ${toneDesc}
+  const entries = Object.entries(value as Record<string, unknown>)
+    .map(([key, detail]) => {
+      if (typeof detail !== "string") return null;
+      const cleaned = detail.replace(/\s+/g, " ").trim().substring(0, 500);
+      return cleaned ? [key, cleaned] as const : null;
+    })
+    .filter((entry): entry is readonly [string, string] => Boolean(entry));
 
-Rules:
-- Each item should be 2-6 words
-- All items must be unique and specific to the theme
-- Be creative, not generic
-- Items should be things that might happen, be observed, or relate to the theme
-- Return ONLY a JSON array of strings, no other text
+  return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
 
-Example format: ["Item one", "Item two", "Item three"]`;
+function isUnlimitedAiUser(user?: { planType?: string; customerType?: string; email?: string | null; subscriptionStatus?: string | null; trialEndsAt?: Date | string | null } | null) {
+  if (!user) return false;
+  if (hasPremiumAccess(user as any)) return true;
+  if (user.customerType === "admin") return true;
+  const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
+  return Boolean(adminEmail && user.email?.toLowerCase() === adminEmail);
+}
+
+function getAnonymousQuotaKey(req: NextRequest, ip: string): string {
+  const userAgent = req.headers.get("user-agent") || "";
+  const acceptLanguage = req.headers.get("accept-language") || "";
+  return createHash("sha256")
+    .update(`${ip}|${userAgent}|${acceptLanguage}`)
+    .digest("hex")
+    .slice(0, 32);
+}
+
+async function getRecentAiGenerationCount({
+  userId,
+  anonymousQuotaKey,
+}: {
+  userId?: string | null;
+  anonymousQuotaKey?: string | null;
+}): Promise<number> {
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  if (userId) {
+    return db.collection("activity_events").countDocuments({
+      event: "ai_cells_generated",
+      userId,
+      createdAt: { $gte: since },
+    });
+  }
+
+  if (anonymousQuotaKey) {
+    return db.collection("activity_events").countDocuments({
+      event: "ai_cells_generated",
+      userId: null,
+      "metadata.aiQuotaKey": anonymousQuotaKey,
+      createdAt: { $gte: since },
+    });
+  }
+
+  return 0;
+}
+
+async function getPriorUserAiGenerationCount(userId: string): Promise<number> {
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  return db.collection("activity_events").countDocuments({
+    event: "ai_cells_generated",
+    userId,
+  });
 }
 
 export async function POST(req: NextRequest) {
   try {
-    // Auth: premium only
     const session = await auth();
-    if (!session?.user?.id || !session?.user?.email) {
-      return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+    const sessionUserId = session?.user?.id || null;
+    const sessionUserEmail = session?.user?.email || null;
+    const sessionUserName = session?.user?.name || null;
+
+    let user: User | null = null;
+    if (sessionUserEmail) {
+      user = await getUserByEmail(sessionUserEmail);
     }
 
-    const user = await getUserByEmail(session.user.email);
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    if (user.planType !== "PREMIUM") {
-      return NextResponse.json({ error: "Premium required" }, { status: 403 });
-    }
-
-    // Rate limit
     const ip = getIp(req);
+    const anonymousQuotaKey = sessionUserId ? null : getAnonymousQuotaKey(req, ip);
     if (isRateLimited(ip)) {
       return NextResponse.json({ error: "Rate limit exceeded. Try again later." }, { status: 429 });
     }
 
-    // Parse input
-    const { theme, tone, size, title, freeSpace } = await req.json();
-    if (!theme || typeof theme !== "string" || theme.trim().length === 0) {
-      return NextResponse.json({ error: "Theme is required" }, { status: 400 });
+    const { theme, tone, size, title, freeSpace, useCase, promptDetails } = await req.json();
+    const cleanedTheme = typeof theme === "string" ? theme.trim().substring(0, 500) : "";
+    const cleanedPromptDetails = cleanPromptDetails(promptDetails);
+    const promptDetailKeys = cleanedPromptDetails ? Object.keys(cleanedPromptDetails) : [];
+    const cleanedUseCase = typeof useCase === "string" ? useCase.trim().substring(0, 40) : undefined;
+
+    if (!cleanedTheme && promptDetailKeys.length === 0) {
+      return NextResponse.json({ error: "Theme or prompt details are required" }, { status: 400 });
     }
     if (![3, 4, 5].includes(size)) {
       return NextResponse.json({ error: "Size must be 3, 4, or 5" }, { status: 400 });
     }
 
-    const totalCells = size * size;
-    const cellCount = freeSpace ? totalCells - 1 : totalCells;
+    const unlimitedAi = isUnlimitedAiUser(user ? { ...user, email: sessionUserEmail } : null);
+    let freeGenerationsUsed = 0;
+    if (!unlimitedAi) {
+      freeGenerationsUsed = await getRecentAiGenerationCount({ userId: sessionUserId, anonymousQuotaKey });
+      if (freeGenerationsUsed >= FREE_DAILY_LIMIT) {
+        const ctx = getRequestActivityContext(req as any);
+        await trackActivity({
+          event: "ai_generate_quota_exceeded",
+          userId: sessionUserId,
+          email: sessionUserEmail,
+          metadata: {
+            limit: FREE_DAILY_LIMIT,
+            used: freeGenerationsUsed,
+            theme: cleanedTheme.substring(0, 100),
+            useCase: cleanedUseCase || "custom",
+            aiAccess: sessionUserId ? "free_limited" : "anonymous_limited",
+            ...(anonymousQuotaKey ? { aiQuotaKey: anonymousQuotaKey } : {}),
+          },
+          ...ctx,
+        }).catch(() => {});
 
-    // Call Claude via proxy
-    const proxyRes = await fetch(PROXY_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        messages: [{ role: "user", content: buildPrompt(theme.trim().substring(0, 500), tone || "mix", cellCount, title) }],
-        max_tokens: 1024,
-      }),
+        return NextResponse.json(
+          {
+            error: `Free AI limit reached. You get ${FREE_DAILY_LIMIT} AI generations every 24 hours.`,
+            quota: { limit: FREE_DAILY_LIMIT, used: freeGenerationsUsed, remaining: 0 },
+          },
+          { status: 429 }
+        );
+      }
+    }
+
+    const generationInput = {
+      theme: cleanedTheme || cleanedUseCase || "custom bingo card",
+      tone: tone || "mix",
+      size,
+      title,
+      freeSpace: Boolean(freeSpace),
+      useCase: cleanedUseCase,
+      promptDetails: cleanedPromptDetails,
+    };
+
+    const cells = await generateBingoCells(generationInput).catch(async (generationErr) => {
+      const ctx = getRequestActivityContext(req as any);
+      await trackActivity({
+        event: "ai_generate_failed",
+        userId: sessionUserId,
+        email: sessionUserEmail,
+        metadata: {
+          source: "server",
+          theme: cleanedTheme.substring(0, 100),
+          tone,
+          size,
+          useCase: cleanedUseCase || "custom",
+          promptDetailKeys,
+          aiAccess: sessionUserId ? "free_limited" : "anonymous_limited",
+          ...(anonymousQuotaKey ? { aiQuotaKey: anonymousQuotaKey } : {}),
+          error: getErrorSummary(generationErr),
+        },
+        ...ctx,
+      }).catch(() => {});
+      throw generationErr;
     });
 
-    if (!proxyRes.ok) {
-      console.error("Proxy error:", proxyRes.status, await proxyRes.text().catch(() => ""));
-      return NextResponse.json({ error: "Generation failed. Please try again." }, { status: 500 });
-    }
-
-    const proxyData = await proxyRes.json();
-    const responseText = proxyData.choices?.[0]?.message?.content || "";
-
-    // Parse JSON array from response
-    const jsonMatch = responseText.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) {
-      return NextResponse.json({ error: "Failed to generate cells. Try again." }, { status: 500 });
-    }
-
-    let items: string[];
-    try {
-      items = JSON.parse(jsonMatch[0]);
-    } catch {
-      return NextResponse.json({ error: "Failed to parse generated cells. Try again." }, { status: 500 });
-    }
-
-    // Ensure correct count and truncate
-    items = items.map(item => String(item).trim().substring(0, 50));
-    while (items.length < cellCount) items.push("");
-    items = items.slice(0, cellCount);
-
-    // Insert free space at center
-    let cells: string[];
-    if (freeSpace) {
-      const centerIdx = Math.floor(totalCells / 2);
-      cells = [...items.slice(0, centerIdx), "", ...items.slice(centerIdx)];
-    } else {
-      cells = items;
-    }
-
-    // Track activity + first-generation detection + feature usage
     try {
       const ctx = getRequestActivityContext(req as any);
-
-      // Compute trial metadata
+      const totalCells = size * size;
+      const cellCount = freeSpace ? totalCells - 1 : totalCells;
       const isTrialUser = isUserOnTrial(user);
       let trialDay: number | null = null;
-      const trialDaysLeft = getTrialDaysLeft(user.trialEndsAt);
+      const trialDaysLeft = getTrialDaysLeft(user?.trialEndsAt);
       if (isTrialUser && trialDaysLeft !== null) {
         trialDay = Math.max(1, 8 - trialDaysLeft);
       }
 
       await trackActivity({
         event: "ai_cells_generated",
-        userId: session.user.id,
-        email: session.user.email,
+        userId: sessionUserId,
+        email: sessionUserEmail,
         metadata: {
-          theme: theme.substring(0, 100),
+          theme: cleanedTheme.substring(0, 100),
           tone,
           size,
           cellCount,
+          useCase: cleanedUseCase || "custom",
+          promptDetailKeys,
+          provider: cells.provider,
+          model: cells.model,
+          aiAccess: unlimitedAi ? "unlimited" : sessionUserId ? "free_limited" : "anonymous_limited",
+          ...(unlimitedAi ? {} : { freeGenerationsUsedBefore: freeGenerationsUsed, freeDailyLimit: FREE_DAILY_LIMIT }),
+          ...(anonymousQuotaKey ? { aiQuotaKey: anonymousQuotaKey } : {}),
           isTrialUser,
           ...(trialDay !== null ? { trialDay } : {}),
         },
         ...ctx,
       });
 
-      // Check if this is the user's first AI generation
-      const client = await clientPromise;
-      const db = client.db("mybingocard");
-      const priorCount = await db.collection("activity_events").countDocuments({
-        event: "ai_cells_generated",
-        userId: session.user.id,
-      });
-      // priorCount === 1 means the event we just inserted is the only one
-      if (priorCount === 1) {
+      const priorCount = sessionUserId ? await getPriorUserAiGenerationCount(sessionUserId) : 0;
+      if (sessionUserId && sessionUserEmail && priorCount === 1) {
         await trackActivity({
           event: "first_ai_generation",
-          userId: session.user.id,
-          email: session.user.email,
-          metadata: { theme: theme.substring(0, 100), tone, size },
+          userId: sessionUserId,
+          email: sessionUserEmail,
+          metadata: {
+            theme: cleanedTheme.substring(0, 100),
+            tone,
+            size,
+            useCase: cleanedUseCase || "custom",
+            promptDetailKeys,
+            provider: cells.provider,
+            model: cells.model,
+            aiAccess: unlimitedAi ? "unlimited" : "free_limited",
+          },
           ...ctx,
         });
         notifyFirstAiGeneration(
-          user.name || session.user.name || "Unknown",
-          session.user.email,
-          theme.substring(0, 100)
+          user?.name || sessionUserName || "Unknown",
+          sessionUserEmail,
+          cleanedTheme.substring(0, 100) || cleanedUseCase || "Custom bingo card"
         ).catch(() => {});
       }
     } catch {}
 
-    addFeatureUsed(session.user.id, "ai_generate").catch(() => {});
+    if (sessionUserId) {
+      addFeatureUsed(sessionUserId, "ai_generate").catch(() => {});
+    }
 
-    return NextResponse.json({ cells });
+    return NextResponse.json({
+      cells: cells.cells,
+      quota: unlimitedAi
+        ? { limit: null, used: null, remaining: null }
+        : { limit: FREE_DAILY_LIMIT, used: freeGenerationsUsed + 1, remaining: Math.max(0, FREE_DAILY_LIMIT - freeGenerationsUsed - 1) },
+    });
   } catch (err: any) {
     console.error("Generate cells error:", err?.message || err);
     return NextResponse.json({ error: "Generation failed. Please try again." }, { status: 500 });

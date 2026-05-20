@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import LandingPageTracker from "@/components/LandingPageTracker";
+import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
   title: "Halloween Bingo Cards Printable — Free Halloween Bingo Generator | MyBingoCard",
@@ -139,6 +140,7 @@ export default function HalloweenBingoPage() {
               ))}
             </div>
           </div>
+          <SeoSupportBlock slug="halloween-bingo" />
         </main>
 
         <footer className="bg-white border-t border-slate-200 py-8 text-center text-slate-500 text-sm">

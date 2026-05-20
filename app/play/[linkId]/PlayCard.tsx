@@ -5,12 +5,24 @@ import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellConte
 import { useTextFit } from "@/lib/useTextFit";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { trackClientActivity } from "@/lib/activity-client";
+import {
+  checkWinByGrid,
+  formatClassicCellLabel,
+  getBingoGridShape,
+  getFreeSpaceIndexForGrid,
+  isBlankClassicCell,
+  normalizeBingoVariant,
+  type BingoVariant,
+} from "@/lib/classic-bingo";
 
 export interface PlayCardData {
   _id: string;
   title: string;
   description?: string;
   size: 3 | 4 | 5;
+  rows?: number;
+  columns?: number;
+  bingoVariant?: BingoVariant;
   cells: string[];
   freeSpace: boolean;
   style: {
@@ -37,7 +49,7 @@ function getStorageKey(linkId: string) {
 
 function loadLocalState(
   linkId: string,
-  size: number,
+  total: number,
 ): { marked: number[]; bingo: boolean } | null {
   try {
     const raw = localStorage.getItem(getStorageKey(linkId));
@@ -48,7 +60,6 @@ function loadLocalState(
 
     // Reject tampered or stale state. Every index must be an integer in
     // [0, size*size) — anything else gets discarded so we start from scratch.
-    const total = size * size;
     const sanitized: number[] = [];
     const seen = new Set<number>();
     for (const idx of parsed.marked) {
@@ -86,6 +97,15 @@ function clearLocalState(linkId: string) {
 }
 
 export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
+  const variant = normalizeBingoVariant(card.bingoVariant);
+  const shape = getBingoGridShape(card);
+  const freeSpaceIndex = getFreeSpaceIndexForGrid({
+    freeSpace: card.freeSpace,
+    rows: shape.rows,
+    columns: shape.columns,
+    bingoVariant: variant,
+  });
+  const totalPlayableCells = card.cells.filter((cell) => !isBlankClassicCell(cell, variant)).length;
   const cardContainerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const gameStartTime = useRef(Date.now());
@@ -121,7 +141,7 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
     cells: card.cells,
     gridSize: card.size,
     fontFamily: card.style.fontFamily || "sans-serif",
-    freeSpaceIndex: card.freeSpace ? Math.floor((card.size * card.size) / 2) : null,
+    freeSpaceIndex: freeSpaceIndex >= 0 ? freeSpaceIndex : null,
   });
 
   // Track fullscreen changes
@@ -134,40 +154,34 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
   // Restore persisted state once
   useEffect(() => {
     if (stateRestored) return;
-    const local = loadLocalState(linkId, card.size);
+    const local = loadLocalState(linkId, card.cells.length);
     if (local && local.marked.length > 0) {
       const restoredMarked = new Set<number>(local.marked);
-      if (card.freeSpace) {
-        restoredMarked.add(Math.floor((card.size * card.size) / 2));
+      if (freeSpaceIndex >= 0) {
+        restoredMarked.add(freeSpaceIndex);
       }
       setMarked(restoredMarked);
       setBingo(local.bingo);
-    } else if (card.freeSpace) {
-      setMarked(new Set([Math.floor((card.size * card.size) / 2)]));
+    } else if (freeSpaceIndex >= 0) {
+      setMarked(new Set([freeSpaceIndex]));
     }
     setStateRestored(true);
   }, [linkId, card, stateRestored]);
 
   const getFreeSpaceIndex = useCallback(() => {
-    if (!card.freeSpace) return -1;
-    return Math.floor((card.size * card.size) / 2);
-  }, [card]);
+    return freeSpaceIndex;
+  }, [freeSpaceIndex]);
 
-  const checkBingo = useCallback((markedSet: Set<number>, size: number): boolean => {
-    const grid = Array.from({ length: size }, (_, r) =>
-      Array.from({ length: size }, (_, c) => markedSet.has(r * size + c)),
+  const checkBingo = useCallback((markedSet: Set<number>): boolean => {
+    return checkWinByGrid(
+      Array.from(markedSet),
+      card.cells,
+      shape.rows,
+      shape.columns,
+      variant === "classic90" ? "one_line" : "standard",
+      variant,
     );
-    for (let r = 0; r < size; r++) {
-      if (grid[r]?.every(Boolean)) return true;
-    }
-    for (let c = 0; c < size; c++) {
-      if (grid.map((row) => row[c] ?? false).every(Boolean)) return true;
-    }
-    if (Array.from({ length: size }, (_, i) => grid[i]?.[i] ?? false).every(Boolean)) return true;
-    if (Array.from({ length: size }, (_, i) => grid[i]?.[size - 1 - i] ?? false).every(Boolean))
-      return true;
-    return false;
-  }, []);
+  }, [card.cells, shape.rows, shape.columns, variant]);
 
   const triggerHaptic = () => {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
@@ -178,6 +192,7 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
   const toggleCell = (index: number) => {
     const isFreeSpace = card.freeSpace && index === getFreeSpaceIndex();
     if (isFreeSpace) return;
+    if (isBlankClassicCell(card.cells[index] || "", variant)) return;
     triggerHaptic();
 
     setMarked((prev) => {
@@ -189,7 +204,7 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
         next.add(index);
         setUndoStack((s) => [...s, index + 1]);
       }
-      const hasBingo = checkBingo(next, card.size);
+      const hasBingo = checkBingo(next);
       // Use the ref instead of closed-over `bingo` to avoid double-firing
       // when React batches multiple updates in the same tick.
       if (hasBingo && !bingoRef.current) {
@@ -213,7 +228,7 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
           cardTitle: card.title,
           gridSize: card.size,
           markedCount: next.size,
-          totalCells: card.size * card.size,
+          totalCells: totalPlayableCells,
           timeToBingoSeconds: duration,
         });
         trackClientActivity("bingo_achieved", {
@@ -221,7 +236,7 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
           cardTitle: card.title,
           gridSize: card.size,
           markedCount: next.size,
-          totalCells: card.size * card.size,
+          totalCells: totalPlayableCells,
           timeToBingoSeconds: duration,
           context: "play_link",
           linkId,
@@ -236,7 +251,7 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
         cellIndex: index,
         action: next.has(index) ? "marked" : "unmarked",
         markedCount: next.size,
-        totalCells: card.size * card.size,
+        totalCells: totalPlayableCells,
         context: "play_link",
         linkId,
       });
@@ -257,7 +272,7 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
       } else {
         next.add(-lastAction - 1);
       }
-      const hasBingo = checkBingo(next, card.size);
+      const hasBingo = checkBingo(next);
       if (hasBingo && !bingoRef.current) {
         bingoRef.current = true;
         setBingo(true);
@@ -276,7 +291,7 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
   };
 
   const resetCard = () => {
-    const freeIdx = card.freeSpace ? Math.floor((card.size * card.size) / 2) : -1;
+    const freeIdx = freeSpaceIndex;
     setMarked(freeIdx >= 0 ? new Set([freeIdx]) : new Set());
     setUndoStack([]);
     bingoRef.current = false;
@@ -303,7 +318,7 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
 
   const freeSpaceIdx = getFreeSpaceIndex();
   const markedCount = marked.size;
-  const totalCells = card.size * card.size;
+  const totalCells = totalPlayableCells;
 
   return (
     <div
@@ -344,13 +359,21 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
           </div>
 
           {/* Grid */}
+          {variant === "classic75" && (
+            <div className="mb-2 grid gap-1.5 md:gap-2 text-center text-sm font-black text-indigo-700" style={{ gridTemplateColumns: `repeat(${shape.columns}, 1fr)` }}>
+              {"BINGO".split("").map((letter) => (
+                <div key={letter} className="rounded-lg bg-indigo-50 py-1">{letter}</div>
+              ))}
+            </div>
+          )}
           <div
             ref={gridRef}
             className="grid gap-1.5 md:gap-2 w-full"
-            style={{ gridTemplateColumns: `repeat(${card.size}, 1fr)` }}
+            style={{ gridTemplateColumns: `repeat(${shape.columns}, 1fr)` }}
           >
             {card.cells.map((cell, index) => {
               const isFreeSpace = card.freeSpace && index === freeSpaceIdx;
+              const isBlank90 = isBlankClassicCell(cell, variant);
               const isMarked = marked.has(index);
 
               return (
@@ -360,7 +383,9 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
                   className={`
                     aspect-square flex items-center justify-center text-center rounded-xl font-semibold transition-all duration-150 select-none touch-manipulation overflow-hidden
                     ${
-                      isFreeSpace
+                      isBlank90
+                        ? "bg-amber-50 border border-dashed border-amber-100 text-transparent cursor-default"
+                        : isFreeSpace
                         ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-indigo-200 shadow-md cursor-default"
                         : isMarked
                           ? "bg-gradient-to-br from-violet-500 to-indigo-500 text-white shadow-indigo-200 shadow-md ring-2 ring-indigo-300"
@@ -373,10 +398,12 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
                     fontFamily: card.style.fontFamily || "inherit",
                   }}
                   aria-label={
-                    isFreeSpace ? "Free space" : `${cell} - ${isMarked ? "marked" : "not marked"}`
+                    isBlank90 ? "Blank" : isFreeSpace ? "Free space" : `${formatClassicCellLabel(cell, variant)} - ${isMarked ? "marked" : "not marked"}`
                   }
                 >
-                  {isFreeSpace ? (
+                  {isBlank90 ? (
+                    <span className="sr-only">Blank</span>
+                  ) : isFreeSpace ? (
                     <span className="font-black text-xs">FREE</span>
                   ) : isMarked ? (
                     <span className="flex flex-col items-center gap-0.5">
@@ -396,7 +423,7 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
                               : "0.6em",
                           }}
                         >
-                          {cell}
+                          {formatClassicCellLabel(cell, variant)}
                         </span>
                       )}
                     </span>
@@ -423,7 +450,7 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
                           : undefined
                       }
                     >
-                      {cell}
+                      {formatClassicCellLabel(cell, variant)}
                     </span>
                   )}
                 </button>

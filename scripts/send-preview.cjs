@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const nodemailer = require('nodemailer');
+const nodemailer = require('./smtp-client.cjs');
 
 const envPath = '/var/www/mybingocard.com/.env.local';
 try {

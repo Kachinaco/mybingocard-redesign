@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Bingo Supplies — Daubers, Cards & Accessories | MyBingoCard",
-  description: "Shop the best bingo supplies — daubers, markers, card holders, and accessories for your next bingo game night.",
+  title: "Bingo Supplies - Daubers, Cards, Markers & Accessories",
+  description:
+    "Shop bingo supplies for game nights and events, including daubers, markers, card holders, accessories, and printable bingo card tools.",
   alternates: {
     canonical: "https://mybingocard.com/supplies",
   },

@@ -3,6 +3,7 @@ import Link from "next/link";
 import MobileNav from "@/components/MobileNav";
 import AdUnit from "@/components/AdUnit";
 import { EmailCaptureInline } from "@/components/EmailCapture";
+import { seoLandingPages, type SeoLandingPageData } from "@/lib/seo-landing-pages";
 
 export const metadata: Metadata = {
   title: "Free Bingo Card Generator for Printable & Online Bingo Games | MyBingoCard",
@@ -46,25 +47,32 @@ const faqItems = [
   },
 ];
 
-// Sample bingo card data for the visual demo
+const generatorFooterLinks = [
+  "bingo-card-maker",
+  "printable-bingo-cards",
+  "online-bingo-card-generator",
+  "ai-bingo-card-generator",
+  "word-bingo-generator",
+  "math-bingo-generator",
+]
+  .map((slug) => seoLandingPages[slug])
+  .filter((page): page is SeoLandingPageData => Boolean(page));
+
 const demoBingoItems = [
   "Free Drinks", "Dance Off", "Photo Booth", "Cake Time", "FREE",
   "First Kiss", "Funny Speech", "Crying Guest", "Dad Joke", "Late Arrival",
   "Champagne", "Bouquet", "First Dance", "Dessert", "Confetti",
   "Group Photo", "Live Music", "Toasts", "Slow Dance", "Fireworks",
-  "Happy Tears", "Best Man", "Ring Bearer", "Flower Girl", "DJ"
+  "Happy Tears", "Best Man", "Ring Bearer", "Flower Girl", "DJ",
 ];
 
 function BingoCardDemo() {
   return (
     <div className="relative animate-fade-in-up animation-delay-200">
-      {/* Decorative elements */}
       <div className="absolute -top-12 -left-12 w-48 h-48 bg-purple-500 rounded-full blur-3xl opacity-20 animate-pulse"></div>
       <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-indigo-500 rounded-full blur-3xl opacity-20 animate-pulse animation-delay-400"></div>
 
-      {/* Bingo Card */}
       <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl shadow-indigo-500/10 p-6 transform rotate-2 hover:rotate-0 transition-all duration-500 border border-white/50">
-        {/* Card Header */}
         <div className="text-center mb-6">
           <div className="flex justify-center gap-3 text-4xl font-black tracking-widest">
             <span className="text-transparent bg-clip-text bg-gradient-to-br from-violet-600 to-indigo-600">B</span>
@@ -76,16 +84,15 @@ function BingoCardDemo() {
           <p className="text-slate-400 text-xs uppercase tracking-widest font-semibold mt-2">Wedding Edition</p>
         </div>
 
-        {/* Bingo Grid */}
         <div className="grid grid-cols-5 gap-2">
           {demoBingoItems.map((item, i) => (
             <div
               key={i}
-              className={`bingo-cell aspect-square flex items-center justify-center p-2 rounded-xl text-center text-[10px] leading-tight font-semibold cursor-pointer shadow-sm
-                ${i === 12
+              className={`aspect-square flex items-center justify-center p-2 rounded-xl text-center text-[10px] leading-tight font-semibold cursor-pointer shadow-sm ${
+                i === 12
                   ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-indigo-200 ring-2 ring-indigo-100"
                   : "bg-white text-slate-600 border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/50"
-                }`}
+              }`}
             >
               {item}
             </div>
@@ -121,35 +128,29 @@ function StatCard({ number, label }: { number: string; label: string }) {
   );
 }
 
-function TestimonialCard({ quote, author, role, avatar }: { quote: string; author: string; role: string; avatar: string }) {
+function WorkflowCard({ title, audience, description, steps }: { title: string; audience: string; description: string; steps: string[] }) {
   return (
     <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-      <div className="flex gap-1 mb-6">
-        {[...Array(5)].map((_, i) => (
-          <svg key={i} className="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20">
-            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-          </svg>
+      <div className="mb-5">
+        <div className="text-xs font-bold uppercase tracking-wide text-indigo-600 mb-2">{audience}</div>
+        <h3 className="text-xl font-bold text-slate-900">{title}</h3>
+      </div>
+      <p className="text-slate-600 mb-6 leading-relaxed flex-grow">{description}</p>
+      <ul className="space-y-3 pt-6 border-t border-slate-50">
+        {steps.map((step) => (
+          <li key={step} className="flex gap-3 text-sm text-slate-600">
+            <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-indigo-500"></span>
+            <span>{step}</span>
+          </li>
         ))}
-      </div>
-      <blockquote className="text-slate-700 mb-6 leading-relaxed flex-grow">
-        &ldquo;{quote}&rdquo;
-      </blockquote>
-      <div className="flex items-center gap-4 pt-6 border-t border-slate-50">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-100 to-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-sm">
-          {avatar}
-        </div>
-        <div>
-          <div className="font-bold text-slate-900 text-sm">{author}</div>
-          <div className="text-xs text-slate-500">{role}</div>
-        </div>
-      </div>
+      </ul>
     </div>
   );
 }
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
       {/* Navbar */}
       <MobileNav />
 
@@ -175,11 +176,11 @@ export default function Home() {
                 </div>
                 
                 <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-6 leading-[1.1]">
-                  Create <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Printable Bingo Cards</span> Online
+                  Create <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Custom Bingo Cards</span> - Print, Share, or Play Online
                 </h1>
                 
                 <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                  Make custom bingo cards for classrooms, baby showers, weddings, holidays, team building, and parties. Add your own words or images, print PDFs, share links, or play online.
+                  Make unique bingo cards for classrooms, baby showers, weddings, parties, team events, and social challenges. Add words or images, shuffle cards, export PDFs, or send a play link.
                 </p>
 
                 {/* Primary CTA - prominent above the fold */}
@@ -227,10 +228,10 @@ export default function Home() {
         <section className="py-12 border-y border-slate-200 bg-slate-50/50">
           <div className="container mx-auto px-6 lg:px-8">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-12">
-              <StatCard number="50K+" label="Active Users" />
-              <StatCard number="1M+" label="Cards Generated" />
-              <StatCard number="30+" label="Premium Templates" />
-              <StatCard number="4.9/5" label="Customer Rating" />
+              <StatCard number="3" label="Free Cards" />
+              <StatCard number="3x3-5x5" label="Grid Sizes" />
+              <StatCard number="PDF" label="Print Exports" />
+              <StatCard number="Links" label="Online Play" />
             </div>
           </div>
         </section>
@@ -264,19 +265,19 @@ export default function Home() {
               <FeatureCard
                 icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>}
                 title="Theme Library"
-                description="Choose from hundreds of professionally designed templates for any occasion or holiday."
+                description="Choose from starter and premium templates for weddings, baby showers, classrooms, holidays, office events, and parties."
                 delay="animation-delay-400"
               />
               <FeatureCard
                 icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>}
-                title="Instant PDF Export"
-                description="Get high-quality, print-ready PDFs. Support for multiple cards per page to save paper."
+                title="Print and Batch PDFs"
+                description="Print small games from your browser, or use Premium and event packs for HD exports and larger PDF batches."
                 delay=""
               />
               <FeatureCard
                 icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>}
                 title="Virtual Play"
-                description="Host games remotely! Share a link and players can mark their cards right on their phones."
+                description="Host games remotely or in the room. Players join from a browser link on their phones, no app required."
                 delay="animation-delay-200"
               />
               <FeatureCard
@@ -335,57 +336,57 @@ export default function Home() {
           />
         </section>
 
-        {/* Testimonials Section */}
+        {/* Workflow Examples Section */}
         <section className="py-24 lg:py-32 bg-white">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <div className="inline-block px-4 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold uppercase tracking-wide mb-6">
-                Trusted by thousands
+                Common workflows
               </div>
               <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-6">
-                Loved by <span className="text-indigo-600">teachers, planners &amp; parents</span>
+                Built for <span className="text-indigo-600">real bingo jobs</span>
               </h2>
               <p className="text-lg text-slate-600">
-                See what our community has to say about MyBingoCard.
+                Start from the setup closest to your event, then print cards, share links, or host online.
               </p>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              <TestimonialCard
-                quote="I used MyBingoCard for my daughter's baby shower and it was a huge hit. I created 30 unique cards in about 5 minutes. The guests loved it and kept asking where I got them!"
-                author="Sarah M."
-                role="Event Planner & Mom of 2"
-                avatar="SM"
+              <WorkflowCard
+                title="Vocabulary review"
+                audience="Teacher"
+                description="Turn a unit word list into a classroom review game students can play on paper or devices."
+                steps={["Paste vocabulary terms", "Choose 4x4 or 5x5", "Print or share a class link"]}
               />
-              <TestimonialCard
-                quote="As a 3rd grade teacher, I use bingo games weekly for vocabulary review. This tool saves me hours every week compared to making cards by hand. The kids get so excited!"
-                author="David K."
-                role="Elementary School Teacher"
-                avatar="DK"
+              <WorkflowCard
+                title="Gift-opening bingo"
+                audience="Baby shower host"
+                description="Use common registry gifts, shuffle unique cards, and keep guests involved during present opening."
+                steps={["Start from a gift list", "Create unique cards", "Print table-ready PDFs"]}
               />
-              <TestimonialCard
-                quote="We use MyBingoCard for our company team-building events. The virtual play feature is perfect for our remote team. It's become a Friday tradition everyone looks forward to."
-                author="Rachel T."
-                role="HR Manager, Tech Startup"
-                avatar="RT"
+              <WorkflowCard
+                title="Remote team game"
+                audience="HR team"
+                description="Run meeting bingo, onboarding bingo, or an icebreaker without asking players to install an app."
+                steps={["Share the browser link", "Show a join QR code", "Verify winners in the host view"]}
               />
-              <TestimonialCard
-                quote="I planned my best friend's bridal shower using the wedding templates. The quality of the PDF exports was amazing - they looked professionally printed!"
-                author="Jessica L."
-                role="Maid of Honor"
-                avatar="JL"
+              <WorkflowCard
+                title="Wedding reception game"
+                audience="Wedding planner"
+                description="Create reception-safe squares for speeches, photos, dancing, dessert, and guest moments."
+                steps={["Use a reception template", "Add couple-specific details", "Print cards or use phone play"]}
               />
-              <TestimonialCard
-                quote="I run a senior center and our residents love bingo. Being able to customize cards with larger fonts and high-contrast colors has been a game changer for accessibility."
-                author="Tom R."
-                role="Senior Activities Coordinator"
-                avatar="TR"
+              <WorkflowCard
+                title="Activity-center bingo"
+                audience="Program coordinator"
+                description="Prepare repeatable cards for senior centers, community rooms, libraries, and church events."
+                steps={["Reuse saved card themes", "Adjust grid size", "Export called lists after games"]}
               />
-              <TestimonialCard
-                quote="Ran a holiday bingo night for our neighborhood block party. Over 40 people played using the share link on their phones. Zero setup, zero mess. Will definitely use again!"
-                author="Maria G."
-                role="Community Organizer"
-                avatar="MG"
+              <WorkflowCard
+                title="Holiday party bingo"
+                audience="Party host"
+                description="Make seasonal cards for family gatherings, office parties, classrooms, or neighborhood events."
+                steps={["Pick a holiday list", "Add party-specific squares", "Print or share with guests"]}
               />
             </div>
           </div>
@@ -443,7 +444,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 pt-16 pb-12">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
+          <div className="grid md:grid-cols-5 gap-10 mb-12">
             <div className="col-span-1 md:col-span-2">
               <Link href="/" className="flex items-center gap-2 mb-6">
                 <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -464,6 +465,18 @@ export default function Home() {
                 <li><Link href="/templates" className="text-slate-500 hover:text-indigo-600 transition-colors">Templates</Link></li>
                 <li><Link href="/pricing" className="text-slate-500 hover:text-indigo-600 transition-colors">Pricing</Link></li>
                 <li><Link href="/features" className="text-slate-500 hover:text-indigo-600 transition-colors">Features</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold text-slate-900 mb-6">Generators</h4>
+              <ul className="space-y-4">
+                {generatorFooterLinks.map((page) => (
+                  <li key={page.slug}>
+                    <Link href={`/${page.slug}`} className="text-slate-500 hover:text-indigo-600 transition-colors">
+                      {page.eyebrow}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
             <div>

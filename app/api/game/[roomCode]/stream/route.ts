@@ -44,6 +44,9 @@ export async function GET(
             lastHash = hash;
             send({
               status: room.status,
+              rows: room.rows,
+              columns: room.columns,
+              bingoVariant: room.bingoVariant || "custom",
               calledItems: room.calledItems,
               players: room.players.map(p => ({
                 playerId: p.playerId,
@@ -58,6 +61,7 @@ export async function GET(
               winners: (room.winners ?? []).map(w => ({
                 playerId: w.playerId,
                 playerName: w.playerName,
+                verificationCode: w.verificationCode,
               })),
             });
           }

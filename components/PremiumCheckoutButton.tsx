@@ -4,19 +4,19 @@ import { useState } from "react";
 import { redirectToCheckout } from "@/lib/upgrade";
 import { trackClientActivity } from "@/lib/activity-client";
 
-interface StartTrialButtonProps {
+interface PremiumCheckoutButtonProps {
   className?: string;
   successPath?: string;
   source: string;
   label?: string;
 }
 
-export default function StartTrialButton({
+export default function PremiumCheckoutButton({
   className,
-  successPath = "/create?trial=started",
+  successPath,
   source,
-  label = "Start Trial",
-}: StartTrialButtonProps) {
+  label = "Upgrade",
+}: PremiumCheckoutButtonProps) {
   const [loading, setLoading] = useState(false);
 
   const handleClick = async () => {
@@ -24,14 +24,13 @@ export default function StartTrialButton({
 
     try {
       trackClientActivity("plan_selected", {
-        plan: "trial",
-        price: 0,
+        plan: "premium",
+        price: 4.99,
         source,
       });
 
       await redirectToCheckout({
-        purchaseType: "trial",
-        label: "7-day free trial — then $4.99/mo. Cancel anytime.",
+        label: "Premium — $4.99/mo · Cancel anytime",
         successPath,
       });
     } finally {

@@ -7,7 +7,7 @@ export interface Subscription {
   _id: ObjectId;
   userId: ObjectId;
   plan: SubscriptionPlan;
-  status: "active" | "canceled" | "past_due";
+  status: "active" | "trialing" | "canceled" | "past_due";
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
   stripePriceId?: string;
@@ -51,6 +51,10 @@ export const PLAN_LIMITS = {
     canRemoveWatermark: true,
   },
 };
+
+export function isSubscriptionEntitled(subscription: Pick<Subscription, "status">): boolean {
+  return ["active", "trialing", "past_due"].includes(subscription.status);
+}
 
 export async function createSubscription(data: {
   userId: string;
@@ -173,7 +177,7 @@ export async function cancelSubscription(userId: string, cancelAtPeriodEnd: bool
 export async function checkUserLimit(userId: string, limitType: keyof Subscription["limits"]): Promise<boolean> {
   const subscription = await getSubscriptionByUserId(userId);
 
-  if (!subscription) {
+  if (!subscription || !isSubscriptionEntitled(subscription)) {
     return false;
   }
 
@@ -208,7 +212,7 @@ export async function getUserCardCount(userId: string): Promise<number> {
 export async function canCreateCard(userId: string): Promise<boolean> {
   const subscription = await getSubscriptionByUserId(userId);
 
-  if (subscription) {
+  if (subscription && isSubscriptionEntitled(subscription)) {
     const maxCards = subscription.limits.maxCards;
     if (maxCards === -1) return true;
     const currentCount = await getUserCardCount(userId);
@@ -246,7 +250,7 @@ export async function getAllActiveSubscriptions(): Promise<Subscription[]> {
 
   const subscriptions = await db
     .collection<Subscription>("subscriptions")
-    .find({ status: "active" })
+    .find({ status: { $in: ["active", "trialing", "past_due"] } })
     .toArray();
 
   return subscriptions;

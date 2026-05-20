@@ -122,7 +122,13 @@ export async function POST(
         const room = await getGameRoom(roomCode);
         const winningPlayer = room?.players.find(p => p.playerId === playerId);
         const winPattern = winningPlayer && room
-          ? detectWinPattern(winningPlayer.marked, room.size)
+          ? detectWinPattern(
+              winningPlayer.marked,
+              winningPlayer.cells,
+              room.rows || room.size,
+              room.columns || room.size,
+              room.bingoVariant || "custom"
+            )
           : null;
         trackActivity({
           event: "game_bingo_claimed",
@@ -206,10 +212,17 @@ export async function POST(
         hasBingo: player.hasBingo,
         calledItems: room.calledItems,
         status: room.status,
+        rows: room.rows,
+        columns: room.columns,
+        bingoVariant: room.bingoVariant || "custom",
         winnerId: room.winnerId,
         winnerName: room.winnerName,
         settings: room.settings ?? DEFAULT_SETTINGS,
-        winners: (room.winners ?? []).map(w => ({ playerId: w.playerId, playerName: w.playerName })),
+        winners: (room.winners ?? []).map(w => ({
+          playerId: w.playerId,
+          playerName: w.playerName,
+          verificationCode: w.verificationCode,
+        })),
         players: room.players.map(p => ({
           playerId: p.playerId,
           playerName: p.playerName,

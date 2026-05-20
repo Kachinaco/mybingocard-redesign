@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const nodemailer = require('nodemailer');
+const nodemailer = require('./smtp-client.cjs');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');

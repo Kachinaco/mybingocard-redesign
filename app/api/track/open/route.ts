@@ -92,6 +92,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const email = searchParams.get("e");
   const campaign = searchParams.get("c");
+  const emailId = searchParams.get("mid");
 
   if (email && campaign) {
     try {
@@ -146,6 +147,34 @@ export async function GET(req: NextRequest) {
         update,
         { upsert: true }
       );
+
+      if (emailId) {
+        await db.collection("email_messages").updateOne(
+          { emailId },
+          {
+            $set: {
+              email: decodedEmail,
+              campaignId: campaign,
+              status: humanLikely ? "opened" : "scanner_opened",
+              lastOpenedAt: new Date(),
+              updatedAt: new Date(),
+              lastOpenIp: ip || null,
+              lastOpenUserAgent: ua || null,
+              lastOpenWasBot: isBot,
+            },
+            $inc: { openCount: 1, ...(humanLikely ? { humanOpenCount: 1 } : { botOpenCount: 1 }) },
+            $setOnInsert: {
+              emailId,
+              createdAt: new Date(),
+            },
+            $min: {
+              firstOpenedAt: new Date(),
+              ...(humanLikely ? { firstHumanOpenAt: new Date() } : {}),
+            },
+          },
+          { upsert: true }
+        );
+      }
     } catch {
       // Don't block pixel response on DB errors
     }

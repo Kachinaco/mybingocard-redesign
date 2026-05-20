@@ -3,6 +3,7 @@
 import { SessionProvider, useSession } from "next-auth/react";
 import { useEffect } from "react";
 import ImpersonationBanner from "@/components/ImpersonationBanner";
+import AnalyticsIdentityBridge from "@/components/AnalyticsIdentityBridge";
 
 function LocalStorageGuard() {
   const { data: session, status } = useSession();
@@ -34,6 +35,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <LocalStorageGuard />
+      <AnalyticsIdentityBridge />
       <ImpersonationBanner />
       {children}
     </SessionProvider>

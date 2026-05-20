@@ -24,14 +24,14 @@ const ALLOWED_MIME_TYPES = [
 ];
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const MAX_UPLOADS_FREE = 0; // Free users can't upload (clip-art only)
+const MAX_UPLOADS_FREE = 25;
 const MAX_UPLOADS_PREMIUM = 500;
 
 export function getUploadLimits(isPremium: boolean) {
   return {
     maxFileSize: MAX_FILE_SIZE,
     maxUploads: isPremium ? MAX_UPLOADS_PREMIUM : MAX_UPLOADS_FREE,
-    canUpload: isPremium,
+    canUpload: true,
   };
 }
 

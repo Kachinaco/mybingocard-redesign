@@ -82,7 +82,7 @@ export default function HowToMakeCustomBingoCards() {
         <ul>
           <li><strong>Colors</strong> — Match your event&apos;s color palette</li>
           <li><strong>Fonts</strong> — Choose from elegant to playful typography</li>
-          <li><strong>Card size</strong> — Standard 5x5, compact 3x3, or large 7x7</li>
+          <li><strong>Card size</strong> — Compact 3x3, flexible 4x4, or standard 5x5</li>
           <li><strong>Free space</strong> — Customize the center square text or image</li>
         </ul>
 
@@ -91,7 +91,7 @@ export default function HowToMakeCustomBingoCards() {
           This is the magic of digital bingo card makers. When you hit &quot;generate,&quot; each card is automatically shuffled so every guest receives a unique layout. This means no two players have the same card, which prevents simultaneous winners and keeps the game competitive.
         </p>
         <p>
-          With MyBingoCard, you can generate unlimited unique cards from a single word list.
+          With MyBingoCard, you can start free with a few cards, then upgrade or buy a batch pack when you need more unique cards from a single word list.
         </p>
 
         <h2>Step 5: Print or Share Digitally</h2>
@@ -113,7 +113,7 @@ export default function HowToMakeCustomBingoCards() {
 
         <h2>Start Creating Your Bingo Cards Now</h2>
         <p>
-          Ready to make your own custom bingo cards? Head to our <Link href="/create">bingo card creator</Link>, build your card in under 5 minutes, and start free. Upgrade only if you want Premium features like AI generation, image cards, and HD export.
+          Ready to make your own custom bingo cards? Head to our <Link href="/create">bingo card creator</Link>, build your card in under 5 minutes, and start free with text or image cards. Upgrade only if you want Premium features like AI generation, HD export, and larger batches.
         </p>
       </BlogLayout>
     </>

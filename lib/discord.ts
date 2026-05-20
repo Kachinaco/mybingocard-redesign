@@ -1,14 +1,27 @@
 import { getSignupSourceLabel, type AttributionData } from "./attribution";
 
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
+type DiscordNotificationChannel = "signups" | "visitors" | "events" | "errors";
 
-export async function sendDiscordNotification(content: string, embeds?: any[]) {
-  if (!WEBHOOK_URL) {
+function webhookUrlFor(channel: DiscordNotificationChannel = "events") {
+  if (channel === "signups") return process.env.MYBINGOCARD_SIGNUPS_WEBHOOK_URL || WEBHOOK_URL;
+  if (channel === "visitors") return process.env.MYBINGOCARD_VISITORS_WEBHOOK_URL || WEBHOOK_URL;
+  if (channel === "errors") return process.env.MYBINGOCARD_ERRORS_WEBHOOK_URL || process.env.MYBINGOCARD_EVENTS_WEBHOOK_URL || WEBHOOK_URL;
+  return process.env.MYBINGOCARD_EVENTS_WEBHOOK_URL || WEBHOOK_URL;
+}
+
+export async function sendDiscordNotification(
+  content: string,
+  embeds?: any[],
+  channel: DiscordNotificationChannel = "events"
+) {
+  const webhookUrl = webhookUrlFor(channel);
+  if (!webhookUrl) {
     console.warn("Discord notification skipped: DISCORD_WEBHOOK_URL not set");
     return;
   }
   try {
-    const res = await fetch(WEBHOOK_URL, {
+    const res = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -33,6 +46,11 @@ function formatSessionId(sessionId: string) {
   return sessionId ? `\`${sessionId}\`` : "Unknown";
 }
 
+function truncateDiscordField(value: string | null | undefined, max = 1000) {
+  const text = value || "Unknown";
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
 function getCheckoutTypeLabel(checkoutType: "subscription" | "one_time") {
   return checkoutType === "subscription" ? "Subscription" : "One-Time";
 }
@@ -41,7 +59,8 @@ async function sendStripeEventEmbed(
   title: string,
   description: string,
   color: number,
-  fields: Array<{ name: string; value: string; inline?: boolean }>
+  fields: Array<{ name: string; value: string; inline?: boolean }>,
+  channel: DiscordNotificationChannel = "events"
 ) {
   await sendDiscordNotification("", [{
     title,
@@ -50,7 +69,7 @@ async function sendStripeEventEmbed(
     fields,
     footer: { text: "MyBingoCard • Stripe" },
     timestamp: new Date().toISOString(),
-  }]);
+  }], channel);
 }
 
 export async function notifySignup(
@@ -70,7 +89,7 @@ export async function notifySignup(
       ...(attribution?.referrer ? [{ name: "Referrer", value: attribution.referrer, inline: false }] : []),
     ],
     timestamp: new Date().toISOString(),
-  }]);
+  }], "signups");
 }
 
 export async function notifySupportEmail(from: string, subject: string, preview: string) {
@@ -124,7 +143,7 @@ export async function notifyFirstCard(name: string, email: string, cardTitle: st
     ],
     footer: { text: "MyBingoCard • Milestone" },
     timestamp: new Date().toISOString(),
-  }]);
+  }], "signups");
 }
 
 export async function notifySubscription(name: string, email: string, planType: string, event: "activated" | "canceled" | "payment_failed") {
@@ -144,7 +163,7 @@ export async function notifySubscription(name: string, email: string, planType: 
       { name: "Plan", value: planType, inline: true },
     ],
     timestamp: new Date().toISOString(),
-  }]);
+  }], event === "activated" ? "signups" : "events");
 }
 
 export async function notifyMagicLink(email: string) {
@@ -213,7 +232,8 @@ export async function notifyCheckoutActivated(
       { name: "Amount", value: formatMoney(amount, currency), inline: true },
       { name: "Status", value: "Paid / Activated", inline: true },
       { name: "Session ID", value: formatSessionId(sessionId), inline: false },
-    ]
+    ],
+    "signups"
   );
 }
 
@@ -266,20 +286,29 @@ export async function notifyRenewalFailed(
   product: string,
   amount: number | null | undefined,
   currency: string | null | undefined,
-  invoiceId: string
+  invoiceId: string,
+  attemptCount?: number | null,
+  nextPaymentAttempt?: Date | null
 ) {
+  const fields = [
+    { name: "User", value: name || "Unknown", inline: true },
+    { name: "Email", value: email, inline: true },
+    { name: "Product", value: product, inline: true },
+    { name: "Amount", value: formatMoney(amount, currency), inline: true },
+    { name: "Status", value: "Payment failed", inline: true },
+    ...(attemptCount ? [{ name: "Attempt", value: String(attemptCount), inline: true }] : []),
+    ...(nextPaymentAttempt
+      ? [{ name: "Next Retry", value: nextPaymentAttempt.toISOString().split("T")[0] ?? nextPaymentAttempt.toISOString(), inline: true }]
+      : []),
+    { name: "Access", value: "Premium remains active while Stripe retries.", inline: false },
+    { name: "Invoice ID", value: `\`${invoiceId}\``, inline: false },
+  ];
+
   await sendStripeEventEmbed(
     "⚠️ Stripe Renewal Failed",
     "A recurring Stripe invoice payment failed.",
     0xef4444,
-    [
-      { name: "User", value: name || "Unknown", inline: true },
-      { name: "Email", value: email, inline: true },
-      { name: "Product", value: product, inline: true },
-      { name: "Amount", value: formatMoney(amount, currency), inline: true },
-      { name: "Status", value: "Payment failed", inline: true },
-      { name: "Invoice ID", value: `\`${invoiceId}\``, inline: false },
-    ]
+    fields
   );
 }
 
@@ -453,7 +482,8 @@ export async function notifyCheckoutCompleted(
       { name: "Email", value: email || "Unknown", inline: true },
       { name: "Type", value: mode === "subscription" ? "Subscription" : "One-Time", inline: true },
       { name: "Amount", value: formatMoney(amount, currency), inline: true },
-    ]
+    ],
+    "signups"
   );
 }
 
@@ -501,6 +531,64 @@ export async function notifyBatchSelected(
   }]);
 }
 
+export async function notifyExportButtonClicked(
+  email: string | null,
+  options: {
+    source: string;
+    exportType: string;
+    cardTitle?: string | null;
+    planType?: string | null;
+    batchCount?: number | null;
+    isGuest?: boolean;
+  }
+) {
+  await sendDiscordNotification("", [{
+    title: "📥 Export Button Clicked",
+    color: 0x14b8a6,
+    fields: [
+      { name: "User", value: email || "Anonymous", inline: true },
+      { name: "Source", value: options.source || "unknown", inline: true },
+      { name: "Export", value: options.exportType || "unknown", inline: true },
+      { name: "Plan", value: options.planType || "GUEST", inline: true },
+      { name: "Batch Size", value: options.batchCount ? `${options.batchCount} cards` : "None", inline: true },
+      { name: "Guest?", value: options.isGuest ? "Yes" : "No", inline: true },
+      { name: "Card", value: options.cardTitle || "Untitled", inline: false },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyBatchButtonClicked(
+  email: string | null,
+  options: {
+    action: string;
+    source: string;
+    batchCount?: number | null;
+    price?: string | null;
+    planType?: string | null;
+    cardsPerPage?: number | null;
+    grayscale?: boolean;
+    isGuest?: boolean;
+  }
+) {
+  await sendDiscordNotification("", [{
+    title: "📦 Batch Button Clicked",
+    color: 0xf59e0b,
+    fields: [
+      { name: "User", value: email || "Anonymous", inline: true },
+      { name: "Action", value: options.action || "unknown", inline: true },
+      { name: "Source", value: options.source || "unknown", inline: true },
+      { name: "Batch Size", value: options.batchCount ? `${options.batchCount} cards` : "Unknown", inline: true },
+      { name: "Price", value: options.price || "Unknown", inline: true },
+      { name: "Plan", value: options.planType || "GUEST", inline: true },
+      ...(options.cardsPerPage ? [{ name: "PDF Layout", value: `${options.cardsPerPage} per page`, inline: true }] : []),
+      ...(typeof options.grayscale === "boolean" ? [{ name: "Grayscale", value: options.grayscale ? "Yes" : "No", inline: true }] : []),
+      { name: "Guest?", value: options.isGuest ? "Yes" : "No", inline: true },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
 export async function notifyTrialStarted(
   name: string,
   email: string,
@@ -515,7 +603,7 @@ export async function notifyTrialStarted(
       { name: "Trial Ends", value: trialEndsAt ? trialEndsAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Unknown", inline: true },
     ],
     timestamp: new Date().toISOString(),
-  }]);
+  }], "signups");
 }
 
 export async function notifyTrialEndingSoon(
@@ -555,6 +643,35 @@ export async function notifyCardExported(
       { name: "Email", value: email, inline: true },
       { name: "Format", value: format.toUpperCase(), inline: true },
       { name: "Card", value: cardTitle || "Untitled", inline: false },
+    ],
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
+export async function notifyBatchPdfExported(
+  name: string,
+  email: string,
+  options: {
+    cardCount: number;
+    cardsPerPage: number;
+    grayscale: boolean;
+    showCutLines: boolean;
+    planType: string;
+    firstCardTitle?: string | null;
+  }
+) {
+  await sendDiscordNotification("", [{
+    title: "📄 Batch PDF Exported",
+    color: 0xdc2626,
+    fields: [
+      { name: "User", value: name || "Unknown", inline: true },
+      { name: "Email", value: email, inline: true },
+      { name: "Plan", value: options.planType || "Unknown", inline: true },
+      { name: "Cards", value: String(options.cardCount), inline: true },
+      { name: "Layout", value: `${options.cardsPerPage} per page`, inline: true },
+      { name: "Grayscale", value: options.grayscale ? "Yes" : "No", inline: true },
+      { name: "Cut Lines", value: options.showCutLines ? "Yes" : "No", inline: true },
+      { name: "First Card", value: options.firstCardTitle || "Untitled", inline: false },
     ],
     timestamp: new Date().toISOString(),
   }]);
@@ -628,4 +745,119 @@ export async function notifyUpgradeDismissed(
     fields,
     timestamp: new Date().toISOString(),
   }]);
+}
+
+export async function notifyClientErrorSpike(options: {
+  fingerprint: string;
+  type: string;
+  message: string;
+  pageUrl?: string | null;
+  source?: string | null;
+  buildId?: string | null;
+  recentCount: number;
+  recentSessions: number;
+  totalCount: number;
+  severity: "low" | "medium" | "high";
+  breadcrumbs?: Array<{ type?: string; message?: string; timestamp?: string }>;
+}) {
+  const adminUrl = `https://mybingocard.com/admin/errors?fingerprint=${encodeURIComponent(options.fingerprint)}`;
+  const breadcrumbText = (options.breadcrumbs || [])
+    .slice(-5)
+    .map((crumb) => `${crumb.timestamp || ""} ${crumb.type || "event"}:${crumb.message || ""}`.trim())
+    .filter(Boolean)
+    .join("\n");
+
+  await sendDiscordNotification("", [{
+    title: options.severity === "high" ? "MyBingoCard High-Impact Error" : "MyBingoCard Error Spike",
+    color: options.severity === "high" ? 0xef4444 : 0xf59e0b,
+    fields: [
+      { name: "Fingerprint", value: `\`${options.fingerprint}\``, inline: false },
+      { name: "Type", value: truncateDiscordField(options.type, 256), inline: true },
+      { name: "Severity", value: options.severity.toUpperCase(), inline: true },
+      { name: "Build", value: truncateDiscordField(options.buildId || "unknown", 256), inline: true },
+      { name: "Recent", value: `${options.recentCount} events / ${options.recentSessions} sessions`, inline: true },
+      { name: "Total", value: String(options.totalCount), inline: true },
+      { name: "Page", value: truncateDiscordField(options.pageUrl, 500), inline: false },
+      { name: "Message", value: truncateDiscordField(options.message), inline: false },
+      ...(options.source ? [{ name: "Source", value: truncateDiscordField(options.source, 500), inline: false }] : []),
+      ...(breadcrumbText ? [{ name: "Breadcrumbs", value: truncateDiscordField(breadcrumbText), inline: false }] : []),
+      { name: "Admin", value: adminUrl, inline: false },
+    ],
+    footer: { text: "MyBingoCard • Error Monitoring" },
+    timestamp: new Date().toISOString(),
+  }], "errors");
+}
+
+export async function notifyClientErrorCaptured(options: {
+  fingerprint: string;
+  type: string;
+  message: string;
+  pageUrl?: string | null;
+  source?: string | null;
+  buildId?: string | null;
+  sessionId?: string | null;
+  anonymousId?: string | null;
+  severity: "low" | "medium" | "high";
+  breadcrumbs?: Array<{ type?: string; message?: string; timestamp?: string }>;
+}) {
+  const adminUrl = `https://mybingocard.com/admin/errors?fingerprint=${encodeURIComponent(options.fingerprint)}`;
+  const breadcrumbText = (options.breadcrumbs || [])
+    .slice(-4)
+    .map((crumb) => `${crumb.type || "event"}:${crumb.message || ""}`.trim())
+    .filter(Boolean)
+    .join(" -> ");
+
+  await sendDiscordNotification("", [{
+    title: "MyBingoCard Error Captured",
+    color: options.severity === "high" ? 0xef4444 : options.severity === "medium" ? 0xf59e0b : 0x64748b,
+    fields: [
+      { name: "Fingerprint", value: `\`${options.fingerprint}\``, inline: false },
+      { name: "Type", value: truncateDiscordField(options.type, 256), inline: true },
+      { name: "Severity", value: options.severity.toUpperCase(), inline: true },
+      { name: "Build", value: truncateDiscordField(options.buildId || "unknown", 256), inline: true },
+      { name: "Page", value: truncateDiscordField(options.pageUrl, 500), inline: false },
+      { name: "Message", value: truncateDiscordField(options.message), inline: false },
+      ...(options.source ? [{ name: "Source", value: truncateDiscordField(options.source, 500), inline: false }] : []),
+      { name: "Session", value: truncateDiscordField(options.sessionId || "unknown", 256), inline: true },
+      { name: "Anonymous ID", value: truncateDiscordField(options.anonymousId || "unknown", 256), inline: true },
+      ...(breadcrumbText ? [{ name: "Breadcrumbs", value: truncateDiscordField(breadcrumbText, 700), inline: false }] : []),
+      { name: "Admin", value: adminUrl, inline: false },
+    ],
+    footer: { text: "MyBingoCard • Error Monitoring" },
+    timestamp: new Date().toISOString(),
+  }], "errors");
+}
+
+export async function notifyServerErrorCaptured(options: {
+  type: string;
+  message: string;
+  stack?: string | null;
+  path?: string | null;
+  method?: string | null;
+  routePath?: string | null;
+  routeType?: string | null;
+  routerKind?: string | null;
+  digest?: string | null;
+  buildId?: string | null;
+}) {
+  const fields = [
+    { name: "Type", value: truncateDiscordField(options.type, 256), inline: true },
+    { name: "Method", value: truncateDiscordField(options.method || "unknown", 256), inline: true },
+    { name: "Build", value: truncateDiscordField(options.buildId || "unknown", 256), inline: true },
+    { name: "Path", value: truncateDiscordField(options.path, 500), inline: false },
+    { name: "Route", value: truncateDiscordField(options.routePath, 500), inline: false },
+    { name: "Route Type", value: truncateDiscordField(options.routeType || "unknown", 256), inline: true },
+    { name: "Router", value: truncateDiscordField(options.routerKind || "unknown", 256), inline: true },
+    { name: "Message", value: truncateDiscordField(options.message), inline: false },
+    ...(options.digest ? [{ name: "Digest", value: truncateDiscordField(options.digest, 256), inline: true }] : []),
+    ...(options.stack ? [{ name: "Stack", value: truncateDiscordField(options.stack, 1000), inline: false }] : []),
+  ];
+
+  await sendDiscordNotification("", [{
+    title: "MyBingoCard Server Error",
+    color: 0xdc2626,
+    fields,
+    footer: { text: "MyBingoCard • Server Error Monitoring" },
+    timestamp: new Date().toISOString(),
+  }], "errors");
 }

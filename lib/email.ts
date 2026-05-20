@@ -1,25 +1,17 @@
-import nodemailer from "nodemailer";
+import { sendSmtpMail, type SmtpMail } from "@/lib/smtp";
+import clientPromise from "@/lib/mongodb";
+import crypto from "node:crypto";
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
 const fromAddress = process.env.EMAIL_FROM || "support@mybingocard.com";
 const supportAddress = "support@mybingocard.com";
-const port = Number(process.env.EMAIL_SERVER_PORT) || 587;
-
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_SERVER_HOST,
-  port,
-  secure: port === 465,
-  auth: {
-    user: process.env.EMAIL_SERVER_USER,
-    pass: process.env.EMAIL_SERVER_PASSWORD,
-  },
-});
-
+const EMAIL_ID_PLACEHOLDER = "__MBC_EMAIL_ID__";
 type EmailPayload = {
   to: string;
   subject: string;
   html: string;
   text: string;
+  campaignId?: string;
   // When true, adds List-Unsubscribe + List-Unsubscribe-Post headers so
   // Gmail/Apple Mail/Yahoo show their native one-click unsubscribe button.
   // Required by Gmail's Feb 2024 bulk sender rules. Set ONLY for marketing
@@ -113,13 +105,14 @@ function formatDate(date: Date): string {
   }).format(date);
 }
 
-export function trackableUrl(url: string, email: string, campaignId: string, linkId?: string): string {
+export function trackableUrl(url: string, email: string, campaignId: string, linkId?: string, emailId?: string): string {
   const params = new URLSearchParams({
     e: email,
     c: campaignId,
     u: url,
   });
   if (linkId) params.set("l", linkId);
+  params.set("mid", emailId || EMAIL_ID_PLACEHOLDER);
   return `${appUrl}/api/track/click?${params.toString()}`;
 }
 
@@ -156,6 +149,7 @@ function renderLayout(options: {
   footerNote?: string;
   email?: string;
   campaignId?: string;
+  emailId?: string;
 }): string {
   const palette = THEMES[options.theme];
   const ctaSection = options.ctaLabel && options.ctaUrl
@@ -170,7 +164,7 @@ function renderLayout(options: {
     : "";
 
   const trackingPixel = options.email && options.campaignId
-    ? `<img src="${appUrl}/api/track/open?e=${encodeURIComponent(options.email)}&c=${encodeURIComponent(options.campaignId)}" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0;" />`
+    ? `<img src="${appUrl}/api/track/open?e=${encodeURIComponent(options.email)}&c=${encodeURIComponent(options.campaignId)}&mid=${encodeURIComponent(options.emailId || EMAIL_ID_PLACEHOLDER)}" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0;" />`
     : "";
 
   return `
@@ -238,16 +232,79 @@ function renderBulletList(items: string[]): string {
   `;
 }
 
+function extractCampaignIdFromHtml(html: string): string | undefined {
+  const openPixelMatch = html.match(/\/api\/track\/open\?[^"']*[?&]c=([^"&]+)/);
+  const anyTrackingMatch = html.match(/[?&]c=([^"&]+)/);
+  const value = openPixelMatch?.[1] || anyTrackingMatch?.[1];
+  return value ? decodeURIComponent(value) : undefined;
+}
+
+function addVisibleUnsubscribe(html: string, email: string): string {
+  const unsubscribeUrl = `${appUrl}/unsubscribe?email=${encodeURIComponent(email)}`;
+  const block = `
+    <div style="max-width:640px;margin:16px auto 0;text-align:center;font-size:12px;line-height:1.6;color:#94a3b8;">
+      You are receiving this because you signed up for MyBingoCard or created a bingo card.
+      <a href="${escapeHtml(unsubscribeUrl)}" style="color:#64748b;text-decoration:underline;">Unsubscribe from marketing emails</a>.
+    </div>
+  `;
+
+  return html.includes("</body>")
+    ? html.replace("</body>", `${block}\n  </body>`)
+    : `${html}${block}`;
+}
+
 async function sendEmail(payload: EmailPayload): Promise<boolean> {
+  const emailId = crypto.randomUUID();
+  const sentAt = new Date();
+  const campaignId = payload.campaignId || extractCampaignIdFromHtml(payload.html);
+  const trackedHtml = payload.html.replaceAll(encodeURIComponent(EMAIL_ID_PLACEHOLDER), encodeURIComponent(emailId));
+  const html = payload.marketing ? addVisibleUnsubscribe(trackedHtml, payload.to) : trackedHtml;
+  const headers = {
+    ...(payload.marketing ? buildUnsubscribeHeaders(payload.to) : {}),
+    "X-MyBingoCard-Email-ID": emailId,
+    ...(campaignId ? { "X-MyBingoCard-Campaign": campaignId } : {}),
+  };
+
   try {
-    await transporter.sendMail({
+    const result = await sendSmtpMail({
       from: fromAddress,
       to: payload.to,
       subject: payload.subject,
-      html: payload.html,
+      html,
       text: payload.text,
-      ...(payload.marketing ? { headers: buildUnsubscribeHeaders(payload.to) } : {}),
+      headers,
     });
+    if (campaignId) {
+      try {
+        const client = await clientPromise;
+        const db = client.db("mybingocard");
+        await db.collection("email_messages").updateOne(
+          { emailId },
+          {
+            $set: {
+              messageId: result.messageId,
+              email: payload.to,
+              campaignId,
+              subject: payload.subject,
+              sentAt,
+              updatedAt: sentAt,
+            },
+            $setOnInsert: {
+              emailId,
+              status: "sent",
+              openCount: 0,
+              humanOpenCount: 0,
+              botOpenCount: 0,
+              clickCount: 0,
+              createdAt: sentAt,
+            },
+          },
+          { upsert: true }
+        );
+      } catch (trackingError) {
+        console.error("Failed to record email tracking row:", trackingError);
+      }
+    }
     console.log(`Email sent to ${payload.to}: ${payload.subject}`);
     return true;
   } catch (error) {
@@ -457,21 +514,27 @@ export async function sendBillingFailedEmail(
   name: string,
   amountCents: number,
   currency: string,
-  manageBillingUrl: string
+  manageBillingUrl: string,
+  attemptCount?: number | null,
+  nextPaymentAttempt?: Date | null
 ): Promise<boolean> {
   const firstName = getFirstName(name);
   const amount = formatMoney(amountCents, currency);
-  const subject = "Payment failed - update your billing details";
+  const subject = "We couldn't process your MyBingoCard payment";
+  const retryLine = nextPaymentAttempt
+    ? `Stripe will retry this payment around ${formatDate(nextPaymentAttempt)}.`
+    : "Stripe may retry this payment automatically.";
   const bodyHtml = `
     ${renderPanel(
       `<p style=\"margin:0 0 8px;font-size:14px;\"><strong>Attempted charge:</strong> ${escapeHtml(amount)}</p>
-       <p style=\"margin:0;font-size:14px;\">Update your card details to avoid service interruption.</p>`,
+       ${attemptCount ? `<p style=\"margin:0 0 8px;font-size:14px;\"><strong>Attempt:</strong> ${escapeHtml(String(attemptCount))}</p>` : ""}
+       <p style=\"margin:0;font-size:14px;\">${escapeHtml(retryLine)}</p>`,
       "rose"
     )}
     ${renderBulletList([
       "Open billing settings.",
       "Update payment method.",
-      "Retry the payment from Stripe portal if prompted."
+      "Your Premium access stays available while Stripe retries the payment."
     ])}
   `;
 
@@ -481,16 +544,16 @@ export async function sendBillingFailedEmail(
     html: renderLayout({
       theme: "rose",
       preheader: `We could not process your payment of ${amount}.`,
-      headline: "Payment failed",
+      headline: "Payment needs attention",
       intro: `Hi ${firstName}, we could not process your recent subscription payment.`,
       bodyHtml,
       ctaLabel: "Update Billing Details",
       ctaUrl: trackableUrl(manageBillingUrl, to, "billing_failed", "main_cta"),
-      ctaHint: "If payment is not updated, your plan may move to past due.",
+      ctaHint: "This opens your billing settings securely.",
       email: to,
       campaignId: "billing-failed",
     }),
-    text: `Hi ${firstName},\n\nWe could not process your payment of ${amount}.\n\nUpdate billing details: ${manageBillingUrl}`,
+    text: `Hi ${firstName},\n\nWe could not process your payment of ${amount}.\n${attemptCount ? `Attempt: ${attemptCount}.\n` : ""}${retryLine}\n\nYour Premium access stays available while Stripe retries the payment.\n\nUpdate billing details: ${manageBillingUrl}`,
   });
 }
 
@@ -573,7 +636,7 @@ export async function sendAbandonedCheckoutEmail(
   const bulletItems = isSubscription
     ? [
         "AI-powered card generation for faster setup.",
-        "Premium templates, image bingo cards, and custom styling.",
+        "Premium templates, larger batches, and custom styling.",
         "HD PDF & PNG export for print-ready cards.",
         "Ad-free experience across your whole account.",
       ]
@@ -611,8 +674,46 @@ export async function sendAbandonedCheckoutEmail(
       campaignId: "abandoned-checkout",
     }),
     text: isSubscription
-      ? `Hi ${firstName},\n\nYou started upgrading to Premium but didn't finish.\n\nPremium includes:\n- AI-powered card generation\n- Premium templates, image bingo cards, and custom styling\n- HD PDF & PNG export\n- Ad-free experience\n\nComplete your upgrade: ${appUrl}/pricing\n\nQuestions? Reply to this email.`
+      ? `Hi ${firstName},\n\nYou started upgrading to Premium but didn't finish.\n\nPremium includes:\n- AI-powered card generation\n- Premium templates, larger batches, and custom styling\n- HD PDF & PNG export\n- Ad-free experience\n\nComplete your upgrade: ${appUrl}/pricing\n\nQuestions? Reply to this email.`
       : `Hi ${firstName},\n\nYou were close to generating ${batchCount ? `${batchCount} unique bingo cards` : "your card batch"}.\n\nHead back to finish: ${appUrl}/create\n\nQuestions? Reply to this email.`,
+    marketing: true,
+  });
+}
+
+export async function sendCardComebackEmail(
+  to: string,
+  name: string,
+  cardTitle: string,
+  cardUrl: string
+): Promise<boolean> {
+  const firstName = getFirstName(name);
+  const subject = "Your bingo card is ready to play";
+  const ctaUrl = trackableUrl(cardUrl, to, "card_comeback_24h", "open_card");
+  const bodyHtml = `
+    ${renderPanel(renderBulletList([
+      "Open the card and tap squares to play solo.",
+      "Copy a share link for players.",
+      "Download a PDF if you want to print it.",
+    ]), "emerald")}
+    <p style="margin:0;font-size:15px;color:#334155;">Your saved card is still in your dashboard whenever you need it.</p>
+  `;
+
+  return sendEmail({
+    to,
+    subject,
+    html: renderLayout({
+      theme: "emerald",
+      preheader: "Open your saved MyBingoCard and run the game.",
+      headline: "Ready when you are",
+      intro: `Hi ${firstName}, your "${cardTitle || "bingo card"}" card is saved and ready.`,
+      bodyHtml,
+      ctaLabel: "Open My Card",
+      ctaUrl,
+      ctaHint: "You can play, share, or print from the card page.",
+      email: to,
+      campaignId: "card-comeback-24h",
+    }),
+    text: `Hi ${firstName},\n\nYour "${cardTitle || "bingo card"}" card is saved and ready.\n\nOpen it here: ${cardUrl}\n\nYou can play, share, or print from the card page.\n\nUnsubscribe: ${appUrl}/unsubscribe?email=${encodeURIComponent(to)}`,
     marketing: true,
   });
 }
@@ -654,7 +755,7 @@ export async function sendSupportReplyEmail(
   const htmlBody = replyBody.replace(/\n/g, "<br />");
 
   try {
-    const mailOptions: Record<string, unknown> = {
+    const mailOptions: SmtpMail = {
       from: fromAddress,
       to,
       subject: replySubject,
@@ -671,7 +772,7 @@ export async function sendSupportReplyEmail(
       mailOptions.inReplyTo = inReplyTo;
       mailOptions.references = inReplyTo;
     }
-    await transporter.sendMail(mailOptions);
+    await sendSmtpMail(mailOptions);
     console.log(`Support reply sent to ${to}: ${replySubject}`);
     return true;
   } catch (error) {
@@ -803,14 +904,13 @@ export async function sendCardLimitEmail(to: string, name: string) {
     subject: `${firstName}, unlock Premium bingo features`,
     html: renderLayout({
       theme: "violet",
-      preheader: "Upgrade to Premium for AI, image bingo cards, and HD export.",
+      preheader: "Upgrade to Premium for AI, HD export, and larger batches.",
       headline: "Unlock Premium bingo features",
       intro: `Hey ${firstName}, Premium gives you the faster and more customizable way to create, export, and share bingo cards.`,
       bodyHtml: `
         ${renderPanel(renderBulletList([
           "AI-powered card generation",
           "HD PDF and PNG export",
-          "Custom image uploads",
           "All premium templates",
           "Batch generate up to 500 cards",
           "Ad-free experience",
@@ -822,7 +922,7 @@ export async function sendCardLimitEmail(to: string, name: string) {
       email: to,
       campaignId: "card-limit",
     }),
-    text: `Hey ${firstName},\n\nPremium gives you AI generation, HD export, custom image uploads, premium templates, and bigger batch generation.\n\nUpgrade here: ${appUrl}/pricing\n\nQuestions? Reply to this email.`,
+    text: `Hey ${firstName},\n\nPremium gives you AI generation, HD export, premium templates, custom styling, and bigger batch generation.\n\nUpgrade here: ${appUrl}/pricing\n\nQuestions? Reply to this email.`,
     marketing: true,
   });
 }

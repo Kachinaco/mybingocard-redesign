@@ -20,7 +20,7 @@ try {
   console.error('Could not load .env.local:', e.message);
 }
 
-const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || '';
+const WEBHOOK_URL = process.env.MYBINGOCARD_EVENTS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL || '';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 
 let mongoClient = null;
@@ -139,13 +139,17 @@ function processEmails(criteria) {
               const bouncedEmail = emailMatch ? emailMatch[1].toLowerCase().trim() : null;
 
               // Try to extract campaign ID from bounce body (our emails include campaign id in tracking pixels)
-              const campaignMatch = (preview || '').match(/[?&]c=([a-z_]+)/);
+              const campaignMatch = (preview || '').match(/[?&]c=([a-z0-9_-]+)/i);
               const originalCampaignId = campaignMatch ? campaignMatch[1] : null;
+              const emailIdMatch = (preview || '').match(/X-MyBingoCard-Email-ID:\s*([0-9a-f-]{36})/i)
+                || (preview || '').match(/[?&]mid=([0-9a-f-]{36})/i);
+              const emailId = emailIdMatch ? emailIdMatch[1] : null;
 
               // Build a reason string from the subject/preview
               const reason = (subject || '').substring(0, 200);
 
               await db.collection('email_bounces').insertOne({
+                emailId,
                 email: bouncedEmail,
                 bounceType,
                 reason,
@@ -154,6 +158,21 @@ function processEmails(criteria) {
                 rawSubject: subject,
                 detectedAt: new Date(),
               });
+
+              if (emailId) {
+                await db.collection('email_messages').updateOne(
+                  { emailId },
+                  {
+                    $set: {
+                      status: 'bounced',
+                      bounceType,
+                      bounceReason: reason,
+                      bouncedAt: new Date(),
+                      updatedAt: new Date(),
+                    },
+                  }
+                );
+              }
 
               // Log count of recent bounces
               const recentBounceCount = await db.collection('email_bounces').countDocuments({

@@ -7,7 +7,7 @@ import { getUserByEmail } from "@/lib/db/users";
 import { getUserCards } from "@/lib/db/cards";
 import { PLANS } from "@/lib/stripe/config";
 import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
-import StartTrialButton from "@/components/StartTrialButton";
+import PremiumCheckoutButton from "@/components/PremiumCheckoutButton";
 import UpgradeButton from "@/components/UpgradeButton";
 import Link from "next/link";
 import { getGameHistory, getGameStats } from "@/lib/gameHistory";
@@ -58,25 +58,35 @@ export default async function DashboardPage() {
   const favoriteCards = favorites
     .map((f) => cardMap.get(f.cardId))
     .filter(Boolean);
+  const latestCard = recentCards[0];
+  const totalCards = allCards.length;
+  const monthlyLimit = Number(plan.limits.maxCards);
+  const usagePercent = monthlyLimit > 0
+    ? Math.min(100, Math.round((totalCards / monthlyLimit) * 100))
+    : isSubscribed ? 18 : 0;
+  const usageLabel = monthlyLimit === -1
+    ? `${totalCards} saved cards`
+    : `${totalCards} of ${monthlyLimit} cards used`;
+  const firstName = session.user.name?.split(" ")[0] || "Friend";
 
   return (
-    <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
       <DashboardTracker cardCount={recentCards.length} planType={currentPlan} />
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
-        <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-all duration-300">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <header className="fixed top-0 left-0 right-0 w-[100dvw] max-w-[100dvw] z-50 overflow-hidden bg-white/80 backdrop-blur-md border-b border-slate-200/50">
+        <div className="w-[100dvw] max-w-[100dvw] px-3 sm:px-4 lg:px-8 h-16 md:h-20 flex items-center justify-between gap-3">
+          <Link href="/" className="flex min-w-0 items-center gap-2 group">
+            <div className="w-9 h-9 md:w-10 md:h-10 shrink-0 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-all duration-300">
+              <svg className="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
             </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
+            <span className="truncate text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
               MyBingoCard
             </span>
           </Link>
           
-          <div className="flex items-center gap-4">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2 md:gap-4">
              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full border border-slate-200">
                 <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500">
                     {session.user.name?.charAt(0) || session.user.email?.charAt(0)}
@@ -94,18 +104,26 @@ export default async function DashboardPage() {
             </Link>
             <Link
               href="/settings"
-              className="text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors px-3 py-2"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-colors md:h-auto md:w-auto md:px-3 md:py-2 md:text-sm md:font-medium"
+              aria-label="Settings"
+              title="Settings"
             >
-              Settings
+              <svg className="h-5 w-5 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="hidden md:inline">Settings</span>
             </Link>
             {currentPlan === "FREE" && (
-              <StartTrialButton
+              <PremiumCheckoutButton
                 source="dashboard_header"
                 className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-semibold hover:shadow-lg transition-all"
-                label="Start 7-Day Trial"
+                label="Upgrade"
               />
             )}
-            <SignOutButton />
+            <div className="hidden md:block">
+              <SignOutButton />
+            </div>
           </div>
         </div>
       </header>
@@ -113,52 +131,143 @@ export default async function DashboardPage() {
       <DashboardFunnelTracker cardCount={allCards.length} />
 
       {/* Main Content */}
-      <main className="pt-32 pb-24 px-4">
+      <main className="pt-24 md:pt-28 pb-24 px-4">
         <div className="container mx-auto max-w-6xl">
-          <div className="mb-10 animate-fade-in-up">
-            <h1 className="text-3xl font-bold text-slate-900">
-              {isNewUser ? "Welcome" : "Welcome back"}, <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">{session.user.name?.split(" ")[0] || "Friend"}</span>!
-            </h1>
-            <p className="text-slate-500 mt-2 text-lg">
-              {isNewUser ? "Let's create your first bingo card — it takes less than 2 minutes." : "Here's what's happening with your bingo cards today."}
-            </p>
-          </div>
+          <section className="mb-6 overflow-hidden rounded-2xl border border-indigo-100 bg-white shadow-sm shadow-indigo-100/60">
+            <div className="grid gap-0 lg:grid-cols-[1.55fr_0.95fr]">
+              <div className="p-5 sm:p-7 md:p-8">
+                <div className="mb-5 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    {plan.name}
+                  </span>
+                  {cancelPending && (
+                    <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-700">
+                      Ending soon
+                    </span>
+                  )}
+                </div>
+                <h1 className="max-w-2xl text-3xl font-black tracking-tight text-slate-950 md:text-4xl">
+                  {isNewUser ? "Build your first bingo card" : `Welcome back, ${firstName}`}
+                </h1>
+                <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
+                  {isNewUser
+                    ? "Start with a template, customize the card, then play, share, or download a printable batch."
+                    : "Create cards, manage paid downloads, share player links, and pick up where you left off."}
+                </p>
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <Link
+                    href="/create"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:shadow-indigo-300"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.3} d="M12 5v14m7-7H5" />
+                    </svg>
+                    Create card
+                  </Link>
+                  <Link
+                    href="/dashboard/cards"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-800 transition hover:border-slate-300 hover:bg-slate-50"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.3} d="M4 5h16M4 12h16M4 19h16" />
+                    </svg>
+                    Saved cards
+                  </Link>
+                  <Link
+                    href="/dashboard/share-links"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-bold text-emerald-800 transition hover:bg-emerald-100"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.3} d="M7 8a3 3 0 100-6 3 3 0 000 6zm10 7a3 3 0 100-6 3 3 0 000 6zM7 22a3 3 0 100-6 3 3 0 000 6zm2.6-5.4l4.8-3.2M9.6 7.4l4.8 3.2" />
+                    </svg>
+                    Share links
+                  </Link>
+                </div>
+              </div>
+              <aside className="border-t border-indigo-200 bg-gradient-to-br from-violet-600 to-indigo-700 p-5 text-white sm:p-7 md:p-8 lg:border-l lg:border-t-0">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wide text-indigo-100">Plan usage</p>
+                    <p className="mt-2 text-2xl font-black">{usageLabel}</p>
+                  </div>
+                  {!isSubscribed ? (
+                    <UpgradeButton>Upgrade</UpgradeButton>
+                  ) : (
+                    <div className="[&_button]:border-white/30 [&_button]:text-white [&_button]:hover:bg-white/10">
+                      <ManageSubscriptionButton />
+                    </div>
+                  )}
+                </div>
+                <div className="mt-6">
+                  <div className="h-2 overflow-hidden rounded-full bg-white/20">
+                    <div className="h-full rounded-full bg-white" style={{ width: `${usagePercent}%` }} />
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div className="rounded-xl border border-white/20 bg-white/10 p-3">
+                      <p className="text-[11px] font-bold uppercase tracking-wide text-indigo-100">Templates</p>
+                      <p className="mt-1 text-sm font-bold">{plan.limits.canUseAdvancedTemplates ? "All premium" : "Starter set"}</p>
+                    </div>
+                    <div className="rounded-xl border border-white/20 bg-white/10 p-3">
+                      <p className="text-[11px] font-bold uppercase tracking-wide text-indigo-100">Downloads</p>
+                      <p className="mt-1 text-sm font-bold">{isSubscribed ? "Included" : "Paid batches"}</p>
+                    </div>
+                  </div>
+                  {subscriptionEndsOn && (
+                    <p className="mt-4 text-sm text-indigo-100">
+                      {cancelPending ? `Access ends ${subscriptionEndsOn}` : `Renews ${subscriptionEndsOn}`}
+                    </p>
+                  )}
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <section className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {[
+              { label: "Saved cards", value: totalCards.toString(), tone: "text-indigo-700", sub: latestCard ? "Latest ready" : "Start creating" },
+              { label: "Games played", value: gameStats.total.toString(), tone: "text-violet-700", sub: `${gameStats.wins} wins` },
+              { label: "Favorites", value: favoriteCards.length.toString(), tone: "text-rose-700", sub: "Pinned cards" },
+              { label: "Max grid", value: `${plan.limits.maxSize}x${plan.limits.maxSize}`, tone: "text-emerald-700", sub: "Current plan" },
+            ].map((item) => (
+              <div key={item.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{item.label}</p>
+                <p className={`mt-2 text-2xl font-black ${item.tone}`}>{item.value}</p>
+                <p className="mt-1 text-xs text-slate-500">{item.sub}</p>
+              </div>
+            ))}
+          </section>
 
           {recentCards.length === 0 && (
-            <div className="mb-8 rounded-2xl overflow-hidden border border-indigo-100 shadow-lg animate-fade-in-up">
-              <div className="bg-gradient-to-br from-violet-600 to-indigo-600 px-8 py-10 text-white text-center">
-                <div className="text-5xl mb-4">🎉</div>
-                <h3 className="text-2xl font-bold mb-2">Create your first bingo card</h3>
-                <p className="text-indigo-100 mb-6 max-w-md mx-auto">
-                  Pick a theme, add your words, and you&apos;ll have a ready-to-print bingo card in under 2 minutes.
-                </p>
-                <Link
-                  href="/create"
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-white text-indigo-600 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-all shadow-lg"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  Start Creating
-                </Link>
+            <section className="mb-8 rounded-2xl border border-indigo-200 bg-indigo-50 p-5 shadow-sm md:p-7">
+              <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-950">Create your first card</h2>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Pick a template, add your words or images, then print or share the cards with players.
+                  </p>
+                  <Link href="/create" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:shadow-indigo-300">
+                    Start creating
+                  </Link>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {[
+                    { title: "Choose", desc: "Start from a use-case template." },
+                    { title: "Customize", desc: "Edit words, images, free space, and style." },
+                    { title: "Play", desc: "Share links or download paid batches." },
+                  ].map((step, index) => (
+                    <div key={step.title} className="rounded-xl border border-white/70 bg-white p-4">
+                      <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 text-sm font-black text-indigo-700">
+                        {index + 1}
+                      </div>
+                      <p className="font-bold text-slate-950">{step.title}</p>
+                      <p className="mt-1 text-xs leading-5 text-slate-500">{step.desc}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="bg-white px-8 py-6 grid grid-cols-3 gap-6 text-center">
-                {[
-                  { icon: "🎨", title: "Pick a theme", desc: "Wedding, classroom, baby shower & more" },
-                  { icon: "✏️", title: "Add your words", desc: "Type your items or use a template" },
-                  { icon: "🖨️", title: "Print & play", desc: "Download PDF and share with everyone" },
-                ].map(({ icon, title, desc }) => (
-                  <div key={title} className="flex flex-col items-center">
-                    <div className="text-2xl mb-2">{icon}</div>
-                    <div className="font-bold text-slate-900 text-sm mb-1">{title}</div>
-                    <div className="text-slate-500 text-xs">{desc}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            </section>
           )}
-
-
 
           {currentPlan === "FREE" && recentCards.length >= 1 && (
             <UpgradeBanner />
@@ -166,142 +275,101 @@ export default async function DashboardPage() {
 
           <OnboardingChecklist />
 
-          <div className="grid lg:grid-cols-3 gap-8 mb-10">
-             {/* Subscription Status Card */}
-            <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 animate-fade-in-up animation-delay-100 relative overflow-hidden group">
-               <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-violet-50 to-indigo-50 rounded-full blur-3xl opacity-50 -mr-16 -mt-16 pointer-events-none group-hover:opacity-80 transition-opacity duration-500"></div>
-               
-              <div className="relative z-10">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+          <section className="mb-8 grid gap-4 lg:grid-cols-3">
+            {[
+              {
+                href: "/create",
+                title: "Create card",
+                desc: "Build a new card from scratch or AI prompts.",
+                color: "border-slate-200 hover:border-slate-300",
+                icon: "M12 5v14m7-7H5",
+              },
+              {
+                href: "/templates",
+                title: "Browse templates",
+                desc: "Start faster with ready-made card categories.",
+                color: "border-indigo-200 hover:border-indigo-300",
+                icon: "M4 5h7v7H4V5zm9 0h7v7h-7V5zM4 14h7v5H4v-5zm9 0h7v5h-7v-5z",
+              },
+              {
+                href: "/dashboard/share-links",
+                title: "Share player links",
+                desc: "Send monetized email batches or copy links.",
+                color: "border-emerald-200 hover:border-emerald-300",
+                icon: "M7 8a3 3 0 100-6 3 3 0 000 6zm10 7a3 3 0 100-6 3 3 0 000 6zM7 22a3 3 0 100-6 3 3 0 000 6zm2.6-5.4l4.8-3.2M9.6 7.4l4.8 3.2",
+              },
+            ].map((action) => (
+              <Link key={action.title} href={action.href} className={`group rounded-2xl border bg-white p-5 shadow-sm transition ${action.color}`}>
+                <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-xl font-bold text-slate-900 mb-2">
-                      Current Plan: <span className="text-indigo-600">{plan.name}</span>
-                    </h2>
-                    {isSubscribed ? (
-                      <div className="flex items-center gap-3 text-sm">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide ${
-                            cancelPending
-                              ? "bg-amber-50 text-amber-700 border border-amber-100"
-                              : user?.subscriptionStatus === "active"
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                                : "bg-amber-50 text-amber-700 border border-amber-100"
-                          }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${cancelPending ? "bg-amber-500" : user?.subscriptionStatus === "active" ? "bg-emerald-500" : "bg-amber-500"}`}></span>
-                          {cancelPending ? "scheduled to end" : user?.subscriptionStatus || "active"}
-                        </span>
-                        {subscriptionEndsOn && (
-                          <span className="text-slate-500">
-                            {cancelPending ? `Ends ${subscriptionEndsOn}` : `Renews ${subscriptionEndsOn}`}
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="text-slate-500 text-sm">
-                        Unlock AI generation, image bingo cards, premium templates, and HD export.
-                      </p>
-                    )}
+                    <h2 className="font-black text-slate-950">{action.title}</h2>
+                    <p className="mt-1 text-sm leading-6 text-slate-600">{action.desc}</p>
                   </div>
-                  
-                  <div>
-                    {!isSubscribed ? (
-                      <UpgradeButton>Subscribe Now</UpgradeButton>
-                    ) : (
-                      <div className="flex">
-                         <ManageSubscriptionButton />
-                      </div>
-                    )}
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700 transition group-hover:bg-indigo-600 group-hover:text-white">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d={action.icon} />
+                    </svg>
                   </div>
                 </div>
+              </Link>
+            ))}
+          </section>
 
-                {/* Plan Features Summary */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-slate-100">
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Monthly Limit</p>
-                    <p className="text-lg font-bold text-slate-900">
-                      {Number(plan.limits.maxCards) === -1 ? "Unlimited" : `${plan.limits.maxCards} Card${Number(plan.limits.maxCards) !== 1 ? "s" : ""}`}
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Grid Size</p>
-                    <p className="text-lg font-bold text-slate-900">
-                      Up to {plan.limits.maxSize}x{plan.limits.maxSize}
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Templates</p>
-                    <p className="text-lg font-bold text-slate-900">
-                      {plan.limits.canUseAdvancedTemplates ? "All 30+" : "5 Starter"}
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Export</p>
-                    <p className="text-lg font-bold text-slate-900">
-                      {plan.limits.canExportPNG ? "PDF + PNG" : "PDF Only"}
-                    </p>
-                  </div>
+          {latestCard && (
+            <section className="mb-8 rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm md:p-6">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">Continue working</p>
+                  <h2 className="mt-1 truncate text-xl font-black text-slate-900">{latestCard.title}</h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {latestCard.size}x{latestCard.size} card created {new Date(latestCard.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+                  <Link href={`/cards/${latestCard._id.toString()}?next=play`} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-bold text-white transition hover:shadow-lg hover:shadow-indigo-200">
+                    Play
+                  </Link>
+                  <Link href={`/cards/${latestCard._id.toString()}?next=share`} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700">
+                    Share
+                  </Link>
+                  <Link href={`/cards/${latestCard._id.toString()}?next=export`} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+                    PDF
+                  </Link>
+                  <Link href={`/create?cardId=${latestCard._id.toString()}`} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
+                    Edit
+                  </Link>
                 </div>
               </div>
-            </div>
+            </section>
+          )}
 
-             {/* Quick Actions Panel */}
-             <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl shadow-xl shadow-slate-200 text-white p-6 md:p-8 flex flex-col justify-between animate-fade-in-up animation-delay-200 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500 opacity-20 rounded-full -ml-10 -mb-10 blur-2xl"></div>
-                
-                <div className="relative z-10">
-                   <h3 className="text-lg font-bold mb-4">Quick Actions</h3>
-                   <div className="space-y-3">
-                      <Link href="/create" className="flex items-center justify-between p-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors border border-white/5 group">
-                         <span className="font-medium">Create New Card</span>
-                         <svg className="w-5 h-5 text-indigo-300 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                         </svg>
-                      </Link>
-                      <Link href="/templates" className="flex items-center justify-between p-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors border border-white/5 group">
-                         <span className="font-medium">Browse Templates</span>
-                         <svg className="w-5 h-5 text-indigo-300 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                         </svg>
-                      </Link>
-                   </div>
-                </div>
-
-                <div className="mt-8 relative z-10">
-                   <Link href="/dashboard/cards" className="text-sm text-indigo-300 hover:text-white transition-colors flex items-center gap-1">
-                      View all my cards
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                   </Link>
-                </div>
-             </div>
-          </div>
-
-          {/* Recent Cards Preview — moved up as primary content */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 mb-10 animate-fade-in-up animation-delay-150">
-            <div className="flex items-center justify-between mb-8">
-               <h2 className="text-xl font-bold text-slate-900">My Cards</h2>
+          <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+               <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Library</p>
+               <h2 className="mt-1 text-xl font-black text-slate-950">My cards</h2>
+              </div>
                {recentCards.length > 0 && (
-                 <Link href="/dashboard/cards" className="text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:underline">
+                 <Link href="/dashboard/cards" className="inline-flex min-h-10 items-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
                     View All
                  </Link>
                )}
             </div>
 
             {recentCards.length === 0 ? (
-              <div className="text-center py-10 text-slate-400 text-sm">
+              <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 py-10 text-center text-sm text-slate-500">
                 Your cards will appear here once you create one.
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {recentCards.map((card) => (
-                  <div key={card._id.toString()} className="group p-4 bg-slate-50 hover:bg-indigo-50 rounded-xl border border-slate-100 hover:border-indigo-200 transition-all">
+                  <div key={card._id.toString()} className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-indigo-200 hover:shadow-md">
                     <Link href={`/cards/${card._id.toString()}`} className="block">
                       <div className="flex items-start justify-between mb-3">
                         <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
                           {card.title}
                         </h3>
-                        <span className="text-xs font-medium text-slate-400 bg-white px-2 py-0.5 rounded">
+                        <span className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-bold text-slate-500">
                           {card.size}x{card.size}
                         </span>
                       </div>
@@ -310,30 +378,37 @@ export default async function DashboardPage() {
                         {new Date(card.createdAt).toLocaleDateString()}
                       </p>
                     </Link>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       <PlaySoloButton cardId={card._id.toString()} />
-                      <StartGameButton cardId={card._id.toString()} />
+                      <StartGameButton cardId={card._id.toString()} label="Friends" compact />
+                      <Link href={`/cards/${card._id.toString()}?next=share`} className="text-center px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg hover:bg-emerald-100 hover:border-emerald-200 transition-colors text-sm font-semibold">
+                        Share
+                      </Link>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </section>
 
-          {/* Game Stats + History combined */}
           {gameStats.total > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 mb-10 animate-fade-in-up animation-delay-200">
-              <h2 className="text-xl font-bold text-slate-900 mb-6">Game Activity</h2>
+            <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Activity</p>
+                  <h2 className="mt-1 text-xl font-black text-slate-950">Game history</h2>
+                </div>
+              </div>
               <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center">
                   <p className="text-2xl font-black text-indigo-600">{gameStats.total}</p>
                   <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mt-1">Played</p>
                 </div>
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center">
                   <p className="text-2xl font-black text-emerald-600">{gameStats.wins}</p>
                   <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mt-1">Wins</p>
                 </div>
-                <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center">
                   <p className="text-2xl font-black text-amber-600">{gameStats.winRate}%</p>
                   <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mt-1">Win Rate</p>
                 </div>
@@ -361,7 +436,7 @@ export default async function DashboardPage() {
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                               g.won ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"
                             }`}>
-                              {g.won ? "🎉 Win" : "Played"}
+                              {g.won ? "Win" : "Played"}
                             </span>
                           </td>
                           <td className="py-3 px-2 text-slate-600">
@@ -376,7 +451,7 @@ export default async function DashboardPage() {
                   </table>
                 </div>
               )}
-            </div>
+            </section>
           )}
 
           {/* Recently Played (client component with localStorage) */}
@@ -384,7 +459,7 @@ export default async function DashboardPage() {
 
           {/* Favorites */}
           {favoriteCards.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 mb-10 animate-fade-in-up animation-delay-400">
+            <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                   <svg className="w-5 h-5 text-red-500" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
@@ -395,7 +470,7 @@ export default async function DashboardPage() {
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {favoriteCards.map((card: any) => (
-                  <div key={card._id.toString()} className="group p-4 bg-slate-50 hover:bg-indigo-50 rounded-xl border border-slate-100 hover:border-indigo-200 transition-all">
+                  <div key={card._id.toString()} className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-indigo-200 hover:shadow-md">
                     <Link href={`/cards/${card._id.toString()}`} className="block">
                       <div className="flex items-start justify-between mb-3">
                         <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1">
@@ -410,14 +485,17 @@ export default async function DashboardPage() {
                         {new Date(card.createdAt).toLocaleDateString()}
                       </p>
                     </Link>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                       <PlaySoloButton cardId={card._id.toString()} />
-                      <StartGameButton cardId={card._id.toString()} />
+                      <StartGameButton cardId={card._id.toString()} label="Friends" compact />
+                      <Link href={`/cards/${card._id.toString()}?next=share`} className="text-center px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg hover:bg-emerald-100 hover:border-emerald-200 transition-colors text-sm font-semibold">
+                        Share
+                      </Link>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
           )}
 
           {/* Referral Section */}
@@ -428,9 +506,9 @@ export default async function DashboardPage() {
                   <h2 className="text-xl font-bold mb-1">Share MyBingoCard</h2>
                   <p className="text-white/80 text-sm">Share your link with friends. When they sign up, you both win.</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex w-full min-w-0 flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
                   <CopyReferralCode code={(user as any).referralCode} />
-                  <Link href="/dashboard/referrals" className="px-5 py-2.5 bg-white text-emerald-700 font-bold rounded-xl text-sm hover:shadow-lg transition-all shrink-0">
+                  <Link href="/dashboard/referrals" className="w-full shrink-0 rounded-xl bg-white px-5 py-2.5 text-center text-sm font-bold text-emerald-700 transition-all hover:shadow-lg sm:w-auto">
                     View Referrals
                   </Link>
                 </div>
@@ -439,26 +517,30 @@ export default async function DashboardPage() {
           )}
 
           {/* Live Games Section */}
-          <div className="mb-8 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl p-6 md:p-8 text-white shadow-lg">
+          <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">🎮</span>
-                  <h2 className="text-xl font-bold">Live Bingo Games</h2>
-                  <span className="px-2 py-0.5 bg-white/20 text-white text-xs font-bold rounded-full">NEW</span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15 10l4.55-2.28A1 1 0 0121 8.62v6.76a1 1 0 01-1.45.9L15 14M5 18h10a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </span>
+                  <h2 className="text-xl font-black text-slate-950">Live bingo games</h2>
+                  <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">New</span>
                 </div>
-                <p className="text-white/80 text-sm">Host a live game from any of your cards — friends join with a room code and play together in real time.</p>
+                <p className="text-sm leading-6 text-slate-600">Host a live game from any saved card. Players join with a room code and play together in real time.</p>
               </div>
-              <div className="flex gap-3 shrink-0">
-                <Link href="/game/join" className="px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold rounded-xl text-sm transition-all">
+              <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
+                <Link href="/game/join" className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-50">
                   Join a Game
                 </Link>
-                <Link href="/dashboard/cards" className="px-5 py-2.5 bg-white text-violet-700 font-bold rounded-xl text-sm hover:shadow-lg transition-all">
-                  Host a Game →
+                <Link href="/dashboard/cards" className="inline-flex min-h-10 items-center justify-center rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700">
+                  Host a Game
                 </Link>
               </div>
             </div>
-          </div>
+          </section>
 
         </div>
       </main>
@@ -475,7 +557,7 @@ export default async function DashboardPage() {
               </div>
               <span className="text-sm font-semibold text-slate-700">MyBingoCard</span>
             </div>
-            <div className="flex gap-6 text-sm text-slate-500">
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-slate-500">
               <Link href="/templates" className="hover:text-indigo-600 transition-colors">Templates</Link>
               <Link href="/pricing" className="hover:text-indigo-600 transition-colors">Pricing</Link>
               <Link href="/privacy" className="hover:text-indigo-600 transition-colors">Privacy</Link>

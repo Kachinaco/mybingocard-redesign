@@ -16,7 +16,7 @@ interface ImagePickerModalProps {
   open: boolean;
   onClose: () => void;
   onPick: (imageId: string, imageUrl: string, label: string) => void;
-  isPremium: boolean;
+  canUploadImages: boolean;
   /** Is user logged in? Anonymous users get local uploads stored in localStorage */
   isLoggedIn?: boolean;
   /** Tracking context: where the image picker was opened from */
@@ -50,7 +50,7 @@ export default function ImagePickerModal({
   open,
   onClose,
   onPick,
-  isPremium,
+  canUploadImages,
   isLoggedIn = true,
   context = "cell_image",
   cellIndex,
@@ -74,8 +74,8 @@ export default function ImagePickerModal({
       setLabel("");
       setUploadError("");
       loadLibrary();
-      // Load uploads for premium users OR anonymous users
-      if (isPremium || !isLoggedIn) loadMyImages();
+      // Logged-in users use server uploads; anonymous users use localStorage.
+      if (canUploadImages || !isLoggedIn) loadMyImages();
       trackClientActivity("image_picker_opened", {
         context,
         ...(cellIndex != null ? { cell_index: cellIndex } : {}),
@@ -287,7 +287,7 @@ export default function ImagePickerModal({
           >
             Clip Art
           </button>
-          {(isPremium || !isLoggedIn) && (
+          {(canUploadImages || !isLoggedIn) && (
             <button
               onClick={() => setTab("upload")}
               className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
@@ -331,7 +331,7 @@ export default function ImagePickerModal({
         )}
 
         {/* Upload zone (upload tab) */}
-        {tab === "upload" && (isPremium || !isLoggedIn) && (
+        {tab === "upload" && (canUploadImages || !isLoggedIn) && (
           <div className="px-5 pt-3">
             <div
               role="button"

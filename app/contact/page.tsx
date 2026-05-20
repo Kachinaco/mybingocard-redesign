@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import ContactTracker from "./ContactTracker";
+import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
   title: "Contact Us — MyBingoCard",
@@ -67,7 +68,8 @@ export default function ContactPage() {
 
       <footer className="border-t border-slate-200 py-8 text-center text-slate-400 text-sm">
         <p>&copy; 2026 MyBingoCard. All rights reserved.</p>
-      </footer>
+      </footer>      <SeoSupportBlock slug="contact" />
+
     </div>
   );
 }
