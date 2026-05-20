@@ -27,6 +27,11 @@ export default auth(async (req) => {
 
   const { nextUrl } = req;
   const pathname = nextUrl.pathname;
+
+  if (pathname.endsWith(".map")) {
+    return new NextResponse("Not found", { status: 404 });
+  }
+
   const pendingNativeOAuth = decodeNativeOAuthPending(
     req.cookies.get(NATIVE_OAUTH_PENDING_COOKIE)?.value
   );
@@ -59,5 +64,5 @@ export default auth(async (req) => {
 });
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|uploads|favicon).*)"],
+  matcher: ["/((?!_next/image|uploads|favicon).*)"],
 };

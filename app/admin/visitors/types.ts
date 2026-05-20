@@ -54,6 +54,11 @@ export type AdminVisitorsData = {
   generatedAt: string;
   liveWindowMinutes: number;
   periodHours: number;
+  filters: {
+    anonymousId: string | null;
+    sessionId: string | null;
+    visitorKey: string | null;
+  };
   stats: AdminVisitorsStats;
   activeVisitors: AdminVisitorSummary[];
   visitors: AdminVisitorSummary[];

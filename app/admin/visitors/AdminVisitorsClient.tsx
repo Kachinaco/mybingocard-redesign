@@ -127,7 +127,11 @@ export default function AdminVisitorsClient({ initialData }: Props) {
     async function refresh() {
       try {
         setIsRefreshing(true);
-        const response = await fetch("/api/admin/visitors?liveWindowMinutes=5&periodHours=24&limit=100", {
+        const params = new URLSearchParams(window.location.search);
+        params.set("liveWindowMinutes", "5");
+        if (!params.has("periodHours")) params.set("periodHours", String(data.periodHours || 24));
+        if (!params.has("limit")) params.set("limit", "100");
+        const response = await fetch(`/api/admin/visitors?${params.toString()}`, {
           cache: "no-store",
         });
         if (!response.ok) {
@@ -154,7 +158,7 @@ export default function AdminVisitorsClient({ initialData }: Props) {
       canceled = true;
       window.clearInterval(interval);
     };
-  }, []);
+  }, [data.periodHours]);
 
   const statCards = useMemo(
     () => [
@@ -180,6 +184,11 @@ export default function AdminVisitorsClient({ initialData }: Props) {
           <p className="mt-2 max-w-2xl text-sm text-slate-500">
             Human traffic from the central tracker, grouped by signed-in user when available and anonymous browser ID otherwise.
           </p>
+          {(data.filters.anonymousId || data.filters.sessionId || data.filters.visitorKey) && (
+            <p className="mt-2 max-w-2xl break-all text-xs font-semibold text-indigo-600">
+              Filtered by {data.filters.anonymousId || data.filters.sessionId || data.filters.visitorKey}
+            </p>
+          )}
         </div>
         <div className="text-left text-xs text-slate-400 sm:text-right">
           <p>Updated {formatDateTime(data.generatedAt)}</p>

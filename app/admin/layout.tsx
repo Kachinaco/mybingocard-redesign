@@ -82,7 +82,14 @@ async function getLayoutBadges() {
     db.collection("support_tickets").countDocuments({ status: "open" }),
     db.collection("users").countDocuments({ subscriptionStatus: "past_due" }),
     db.collection("users").countDocuments({ subscriptionStatus: "active" }),
-    db.collection("error_fingerprints").countDocuments({ lastSeenAt: { $gte: since } }),
+    db.collection("error_fingerprints").countDocuments({
+      lastSeenAt: { $gte: since },
+      $or: [
+        { status: { $exists: false } },
+        { status: null },
+        { status: { $nin: ["fixed", "ignored"] } },
+      ],
+    }),
   ]);
 
   return {

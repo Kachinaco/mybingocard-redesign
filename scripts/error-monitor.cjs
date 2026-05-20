@@ -1,42 +1,80 @@
 #!/usr/bin/env node
 /**
  * mybingocard.com Error Monitor
- * Runs every 30 min via PM2 cron. Posts to Discord if real errors found.
+ * Runs every 30 min via PM2 cron. Posts to Discord if real errors are found.
  */
 
-const { execSync } = require("child_process");
-const EXEC_OPTS = { encoding: "utf8", timeout: 15000, shell: "/bin/bash" };
-const https = require("https");
-const fs = require("fs");
+const { execSync } = require("node:child_process");
+const https = require("node:https");
+const fs = require("node:fs");
+const path = require("node:path");
+const { MongoClient } = require("mongodb");
 
+const APP_DIR = "/var/www/mybingocard.com";
 const CHANNEL_ID = "1476666529184616510";
 const TOKEN_FILE = "/tmp/.dtoken";
 const KNOWN_BENIGN_CHUNKS = ["4869cf5e8d29861b.css"]; // stale build chunk, harmless
+const UNRESOLVED_STATUS_FILTER = {
+  $or: [
+    { status: { $exists: false } },
+    { status: null },
+    { status: { $nin: ["fixed", "ignored"] } },
+  ],
+};
+
+function loadEnvFile(filePath) {
+  try {
+    for (const line of fs.readFileSync(filePath, "utf8").split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const idx = trimmed.indexOf("=");
+      if (idx === -1) continue;
+      const key = trimmed.slice(0, idx);
+      if (!process.env[key]) {
+        process.env[key] = trimmed.slice(idx + 1).replace(/^['"]|['"]$/g, "");
+      }
+    }
+  } catch {
+    // Optional in local/dev runs.
+  }
+}
 
 function getToken() {
   try { return fs.readFileSync(TOKEN_FILE, "utf8").trim(); } catch { return null; }
 }
 
 function discordPost(content) {
-  const token = getToken();
-  if (!token) { console.log("No token, skipping Discord notify"); return; }
-  const body = JSON.stringify({ content });
-  const opts = {
-    hostname: "discord.com",
-    path: `/api/v10/channels/${CHANNEL_ID}/messages`,
-    method: "POST",
-    headers: {
-      "Authorization": `Bot ${token}`,
-      "Content-Type": "application/json",
-      "Content-Length": Buffer.byteLength(body),
-    },
-  };
-  const req = https.request(opts, (res) => {
-    console.log("Discord response:", res.statusCode);
+  return new Promise((resolve) => {
+    const token = getToken();
+    if (!token) {
+      console.log("No token, skipping Discord notify");
+      resolve();
+      return;
+    }
+
+    const body = JSON.stringify({ content });
+    const opts = {
+      hostname: "discord.com",
+      path: `/api/v10/channels/${CHANNEL_ID}/messages`,
+      method: "POST",
+      headers: {
+        Authorization: `Bot ${token}`,
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(body),
+      },
+    };
+    const req = https.request(opts, (res) => {
+      console.log("Discord response:", res.statusCode);
+      res.resume();
+      res.on("end", resolve);
+    });
+    req.on("error", (e) => {
+      console.error("Discord error:", e.message);
+      resolve();
+    });
+    req.write(body);
+    req.end();
   });
-  req.on("error", (e) => console.error("Discord error:", e.message));
-  req.write(body);
-  req.end();
 }
 
 function checkNginx() {
@@ -45,76 +83,168 @@ function checkNginx() {
       { encoding: "utf8", timeout: 15000, shell: "/bin/bash" }
     );
     const lines = out.trim().split("\n").filter(Boolean);
-    const real = lines.filter(l => !KNOWN_BENIGN_CHUNKS.some(c => l.includes(c)));
-    return real;
-  } catch (e) {
+    return lines.filter((line) => !isBenignNginxLine(line));
+  } catch {
     return [];
   }
 }
 
+function isBenignNginxLine(line) {
+  if (KNOWN_BENIGN_CHUNKS.some((chunk) => line.includes(chunk))) return true;
+
+  const match = line.trim().match(/^(\d+)\s+500\s+(\S+)/);
+  if (!match) return false;
+  const count = Number(match[1]);
+  const url = match[2] || "";
+
+  // Single stale Next chunk requests are common right after deploys and the
+  // browser error handler reloads once for this case.
+  return count <= 2 && /^\/_next\/static\/chunks\/.+\.(?:js|css)(?:\?.*)?$/i.test(url);
+}
+
 function checkPM2Errors() {
   try {
-    // Read the raw PM2 error log file — filter by timestamp (last 35 min)
     const cutoffMs = Date.now() - 35 * 60 * 1000;
     const logFile = "/root/.pm2/logs/mybingocard-error.log";
-    if (!logFile) return [];
-    const raw = require("fs").existsSync(logFile) ? require("fs").readFileSync(logFile, "utf8") : "";
-    const lines = raw.split("\n").filter(l => {
-      if (!l.includes("Event handlers") && !l.includes("FATAL") && !l.includes("⨯ Error:")) return false;
-      // PM2 log lines have timestamps like "2026-03-13T19:21:00: "
-      const m = l.match(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
-      if (!m) return false;
-      return new Date(m[1] + "Z").getTime() > cutoffMs;
+    const raw = fs.existsSync(logFile) ? fs.readFileSync(logFile, "utf8") : "";
+    const lines = raw.split("\n").filter((line) => {
+      if (!line.includes("Event handlers") && !line.includes("FATAL") && !line.includes("⨯ Error:")) return false;
+      const match = line.match(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
+      if (!match) return false;
+      return new Date(`${match[1]}Z`).getTime() > cutoffMs;
     });
-    const unique = [...new Set(lines.map(l => l.replace(/.*\|/, "").replace(/^\d{4}-.*?:\s*/, "").trim()))];
-    return unique.slice(0, 5);
-  } catch { return []; }
+    return [...new Set(lines.map((line) => line.replace(/.*\|/, "").replace(/^\d{4}-.*?:\s*/, "").trim()))].slice(0, 5);
+  } catch {
+    return [];
+  }
 }
 
-function checkMongo() {
+async function checkStructuredErrors(db) {
+  const since = new Date(Date.now() - 30 * 60 * 1000);
+  const groups = await db.collection("error_events").aggregate([
+    { $match: { createdAt: { $gte: since } } },
+    {
+      $group: {
+        _id: "$fingerprint",
+        count: { $sum: 1 },
+        sessions: { $addToSet: "$sessionId" },
+        latestAt: { $max: "$createdAt" },
+        latestMessage: { $last: "$message" },
+        latestPathname: { $last: "$pathname" },
+        latestPageUrl: { $last: "$pageUrl" },
+      },
+    },
+    {
+      $lookup: {
+        from: "error_fingerprints",
+        localField: "_id",
+        foreignField: "_id",
+        as: "fingerprints",
+      },
+    },
+    { $addFields: { group: { $first: "$fingerprints" } } },
+    {
+      $match: {
+        _id: { $type: "string", $ne: "" },
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        count: 1,
+        latestAt: 1,
+        latestMessage: 1,
+        latestPathname: 1,
+        latestPageUrl: 1,
+        severity: "$group.severity",
+        status: { $ifNull: ["$group.status", "open"] },
+        totalCount: "$group.totalCount",
+        latestBuildId: "$group.latestBuildId",
+        sessionCount: {
+          $size: {
+            $filter: {
+              input: "$sessions",
+              as: "sessionId",
+              cond: { $and: [{ $ne: ["$$sessionId", null] }, { $ne: ["$$sessionId", ""] }] },
+            },
+          },
+        },
+      },
+    },
+    { $match: UNRESOLVED_STATUS_FILTER },
+    { $sort: { severity: 1, count: -1, latestAt: -1 } },
+    { $limit: 8 },
+  ]).toArray();
+
+  return groups.filter((group) => {
+    if (group.severity === "high") return group.count >= 1;
+    if (group.severity === "medium") return group.count >= 2 || group.sessionCount >= 2;
+    return group.count >= 5 && group.sessionCount >= 2;
+  });
+}
+
+async function checkLegacyActivityErrors(db) {
+  const since = new Date(Date.now() - 30 * 60 * 1000);
+  return db.collection("activity_events").countDocuments({
+    createdAt: { $gte: since },
+    event: { $in: ["api_error", "card_save_error", "auth_error"] },
+  });
+}
+
+function formatStructuredError(group) {
+  const page = group.latestPageUrl || group.latestPathname || "unknown page";
+  return `• ${group.severity || "low"}/${group.status || "open"} ${group._id}: ${group.count} events, ${group.sessionCount} sessions\n  ${page}\n  ${group.latestMessage || "No message"}`;
+}
+
+async function main() {
+  loadEnvFile(path.join(APP_DIR, ".env.local"));
+  const nginx5xx = checkNginx();
+  const pm2Errors = checkPM2Errors();
+  const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/mybingocard";
+  const mongo = new MongoClient(mongoUri, { serverSelectionTimeoutMS: 5000 });
+  const issues = [];
+
   try {
-    const out = execSync(
-      `mongosh mongodb://localhost:27017/mybingocard --quiet --eval "
-        const since = new Date(Date.now()-1800000);
-        const errs = db.activity_events.find({createdAt:{\\$gte:since},event:{\\$in:['api_error','card_save_error','auth_error']}}).limit(10).toArray();
-        print(JSON.stringify(errs.length));
-      "`,
-      { encoding: "utf8", timeout: 15000, shell: "/bin/bash" }
-    );
-    const count = parseInt(out.trim()) || 0;
-    return count;
-  } catch { return 0; }
+    await mongo.connect();
+    const db = mongo.db("mybingocard");
+    const [structuredErrors, legacyErrors] = await Promise.all([
+      checkStructuredErrors(db),
+      checkLegacyActivityErrors(db),
+    ]);
+
+    if (nginx5xx.length > 0) {
+      issues.push(`Nginx 5xx errors:\n\`\`\`\n${nginx5xx.slice(0, 10).join("\n")}\n\`\`\``);
+    }
+
+    const credErrors = pm2Errors.filter((line) => line.includes("CredentialsSignin")).length;
+    const otherErrors = pm2Errors.filter((line) => !line.includes("CredentialsSignin"));
+    if (otherErrors.length > 0) {
+      issues.push(`PM2 errors:\n\`\`\`\n${otherErrors.slice(0, 3).join("\n")}\n\`\`\``);
+    }
+    if (credErrors > 10) {
+      issues.push(`High login failure count: ${credErrors} CredentialsSignin errors`);
+    }
+
+    if (structuredErrors.length > 0) {
+      issues.push(`Structured error_events in last 30 min:\n${structuredErrors.map(formatStructuredError).join("\n")}`);
+    }
+    if (legacyErrors > 0) {
+      issues.push(`Legacy activity error events in last 30 min: ${legacyErrors}`);
+    }
+  } finally {
+    await mongo.close().catch(() => {});
+  }
+
+  if (issues.length > 0) {
+    const msg = `MyBingoCard Error Monitor Alert (${new Date().toLocaleTimeString("en-US", { timeZone: "America/Phoenix" })} MST)\n\n${issues.join("\n\n")}\n\nReport: \`npm run errors:recent -- --hours 2\``;
+    console.log("Alerting Discord:", msg);
+    await discordPost(msg);
+  } else {
+    console.log("All clear —", new Date().toISOString());
+  }
 }
 
-// Run checks
-const nginx5xx = checkNginx();
-const pm2Errors = checkPM2Errors();
-const mongoErrors = checkMongo();
-
-const issues = [];
-
-if (nginx5xx.length > 0) {
-  issues.push(`🔴 **Nginx 5xx errors:**\n\`\`\`\n${nginx5xx.slice(0,10).join("\n")}\n\`\`\``);
-}
-
-// Only alert on auth errors if >5 (small number = bot attempts, normal)
-const credErrors = pm2Errors.filter(l => l.includes("CredentialsSignin")).length;
-const otherErrors = pm2Errors.filter(l => !l.includes("CredentialsSignin"));
-if (otherErrors.length > 0) {
-  issues.push(`🔴 **PM2 errors:**\n\`\`\`\n${otherErrors.slice(0,3).join("\n")}\n\`\`\``);
-}
-if (credErrors > 10) {
-  issues.push(`⚠️ **High login failure count:** ${credErrors} CredentialsSignin errors (possible brute force)`);
-}
-
-if (mongoErrors > 0) {
-  issues.push(`⚠️ **App errors in DB:** ${mongoErrors} error events in last 30 min`);
-}
-
-if (issues.length > 0) {
-  const msg = `⚠️ **mybingocard.com — Error Monitor Alert** (${new Date().toLocaleTimeString("en-US", {timeZone:"America/Phoenix"})} MST)\n\n${issues.join("\n\n")}`;
-  console.log("Alerting Discord:", msg);
-  discordPost(msg);
-} else {
-  console.log("All clear —", new Date().toISOString());
-}
+main().catch((error) => {
+  console.error("Error monitor failed:", error.message || error);
+  process.exitCode = 1;
+});

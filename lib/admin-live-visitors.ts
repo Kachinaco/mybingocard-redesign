@@ -165,13 +165,37 @@ function serializeVisitor(visitor: RawVisitorSummary, activeSince: Date): AdminV
   };
 }
 
-async function getProjectedVisitors(db: ReturnType<MongoClient["db"]>, since: Date, activeSince: Date): Promise<AdminVisitorSummary[]> {
+function visitorFilter(options?: {
+  anonymousId?: string | null;
+  sessionId?: string | null;
+  visitorKey?: string | null;
+}) {
+  const anonymousId = cleanString(options?.anonymousId, "");
+  const sessionId = cleanString(options?.sessionId, "");
+  const visitorKey = cleanString(options?.visitorKey, "");
+  const filters = [];
+
+  if (anonymousId) filters.push({ anonymousId });
+  if (sessionId) filters.push({ sessionId });
+  if (sessionId) filters.push({ sessionIds: sessionId });
+  if (visitorKey) filters.push({ visitorKey });
+
+  return filters.length ? { $or: filters } : {};
+}
+
+async function getProjectedVisitors(
+  db: ReturnType<MongoClient["db"]>,
+  since: Date,
+  activeSince: Date,
+  options?: { anonymousId?: string | null; sessionId?: string | null; visitorKey?: string | null }
+): Promise<AdminVisitorSummary[]> {
   const docs = await db
     .collection("live_visitors")
     .find({
       domain: DOMAIN,
       lastSeenAt: { $gte: since },
       ...HUMAN_TRAFFIC_FILTER,
+      ...visitorFilter(options),
     })
     .sort({ lastSeenAt: -1 })
     .toArray();
@@ -208,11 +232,31 @@ async function getProjectedVisitors(db: ReturnType<MongoClient["db"]>, since: Da
   );
 }
 
-async function getRawVisitors(db: ReturnType<MongoClient["db"]>, since: Date, activeSince: Date): Promise<AdminVisitorSummary[]> {
+async function getRawVisitors(
+  db: ReturnType<MongoClient["db"]>,
+  since: Date,
+  activeSince: Date,
+  options?: { anonymousId?: string | null; sessionId?: string | null; visitorKey?: string | null }
+): Promise<AdminVisitorSummary[]> {
+  const anonymousId = cleanString(options?.anonymousId, "");
+  const sessionId = cleanString(options?.sessionId, "");
+  const visitorKey = cleanString(options?.visitorKey, "");
+  const identityClauses = [];
+  if (anonymousId) identityClauses.push({ anonymousId });
+  if (sessionId) identityClauses.push({ sessionId });
+  if (visitorKey) identityClauses.push({ anonymousId: visitorKey }, { sessionId: visitorKey });
+
   const visitors = await db
     .collection("events")
     .aggregate<RawVisitorSummary>([
-      { $match: { domain: DOMAIN, createdAt: { $gte: since }, ...HUMAN_TRAFFIC_FILTER } },
+      {
+        $match: {
+          domain: DOMAIN,
+          createdAt: { $gte: since },
+          ...HUMAN_TRAFFIC_FILTER,
+          ...(identityClauses.length ? { $or: identityClauses } : {}),
+        },
+      },
       { $sort: { createdAt: -1 } },
       {
         $addFields: {
@@ -374,10 +418,18 @@ export async function getAdminVisitorsData(options?: {
   liveWindowMinutes?: number;
   periodHours?: number;
   limit?: number;
+  anonymousId?: string | null;
+  sessionId?: string | null;
+  visitorKey?: string | null;
 }): Promise<AdminVisitorsData> {
   const liveWindowMinutes = clampNumber(options?.liveWindowMinutes, 5, 1, 60);
   const periodHours = clampNumber(options?.periodHours, 24, 1, 168);
   const limit = clampNumber(options?.limit, 100, 10, 250);
+  const filters = {
+    anonymousId: cleanString(options?.anonymousId, "") || null,
+    sessionId: cleanString(options?.sessionId, "") || null,
+    visitorKey: cleanString(options?.visitorKey, "") || null,
+  };
   const activeSince = new Date(Date.now() - liveWindowMinutes * 60 * 1000);
   const since = new Date(Date.now() - periodHours * 60 * 60 * 1000);
 
@@ -385,9 +437,22 @@ export async function getAdminVisitorsData(options?: {
   const db = client.db();
 
   const [projectedVisitors, rawVisitors, events24h] = await Promise.all([
-    getProjectedVisitors(db, since, activeSince),
-    getRawVisitors(db, since, activeSince),
-    db.collection("events").countDocuments({ domain: DOMAIN, createdAt: { $gte: since }, ...HUMAN_TRAFFIC_FILTER }),
+    getProjectedVisitors(db, since, activeSince, filters),
+    getRawVisitors(db, since, activeSince, filters),
+    db.collection("events").countDocuments({
+      domain: DOMAIN,
+      createdAt: { $gte: since },
+      ...HUMAN_TRAFFIC_FILTER,
+      ...(filters.anonymousId || filters.sessionId || filters.visitorKey
+        ? {
+            $or: [
+              ...(filters.anonymousId ? [{ anonymousId: filters.anonymousId }] : []),
+              ...(filters.sessionId ? [{ sessionId: filters.sessionId }] : []),
+              ...(filters.visitorKey ? [{ anonymousId: filters.visitorKey }, { sessionId: filters.visitorKey }] : []),
+            ],
+          }
+        : {}),
+    }),
   ]);
 
   const allVisitors = mergeVisitors(projectedVisitors, rawVisitors);
@@ -415,6 +480,7 @@ export async function getAdminVisitorsData(options?: {
     generatedAt: new Date().toISOString(),
     liveWindowMinutes,
     periodHours,
+    filters,
     stats,
     activeVisitors,
     visitors,

@@ -14,6 +14,13 @@ describe("debugging and alerting guardrails", () => {
   const appErrorSource = readSource("app/error.tsx");
   const nextConfigSource = readSource("next.config.ts");
   const instrumentationSource = readSource("instrumentation.ts");
+  const adminVisitorsPageSource = readSource("app/admin/visitors/page.tsx");
+  const adminVisitorsRouteSource = readSource("app/api/admin/visitors/route.ts");
+  const errorMonitorSource = readSource("scripts/error-monitor.cjs");
+  const errorReportSource = readSource("scripts/error-report.cjs");
+  const sourceMapResolverSource = readSource("lib/source-map-resolver.ts");
+  const proxySource = readSource("proxy.ts");
+  const packageSource = readSource("package.json");
 
   test("client errors include build id, fingerprint, context, and breadcrumbs", () => {
     expect(errorCaptureSource).toContain("NEXT_PUBLIC_APP_BUILD_ID");
@@ -43,6 +50,9 @@ describe("debugging and alerting guardrails", () => {
     expect(errorRouteSource).toContain("notifyClientErrorSpike");
     expect(errorRouteSource).toContain("client_error_captured");
     expect(errorRouteSource).toContain("isCrawlerUserAgent");
+    expect(errorRouteSource).toContain("maybeNotifyClientErrorCaptured");
+    expect(errorRouteSource).toContain("CAPTURE_ALERT_COOLDOWN_MS");
+    expect(errorRouteSource).toContain("recentSessions >= 2");
   });
 
   test("Discord and admin surfaces expose grouped error debugging", () => {
@@ -60,6 +70,10 @@ describe("debugging and alerting guardrails", () => {
     expect(adminErrorsPageSource).toContain("Runtime Errors");
     expect(adminErrorsPageSource).toContain("latestBreadcrumbs");
     expect(adminErrorsPageSource).toContain("Selected Fingerprint");
+    expect(adminErrorsPageSource).toContain("updateErrorFingerprintStatus");
+    expect(adminErrorsPageSource).toContain("Open Visitor Timeline");
+    expect(adminErrorsPageSource).toContain("Current Build Events");
+    expect(adminErrorsPageSource).toContain("Since Deploy");
   });
 
   test("React route errors are reported through the same pipeline", () => {
@@ -72,7 +86,43 @@ describe("debugging and alerting guardrails", () => {
   test("build ids are stable per build without exposing public source maps", () => {
     expect(nextConfigSource).toContain("NEXT_PUBLIC_APP_BUILD_ID");
     expect(nextConfigSource).toContain("generateBuildId");
-    expect(nextConfigSource).toContain("productionBrowserSourceMaps: false");
+    expect(nextConfigSource).toContain("privateBrowserSourceMaps");
+    expect(nextConfigSource).toContain("productionBrowserSourceMaps: privateBrowserSourceMaps");
+    expect(proxySource).toContain('pathname.endsWith(".map")');
+    expect(proxySource).toContain("Not found");
+    expect(proxySource).toContain('"/((?!_next/image|uploads|favicon).*)"');
+  });
+
+  test("source maps are resolved server-side for stored error stacks", () => {
+    expect(sourceMapResolverSource).toContain("@jridgewell/trace-mapping");
+    expect(sourceMapResolverSource).toContain("originalPositionFor");
+    expect(sourceMapResolverSource).toContain("sourceContentFor");
+    expect(errorRouteSource).toContain("symbolicateStack");
+    expect(errorRouteSource).toContain("symbolicatedStack");
+    expect(errorRouteSource).toContain("sourceMappedFrames");
+    expect(adminErrorsPageSource).toContain("latestSymbolicatedStack");
+    expect(adminErrorsPageSource).toContain("Top source-mapped frame");
+  });
+
+  test("scheduled and on-demand scanners use structured error events", () => {
+    expect(packageSource).toContain('"errors:recent": "node scripts/error-report.cjs"');
+    expect(packageSource).toContain('"errors:monitor": "node scripts/error-monitor.cjs"');
+    expect(errorMonitorSource).toContain("checkStructuredErrors");
+    expect(errorMonitorSource).toContain('db.collection("error_events")');
+    expect(errorMonitorSource).toContain("UNRESOLVED_STATUS_FILTER");
+    expect(errorReportSource).toContain("MyBingoCard Error Incident Report");
+    expect(errorReportSource).toContain("--route");
+    expect(errorReportSource).toContain("--fingerprint");
+    expect(errorReportSource).toContain("newSinceDeployGroups");
+  });
+
+  test("error events link back to filtered visitor timelines", () => {
+    expect(adminErrorsPageSource).toContain("/admin/visitors?");
+    expect(adminErrorsPageSource).toContain("visitorHref");
+    expect(adminVisitorsPageSource).toContain("anonymousId");
+    expect(adminVisitorsPageSource).toContain("sessionId");
+    expect(adminVisitorsRouteSource).toContain("stringParam");
+    expect(adminVisitorsRouteSource).toContain("visitorKey");
   });
 
   test("server runtime errors post to the Discord errors channel", () => {

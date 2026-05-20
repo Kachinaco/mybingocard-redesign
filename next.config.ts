@@ -5,6 +5,7 @@ const appBuildId =
   process.env.BUILD_ID ||
   process.env.GIT_SHA ||
   `local-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}`;
+const privateBrowserSourceMaps = process.env.MBC_PRIVATE_BROWSER_SOURCE_MAPS !== "0";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -22,7 +23,9 @@ const nextConfig: NextConfig = {
     "@mongodb-js/saslprep",
   ],
   transpilePackages: ["@chenglou/pretext"],
-  productionBrowserSourceMaps: false,
+  // Source maps are generated for server-side/admin-only symbolication.
+  // Public access is blocked by middleware.ts and the production Nginx .map rule.
+  productionBrowserSourceMaps: privateBrowserSourceMaps,
 };
 
 export default nextConfig;

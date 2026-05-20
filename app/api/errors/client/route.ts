@@ -4,6 +4,7 @@ import type { Db } from "mongodb";
 import clientPromise from "@/lib/mongodb";
 import { notifyClientErrorCaptured, notifyClientErrorSpike } from "@/lib/discord";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { symbolicateStack } from "@/lib/source-map-resolver";
 
 // ---------------------------------------------------------------------------
 // Simple in-memory rate limiter: max 10 errors per IP per minute
@@ -13,6 +14,7 @@ const RATE_LIMIT = 10;
 const RATE_WINDOW_MS = 60_000;
 const ALERT_WINDOW_MS = 10 * 60_000;
 const ALERT_COOLDOWN_MS = 30 * 60_000;
+const CAPTURE_ALERT_COOLDOWN_MS = 15 * 60_000;
 
 function isRateLimited(ip: string): boolean {
   const now = Date.now();
@@ -197,8 +199,10 @@ async function maybeAlertForFingerprint(
   const recentSessions = recent?.sessionCount || 0;
   const shouldAlert =
     doc.severity === "high"
-      ? recentCount >= 2 || recentSessions >= 2
-      : recentCount >= 5 || recentSessions >= 3;
+      ? recentCount >= 3 || recentSessions >= 2
+      : doc.severity === "medium"
+        ? (recentCount >= 3 && recentSessions >= 2) || recentSessions >= 3
+        : recentCount >= 8 && recentSessions >= 3;
 
   if (!shouldAlert) return;
 
@@ -238,6 +242,58 @@ async function maybeAlertForFingerprint(
   }).catch(() => {});
 }
 
+async function maybeNotifyClientErrorCaptured(
+  db: Db,
+  doc: {
+    fingerprint: string;
+    type: string;
+    message: string;
+    source: string | null;
+    pageUrl: string | null;
+    buildId: string | null;
+    sessionId: string | null;
+    anonymousId: string | null;
+    severity: "low" | "medium" | "high";
+    breadcrumbs: Array<{ type?: string; message?: string; timestamp?: string }>;
+  },
+  totalCount: number
+) {
+  const shouldNotify = doc.severity === "high" || (doc.severity === "medium" && totalCount === 1);
+  if (!shouldNotify) return;
+
+  const cooldownBefore = new Date(Date.now() - CAPTURE_ALERT_COOLDOWN_MS);
+  const claimed = await db.collection<{ _id: string }>("error_fingerprints").findOneAndUpdate(
+    {
+      _id: doc.fingerprint,
+      $or: [
+        { lastCapturedNotificationAt: { $exists: false } },
+        { lastCapturedNotificationAt: { $lt: cooldownBefore } },
+      ],
+    },
+    {
+      $set: {
+        lastCapturedNotificationAt: new Date(),
+      },
+    },
+    { returnDocument: "after" }
+  );
+
+  if (!claimed) return;
+
+  notifyClientErrorCaptured({
+    fingerprint: doc.fingerprint,
+    type: doc.type,
+    message: doc.message,
+    pageUrl: doc.pageUrl,
+    source: doc.source,
+    buildId: doc.buildId,
+    sessionId: doc.sessionId,
+    anonymousId: doc.anonymousId,
+    severity: doc.severity,
+    breadcrumbs: doc.breadcrumbs,
+  }).catch(() => {});
+}
+
 // ---------------------------------------------------------------------------
 // POST /api/errors/client
 // ---------------------------------------------------------------------------
@@ -258,6 +314,7 @@ export async function POST(req: NextRequest) {
 
     const reqCtx = getRequestActivityContext(req);
     const sanitizedStack = body.stack ? sanitizeStack(String(body.stack)) : null;
+    const symbolicated = symbolicateStack(sanitizedStack);
     const doc = {
       type: clampString(body.type, 50) || "unknown",
       message: clampString(body.message, 500) || "No message",
@@ -265,6 +322,8 @@ export async function POST(req: NextRequest) {
       lineno: typeof body.lineno === "number" ? body.lineno : null,
       colno: typeof body.colno === "number" ? body.colno : null,
       stack: sanitizedStack,
+      symbolicatedStack: symbolicated.stack,
+      sourceMappedFrames: symbolicated.frames,
       pageUrl: clampString(body.pageUrl, 1000) || null,
       pathname: pathnameFromPageUrl(clampString(body.pageUrl, 1000)),
       userAgent: clampString(body.userAgent, 500) || req.headers.get("user-agent")?.slice(0, 500) || null,
@@ -294,7 +353,7 @@ export async function POST(req: NextRequest) {
     const db = client.db("mybingocard");
     await db.collection("error_events").insertOne(storedDoc);
 
-    const groupUpdate = await db.collection<{ _id: string; totalCount?: number }>("error_fingerprints").findOneAndUpdate(
+    const groupUpdate = await db.collection<{ _id: string; totalCount?: number; status?: string }>("error_fingerprints").findOneAndUpdate(
       { _id: fingerprint },
       {
         $setOnInsert: {
@@ -306,6 +365,8 @@ export async function POST(req: NextRequest) {
           message: doc.message,
           source: doc.source,
           latestStack: doc.stack,
+          latestSymbolicatedStack: doc.symbolicatedStack,
+          latestSourceMappedFrames: doc.sourceMappedFrames,
           latestPageUrl: doc.pageUrl,
           latestPathname: doc.pathname,
           latestUserAgent: doc.userAgent,
@@ -329,6 +390,28 @@ export async function POST(req: NextRequest) {
       { upsert: true, returnDocument: "after" }
     );
 
+    const totalCount = groupUpdate?.totalCount || 1;
+    if (groupUpdate?.status === "fixed") {
+      await db.collection("error_fingerprints").updateOne(
+        { _id: fingerprint, status: "fixed" } as any,
+        {
+          $set: {
+            status: "open",
+            regressedAt: doc.createdAt,
+            updatedAt: doc.createdAt,
+          },
+          $push: {
+            statusHistory: {
+              status: "open",
+              updatedAt: doc.createdAt,
+              updatedBy: "error-monitor",
+              reason: "fixed fingerprint recurred",
+            },
+          },
+        } as any
+      );
+    }
+
     trackActivity({
       event: "client_error_captured",
       source: "client",
@@ -350,7 +433,7 @@ export async function POST(req: NextRequest) {
       },
     }).catch(() => {});
 
-    notifyClientErrorCaptured({
+    await maybeNotifyClientErrorCaptured(db, {
       fingerprint,
       type: doc.type,
       message: doc.message,
@@ -361,7 +444,7 @@ export async function POST(req: NextRequest) {
       anonymousId: doc.anonymousId,
       severity,
       breadcrumbs: doc.breadcrumbs as Array<{ type?: string; message?: string; timestamp?: string }>,
-    }).catch(() => {});
+    }, totalCount);
 
     await maybeAlertForFingerprint(db, {
       fingerprint,
@@ -372,7 +455,7 @@ export async function POST(req: NextRequest) {
       buildId: doc.buildId,
       severity,
       breadcrumbs: doc.breadcrumbs as Array<{ type?: string; message?: string; timestamp?: string }>,
-    }, groupUpdate?.totalCount || 1);
+    }, totalCount);
 
     return ok();
   } catch (error) {

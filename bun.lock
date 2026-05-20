@@ -8,6 +8,7 @@
         "@anthropic-ai/sdk": "^0.78.0",
         "@auth/mongodb-adapter": "^3.11.2",
         "@chenglou/pretext": "^0.0.6",
+        "@jridgewell/trace-mapping": "^0.3.31",
         "@stripe/react-stripe-js": "^6.0.0",
         "@stripe/stripe-js": "^9.0.0",
         "@types/better-sqlite3": "^7.6.13",
