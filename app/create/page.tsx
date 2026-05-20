@@ -1395,7 +1395,7 @@ function CreateCardContent() {
 
   return (
     <>
-    <div className="min-h-screen bg-[#f2f2f7] selection:bg-blue-100 selection:text-blue-900">
+    <div className="notranslate min-h-screen bg-[#f2f2f7] selection:bg-blue-100 selection:text-blue-900" translate="no">
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50">
         <div className="container mx-auto px-3 sm:px-4 lg:px-8 h-14 flex items-center justify-between gap-2">
@@ -2587,7 +2587,7 @@ function CreateCardContent() {
 export default function CreateCardPage() {
   return (
     <Suspense fallback={(
-      <div className="min-h-screen bg-[#f2f2f7] text-slate-900">
+      <div className="notranslate min-h-screen bg-[#f2f2f7] text-slate-900" translate="no">
         <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center px-6 py-16">
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#007AFF]">MyBingoCard Editor</p>
           <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">Create Bingo Cards Online</h1>

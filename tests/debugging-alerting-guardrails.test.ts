@@ -19,6 +19,9 @@ describe("debugging and alerting guardrails", () => {
   const errorMonitorSource = readSource("scripts/error-monitor.cjs");
   const errorReportSource = readSource("scripts/error-report.cjs");
   const sourceMapResolverSource = readSource("lib/source-map-resolver.ts");
+  const createLayoutSource = readSource("app/create/layout.tsx");
+  const createPageSource = readSource("app/create/page.tsx");
+  const aiGenerateSource = readSource("components/AiGenerateSection.tsx");
   const proxySource = readSource("proxy.ts");
   const packageSource = readSource("package.json");
 
@@ -98,10 +101,22 @@ describe("debugging and alerting guardrails", () => {
     expect(sourceMapResolverSource).toContain("originalPositionFor");
     expect(sourceMapResolverSource).toContain("sourceContentFor");
     expect(errorRouteSource).toContain("symbolicateStack");
+    expect(errorRouteSource).toContain("const rawStack =");
+    expect(errorRouteSource).toContain("symbolicateStack(rawStack)");
+    expect(errorRouteSource).toContain("sanitizeStack(rawStack)");
+    expect(errorRouteSource).toContain("(?<!:)\\b\\d{6,}\\b(?!:)");
     expect(errorRouteSource).toContain("symbolicatedStack");
     expect(errorRouteSource).toContain("sourceMappedFrames");
     expect(adminErrorsPageSource).toContain("latestSymbolicatedStack");
     expect(adminErrorsPageSource).toContain("Top source-mapped frame");
+  });
+
+  test("create editor opts out of browser translation on dynamic React surfaces", () => {
+    expect(createLayoutSource).toContain('google: "notranslate"');
+    expect(createPageSource).toContain('className="notranslate min-h-screen');
+    expect(createPageSource).toContain('translate="no"');
+    expect(aiGenerateSource).toContain('className="notranslate bg-white');
+    expect(aiGenerateSource).toContain('translate="no"');
   });
 
   test("scheduled and on-demand scanners use structured error events", () => {

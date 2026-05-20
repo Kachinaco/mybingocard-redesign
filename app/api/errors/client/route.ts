@@ -48,13 +48,13 @@ function getIp(req: NextRequest): string {
   return req.headers.get("x-real-ip") || "unknown";
 }
 
-/** Strip email-like patterns and long numeric sequences from stack traces */
-function sanitizeStack(raw: string): string {
-  let s = raw.slice(0, 2000);
+/** Strip email-like patterns and long non-stack numeric sequences from stack traces */
+function sanitizeStack(raw: string, maxLen = 2000): string {
+  let s = raw.slice(0, maxLen);
   // Remove email-like patterns
   s = s.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[EMAIL]");
-  // Remove long digit sequences (phone, CC, SSN, etc.)
-  s = s.replace(/\b\d{6,}\b/g, "[DIGITS]");
+  // Remove long digit sequences (phone, CC, SSN, etc.) without destroying JS stack :line:column coordinates.
+  s = s.replace(/(?<!:)\b\d{6,}\b(?!:)/g, "[DIGITS]");
   return s;
 }
 
@@ -313,8 +313,10 @@ export async function POST(req: NextRequest) {
     }
 
     const reqCtx = getRequestActivityContext(req);
-    const sanitizedStack = body.stack ? sanitizeStack(String(body.stack)) : null;
-    const symbolicated = symbolicateStack(sanitizedStack);
+    const rawStack = body.stack ? String(body.stack).slice(0, 4000) : null;
+    const symbolicated = symbolicateStack(rawStack);
+    const sanitizedStack = rawStack ? sanitizeStack(rawStack) : null;
+    const sanitizedSymbolicatedStack = symbolicated.stack ? sanitizeStack(symbolicated.stack, 6000) : null;
     const doc = {
       type: clampString(body.type, 50) || "unknown",
       message: clampString(body.message, 500) || "No message",
@@ -322,7 +324,7 @@ export async function POST(req: NextRequest) {
       lineno: typeof body.lineno === "number" ? body.lineno : null,
       colno: typeof body.colno === "number" ? body.colno : null,
       stack: sanitizedStack,
-      symbolicatedStack: symbolicated.stack,
+      symbolicatedStack: sanitizedSymbolicatedStack,
       sourceMappedFrames: symbolicated.frames,
       pageUrl: clampString(body.pageUrl, 1000) || null,
       pathname: pathnameFromPageUrl(clampString(body.pageUrl, 1000)),

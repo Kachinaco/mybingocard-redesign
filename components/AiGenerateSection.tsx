@@ -176,7 +176,7 @@ export default function AiGenerateSection({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4">
+    <div className="notranslate bg-white rounded-2xl shadow-sm border border-gray-200 p-4" translate="no">
       <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
         <span className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-sm">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
