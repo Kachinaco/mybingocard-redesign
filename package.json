@@ -10,6 +10,12 @@
     "lint": "next build",
     "errors:recent": "node scripts/error-report.cjs",
     "errors:monitor": "node scripts/error-monitor.cjs",
+    "ops:monitor": "node scripts/ops-regression-monitor.cjs",
+    "ops:install-cron": "node scripts/install-ops-cron.cjs",
+    "prod:deploy": "node scripts/production-deploy.cjs",
+    "prod:verify": "node scripts/production-deploy.cjs --verify-only",
+    "traffic:truth": "node scripts/traffic-truth-report.cjs",
+    "traffic:recover": "node scripts/traffic-recovery-submit.cjs",
     "abandoned-checkout-reminders": "node scripts/abandoned-checkout-reminders.cjs",
     "card-comeback-reminders": "node scripts/card-comeback-reminders.cjs"
   },
