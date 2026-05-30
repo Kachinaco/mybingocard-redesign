@@ -9,6 +9,10 @@ import { symbolicateStack } from "@/lib/source-map-resolver";
 const ALERT_WINDOW_MS = 10 * 60_000;
 const ALERT_COOLDOWN_MS = 30 * 60_000;
 const CAPTURE_ALERT_COOLDOWN_MS = 15 * 60_000;
+const THIRD_PARTY_TRACKING_RESOURCE_PATTERNS = [
+  /^https:\/\/s\.pinimg\.com\//i,
+  /^https:\/\/ct\.pinterest\.com\//i,
+];
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -118,6 +122,107 @@ function getSeverity(doc: { type: string; pageUrl: string | null; source: string
   if (isCriticalPath || (isPaymentResource && isCheckoutLoadFailure)) return "high" as const;
   if (doc.type === "resource_load_failed") return "low" as const;
   return "medium" as const;
+}
+
+function extractFirstHttpUrl(value: string | null) {
+  if (!value) return null;
+  const match = value.match(/https?:\/\/[^\s"'<>\\)]+/i);
+  return match?.[0]?.replace(/[),.]+$/, "") || null;
+}
+
+function getResourceUrl(doc: { source: string | null; message: string }) {
+  if (doc.source && /^https?:\/\//i.test(doc.source)) return doc.source;
+  return extractFirstHttpUrl(doc.message);
+}
+
+function getResourceHost(resourceUrl: string | null) {
+  if (!resourceUrl) return null;
+  try {
+    return new URL(resourceUrl).hostname;
+  } catch {
+    return null;
+  }
+}
+
+function isThirdPartyTrackingResourceFailure(doc: { type: string; source: string | null; message: string }) {
+  if (doc.type !== "resource_load_failed") return false;
+  return [doc.source || "", doc.message || ""].some((candidate) =>
+    THIRD_PARTY_TRACKING_RESOURCE_PATTERNS.some((pattern) => pattern.test(candidate))
+  );
+}
+
+function getErrorSignal(doc: { type: string; pageUrl: string | null; source: string | null; message: string }) {
+  const resourceUrl = getResourceUrl(doc);
+  const resourceHost = getResourceHost(resourceUrl);
+  if (isThirdPartyTrackingResourceFailure(doc)) {
+    return {
+      severity: "low" as const,
+      errorCategory: "third_party_tracking_failure" as const,
+      impactArea: "marketing_tracking" as const,
+      alertSuppressed: true,
+      suppressionReason: "third-party marketing pixel resource failure",
+      resourceHost,
+    };
+  }
+
+  return {
+    severity: getSeverity(doc),
+    errorCategory: "app_error" as const,
+    impactArea: "application" as const,
+    alertSuppressed: false,
+    suppressionReason: null,
+    resourceHost,
+  };
+}
+
+async function recordMarketingTrackingFailure(
+  db: Db,
+  doc: {
+    fingerprint: string;
+    message: string;
+    source: string | null;
+    pageUrl: string | null;
+    pathname: string | null;
+    userAgent: string | null;
+    sessionId: string | null;
+    anonymousId: string | null;
+    buildId: string | null;
+    createdAt: Date;
+  },
+  signal: {
+    resourceHost: string | null;
+    suppressionReason: string | null;
+  }
+) {
+  await db.collection<{ _id: string }>("marketing_tracking_failures").updateOne(
+    { _id: doc.fingerprint },
+    {
+      $setOnInsert: {
+        firstSeenAt: doc.createdAt,
+      },
+      $set: {
+        message: doc.message,
+        source: doc.source,
+        resourceHost: signal.resourceHost,
+        latestPageUrl: doc.pageUrl,
+        latestPathname: doc.pathname,
+        latestUserAgent: doc.userAgent,
+        latestBuildId: doc.buildId,
+        suppressionReason: signal.suppressionReason,
+        lastSeenAt: doc.createdAt,
+        updatedAt: doc.createdAt,
+      },
+      $inc: { totalCount: 1 },
+      $addToSet: {
+        pageUrls: doc.pageUrl,
+        pathnames: doc.pathname,
+        buildIds: doc.buildId,
+        anonymousIds: doc.anonymousId,
+        sessionIds: doc.sessionId,
+      },
+    },
+    { upsert: true }
+  );
 }
 
 async function maybeAlertForFingerprint(
@@ -310,12 +415,16 @@ export async function POST(req: NextRequest) {
     const fingerprint =
       clampString(body.fingerprint, 120) ||
       buildServerFingerprint(doc);
-    const severity = getSeverity(doc);
-    const storedDoc = { ...doc, fingerprint, severity };
+    const signal = getErrorSignal(doc);
+    const severity = signal.severity;
+    const storedDoc = { ...doc, fingerprint, ...signal };
 
 	    const client = await clientPromise;
     const db = client.db("mybingocard");
     await db.collection("error_events").insertOne(storedDoc);
+    if (signal.errorCategory === "third_party_tracking_failure") {
+      await recordMarketingTrackingFailure(db, { ...doc, fingerprint }, signal);
+    }
 
     const groupUpdate = await db.collection<{ _id: string; totalCount?: number; status?: string }>("error_fingerprints").findOneAndUpdate(
       { _id: fingerprint },
@@ -338,6 +447,11 @@ export async function POST(req: NextRequest) {
           latestRelease: doc.release,
           latestBreadcrumbs: doc.breadcrumbs,
           severity,
+          errorCategory: signal.errorCategory,
+          impactArea: signal.impactArea,
+          alertSuppressed: signal.alertSuppressed,
+          suppressionReason: signal.suppressionReason,
+          resourceHost: signal.resourceHost,
           lastSeenAt: doc.createdAt,
           updatedAt: doc.createdAt,
         },
@@ -377,7 +491,7 @@ export async function POST(req: NextRequest) {
     }
 
     trackActivity({
-      event: "client_error_captured",
+      event: signal.alertSuppressed ? "client_marketing_tracking_failure" : "client_error_captured",
       source: "client",
       userId: doc.userId,
       email: doc.email,
@@ -394,32 +508,38 @@ export async function POST(req: NextRequest) {
         message: doc.message,
         buildId: doc.buildId,
         source: doc.source,
+        errorCategory: signal.errorCategory,
+        impactArea: signal.impactArea,
+        alertSuppressed: signal.alertSuppressed,
+        resourceHost: signal.resourceHost,
       },
     }).catch(() => {});
 
-    await maybeNotifyClientErrorCaptured(db, {
-      fingerprint,
-      type: doc.type,
-      message: doc.message,
-      pageUrl: doc.pageUrl,
-      source: doc.source,
-      buildId: doc.buildId,
-      sessionId: doc.sessionId,
-      anonymousId: doc.anonymousId,
-      severity,
-      breadcrumbs: doc.breadcrumbs as Array<{ type?: string; message?: string; timestamp?: string }>,
-    }, totalCount);
+    if (!signal.alertSuppressed) {
+      await maybeNotifyClientErrorCaptured(db, {
+        fingerprint,
+        type: doc.type,
+        message: doc.message,
+        pageUrl: doc.pageUrl,
+        source: doc.source,
+        buildId: doc.buildId,
+        sessionId: doc.sessionId,
+        anonymousId: doc.anonymousId,
+        severity,
+        breadcrumbs: doc.breadcrumbs as Array<{ type?: string; message?: string; timestamp?: string }>,
+      }, totalCount);
 
-    await maybeAlertForFingerprint(db, {
-      fingerprint,
-      type: doc.type,
-      message: doc.message,
-      source: doc.source,
-      pageUrl: doc.pageUrl,
-      buildId: doc.buildId,
-      severity,
-      breadcrumbs: doc.breadcrumbs as Array<{ type?: string; message?: string; timestamp?: string }>,
-    }, totalCount);
+      await maybeAlertForFingerprint(db, {
+        fingerprint,
+        type: doc.type,
+        message: doc.message,
+        source: doc.source,
+        pageUrl: doc.pageUrl,
+        buildId: doc.buildId,
+        severity,
+        breadcrumbs: doc.breadcrumbs as Array<{ type?: string; message?: string; timestamp?: string }>,
+      }, totalCount);
+    }
 
     return ok();
   } catch (error) {

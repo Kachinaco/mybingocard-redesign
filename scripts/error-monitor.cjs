@@ -122,7 +122,7 @@ function checkPM2Errors() {
 async function checkStructuredErrors(db) {
   const since = new Date(Date.now() - 30 * 60 * 1000);
   const groups = await db.collection("error_events").aggregate([
-    { $match: { createdAt: { $gte: since } } },
+    { $match: { createdAt: { $gte: since }, alertSuppressed: { $ne: true } } },
     {
       $group: {
         _id: "$fingerprint",
@@ -146,6 +146,7 @@ async function checkStructuredErrors(db) {
     {
       $match: {
         _id: { $type: "string", $ne: "" },
+        "group.alertSuppressed": { $ne: true },
       },
     },
     {

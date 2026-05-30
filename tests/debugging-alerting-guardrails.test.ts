@@ -41,6 +41,14 @@ describe("debugging and alerting guardrails", () => {
     expect(errorCaptureSource).toContain("THIRD_PARTY_RESOURCE_PATTERNS");
     expect(errorCaptureSource).toContain("s\\.pinimg\\.com");
     expect(errorCaptureSource).toContain("ct\\.pinterest\\.com");
+    expect(errorRouteSource).toContain("THIRD_PARTY_TRACKING_RESOURCE_PATTERNS");
+    expect(errorRouteSource).toContain("third_party_tracking_failure");
+    expect(errorRouteSource).toContain("marketing_tracking_failures");
+    expect(errorRouteSource).toContain("alertSuppressed");
+    expect(errorRouteSource).toContain('event: signal.alertSuppressed ? "client_marketing_tracking_failure" : "client_error_captured"');
+    expect(errorRouteSource).toContain("if (!signal.alertSuppressed)");
+    expect(errorMonitorSource).toContain("alertSuppressed: { $ne: true }");
+    expect(adminErrorsPageSource).toContain("no discord");
   });
 
   test("activity tracking feeds breadcrumbs without blocking product flows", () => {

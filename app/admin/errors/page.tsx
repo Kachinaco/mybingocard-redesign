@@ -33,6 +33,10 @@ type ErrorFingerprintDoc = {
     data?: Record<string, unknown>;
   }>;
   severity?: "low" | "medium" | "high";
+  errorCategory?: string;
+  impactArea?: string;
+  alertSuppressed?: boolean;
+  resourceHost?: string | null;
   status?: ErrorStatus | string;
   statusUpdatedAt?: Date;
   statusUpdatedBy?: string | null;
@@ -60,6 +64,10 @@ type ErrorEventDoc = {
   anonymousId?: string | null;
   symbolicatedStack?: string | null;
   sourceMappedFrames?: ErrorFingerprintDoc["latestSourceMappedFrames"];
+  errorCategory?: string;
+  impactArea?: string;
+  alertSuppressed?: boolean;
+  resourceHost?: string | null;
   createdAt?: Date;
   breadcrumbs?: ErrorFingerprintDoc["latestBreadcrumbs"];
 };
@@ -369,6 +377,16 @@ export default async function AdminErrorsPage({
                         <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-slate-500">
                           {group.type || "unknown"}
                         </span>
+                        {group.impactArea ? (
+                          <span className="rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-sky-700">
+                            {group.impactArea}
+                          </span>
+                        ) : null}
+                        {group.alertSuppressed ? (
+                          <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
+                            no discord
+                          </span>
+                        ) : null}
                         <span className="break-all font-mono text-xs text-slate-400">{group._id}</span>
                       </div>
                       <p className="mt-2 break-words text-sm font-bold text-slate-900">{shortText(group.message, "No message", 240)}</p>
@@ -444,6 +462,14 @@ export default async function AdminErrorsPage({
                     <p className="font-bold text-slate-500">Last Alert</p>
                     <p className="mt-1 text-slate-700">{fmtDate(selectedGroup.lastAlertedAt)}</p>
                   </div>
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="font-bold text-slate-500">Impact</p>
+                    <p className="mt-1 break-all text-slate-700">{selectedGroup.impactArea || "application"}</p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 p-3">
+                    <p className="font-bold text-slate-500">Resource Host</p>
+                    <p className="mt-1 break-all text-slate-700">{selectedGroup.resourceHost || "n/a"}</p>
+                  </div>
                 </div>
 
                 {firstMappedFrame ? (
@@ -503,7 +529,9 @@ export default async function AdminErrorsPage({
                       <p className="shrink-0 text-xs text-slate-400">{fmtDate(event.createdAt)}</p>
                     </div>
                     <p className="mt-1 break-all text-xs text-slate-500">{event.pageUrl || event.pathname || "No page"}</p>
-                    <p className="mt-1 text-xs text-slate-400">Build: {event.buildId || "unknown"} · Session: {event.sessionId || "unknown"}</p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      Build: {event.buildId || "unknown"} · Session: {event.sessionId || "unknown"} · Impact: {event.impactArea || "application"}
+                    </p>
                     {event.sourceMappedFrames?.[0] ? (
                       <p className="mt-1 break-all text-xs text-emerald-700">
                         Mapped: {event.sourceMappedFrames[0].source}:{event.sourceMappedFrames[0].line}
