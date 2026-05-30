@@ -75,6 +75,19 @@ const CAMPAIGNS = [
   },
 ];
 
+const VERIFICATION_REMINDERS = [
+  {
+    id: 'verify_email_24h',
+    dayAfterSignup: 1,
+    subject: 'Verify your email to finish setting up MyBingoCard',
+  },
+  {
+    id: 'verify_email_72h',
+    dayAfterSignup: 3,
+    subject: 'Final reminder: verify your MyBingoCard email',
+  },
+];
+
 // ── Email Templates ──
 
 function escapeHtml(s) {
@@ -135,6 +148,154 @@ function trackClickUrl(url, linkId) {
 function btn(label, url, linkId) {
   const trackedUrl = trackClickUrl(url, linkId || 'cta');
   return `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:16px 0;"><tr><td style="border-radius:10px;background:#4f46e5;"><a href="${escapeHtml(trackedUrl)}" style="display:inline-block;padding:12px 24px;font-size:15px;font-weight:700;color:#fff;text-decoration:none;border-radius:10px;">${escapeHtml(label)}</a></td></tr></table>`;
+}
+
+function directBtn(label, url) {
+  return `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:16px 0;"><tr><td style="border-radius:10px;background:#4f46e5;"><a href="${escapeHtml(url)}" style="display:inline-block;padding:12px 24px;font-size:15px;font-weight:700;color:#fff;text-decoration:none;border-radius:10px;">${escapeHtml(label)}</a></td></tr></table>`;
+}
+
+function buildVerificationReminderEmail(user, verifyUrl, reminder) {
+  const name = firstName(user.name);
+  const isFinal = reminder.id === 'verify_email_72h';
+  const body = `
+    <p style="margin:0 0 14px;font-size:16px;line-height:1.65;color:#334155;">Hey ${escapeHtml(name)},</p>
+    <p style="margin:0 0 14px;font-size:15px;line-height:1.65;color:#334155;">${isFinal ? 'This is the last reminder to verify your email address so your MyBingoCard account is ready when you need it.' : 'Please verify your email address to finish setting up your MyBingoCard account.'}</p>
+    <div style="margin:18px 0;padding:16px;border:1px solid #c7d2fe;background:#eef2ff;border-radius:12px;">
+      <p style="margin:0;font-size:14px;color:#312e81;line-height:1.6;">Verification helps keep your saved cards tied to the right account and lets you sign back in reliably.</p>
+    </div>
+    ${directBtn('Verify Email Address', verifyUrl)}
+    <p style="margin:14px 0 0;font-size:14px;color:#64748b;">This link expires in 24 hours. If you didn't sign up, you can ignore this email.</p>
+  `;
+  return {
+    html: wrap('Verify your email', 'One quick step to activate your MyBingoCard account.', body),
+    text: `Hey ${name},
+
+Please verify your email address to finish setting up your MyBingoCard account.
+
+Verify your email: ${verifyUrl}
+
+This link expires in 24 hours. If you didn't sign up, you can ignore this email.`,
+  };
+}
+
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function isVerifiedUser(user) {
+  return Boolean(user.emailVerified);
+}
+
+function isInternalOrGuestUser(user) {
+  const email = normalizeEmail(user.email);
+  const customerType = String(user.customerType || '').trim().toLowerCase();
+  return (
+    customerType === 'admin' ||
+    customerType === 'test' ||
+    customerType === 'guest' ||
+    email.includes('@guest.mybingocard.local') ||
+    email.startsWith('guest-')
+  );
+}
+
+async function createVerificationUrl(db, user, callbackUrl = '/create') {
+  await db.collection('email_verification_tokens').deleteMany({
+    userId: user._id.toString(),
+  });
+
+  const verifyToken = crypto.randomBytes(32).toString('hex');
+  const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  await db.collection('email_verification_tokens').insertOne({
+    userId: user._id.toString(),
+    email: user.email,
+    token: verifyToken,
+    expires,
+    createdAt: new Date(),
+  });
+
+  return `${appUrl}/api/auth/verify-email?token=${verifyToken}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
+}
+
+async function sendVerificationReminder(db, user, reminder, now) {
+  if (isVerifiedUser(user)) return false;
+  if (user.signupMethod && user.signupMethod !== 'credentials') return false;
+
+  const daysSinceSignup = Math.floor((now - new Date(user.createdAt)) / 86400000);
+  if (daysSinceSignup < reminder.dayAfterSignup || daysSinceSignup > reminder.dayAfterSignup + 1) {
+    return false;
+  }
+
+  const alreadySent = await db.collection('drip_log').findOne({
+    userId: user._id,
+    campaignId: reminder.id,
+    status: 'sent',
+  });
+  if (alreadySent) return false;
+
+  const verifyUrl = await createVerificationUrl(db, user);
+  const email = buildVerificationReminderEmail(user, verifyUrl, reminder);
+  const emailId = crypto.randomUUID();
+  const html = email.html
+    .replace(/%%EMAIL%%/g, encodeURIComponent(user.email))
+    .replace(/%%CAMPAIGN%%/g, reminder.id)
+    .replace(/%%EMAIL_ID%%/g, encodeURIComponent(emailId));
+
+  await new Promise(resolve => setTimeout(resolve, 3000));
+
+  const sendResult = await transporter.sendMail({
+    from: fromAddress,
+    to: user.email,
+    subject: reminder.subject,
+    html,
+    text: email.text,
+    headers: {
+      'X-MyBingoCard-Email-ID': emailId,
+      'X-MyBingoCard-Campaign': reminder.id,
+    },
+  });
+
+  await db.collection('drip_log').updateOne(
+    { userId: user._id, campaignId: reminder.id },
+    {
+      $set: {
+        email: user.email,
+        subject: reminder.subject,
+        sentAt: now,
+        status: 'sent',
+        messageId: sendResult.messageId || null,
+        emailId,
+        error: null,
+      },
+      $setOnInsert: { userId: user._id, campaignId: reminder.id },
+    },
+    { upsert: true }
+  );
+
+  await db.collection('email_messages').updateOne(
+    { emailId },
+    {
+      $set: {
+        messageId: sendResult.messageId || null,
+        email: user.email,
+        campaignId: reminder.id,
+        subject: reminder.subject,
+        sentAt: now,
+        updatedAt: now,
+      },
+      $setOnInsert: {
+        emailId,
+        status: 'sent',
+        openCount: 0,
+        humanOpenCount: 0,
+        botOpenCount: 0,
+        clickCount: 0,
+        createdAt: now,
+      },
+    },
+    { upsert: true }
+  );
+
+  return true;
 }
 
 function buildCreateFirstCardEmail(user) {
@@ -284,13 +445,49 @@ async function run() {
       .find({ marketingEmails: false })
       .project({ email: 1 })
       .toArray();
-    const unsubEmails = new Set(unsubs.map(u => u.email));
+    const unsubEmails = new Set(unsubs.map(u => normalizeEmail(u.email)));
 
     const users = await db.collection('users').find({}).toArray();
 
     for (const user of users) {
       if (!user.email) continue;
-      if (unsubEmails.has(user.email.toLowerCase().trim())) {
+      if (unsubEmails.has(normalizeEmail(user.email))) {
+        skippedCount++;
+        continue;
+      }
+
+      if (isInternalOrGuestUser(user)) {
+        skippedCount++;
+        continue;
+      }
+
+      if (!isVerifiedUser(user)) {
+        for (const reminder of VERIFICATION_REMINDERS) {
+          try {
+            const sent = await sendVerificationReminder(db, user, reminder, now);
+            if (sent) {
+              sentCount++;
+              console.log(`[SENT] ${reminder.id} -> ${user.email}`);
+            }
+          } catch (err) {
+            console.error(`[FAIL] ${reminder.id} -> ${user.email}: ${err.message}`);
+            await db.collection('drip_log').updateOne(
+              { userId: user._id, campaignId: reminder.id },
+              {
+                $set: {
+                  email: user.email,
+                  subject: reminder.subject,
+                  sentAt: now,
+                  status: 'failed',
+                  error: err.message,
+                  emailId: crypto.randomUUID(),
+                },
+                $setOnInsert: { userId: user._id, campaignId: reminder.id },
+              },
+              { upsert: true }
+            ).catch(() => {});
+          }
+        }
         skippedCount++;
         continue;
       }
@@ -335,6 +532,7 @@ async function run() {
         const alreadySent = await db.collection('drip_log').findOne({
           userId: user._id,
           campaignId: campaign.id,
+          status: 'sent',
         });
         if (alreadySent) continue;
 
@@ -367,17 +565,23 @@ async function run() {
             },
           });
 
-          // Log it
-          await db.collection('drip_log').insertOne({
-            userId: user._id,
-            campaignId: campaign.id,
-            email: user.email,
-            subject,
-            sentAt: now,
-            status: 'sent',
-            messageId: sendResult.messageId || null,
-            emailId,
-          });
+          // Log it. Failed rows are updated in-place so transient SMTP errors can retry later.
+          await db.collection('drip_log').updateOne(
+            { userId: user._id, campaignId: campaign.id },
+            {
+              $set: {
+                email: user.email,
+                subject,
+                sentAt: now,
+                status: 'sent',
+                messageId: sendResult.messageId || null,
+                emailId,
+                error: null,
+              },
+              $setOnInsert: { userId: user._id, campaignId: campaign.id },
+            },
+            { upsert: true }
+          );
 
           await db.collection('email_messages').updateOne(
             { emailId },
@@ -436,18 +640,23 @@ async function run() {
           console.log(`[SENT] ${campaign.id} -> ${user.email} (${sendResult.messageId})`);
         } catch (err) {
           console.error(`[FAIL] ${campaign.id} -> ${user.email}: ${err.message}`);
-          // Log the failure so we don't retry and can investigate
+          // Record failure without completing the campaign; a later run can retry it.
           try {
-            await db.collection('drip_log').insertOne({
-              userId: user._id,
-              campaignId: campaign.id,
-              email: user.email,
-              subject,
-              sentAt: now,
-              status: 'failed',
-              error: err.message,
-              emailId,
-            });
+            await db.collection('drip_log').updateOne(
+              { userId: user._id, campaignId: campaign.id },
+              {
+                $set: {
+                  email: user.email,
+                  subject,
+                  sentAt: now,
+                  status: 'failed',
+                  error: err.message,
+                  emailId,
+                },
+                $setOnInsert: { userId: user._id, campaignId: campaign.id },
+              },
+              { upsert: true }
+            );
           } catch (_) { /* ignore duplicate key on retry */ }
         }
       }
@@ -484,6 +693,8 @@ async function run() {
         reengage_inactive: '🔄 Re-engagement (Day 14)',
         upgrade_nudge: '⭐ Upgrade Nudge (Day 30)',
         winback_canceled: '🔙 Win-back Canceled (7d post-cancel)',
+        verify_email_24h: '✅ Verify Email (24h)',
+        verify_email_72h: '✅ Verify Email (72h)',
       };
 
       for (const [id, count] of Object.entries(campaignCounts)) {
