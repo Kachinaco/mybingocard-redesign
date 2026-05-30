@@ -104,6 +104,7 @@ function emptyDay() {
     status4xx: 0,
     status5xx: 0,
     chunkFailures: 0,
+    sourceMapFailures: 0,
     trackerFailures: 0,
     shareApi404s: 0,
     image401s: 0,
@@ -121,6 +122,14 @@ function isPagePath(pathname) {
   if (pathname.startsWith("/uploads/")) return false;
   if (pathname === "/favicon.ico" || pathname === "/robots.txt" || pathname === "/sitemap.xml") return false;
   return !/\.(?:js|css|png|jpe?g|gif|webp|svg|ico|json|txt|xml|map|woff2?|ttf|pdf)$/i.test(pathname);
+}
+
+function isNextChunkAsset(pathname) {
+  return pathname.includes("/_next/static/chunks/") && /\.(?:js|css)$/i.test(pathname);
+}
+
+function isNextSourceMap(pathname) {
+  return pathname.includes("/_next/static/chunks/") && /\.map$/i.test(pathname);
 }
 
 function referrerHost(referrer) {
@@ -223,13 +232,14 @@ function parseAccessLogs(range) {
         if (/pinterest|pinimg/i.test(referrer)) row.pinterestRefs += 1;
       }
 
-      if (pathname.includes("/_next/static/chunks/") && status >= 400) row.chunkFailures += 1;
+      if (isNextChunkAsset(pathname) && status >= 400) row.chunkFailures += 1;
+      if (isNextSourceMap(pathname) && status >= 400) row.sourceMapFailures += 1;
       if ((pathname === "/t/tracker.js" && status >= 400) || (pathname === "/t/api/track" && status >= 500)) row.trackerFailures += 1;
       if (pathname.startsWith("/api/cards/share/") && status === 404) row.shareApi404s += 1;
       if (pathname.startsWith("/api/images/") && status === 401) row.image401s += 1;
       if (pathname.startsWith("/cards/") && [401, 403, 500, 502].includes(status)) row.cardsRouteErrors += 1;
 
-      if (samples.length < 20 && (status >= 500 || pathname.includes("/_next/static/chunks/") && status >= 400)) {
+      if (samples.length < 20 && (status >= 500 || isNextChunkAsset(pathname) && status >= 400)) {
         samples.push(`${day} ${status} ${pathname}`);
       }
     }
@@ -388,12 +398,13 @@ async function gscAnalytics(range) {
     let lastError = null;
     for (const site of siteOptions) {
       try {
-        rows = await getSearchAnalytics(site, {
+        const result = await getSearchAnalytics(site, {
           startDate: range.startDay,
           endDate: range.today,
           dimensions: ["date"],
           rowLimit: 1000,
         });
+        rows = Array.isArray(result) ? result : (result?.rows || result?.data || []);
         lastError = null;
         break;
       } catch (error) {
@@ -502,6 +513,7 @@ function buildMarkdown(range, access, firstParty, central, gsc) {
   lines.push("## Source Detail");
   lines.push("");
   lines.push(`- Nginx requests: ${fmt(sum(range.days, access.byDay, "requests"))}; unique client+UA pairs: ${fmt(sum(range.days, access.byDay, "uniqueClients"))}`);
+  lines.push(`- Private source-map 404s: ${fmt(sum(range.days, access.byDay, "sourceMapFailures"))} (tracked separately from JS/CSS chunk delivery failures)`);
   lines.push(`- First-party events: ${firstParty.available ? `${fmt(sum(range.days, firstParty.byDay, "total"))} total, ${fmt(sum(range.days, firstParty.byDay, "engagements"))} engagements, ${fmt(sum(range.days, firstParty.byDay, "cards"))} card/game/share/print events, ${fmt(sum(range.days, firstParty.byDay, "signups"))} signups, ${fmt(sum(range.days, firstParty.byDay, "checkouts"))} checkout events` : "unavailable"}`);
   lines.push(`- Central analytics events: ${central.available ? `${fmt(sum(range.days, central.byDay, "events"))} total, ${fmt(sum(range.days, central.byDay, "reportableEvents"))} reportable, ${fmt(sum(range.days, central.byDay, "visitors"))} unique visitors` : "unavailable"}`);
   lines.push("");

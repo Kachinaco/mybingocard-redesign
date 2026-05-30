@@ -37,6 +37,7 @@ describe("production ops guardrails", () => {
     expect(monitorSource).toContain("/cards/");
     expect(monitorSource).toContain("/t/tracker.js");
     expect(monitorSource).toContain("/_next/static/chunks/");
+    expect(monitorSource).toContain("isNextChunkAsset");
     expect(monitorSource).toContain("COOLDOWN_MINUTES");
     expect(monitorSource).toContain("--discord");
     expect(monitorSource).not.toContain("lineRe.match");
@@ -50,6 +51,8 @@ describe("production ops guardrails", () => {
     expect(truthSource).toContain("traffic-truth");
     expect(truthSource).toContain("humanishPageRequests");
     expect(truthSource).toContain("reportablePageViews");
+    expect(truthSource).toContain("sourceMapFailures");
+    expect(truthSource).toContain("result?.rows");
   });
 
   test("traffic recovery submits indexing signals without publishing social messages", () => {

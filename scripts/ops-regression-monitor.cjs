@@ -119,8 +119,12 @@ function countUnique(rows, keyFn) {
   return new Set(rows.map(keyFn).filter(Boolean)).size;
 }
 
+function isNextChunkAsset(pathname) {
+  return pathname.includes("/_next/static/chunks/") && /\.(?:js|css)$/i.test(pathname);
+}
+
 function summarizeAccessRows(rows) {
-  const chunkFailures = rows.filter((row) => row.pathname.includes("/_next/static/chunks/") && row.status >= 400);
+  const chunkFailures = rows.filter((row) => isNextChunkAsset(row.pathname) && row.status >= 400);
   const trackerScriptFailures = rows.filter((row) => row.pathname === "/t/tracker.js" && row.status >= 400);
   const trackerApiFailures = rows.filter((row) => row.pathname === "/t/api/track" && row.status >= 500);
   const shareApi404s = rows.filter((row) => row.pathname.startsWith("/api/cards/share/") && row.status === 404);
