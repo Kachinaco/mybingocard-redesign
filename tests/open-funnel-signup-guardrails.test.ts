@@ -99,6 +99,7 @@ describe("open-funnel signup guardrails", () => {
   test("public proxy requests do not invoke Auth.js unless auth is needed", () => {
     expect(proxySource).toContain("const authenticatedProxy = auth(");
     expect(proxySource).toContain("function shouldRunAuth");
+    expect(proxySource).toContain('"/cards"');
     expect(proxySource).toContain("return authenticatedProxy(req, event);");
     expect(proxySource).not.toContain("export default auth(");
   });

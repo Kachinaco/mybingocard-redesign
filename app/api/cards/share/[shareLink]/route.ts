@@ -8,10 +8,17 @@ import { PLANS } from "@/lib/stripe/config";
 import { notifySharedCardViewed } from "@/lib/discord";
 import { readJsonObject } from "@/lib/request-json";
 
+type SharedCardRecord = {
+  card: any;
+  collectionName: "cards" | "bingocards";
+  rawId: ObjectId;
+};
+
 async function getOwnerFlags(db: any, userId: string) {
   try {
+    if (!userId) return { shuffleEnabled: false, adFree: false };
     const owner = await db.collection("users").findOne(
-      { _id: new ObjectId(userId) },
+      { _id: new ObjectId(String(userId)) },
       { projection: { planType: 1 } }
     );
     const plan = PLANS[(owner?.planType as keyof typeof PLANS) || "FREE"] || PLANS.FREE;
@@ -24,6 +31,49 @@ async function getOwnerFlags(db: any, userId: string) {
   }
 }
 
+function normalizeLegacySharedCard(card: any, shareLink: string) {
+  const numericSize = Number(card.size);
+  const size = numericSize === 3 || numericSize === 4 || numericSize === 5 ? numericSize : 5;
+  const cells = Array.isArray(card.cells)
+    ? card.cells.map((cell: any) => (typeof cell === "string" ? cell : cell?.text || ""))
+    : [];
+
+  return {
+    ...card,
+    shareLink,
+    cells,
+    size,
+    rows: Number(card.rows) || size,
+    columns: Number(card.columns) || size,
+    bingoVariant: card.bingoVariant || "custom",
+    freeSpace: !!card.freeSpace,
+    style: card.style || {},
+    isPublic: card.isPublic !== false,
+    views: Number(card.views) || 0,
+  };
+}
+
+async function findSharedCard(db: any, shareLink: string): Promise<SharedCardRecord | null> {
+  const card = await db.collection("cards").findOne({ shareLink });
+  if (card) {
+    return { card, collectionName: "cards", rawId: card._id };
+  }
+
+  const legacyCard = await db.collection("bingocards").findOne({ shareId: shareLink });
+  if (!legacyCard) return null;
+
+  return {
+    card: normalizeLegacySharedCard(legacyCard, shareLink),
+    collectionName: "bingocards",
+    rawId: legacyCard._id,
+  };
+}
+
+function publicCardPayload(card: any) {
+  const { sharePassword: _sharePassword, userId: _userId, ...safeCard } = card;
+  return safeCard;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ shareLink: string }> }
@@ -32,9 +82,10 @@ export async function GET(
     const { shareLink } = await params;
     const client = await clientPromise;
     const db = client.db("mybingocard");
-    const card = await db.collection("cards").findOne({ shareLink });
+    const sharedCard = await findSharedCard(db, shareLink);
+    const card = sharedCard?.card;
 
-    if (!card || !card.isPublic) {
+    if (!sharedCard || !card.isPublic) {
       return NextResponse.json(
         { error: "Card not found or not shared" },
         { status: 404 }
@@ -58,8 +109,8 @@ export async function GET(
     }
 
     // Increment views for non-password-protected cards
-    await db.collection("cards").updateOne(
-      { _id: card._id },
+    await db.collection(sharedCard.collectionName).updateOne(
+      { _id: sharedCard.rawId },
       { $inc: { views: 1 } }
     );
 
@@ -99,7 +150,7 @@ export async function GET(
       newViewCount
     ).catch(() => {});
 
-    return NextResponse.json({ card, ...flags });
+    return NextResponse.json({ card: publicCardPayload(card), ...flags });
   } catch (error) {
     console.error("Get shared card error:", error);
     return NextResponse.json(
@@ -124,9 +175,10 @@ export async function POST(
 
     const client = await clientPromise;
     const db = client.db("mybingocard");
-    const card = await db.collection("cards").findOne({ shareLink });
+    const sharedCard = await findSharedCard(db, shareLink);
+    const card = sharedCard?.card;
 
-    if (!card || !card.isPublic) {
+    if (!sharedCard || !card.isPublic) {
       return NextResponse.json(
         { error: "Card not found" },
         { status: 404 }
@@ -146,7 +198,7 @@ export async function POST(
 
     // If no password set, return the card directly
     if (!card.sharePassword) {
-      return NextResponse.json({ card, ...flags });
+      return NextResponse.json({ card: publicCardPayload(card), ...flags });
     }
 
     const valid = await bcrypt.compare(password, card.sharePassword);
@@ -177,8 +229,8 @@ export async function POST(
     }
 
     // Increment views on successful password verification
-    await db.collection("cards").updateOne(
-      { _id: card._id },
+    await db.collection(sharedCard.collectionName).updateOne(
+      { _id: sharedCard.rawId },
       { $inc: { views: 1 } }
     );
 
@@ -203,7 +255,7 @@ export async function POST(
       },
     }).catch(() => {});
 
-    return NextResponse.json({ card, ...flags });
+    return NextResponse.json({ card: publicCardPayload(card), ...flags });
   } catch (error) {
     console.error("Verify share password error:", error);
     return NextResponse.json(

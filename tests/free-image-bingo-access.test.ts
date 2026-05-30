@@ -9,6 +9,7 @@ const imageDbSource = readSource("lib/db/images.ts");
 const createPageSource = readSource("app/create/page.tsx");
 const imagePickerSource = readSource("components/ImagePickerModal.tsx");
 const uploadRouteSource = readSource("app/api/images/upload/route.ts");
+const imageServeRouteSource = readSource("app/api/images/[imageId]/route.ts");
 
 describe("free image bingo access", () => {
   test("allows free plans to create image bingo cells with a bounded upload limit", () => {
@@ -34,5 +35,12 @@ describe("free image bingo access", () => {
   test("the upload API uses the shared image upload limits", () => {
     expect(uploadRouteSource).toContain("const limits = getUploadLimits(isPremium)");
     expect(uploadRouteSource).toContain("currentCount >= limits.maxUploads");
+  });
+
+  test("public shared image cards can render their uploaded images", () => {
+    expect(imageServeRouteSource).toContain("function isImageReferencedByPublicCard");
+    expect(imageServeRouteSource).toContain("isPublic: true");
+    expect(imageServeRouteSource).toContain("cells: { $elemMatch: { $regex: imageIdPattern } }");
+    expect(imageServeRouteSource).toContain("publicSharedImage");
   });
 });

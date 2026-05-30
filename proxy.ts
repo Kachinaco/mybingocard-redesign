@@ -12,7 +12,7 @@ import {
   normalizeNativeCallback,
 } from "./lib/native-oauth-pending";
 
-const PROTECTED_PATHS = ["/dashboard", "/settings", "/game/host"];
+const PROTECTED_PATHS = ["/dashboard", "/settings", "/game/host", "/cards"];
 const SERVER_ACTION_PATHS = ["/admin/errors"];
 const VALID_ACTION = /^[0-9a-f]{40,}$/i;
 const BLOCK_MALFORMED_SERVER_ACTION =

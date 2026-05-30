@@ -16,4 +16,12 @@ describe("share password guardrails", () => {
     const bcryptIndex = shareRouteSource.indexOf("bcrypt.compare(password, card.sharePassword)");
     expect(bcryptIndex).toBeGreaterThan(-1);
   });
+
+  test("keeps old public share links playable without exposing password hashes", () => {
+    expect(shareRouteSource).toContain("function normalizeLegacySharedCard");
+    expect(shareRouteSource).toContain('collection("bingocards").findOne({ shareId: shareLink })');
+    expect(shareRouteSource).toContain("collectionName: \"bingocards\"");
+    expect(shareRouteSource).toContain("function publicCardPayload");
+    expect(shareRouteSource).not.toContain("NextResponse.json({ card, ...flags })");
+  });
 });
