@@ -87,6 +87,69 @@ function navigatorString(key: "userAgent" | "language"): string {
   return safeString(() => navigator[key]);
 }
 
+type BotSignalDocument = Document & {
+  __webdriver_evaluate?: unknown;
+  __selenium_evaluate?: unknown;
+  __webdriver_script_fn?: unknown;
+  __fxdriver_evaluate?: unknown;
+};
+
+type BotSignalWindow = Window & {
+  __webdriver_script_fn?: unknown;
+  __nightmare?: unknown;
+  callPhantom?: unknown;
+  _phantom?: unknown;
+  phantom?: unknown;
+};
+
+function getBotSignals(
+  metrics: Metrics,
+  startedAt: number,
+  firstInteractionAt: number | null
+): Record<string, unknown> {
+  const ua = navigatorString("userAgent").toLowerCase();
+  const platform = safeString(() => navigator.platform).toLowerCase();
+  const outerWidth = safeNumber(() => window.outerWidth);
+  const outerHeight = safeNumber(() => window.outerHeight);
+  const innerWidth = safeNumber(() => window.innerWidth);
+  const innerHeight = safeNumber(() => window.innerHeight);
+
+  const platformMismatch =
+    ((ua.includes("iphone") || ua.includes("ipad")) && !/(iphone|ipad|mac)/.test(platform)) ||
+    (ua.includes("android") && !/(linux|android)/.test(platform)) ||
+    (ua.includes("windows") && !platform.includes("win"));
+
+  return {
+    webdriver: safeBoolean(() => (navigator as Navigator & { webdriver?: boolean }).webdriver),
+    automationGlobals: safeBoolean(() => {
+      const doc = document as BotSignalDocument;
+      const win = window as BotSignalWindow;
+      return Boolean(
+        doc.__webdriver_evaluate ||
+          doc.__selenium_evaluate ||
+          doc.__webdriver_script_fn ||
+          doc.__fxdriver_evaluate ||
+          win.__webdriver_script_fn ||
+          win.__nightmare ||
+          win.callPhantom ||
+          win._phantom ||
+          win.phantom
+      );
+    }),
+    platformMismatch,
+    outerEqualsInner: outerWidth > 0 && outerHeight > 0 && outerWidth === innerWidth && outerHeight === innerHeight,
+    plugins: safeNumber(() => navigator.plugins.length),
+    languages: safeNumber(() => navigator.languages.length),
+    hardwareConcurrency: safeNumber(() => navigator.hardwareConcurrency),
+    maxTouchPoints: safeNumber(() => navigator.maxTouchPoints),
+    hasScroll: metrics.maxScrollDepth > 0,
+    hasClicks: metrics.clicks > 0,
+    mouseMovements: metrics.mouseMovements,
+    formInteractions: metrics.formInteractions,
+    timeToFirstInteraction: firstInteractionAt ? Math.max(0, firstInteractionAt - startedAt) : 0,
+  };
+}
+
 function asElement(target: EventTarget | null): Element | null {
   try {
     return target instanceof Element ? target : null;
@@ -385,14 +448,21 @@ export default function VisitorTracker() {
     maxScrollDepth: 0,
   });
   const startedAtRef = useRef<number>(Date.now());
+  const firstInteractionAtRef = useRef<number | null>(null);
   const recentClicksRef = useRef<ClickRecord[]>([]);
   const tabHiddenAtRef = useRef<number | null>(null);
   const fieldStatesRef = useRef<Map<Element, FormFieldState>>(new Map());
 
   useEffect(() => {
     const sessionId = getSessionId();
+    const recordInteraction = () => {
+      if (firstInteractionAtRef.current === null) {
+        firstInteractionAtRef.current = Date.now();
+      }
+    };
 
     const onClick = (event: MouseEvent) => {
+      recordInteraction();
       metricsRef.current.clicks += 1;
 
       const target = asElement(event.target);
@@ -458,6 +528,7 @@ export default function VisitorTracker() {
     let mouseThrottle = false;
     const onMouseMove = () => {
       if (!mouseThrottle) {
+        recordInteraction();
         metricsRef.current.mouseMovements += 1;
         mouseThrottle = true;
         window.setTimeout(() => {
@@ -467,6 +538,7 @@ export default function VisitorTracker() {
     };
 
     const onInput = (event: Event) => {
+      recordInteraction();
       const target = asElement(event.target);
       if (target?.closest("form")) {
         metricsRef.current.formInteractions += 1;
@@ -474,6 +546,7 @@ export default function VisitorTracker() {
     };
 
     const onFieldFocus = (event: FocusEvent) => {
+      recordInteraction();
       const target = asElement(event.target);
       if (!target?.matches(FORM_FIELD_SELECTOR)) return;
 
@@ -534,6 +607,7 @@ export default function VisitorTracker() {
       const depth = max > 0 ? Math.round((top / max) * 100) : 0;
       if (depth > metricsRef.current.maxScrollDepth) {
         metricsRef.current.maxScrollDepth = depth;
+        if (depth > 0) recordInteraction();
       }
     };
 
@@ -585,6 +659,7 @@ export default function VisitorTracker() {
       formInteractions: 0,
       maxScrollDepth: 0,
     };
+    firstInteractionAtRef.current = null;
 
     const send = (reason: string, extra?: Record<string, unknown>) => {
       const page = currentPage();
@@ -614,6 +689,7 @@ export default function VisitorTracker() {
         formInteractions: metricsRef.current.formInteractions,
         reason,
         timestamp: new Date().toISOString(),
+        botSignals: getBotSignals(metricsRef.current, startedAtRef.current, firstInteractionAtRef.current),
         ...extra,
       };
 

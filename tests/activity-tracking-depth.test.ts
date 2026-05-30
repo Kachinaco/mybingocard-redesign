@@ -30,6 +30,26 @@ describe("activity tracking depth", () => {
     expect(visitorTrackerSource).not.toContain("value: el.value");
   });
 
+  test("visitor tracking sends non-fingerprinting bot signals for human classification", () => {
+    expect(visitorTrackerSource).toContain("botSignals");
+    expect(visitorTrackerSource).toContain("getBotSignals");
+    expect(visitorTrackerSource).toContain("webdriver");
+    expect(visitorTrackerSource).toContain("automationGlobals");
+    expect(visitorTrackerSource).toContain("platformMismatch");
+    expect(visitorTrackerSource).toContain("outerEqualsInner");
+    expect(visitorTrackerSource).toContain("mouseMovements");
+    expect(visitorTrackerSource).toContain("hasClicks");
+    expect(visitorTrackerSource).toContain("hasScroll");
+    expect(visitorTrackerSource).toContain("timeToFirstInteraction");
+  });
+
+  test("visitor tracking avoids fingerprint probes", () => {
+    expect(visitorTrackerSource).not.toContain("getImageData");
+    expect(visitorTrackerSource).not.toContain("WEBGL_debug_renderer_info");
+    expect(visitorTrackerSource).not.toContain("getContext(\"webgl");
+    expect(visitorTrackerSource).not.toContain("getContext('webgl");
+  });
+
   test("activity metadata sanitizer redacts sensitive keys recursively", () => {
     const sanitized = sanitizeActivityMetadata({
       password: "secret",
