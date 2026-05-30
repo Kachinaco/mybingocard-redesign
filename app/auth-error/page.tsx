@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
+import { getBrowserStorageItem } from "@/lib/browser-storage";
 
 const errorMessages: Record<string, { title: string; message: string; action: string; href: string; showGoogle?: boolean }> = {
   Verification: {
@@ -51,12 +52,7 @@ function AuthErrorContent() {
     if (typeof window === "undefined") return false;
 
     const nativeHandler = (window as any).webkit?.messageHandlers?.mybingocardOAuth;
-    let nativeAppFlag = false;
-    try {
-      nativeAppFlag = window.localStorage.getItem("mybingocard-ios-app") === "1";
-    } catch {
-      nativeAppFlag = false;
-    }
+    const nativeAppFlag = getBrowserStorageItem("localStorage", "mybingocard-ios-app") === "1";
 
     if (searchParams.get("app") !== "1" && !nativeAppFlag && !nativeHandler) {
       return false;

@@ -22,6 +22,8 @@ const useSecureAuthCookies = authBaseUrl.startsWith("https://");
 const authCookiePrefix = useSecureAuthCookies ? "__Secure-" : "";
 const oauthCookieSameSite = useSecureAuthCookies ? "none" : "lax";
 const appleAuthConfigured = Boolean(process.env.AUTH_APPLE_ID && process.env.AUTH_APPLE_SECRET);
+const LOGIN_FAILURE_WINDOW_MS = 15 * 60 * 1000;
+const MAX_LOGIN_FAILURES = 20;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: MongoDBAdapter(clientPromise),
@@ -197,35 +199,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        // --- IP-based login rate limiting ---
-        try {
-          const client = await clientPromise;
-          const db = client.db("mybingocard");
-          const ip =
-            (request as Request & { headers?: Headers })?.headers?.get?.("x-forwarded-for")?.split(",")[0]?.trim() ||
-            (request as Request & { headers?: Headers })?.headers?.get?.("x-real-ip") ||
-            "unknown";
-
-          if (ip !== "unknown") {
-            const windowStart = new Date(Date.now() - 15 * 60 * 1000); // 15-minute window
-            const failures = await db.collection("login_attempts").countDocuments({
-              ip,
-              success: false,
-              createdAt: { $gte: windowStart },
-            });
-            if (failures >= 3) {
-              throw new Error("TOO_MANY_ATTEMPTS");
-            }
-          }
-        } catch (e: unknown) {
-          if ((e as Error).message === "TOO_MANY_ATTEMPTS") throw e;
-          // If rate-limit check fails for other reasons, allow through
-        }
-        // --- end rate limiting ---
-
         const user = await getUserByEmail(credentials.email as string);
 
-        // Record attempt result for rate limiting
+        // Record attempt result for diagnostics and throttle repeated failures.
+        const loginAttemptContext = {
+          ip: "unknown",
+          email: String(credentials.email).toLowerCase(),
+        };
+        let isThrottled = false;
         try {
           const client = await clientPromise;
           const db = client.db("mybingocard");
@@ -233,15 +214,40 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             (request as Request & { headers?: Headers })?.headers?.get?.("x-forwarded-for")?.split(",")[0]?.trim() ||
             (request as Request & { headers?: Headers })?.headers?.get?.("x-real-ip") ||
             "unknown";
-          const success = !!(user?.password && await bcrypt.compare(credentials.password as string, user.password) && user.emailVerified);
-          await db.collection("login_attempts").insertOne({
-            ip,
-            email: credentials.email,
-            success,
-            createdAt: new Date(),
+          loginAttemptContext.ip = ip;
+
+          const failureWindowStart = new Date(Date.now() - LOGIN_FAILURE_WINDOW_MS);
+          const recentFailures = await db.collection("login_attempts").countDocuments({
+            success: false,
+            createdAt: { $gte: failureWindowStart },
+            $or: [{ ip }, { email: loginAttemptContext.email }],
           });
+
+          if (recentFailures >= MAX_LOGIN_FAILURES) {
+            isThrottled = true;
+            await db.collection("login_attempts").insertOne({
+              ip,
+              email: loginAttemptContext.email,
+              success: false,
+              blocked: true,
+              reason: "too_many_attempts",
+              createdAt: new Date(),
+            });
+          } else {
+            const success = !!(user?.password && await bcrypt.compare(credentials.password as string, user.password));
+            await db.collection("login_attempts").insertOne({
+              ip,
+              email: loginAttemptContext.email,
+              success,
+              createdAt: new Date(),
+            });
+          }
           // TTL cleanup: keep only last 24h (index handles this)
         } catch { /* non-fatal */ }
+
+        if (isThrottled) {
+          return null;
+        }
 
         if (!user || !user.password) {
           return null;

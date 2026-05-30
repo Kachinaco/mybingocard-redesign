@@ -17,7 +17,7 @@ describe("native OAuth guardrails", () => {
     for (const source of [loginSource, signupSource, createSource, authErrorSource]) {
       expect(source).toContain("mybingocardOAuth");
       expect(source).toContain('searchParams.get("app")');
-      expect(source).toContain('localStorage.getItem("mybingocard-ios-app")');
+      expect(source).toContain('"mybingocard-ios-app"');
       expect(source).toContain('data-mybingocard-oauth-provider="google"');
       expect(source).toContain("/api/native/oauth/${provider}/start");
     }

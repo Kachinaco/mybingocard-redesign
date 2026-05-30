@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  browserStorageAvailable,
+  getBrowserStorageItem,
+  setBrowserStorageItem,
+} from "@/lib/browser-storage";
+
 declare global {
   interface Window {
     __mbcAddBreadcrumb?: (breadcrumb: {
@@ -27,19 +33,65 @@ export interface ClientActivityPayload {
 
 const SESSION_KEY = "tr_session_id";
 const ANON_KEY = "tr_anonymous_id";
+let memorySessionId: string | null = null;
+let memoryAnonymousId: string | null = null;
+
+function makeClientId(prefix: "sess" | "anon"): string {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function safeString(read: () => unknown, fallback = ""): string {
+  try {
+    const value = read();
+    return typeof value === "string" ? value : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function safeNumber(read: () => unknown, fallback: number | null = null): number | null {
+  try {
+    const value = read();
+    return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function safeBoolean(read: () => unknown, fallback = false): boolean {
+  try {
+    return Boolean(read());
+  } catch {
+    return fallback;
+  }
+}
+
+function safeArray(read: () => unknown): string[] {
+  try {
+    const value = read();
+    return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function currentPath(): string {
+  return safeString(() => `${window.location.pathname}${window.location.search}`);
+}
 
 export function getClientSessionId(): string | null {
   if (typeof window === "undefined") {
     return null;
   }
 
-  const existing = window.sessionStorage.getItem(SESSION_KEY);
+  const existing = getBrowserStorageItem("sessionStorage", SESSION_KEY);
   if (existing) {
     return existing;
   }
 
-  const value = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-  window.sessionStorage.setItem(SESSION_KEY, value);
+  const value = memorySessionId || makeClientId("sess");
+  memorySessionId = value;
+  setBrowserStorageItem("sessionStorage", SESSION_KEY, value);
   return value;
 }
 
@@ -48,27 +100,15 @@ export function getAnonymousId(): string | null {
     return null;
   }
 
-  const existing = window.localStorage.getItem(ANON_KEY);
+  const existing = getBrowserStorageItem("localStorage", ANON_KEY);
   if (existing) {
     return existing;
   }
 
-  const value = `anon_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-  window.localStorage.setItem(ANON_KEY, value);
+  const value = memoryAnonymousId || makeClientId("anon");
+  memoryAnonymousId = value;
+  setBrowserStorageItem("localStorage", ANON_KEY, value);
   return value;
-}
-
-function storageAvailable(storage: Storage | undefined): boolean {
-  if (!storage) return false;
-
-  try {
-    const key = "__tr_storage_test__";
-    storage.setItem(key, key);
-    storage.removeItem(key);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 export function getClientContext(): Record<string, unknown> {
@@ -76,71 +116,95 @@ export function getClientContext(): Record<string, unknown> {
     return {};
   }
 
-  const nav = typeof navigator !== "undefined" ? navigator : undefined;
-  const connection = nav && "connection" in nav ? (nav as Navigator & {
-    connection?: {
-      effectiveType?: string;
-      downlink?: number;
-      rtt?: number;
-      saveData?: boolean;
-    };
-  }).connection : undefined;
-  const visualViewport = window.visualViewport;
+  const nav = (() => {
+    try {
+      return typeof navigator !== "undefined" ? navigator : undefined;
+    } catch {
+      return undefined;
+    }
+  })();
+  const connection = (() => {
+    try {
+      return nav && "connection" in nav
+        ? (nav as Navigator & {
+            connection?: {
+              effectiveType?: string;
+              downlink?: number;
+              rtt?: number;
+              saveData?: boolean;
+            };
+          }).connection
+        : undefined;
+    } catch {
+      return undefined;
+    }
+  })();
+  const visualViewport = (() => {
+    try {
+      return window.visualViewport;
+    } catch {
+      return undefined;
+    }
+  })();
 
   return {
-    href: window.location.href,
-    origin: window.location.origin,
-    path: `${window.location.pathname}${window.location.search}`,
-    title: typeof document !== "undefined" ? document.title : "",
-    referrer: typeof document !== "undefined" ? document.referrer : "",
+    href: safeString(() => window.location.href),
+    origin: safeString(() => window.location.origin),
+    path: currentPath(),
+    title: safeString(() => document.title),
+    referrer: safeString(() => document.referrer),
     timestamp: new Date().toISOString(),
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    timezone: safeString(() => Intl.DateTimeFormat().resolvedOptions().timeZone),
     timezoneOffsetMinutes: new Date().getTimezoneOffset(),
-    language: nav?.language || "",
-    languages: nav?.languages ? Array.from(nav.languages) : [],
-    platform: nav?.platform || "",
-    cookieEnabled: Boolean(nav?.cookieEnabled),
-    doNotTrack: nav?.doNotTrack || "",
-    maxTouchPoints: nav?.maxTouchPoints || 0,
-    hardwareConcurrency: nav?.hardwareConcurrency || null,
-    deviceMemoryGb: "deviceMemory" in (nav || {}) ? (nav as Navigator & { deviceMemory?: number }).deviceMemory : null,
+    language: safeString(() => nav?.language),
+    languages: safeArray(() => nav?.languages ? Array.from(nav.languages) : []),
+    platform: safeString(() => nav?.platform),
+    cookieEnabled: safeBoolean(() => nav?.cookieEnabled),
+    doNotTrack: safeString(() => nav?.doNotTrack),
+    maxTouchPoints: safeNumber(() => nav?.maxTouchPoints, 0) || 0,
+    hardwareConcurrency: safeNumber(() => nav?.hardwareConcurrency),
+    deviceMemoryGb: safeNumber(() =>
+      nav && "deviceMemory" in nav
+        ? (nav as Navigator & { deviceMemory?: number }).deviceMemory
+        : null
+    ),
     connection: connection
       ? {
-          effectiveType: connection.effectiveType || "",
-          downlink: connection.downlink ?? null,
-          rtt: connection.rtt ?? null,
-          saveData: Boolean(connection.saveData),
+          effectiveType: safeString(() => connection.effectiveType),
+          downlink: safeNumber(() => connection.downlink),
+          rtt: safeNumber(() => connection.rtt),
+          saveData: safeBoolean(() => connection.saveData),
         }
       : null,
     viewport: {
-      width: window.innerWidth,
-      height: window.innerHeight,
-      visualWidth: visualViewport?.width ?? null,
-      visualHeight: visualViewport?.height ?? null,
-      scrollX: window.scrollX,
-      scrollY: window.scrollY,
-      devicePixelRatio: window.devicePixelRatio || 1,
+      width: safeNumber(() => window.innerWidth, 0) || 0,
+      height: safeNumber(() => window.innerHeight, 0) || 0,
+      visualWidth: safeNumber(() => visualViewport?.width),
+      visualHeight: safeNumber(() => visualViewport?.height),
+      scrollX: safeNumber(() => window.scrollX, 0) || 0,
+      scrollY: safeNumber(() => window.scrollY, 0) || 0,
+      devicePixelRatio: safeNumber(() => window.devicePixelRatio, 1) || 1,
     },
-    screen: typeof window.screen !== "undefined"
+    screen: safeBoolean(() => typeof window.screen !== "undefined")
       ? {
-          width: window.screen.width,
-          height: window.screen.height,
-          availWidth: window.screen.availWidth,
-          availHeight: window.screen.availHeight,
-          colorDepth: window.screen.colorDepth,
-          pixelDepth: window.screen.pixelDepth,
-          orientation: window.screen.orientation?.type || "",
+          width: safeNumber(() => window.screen.width, 0) || 0,
+          height: safeNumber(() => window.screen.height, 0) || 0,
+          availWidth: safeNumber(() => window.screen.availWidth, 0) || 0,
+          availHeight: safeNumber(() => window.screen.availHeight, 0) || 0,
+          colorDepth: safeNumber(() => window.screen.colorDepth, 0) || 0,
+          pixelDepth: safeNumber(() => window.screen.pixelDepth, 0) || 0,
+          orientation: safeString(() => window.screen.orientation?.type),
         }
       : null,
-    document: typeof document !== "undefined"
+    document: safeBoolean(() => typeof document !== "undefined")
       ? {
-          visibilityState: document.visibilityState,
-          hasFocus: document.hasFocus(),
+          visibilityState: safeString(() => document.visibilityState),
+          hasFocus: safeBoolean(() => document.hasFocus()),
         }
       : null,
     storage: {
-      localStorage: storageAvailable(window.localStorage),
-      sessionStorage: storageAvailable(window.sessionStorage),
+      localStorage: browserStorageAvailable("localStorage"),
+      sessionStorage: browserStorageAvailable("sessionStorage"),
     },
   };
 }
@@ -152,7 +216,7 @@ export function buildClientActivityPayload(
 ): ClientActivityPayload {
   return {
     event,
-    pathname: options?.pathname || (typeof window !== "undefined" ? `${window.location.pathname}${window.location.search}` : ""),
+    pathname: options?.pathname || (typeof window !== "undefined" ? currentPath() : ""),
     sessionId: options?.sessionId || getClientSessionId(),
     anonymousId: options?.anonymousId || getAnonymousId(),
     metadata: {
@@ -171,7 +235,13 @@ export function trackClientActivity(
     return;
   }
 
-  const builtPayload = buildClientActivityPayload(event, metadata, options);
+  let builtPayload: ClientActivityPayload;
+  try {
+    builtPayload = buildClientActivityPayload(event, metadata, options);
+  } catch {
+    return;
+  }
+
   try {
     window.__mbcAddBreadcrumb?.({
       type: "activity",
@@ -189,7 +259,16 @@ export function trackClientActivity(
     // Breadcrumbs are diagnostic only and must never block tracking.
   }
 
-  const payload = JSON.stringify(builtPayload);
+  let payload: string;
+  try {
+    payload = JSON.stringify(builtPayload);
+  } catch {
+    try {
+      payload = JSON.stringify(buildClientActivityPayload(event, {}, options));
+    } catch {
+      return;
+    }
+  }
 
   const keepalive = options?.keepalive !== false;
 
@@ -206,14 +285,18 @@ export function trackClientActivity(
     }
   }
 
-  fetch("/api/activity", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: payload,
-    keepalive,
-  }).catch(() => {
+  try {
+    fetch("/api/activity", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: payload,
+      keepalive,
+    }).catch(() => {
+      // Activity tracking should never block product flows.
+    });
+  } catch {
     // Activity tracking should never block product flows.
-  });
+  }
 }

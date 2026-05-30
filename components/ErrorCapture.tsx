@@ -1,6 +1,7 @@
 "use client";
 
 import { getAnonymousId, getClientContext, getClientSessionId } from "@/lib/activity-client";
+import { getBrowserStorageItem, setBrowserStorageItem } from "@/lib/browser-storage";
 import { useEffect } from "react";
 
 declare global {
@@ -210,12 +211,17 @@ const THIRD_PARTY_RESOURCE_PATTERNS = [
   /^https:\/\/www\.googletagmanager\.com\//i,
   /^https:\/\/pagead2\.googlesyndication\.com\//i,
   /^https:\/\/analytics\.ahrefs\.com\//i,
+  /^https:\/\/s\.pinimg\.com\//i,
+  /^https:\/\/ct\.pinterest\.com\//i,
   /^https:\/\/www\.google\.com\//i,
   /^https:\/\/www\.gstatic\.com\//i,
 ];
 
 const STALE_BUILD_RECOVERY_KEY = "mbc_stale_build_recovered_at";
 const STALE_BUILD_RECOVERY_WINDOW_MS = 30_000;
+const STALE_BUILD_RECOVERY_WINDOW_NAME_RE =
+  /(?:^|\|)mbc_stale_build_recovered_at=(\d+)(?=\||$)/;
+let memoryStaleBuildRecoveredAt = 0;
 
 function isStaleBuildError(message: string): boolean {
   return STALE_BUILD_PATTERNS.some((re) => re.test(message));
@@ -242,18 +248,44 @@ function isCheckoutRelevantPath(pathname: string): boolean {
   return /^\/(create|pricing|cards|checkout|api\/stripe)(\/|\?|$)/i.test(pathname);
 }
 
-function recoverFromStaleBuild() {
+function getWindowNameRecoveredAt(): number {
   try {
-    const lastRecoveredAt = Number(sessionStorage.getItem(STALE_BUILD_RECOVERY_KEY) || "0");
-    const now = Date.now();
-    if (Number.isFinite(lastRecoveredAt) && now - lastRecoveredAt < STALE_BUILD_RECOVERY_WINDOW_MS) {
-      return;
-    }
-    sessionStorage.setItem(STALE_BUILD_RECOVERY_KEY, String(now));
+    const match = window.name.match(STALE_BUILD_RECOVERY_WINDOW_NAME_RE);
+    return match ? Number(match[1]) || 0 : 0;
   } catch {
-    // If sessionStorage is blocked, still try to recover the broken page once.
+    return 0;
+  }
+}
+
+function setWindowNameRecoveredAt(value: number) {
+  try {
+    const currentName = window.name || "";
+    const cleanedName = currentName
+      .replace(STALE_BUILD_RECOVERY_WINDOW_NAME_RE, "")
+      .replace(/^\|+|\|+$/g, "")
+      .replace(/\|{2,}/g, "|");
+    window.name = `${cleanedName ? `${cleanedName}|` : ""}mbc_stale_build_recovered_at=${value}`;
+  } catch {
+    // window.name is a best-effort fallback when sessionStorage is unavailable.
+  }
+}
+
+function recoverFromStaleBuild() {
+  const now = Date.now();
+  const storedRecoveredAt = Number(getBrowserStorageItem("sessionStorage", STALE_BUILD_RECOVERY_KEY) || "0");
+  const lastRecoveredAt = Math.max(
+    Number.isFinite(storedRecoveredAt) ? storedRecoveredAt : 0,
+    memoryStaleBuildRecoveredAt,
+    getWindowNameRecoveredAt()
+  );
+
+  if (lastRecoveredAt > 0 && now - lastRecoveredAt < STALE_BUILD_RECOVERY_WINDOW_MS) {
+    return;
   }
 
+  memoryStaleBuildRecoveredAt = now;
+  setBrowserStorageItem("sessionStorage", STALE_BUILD_RECOVERY_KEY, String(now));
+  setWindowNameRecoveredAt(now);
   window.location.reload();
 }
 

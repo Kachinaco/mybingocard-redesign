@@ -24,3 +24,27 @@ export function buildPostVerificationLoginUrl({
   const nextCallbackUrl = sanitizePostVerificationCallback(callbackUrl);
   return `${appUrl}/login?verified=1&email=${encodeURIComponent(email)}&callbackUrl=${encodeURIComponent(nextCallbackUrl)}`;
 }
+
+export function buildVerifyEmailErrorUrl({
+  appUrl,
+  error,
+  email,
+  callbackUrl,
+}: {
+  appUrl: string;
+  error: string;
+  email?: string | null;
+  callbackUrl?: string | null;
+}) {
+  const params = new URLSearchParams({ error });
+
+  if (email) {
+    params.set("email", email);
+  }
+
+  if (callbackUrl) {
+    params.set("callbackUrl", sanitizePostVerificationCallback(callbackUrl));
+  }
+
+  return `${appUrl}/verify-email?${params.toString()}`;
+}

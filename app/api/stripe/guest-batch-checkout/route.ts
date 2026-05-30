@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/config";
 import { getBatchPack, isBatchCount } from "@/lib/batchPacks";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { readJsonObject } from "@/lib/request-json";
 import type Stripe from "stripe";
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
@@ -9,8 +10,12 @@ const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "
 export async function POST(request: Request) {
   try {
     const requestContext = getRequestActivityContext(request);
-    const body = await request.json();
-    const { batchCount } = body;
+    const body = await readJsonObject(request);
+    if (!body.ok) {
+      return NextResponse.json({ error: body.error }, { status: 400 });
+    }
+
+    const { batchCount } = body.data;
 
     if (!isBatchCount(batchCount)) {
       return NextResponse.json({ error: "Invalid batch size" }, { status: 400 });

@@ -5,10 +5,16 @@ import {
   getEmailSubscribersCollection,
   upsertEmailSubscriber,
 } from "@/lib/email-capture/subscribers";
+import { readJsonObject } from "@/lib/request-json";
 
 export async function POST(request: Request) {
   try {
-    const { email, source } = await request.json();
+    const body = await readJsonObject(request);
+    if (!body.ok) {
+      return NextResponse.json({ error: body.error }, { status: 400 });
+    }
+
+    const { email, source } = body.data;
 
     if (!email || typeof email !== "string") {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });

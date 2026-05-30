@@ -8,6 +8,7 @@ import {
   incrementTemplateUses,
 } from "@/lib/db/templates";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { readJsonObject } from "@/lib/request-json";
 
 export async function GET(request: Request) {
   try {
@@ -43,7 +44,7 @@ export async function GET(request: Request) {
         isPremium: false,
         isFeatured: false,
         uses: c.views || 0,
-        isCommunitCard: true,
+        isCommunityCard: true,
       })) });
     }
 
@@ -85,7 +86,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
+    const body = await readJsonObject(request);
+    if (!body.ok) {
+      return NextResponse.json({ error: body.error }, { status: 400 });
+    }
+
+    const data = body.data;
     const session = await auth();
     const requestContext = getRequestActivityContext(request);
 

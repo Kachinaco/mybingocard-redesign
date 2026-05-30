@@ -9,6 +9,7 @@ import { playDabSound, playUndabSound, playBingoSound, playDingSound } from "@/l
 import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
 import { useTextFit } from "@/lib/useTextFit";
 import { trackClientActivity } from "@/lib/activity-client";
+import { getBrowserStorageItem, removeBrowserStorageItem } from "@/lib/browser-storage";
 import {
   checkWinByGrid,
   formatCalledItemLabel,
@@ -83,15 +84,22 @@ export default function PlayGamePage() {
 
   // Load player data from sessionStorage
   useEffect(() => {
-    const stored = sessionStorage.getItem(`game-${roomCode}`);
+    const stored = getBrowserStorageItem("sessionStorage", `game-${roomCode}`);
     if (!stored) {
       router.push(`/game/join?code=${roomCode}`);
       return;
     }
 
-    const storedPlayer = JSON.parse(stored) as PlayerData;
+    let storedPlayer: PlayerData;
+    try {
+      storedPlayer = JSON.parse(stored) as PlayerData;
+    } catch {
+      removeBrowserStorageItem("sessionStorage", `game-${roomCode}`);
+      router.push(`/game/join?code=${roomCode}&error=session_expired`);
+      return;
+    }
     if (!storedPlayer.playerToken) {
-      sessionStorage.removeItem(`game-${roomCode}`);
+      removeBrowserStorageItem("sessionStorage", `game-${roomCode}`);
       router.push(`/game/join?code=${roomCode}&error=session_expired`);
       return;
     }
@@ -250,7 +258,7 @@ export default function PlayGamePage() {
     })
       .then((res) => {
         if (res.status === 401) {
-          sessionStorage.removeItem(`game-${roomCode}`);
+          removeBrowserStorageItem("sessionStorage", `game-${roomCode}`);
           router.push(`/game/join?code=${roomCode}&error=session_expired`);
         }
       })
@@ -280,7 +288,7 @@ export default function PlayGamePage() {
       });
 
       if (res.status === 401) {
-        sessionStorage.removeItem(`game-${roomCode}`);
+        removeBrowserStorageItem("sessionStorage", `game-${roomCode}`);
         router.push(`/game/join?code=${roomCode}&error=session_expired`);
         return;
       }

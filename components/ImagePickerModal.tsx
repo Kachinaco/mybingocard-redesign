@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { trackClientActivity } from "@/lib/activity-client";
+import { getBrowserStorageItem, setBrowserStorageItem } from "@/lib/browser-storage";
 import { compressImage } from "@/lib/compress-image";
 
 interface ImageItem {
@@ -28,9 +29,8 @@ interface ImagePickerModalProps {
 const ANON_UPLOADS_KEY = "mybingo_anon_uploads";
 
 function loadAnonUploads(): ImageItem[] {
-  if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(ANON_UPLOADS_KEY);
+    const raw = getBrowserStorageItem("localStorage", ANON_UPLOADS_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
@@ -38,12 +38,7 @@ function loadAnonUploads(): ImageItem[] {
 }
 
 function saveAnonUploads(images: ImageItem[]) {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(ANON_UPLOADS_KEY, JSON.stringify(images));
-  } catch {
-    // localStorage might be full
-  }
+  setBrowserStorageItem("localStorage", ANON_UPLOADS_KEY, JSON.stringify(images));
 }
 
 export default function ImagePickerModal({

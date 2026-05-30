@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { trackEmailSignup } from "@/lib/analytics";
 import { trackClientActivity } from "@/lib/activity-client";
+import { getBrowserStorageItem, setBrowserStorageItem } from "@/lib/browser-storage";
 
 export function EmailCapturePopup() {
   const [show, setShow] = useState(false);
@@ -13,7 +14,7 @@ export function EmailCapturePopup() {
 
   useEffect(() => {
     // Don't show if already dismissed or subscribed
-    const dismissed = localStorage.getItem("email_popup_dismissed");
+    const dismissed = getBrowserStorageItem("localStorage", "email_popup_dismissed");
     if (dismissed) return;
 
     // Show after 8 seconds
@@ -40,7 +41,7 @@ export function EmailCapturePopup() {
       setStatus("success");
       trackEmailSignup("popup");
       trackClientActivity("email_capture_submitted", { source: "popup" });
-      localStorage.setItem("email_popup_dismissed", "subscribed");
+      setBrowserStorageItem("localStorage", "email_popup_dismissed", "subscribed");
     } catch (err: any) {
       setStatus("error");
       setErrorMsg(err.message || "Something went wrong");
@@ -53,7 +54,7 @@ export function EmailCapturePopup() {
       : 0;
     trackClientActivity("email_capture_dismissed", { time_shown_seconds: timeShownSeconds });
     setShow(false);
-    localStorage.setItem("email_popup_dismissed", "dismissed");
+    setBrowserStorageItem("localStorage", "email_popup_dismissed", "dismissed");
   };
 
   if (!show) return null;

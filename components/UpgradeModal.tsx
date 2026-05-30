@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { trackClientActivity } from "@/lib/activity-client";
+import { getBrowserStorageItem, setBrowserStorageItem } from "@/lib/browser-storage";
 import { loadStripe } from "@stripe/stripe-js/pure";
 import type { Stripe } from "@stripe/stripe-js";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
@@ -9,25 +10,21 @@ const DISMISS_COUNT_KEY = "upgrade_dismiss_count";
 const HAS_DISMISSED_KEY = "upgrade_has_dismissed";
 
 function getSessionDismissCount(): number {
-  if (typeof window === "undefined") return 0;
-  return parseInt(sessionStorage.getItem(DISMISS_COUNT_KEY) || "0", 10);
+  return parseInt(getBrowserStorageItem("sessionStorage", DISMISS_COUNT_KEY) || "0", 10);
 }
 
 function incrementSessionDismissCount(): number {
   const count = getSessionDismissCount() + 1;
-  sessionStorage.setItem(DISMISS_COUNT_KEY, String(count));
+  setBrowserStorageItem("sessionStorage", DISMISS_COUNT_KEY, String(count));
   return count;
 }
 
 function markSessionDismissed(): void {
-  if (typeof window !== "undefined") {
-    sessionStorage.setItem(HAS_DISMISSED_KEY, "1");
-  }
+  setBrowserStorageItem("sessionStorage", HAS_DISMISSED_KEY, "1");
 }
 
 function hasSessionDismissed(): boolean {
-  if (typeof window === "undefined") return false;
-  return sessionStorage.getItem(HAS_DISMISSED_KEY) === "1";
+  return getBrowserStorageItem("sessionStorage", HAS_DISMISSED_KEY) === "1";
 }
 
 export type UpgradeReason = "card_limit" | "premium_template" | "ai_generate" | "batch_generate" | "modal";

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { claimBingo, markCell, unmarkCell, getGameRoom, detectWinPattern, DEFAULT_SETTINGS, verifyPlayerToken } from "@/lib/db/games";
 import { trackActivity } from "@/lib/activity";
 import { auth } from "@/auth";
+import { readJsonObject } from "@/lib/request-json";
 
 const VALID_ACTIONS = new Set(["mark", "unmark", "claim", "state"]);
 const OBJECT_ID_RE = /^[a-f0-9]{24}$/i;
@@ -48,8 +49,12 @@ export async function POST(
 ) {
   try {
     const { roomCode } = await params;
-    const body = await request.json();
-    const parsed = validateBingoRequest(body);
+    const body = await readJsonObject(request);
+    if (!body.ok) {
+      return NextResponse.json({ error: body.error }, { status: 400 });
+    }
+
+    const parsed = validateBingoRequest(body.data);
     if (!parsed) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }

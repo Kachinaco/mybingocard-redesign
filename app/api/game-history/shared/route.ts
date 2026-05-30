@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { saveGameHistory } from "@/lib/gameHistory";
+import { readJsonObject } from "@/lib/request-json";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { cardId, cardTitle, shareLink, duration } = body;
+    const body = await readJsonObject(req);
+    if (!body.ok) {
+      return NextResponse.json({ error: body.error }, { status: 400 });
+    }
+
+    const { cardId, cardTitle, shareLink, duration } = body.data;
 
     if (!cardId || !cardTitle || typeof duration !== "number") {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });

@@ -46,6 +46,7 @@ describe("SEO landing page prefill guardrails", () => {
     for (const slug of longTailSlugs) {
       const page = seoLandingPages[slug];
       expect(page, slug).toBeDefined();
+      if (!page) throw new Error(`Missing SEO landing page for ${slug}`);
       expect(page.sampleSquares.length, slug).toBeGreaterThanOrEqual(25);
       expect(page.ideas.length, slug).toBeGreaterThanOrEqual(6);
       expect(page.faqs.length, slug).toBeGreaterThanOrEqual(3);

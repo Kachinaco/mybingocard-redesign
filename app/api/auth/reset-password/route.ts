@@ -3,12 +3,17 @@ import { getEmailForValidResetToken, markResetTokenUsed } from "@/lib/db/passwor
 import { updateUserPassword } from "@/lib/db/users";
 import { trackActivity } from "@/lib/activity";
 import { trackApiError } from "@/lib/api-error-tracking";
+import { readJsonObject } from "@/lib/request-json";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const token = String(body?.token || "").trim();
-    const password = String(body?.password || "");
+    const body = await readJsonObject(request);
+    if (!body.ok) {
+      return NextResponse.json({ error: body.error }, { status: 400 });
+    }
+
+    const token = String(body.data.token || "").trim();
+    const password = String(body.data.password || "");
 
     if (!token || !password) {
       return NextResponse.json({ error: "Token and password are required" }, { status: 400 });

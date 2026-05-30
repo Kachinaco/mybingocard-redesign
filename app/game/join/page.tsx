@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { trackClientActivity } from "@/lib/activity-client";
+import { setBrowserStorageItem } from "@/lib/browser-storage";
 
 function makeGuestName() {
   return `Player ${Math.floor(100 + Math.random() * 900)}`;
@@ -90,13 +91,18 @@ function JoinGameContent() {
       }
 
       // Store player info in sessionStorage
-      sessionStorage.setItem(`game-${roomCode}`, JSON.stringify({
+      const stored = setBrowserStorageItem("sessionStorage", `game-${roomCode}`, JSON.stringify({
         playerId: data.playerId,
         playerToken: data.playerToken,
         playerName: data.playerName,
         cells: data.cells,
         marked: data.marked,
       }));
+      if (!stored) {
+        setError("Your browser blocked temporary game storage. Please allow site storage and try again.");
+        setLoading(false);
+        return;
+      }
 
       trackClientActivity("game_join_started", {
         roomCode,

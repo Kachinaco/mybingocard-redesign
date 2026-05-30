@@ -23,36 +23,6 @@ function serializeCard(card: NonNullable<Awaited<ReturnType<typeof getCardById>>
   };
 }
 
-// Simple in-memory IP rate limiter for guest claims.
-// Allows 10 guest claims per IP per rolling hour.
-const GUEST_CLAIM_WINDOW_MS = 60 * 60 * 1000;
-const GUEST_CLAIM_MAX = 10;
-const guestClaimHits = new Map<string, number[]>();
-
-function checkGuestRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const cutoff = now - GUEST_CLAIM_WINDOW_MS;
-  const existing = guestClaimHits.get(ip) ?? [];
-  const recent = existing.filter((t) => t > cutoff);
-
-  if (recent.length >= GUEST_CLAIM_MAX) {
-    guestClaimHits.set(ip, recent);
-    return false;
-  }
-
-  recent.push(now);
-  guestClaimHits.set(ip, recent);
-  return true;
-}
-
-function getClientIp(request: Request): string {
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown"
-  );
-}
-
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ linkId: string }> }
@@ -217,14 +187,6 @@ export async function POST(
 
     // ------ Guest claim branch ------
     if (isGuestClaim && !session?.user?.id) {
-      const clientIp = getClientIp(request);
-      if (!checkGuestRateLimit(clientIp)) {
-        return NextResponse.json(
-          { error: "Too many guest claims, please try again later" },
-          { status: 429 }
-        );
-      }
-
       const client = await clientPromise;
       const db = client.db("mybingocard");
 

@@ -50,7 +50,8 @@ describe("AI use-case prompt generation", () => {
     expect(componentSource).toContain('use_case: useCase');
 
     expect(routeSource).toContain("function cleanPromptDetails(");
-    expect(routeSource).toContain("const { theme, tone, size, title, freeSpace, useCase, promptDetails } = await req.json();");
+    expect(routeSource).toContain("const body = await readJsonObject(req);");
+    expect(routeSource).toContain("const { theme, tone, size, title, freeSpace, useCase, promptDetails } = body.data;");
     expect(routeSource).toContain("useCase: cleanedUseCase");
     expect(routeSource).toContain("promptDetails: cleanedPromptDetails");
   });

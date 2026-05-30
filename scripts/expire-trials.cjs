@@ -213,6 +213,7 @@ async function run() {
     }
 
     // 2. WARN: Send "trial ending soon" emails (3 days left and 1 day left)
+    let trialDayEmailsSent = 0;
     for (const daysLeft of [3, 1]) {
       const warnDate = new Date(now);
       warnDate.setDate(warnDate.getDate() + daysLeft);
@@ -244,6 +245,7 @@ async function run() {
               campaignId,
               sentAt: now,
             });
+            trialDayEmailsSent++;
             console.log(`Trial warning (${daysLeft}d left) sent: ${user.email}`);
 
             // Per-user Discord notification

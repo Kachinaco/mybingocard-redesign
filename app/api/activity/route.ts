@@ -8,11 +8,16 @@ import {
   notifyExportButtonClicked,
   notifyUpgradeDismissed,
 } from "@/lib/discord";
+import { readJsonObject } from "@/lib/request-json";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const event = typeof body?.event === "string" ? body.event.trim() : "";
+    const body = await readJsonObject(request);
+    if (!body.ok) {
+      return NextResponse.json({ error: body.error }, { status: 400 });
+    }
+
+    const event = typeof body.data.event === "string" ? body.data.event.trim() : "";
 
     if (!event) {
       return NextResponse.json({ error: "Event is required" }, { status: 400 });
@@ -20,16 +25,16 @@ export async function POST(request: Request) {
 
     const session = await auth();
     const requestContext = getRequestActivityContext(request);
-    const metadata = body?.metadata && typeof body.metadata === "object" ? body.metadata : {};
+    const metadata = body.data.metadata && typeof body.data.metadata === "object" ? body.data.metadata : {};
 
     await trackActivity({
       event,
       source: "client",
       userId: session?.user?.id || null,
       email: session?.user?.email || null,
-      pathname: typeof body?.pathname === "string" ? body.pathname : requestContext.pathname,
-      sessionId: typeof body?.sessionId === "string" ? body.sessionId : null,
-      anonymousId: typeof body?.anonymousId === "string" ? body.anonymousId : null,
+      pathname: typeof body.data.pathname === "string" ? body.data.pathname : requestContext.pathname,
+      sessionId: typeof body.data.sessionId === "string" ? body.data.sessionId : null,
+      anonymousId: typeof body.data.anonymousId === "string" ? body.data.anonymousId : null,
       domain: requestContext.domain,
       ipAddress: requestContext.ipAddress,
       userAgent: requestContext.userAgent,

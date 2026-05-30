@@ -8,10 +8,6 @@ import type {
 
 const DOMAIN = "mybingocard.com";
 const ENGAGED_WINDOW_MS = 30 * 1000;
-const HUMAN_TRAFFIC_FILTER = {
-  isBot: { $ne: true },
-  trafficClass: { $ne: "internal" },
-};
 
 let analyticsClientPromise: Promise<MongoClient> | null = null;
 
@@ -194,7 +190,6 @@ async function getProjectedVisitors(
     .find({
       domain: DOMAIN,
       lastSeenAt: { $gte: since },
-      ...HUMAN_TRAFFIC_FILTER,
       ...visitorFilter(options),
     })
     .sort({ lastSeenAt: -1 })
@@ -253,7 +248,6 @@ async function getRawVisitors(
         $match: {
           domain: DOMAIN,
           createdAt: { $gte: since },
-          ...HUMAN_TRAFFIC_FILTER,
           ...(identityClauses.length ? { $or: identityClauses } : {}),
         },
       },
@@ -442,7 +436,6 @@ export async function getAdminVisitorsData(options?: {
     db.collection("events").countDocuments({
       domain: DOMAIN,
       createdAt: { $gte: since },
-      ...HUMAN_TRAFFIC_FILTER,
       ...(filters.anonymousId || filters.sessionId || filters.visitorKey
         ? {
             $or: [

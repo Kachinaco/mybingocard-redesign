@@ -9,6 +9,11 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import AdUnit from "@/components/AdUnit";
 import { trackClientActivity, getAnonymousId } from "@/lib/activity-client";
+import {
+  getBrowserStorageItem,
+  removeBrowserStorageItem,
+  setBrowserStorageItem,
+} from "@/lib/browser-storage";
 import { hashStringToSeed, shuffleBingoCells } from "@/lib/shuffle";
 import {
   checkWinByGrid,
@@ -53,7 +58,7 @@ function getStorageKey(cardId: string) {
 
 function loadLocalState(cardId: string): { marked: number[]; bingo: boolean } | null {
   try {
-    const raw = localStorage.getItem(getStorageKey(cardId));
+    const raw = getBrowserStorageItem("localStorage", getStorageKey(cardId));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed.marked) && typeof parsed.bingo === "boolean") return parsed;
@@ -62,18 +67,15 @@ function loadLocalState(cardId: string): { marked: number[]; bingo: boolean } | 
 }
 
 function saveLocalState(cardId: string, marked: Set<number>, bingo: boolean) {
-  try {
-    localStorage.setItem(
-      getStorageKey(cardId),
-      JSON.stringify({ marked: Array.from(marked), bingo })
-    );
-  } catch {}
+  setBrowserStorageItem(
+    "localStorage",
+    getStorageKey(cardId),
+    JSON.stringify({ marked: Array.from(marked), bingo })
+  );
 }
 
 function clearLocalState(cardId: string) {
-  try {
-    localStorage.removeItem(getStorageKey(cardId));
-  } catch {}
+  removeBrowserStorageItem("localStorage", getStorageKey(cardId));
 }
 
 export default function SharedCardPage() {

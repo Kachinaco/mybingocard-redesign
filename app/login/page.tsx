@@ -7,6 +7,7 @@ import Link from "next/link";
 import { trackClientActivity } from "@/lib/activity-client";
 import { getInitialLoginEmails } from "@/lib/auth/login-prefill";
 import { useSession } from "next-auth/react";
+import { getBrowserStorageItem } from "@/lib/browser-storage";
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -29,12 +30,7 @@ function LoginContent() {
     if (typeof window === "undefined") return false;
 
     const nativeHandler = (window as any).webkit?.messageHandlers?.mybingocardOAuth;
-    let nativeAppFlag = false;
-    try {
-      nativeAppFlag = window.localStorage.getItem("mybingocard-ios-app") === "1";
-    } catch {
-      nativeAppFlag = false;
-    }
+    const nativeAppFlag = getBrowserStorageItem("localStorage", "mybingocard-ios-app") === "1";
     const isNativeApp =
       searchParams.get("app") === "1" ||
       nativeAppFlag ||
@@ -147,9 +143,6 @@ function LoginContent() {
         if (result.error === "CallbackRouteError" || result.error.includes("EMAIL_NOT_VERIFIED")) {
           errorMsg = "Please verify your email address before signing in. Check your inbox for a verification link.";
           rule = "email_not_verified";
-        } else if (result.error.includes("TOO_MANY_ATTEMPTS")) {
-          errorMsg = "Too many failed login attempts. Please wait an hour before trying again.";
-          rule = "rate_limited";
         } else {
           errorMsg = "Invalid email or password";
           rule = "invalid_credentials";

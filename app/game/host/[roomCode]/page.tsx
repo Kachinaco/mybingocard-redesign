@@ -8,6 +8,7 @@ import SoundToggle from "@/components/SoundToggle";
 import { playDingSound, playBingoSound, playDabSound, playUndabSound } from "@/lib/sounds";
 import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
 import { trackClientActivity } from "@/lib/activity-client";
+import { getBrowserStorageItem, setBrowserStorageItem } from "@/lib/browser-storage";
 import {
   checkWinByGrid,
   formatCalledItemLabel,
@@ -211,7 +212,7 @@ export default function HostGamePage() {
 
     // Recover host player data from sessionStorage
     try {
-      const stored = sessionStorage.getItem(`host-game-${roomCode}`);
+      const stored = getBrowserStorageItem("sessionStorage", `host-game-${roomCode}`);
       if (stored) {
         const data = JSON.parse(stored) as HostPlayerData;
         setHostPlayer(data);
@@ -232,7 +233,7 @@ export default function HostGamePage() {
               setHostPlayer(recovered);
               setHostMarked(new Set(state.marked || []));
               setHostHasBingo(state.hasBingo || false);
-              sessionStorage.setItem(`host-game-${roomCode}`, JSON.stringify(recovered));
+              setBrowserStorageItem("sessionStorage", `host-game-${roomCode}`, JSON.stringify(recovered));
             }
           })
           .catch(() => {});
@@ -282,7 +283,7 @@ export default function HostGamePage() {
         };
         setHostPlayer(hp);
         setHostMarked(new Set(hp.marked));
-        sessionStorage.setItem(`host-game-${roomCode}`, JSON.stringify(hp));
+        setBrowserStorageItem("sessionStorage", `host-game-${roomCode}`, JSON.stringify(hp));
       }
     } catch {
       setError("Failed to start game");
@@ -374,7 +375,7 @@ export default function HostGamePage() {
     setHostMarked(newMarked);
 
     const updated = { ...hostPlayer, marked: Array.from(newMarked) };
-    sessionStorage.setItem(`host-game-${roomCode}`, JSON.stringify(updated));
+    setBrowserStorageItem("sessionStorage", `host-game-${roomCode}`, JSON.stringify(updated));
 
     fetch(`/api/game/${roomCode}/bingo`, {
       method: "POST",

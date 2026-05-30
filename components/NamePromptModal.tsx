@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { trackClientActivity } from "@/lib/activity-client";
+import { getBrowserStorageItem, setBrowserStorageItem } from "@/lib/browser-storage";
 
 export default function NamePromptModal() {
   const { data: session, update: updateSession } = useSession();
@@ -17,7 +18,7 @@ export default function NamePromptModal() {
     if (session.user.name && session.user.name.trim()) return;
 
     // Check localStorage to avoid showing again in same browser session
-    const dismissed = localStorage.getItem("name_prompt_dismissed");
+    const dismissed = getBrowserStorageItem("localStorage", "name_prompt_dismissed");
     if (dismissed) return;
 
     // Small delay to let the page settle
@@ -51,7 +52,7 @@ export default function NamePromptModal() {
       // Refresh session so name appears everywhere
       await updateSession({ name: trimmed });
       trackClientActivity("name_prompt_completed");
-      localStorage.setItem("name_prompt_dismissed", "1");
+      setBrowserStorageItem("localStorage", "name_prompt_dismissed", "1");
       setShow(false);
     } catch {
       setError("Something went wrong. Please try again.");
@@ -61,7 +62,7 @@ export default function NamePromptModal() {
 
   const handleSkip = () => {
     trackClientActivity("name_prompt_skipped");
-    localStorage.setItem("name_prompt_dismissed", "1");
+    setBrowserStorageItem("localStorage", "name_prompt_dismissed", "1");
     setShow(false);
   };
 

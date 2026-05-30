@@ -3,7 +3,7 @@ import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { trackActivity } from "@/lib/activity";
 import { trackApiError } from "@/lib/api-error-tracking";
-import { buildPostVerificationLoginUrl, sanitizePostVerificationCallback } from "@/lib/auth/verify-email-redirect";
+import { buildPostVerificationLoginUrl, buildVerifyEmailErrorUrl, sanitizePostVerificationCallback } from "@/lib/auth/verify-email-redirect";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -12,7 +12,9 @@ export async function GET(request: Request) {
   const callbackUrl = sanitizePostVerificationCallback(searchParams.get("callbackUrl"));
 
   if (!token) {
-    return NextResponse.redirect(`${appUrl}/verify-email?error=missing_token`);
+    return NextResponse.redirect(
+      buildVerifyEmailErrorUrl({ appUrl, error: "missing_token", callbackUrl })
+    );
   }
 
   try {
@@ -28,7 +30,9 @@ export async function GET(request: Request) {
         pathname: "/api/auth/verify-email",
         metadata: { reason: "invalid_token" },
       }).catch(() => {});
-      return NextResponse.redirect(`${appUrl}/verify-email?error=invalid_token`);
+      return NextResponse.redirect(
+        buildVerifyEmailErrorUrl({ appUrl, error: "invalid_token", callbackUrl })
+      );
     }
 
     if (new Date(record.expires) < new Date()) {
@@ -40,7 +44,14 @@ export async function GET(request: Request) {
         pathname: "/api/auth/verify-email",
         metadata: { reason: "expired_token" },
       }).catch(() => {});
-      return NextResponse.redirect(`${appUrl}/verify-email?error=expired_token`);
+      return NextResponse.redirect(
+        buildVerifyEmailErrorUrl({
+          appUrl,
+          error: "expired_token",
+          email: record.email,
+          callbackUrl,
+        })
+      );
     }
 
     // Mark user as verified
@@ -74,6 +85,8 @@ export async function GET(request: Request) {
       method: "GET",
       statusCode: 500,
     });
-    return NextResponse.redirect(`${appUrl}/verify-email?error=server_error`);
+    return NextResponse.redirect(
+      buildVerifyEmailErrorUrl({ appUrl, error: "server_error", callbackUrl })
+    );
   }
 }

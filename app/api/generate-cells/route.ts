@@ -7,31 +7,10 @@ import { getTrialDaysLeft, hasPremiumAccess, isUserOnTrial } from "@/lib/subscri
 import clientPromise from "@/lib/mongodb";
 import { notifyFirstAiGeneration } from "@/lib/discord";
 import { generateBingoCells } from "@/lib/ai-generation";
+import { readJsonObject } from "@/lib/request-json";
 
-// Rate limiter: 50 generations per hour per IP
-const rateBuckets = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 50;
-const RATE_WINDOW_MS = 3_600_000;
 const configuredFreeDailyLimit = Number.parseInt(process.env.AI_FREE_DAILY_LIMIT || "5", 10);
 const FREE_DAILY_LIMIT = Number.isFinite(configuredFreeDailyLimit) && configuredFreeDailyLimit > 0 ? configuredFreeDailyLimit : 5;
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const bucket = rateBuckets.get(ip);
-  if (!bucket || now >= bucket.resetAt) {
-    rateBuckets.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return false;
-  }
-  bucket.count += 1;
-  return bucket.count > RATE_LIMIT;
-}
-
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, bucket] of rateBuckets) {
-    if (now >= bucket.resetAt) rateBuckets.delete(ip);
-  }
-}, 5 * 60_000);
 
 function getIp(req: NextRequest): string {
   const xff = req.headers.get("x-forwarded-for");
@@ -129,11 +108,13 @@ export async function POST(req: NextRequest) {
 
     const ip = getIp(req);
     const anonymousQuotaKey = sessionUserId ? null : getAnonymousQuotaKey(req, ip);
-    if (isRateLimited(ip)) {
-      return NextResponse.json({ error: "Rate limit exceeded. Try again later." }, { status: 429 });
+
+    const body = await readJsonObject(req);
+    if (!body.ok) {
+      return NextResponse.json({ error: body.error }, { status: 400 });
     }
 
-    const { theme, tone, size, title, freeSpace, useCase, promptDetails } = await req.json();
+    const { theme, tone, size, title, freeSpace, useCase, promptDetails } = body.data;
     const cleanedTheme = typeof theme === "string" ? theme.trim().substring(0, 500) : "";
     const cleanedPromptDetails = cleanPromptDetails(promptDetails);
     const promptDetailKeys = cleanedPromptDetails ? Object.keys(cleanedPromptDetails) : [];

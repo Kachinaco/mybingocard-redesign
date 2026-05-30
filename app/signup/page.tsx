@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { trackClientActivity } from "@/lib/activity-client";
 import { buildVerifyEmailPageUrl } from "@/lib/auth/verify-email-page-links";
+import { getBrowserStorageItem, setBrowserStorageItem } from "@/lib/browser-storage";
 
 type StoredAttribution = {
   utm_source?: string;
@@ -18,12 +19,20 @@ type StoredAttribution = {
 
 function readStoredAttribution(): StoredAttribution {
   try {
-    const raw = localStorage.getItem("utm_params");
+    const raw = getBrowserStorageItem("localStorage", "utm_params");
     if (!raw) return {};
     const parsed = JSON.parse(raw);
     return parsed && typeof parsed === "object" ? parsed : {};
   } catch {
     return {};
+  }
+}
+
+function safeDocumentReferrer(): string {
+  try {
+    return typeof document !== "undefined" ? document.referrer : "";
+  } catch {
+    return "";
   }
 }
 
@@ -40,7 +49,6 @@ function SignupForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [honeypot, setHoneypot] = useState("");
   const [error, setError] = useState("");
   const hasFiredFunnelView = useRef(false);
 
@@ -48,12 +56,7 @@ function SignupForm() {
     if (typeof window === "undefined") return false;
 
     const nativeHandler = (window as any).webkit?.messageHandlers?.mybingocardOAuth;
-    let nativeAppFlag = false;
-    try {
-      nativeAppFlag = window.localStorage.getItem("mybingocard-ios-app") === "1";
-    } catch {
-      nativeAppFlag = false;
-    }
+    const nativeAppFlag = getBrowserStorageItem("localStorage", "mybingocard-ios-app") === "1";
     const isNativeApp =
       searchParams.get("app") === "1" ||
       nativeAppFlag ||
@@ -92,7 +95,7 @@ function SignupForm() {
       if (val) stored[key] = val;
     });
     if (Object.keys(stored).length > 0) {
-      localStorage.setItem("utm_params", JSON.stringify(stored));
+      setBrowserStorageItem("localStorage", "utm_params", JSON.stringify(stored));
     }
   }, [searchParams]);
 
@@ -196,14 +199,13 @@ function SignupForm() {
           name,
           email,
           password,
-          website: honeypot,
           callbackUrl,
           utm_source: searchParams.get("utm_source") || storedAttribution.utm_source || undefined,
           utm_medium: searchParams.get("utm_medium") || storedAttribution.utm_medium || undefined,
           utm_campaign: searchParams.get("utm_campaign") || storedAttribution.utm_campaign || undefined,
           utm_content: searchParams.get("utm_content") || storedAttribution.utm_content || undefined,
           utm_term: searchParams.get("utm_term") || storedAttribution.utm_term || undefined,
-          referrer: storedAttribution.referrer || document.referrer || undefined,
+          referrer: storedAttribution.referrer || safeDocumentReferrer() || undefined,
         }),
       });
 
@@ -225,12 +227,6 @@ function SignupForm() {
         } else if (/password.*characters/i.test(serverError)) {
           field = "password";
           rule = "too_short";
-        } else if (/real name/i.test(serverError)) {
-          field = "name";
-          rule = "invalid_format";
-        } else if (/too many/i.test(serverError)) {
-          field = "general";
-          rule = "rate_limited";
         }
 
         trackClientActivity("validation_error", {
@@ -499,19 +495,6 @@ function SignupForm() {
                   )}
                 </button>
               </div>
-            {/* Honeypot field — hidden from real users, bots fill this in */}
-            <div style={{position:"absolute",left:"-9999px",opacity:0,pointerEvents:"none"}} aria-hidden="true">
-              <label htmlFor="website">Website</label>
-              <input
-                id="website"
-                name="website"
-                type="text"
-                tabIndex={-1}
-                autoComplete="off"
-                value={honeypot}
-                onChange={(e) => setHoneypot(e.target.value)}
-              />
-            </div>
             </form>
 
             <p className="text-center text-sm text-gray-600 mt-8">

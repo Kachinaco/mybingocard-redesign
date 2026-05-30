@@ -37,6 +37,12 @@ describe("debugging and alerting guardrails", () => {
     expect(errorCaptureSource).toContain("window.addEventListener(\"submit\"");
   });
 
+  test("third-party marketing pixels are treated as resource noise", () => {
+    expect(errorCaptureSource).toContain("THIRD_PARTY_RESOURCE_PATTERNS");
+    expect(errorCaptureSource).toContain("s\\.pinimg\\.com");
+    expect(errorCaptureSource).toContain("ct\\.pinterest\\.com");
+  });
+
   test("activity tracking feeds breadcrumbs without blocking product flows", () => {
     expect(activityClientSource).toContain("__mbcAddBreadcrumb");
     expect(activityClientSource).toContain('type: "activity"');
@@ -52,7 +58,7 @@ describe("debugging and alerting guardrails", () => {
     expect(errorRouteSource).toContain("notifyClientErrorCaptured");
     expect(errorRouteSource).toContain("notifyClientErrorSpike");
     expect(errorRouteSource).toContain("client_error_captured");
-    expect(errorRouteSource).toContain("isCrawlerUserAgent");
+    expect(errorRouteSource).not.toContain("isCrawlerUserAgent");
     expect(errorRouteSource).toContain("maybeNotifyClientErrorCaptured");
     expect(errorRouteSource).toContain("CAPTURE_ALERT_COOLDOWN_MS");
     expect(errorRouteSource).toContain("recentSessions >= 2");

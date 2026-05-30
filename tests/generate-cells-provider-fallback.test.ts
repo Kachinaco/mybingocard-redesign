@@ -1,3 +1,4 @@
+import { describe, expect, test as it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -16,9 +17,18 @@ describe("generate cells AI provider fallback", () => {
     expect(helperSource).toContain('process.env.OPENROUTER_PRIMARY_MODEL || "openai/gpt-oss-120b:free"');
     expect(helperSource).toContain('const ENABLE_PAID_API_FALLBACK = process.env.AI_PAID_API_FALLBACK_ENABLED === "1";');
     expect(helperSource).toContain('const ENABLE_CODEX_FALLBACK = process.env.AI_CODEX_FALLBACK_ENABLED === "1";');
+    expect(helperSource).toContain('const ENABLE_LOCAL_FALLBACK = process.env.AI_LOCAL_FALLBACK_ENABLED !== "0";');
     expect(helperSource).toContain('provider: "gemini"');
     expect(helperSource).toContain('provider: "openrouter"');
     expect(helperSource).toContain('provider: "codex-cli"');
+    expect(helperSource).toContain('provider: "local"');
     expect(helperSource).not.toContain('provider: "claude-cli"');
+  });
+
+  it("keeps a local no-network provider after external AI fallbacks", () => {
+    const helperSource = readFileSync(resolve(process.cwd(), "lib/ai-generation.ts"), "utf8");
+    expect(helperSource).toContain("generateWithLocalFallback");
+    expect(helperSource).toContain('model: LOCAL_FALLBACK_MODEL');
+    expect(helperSource).toContain("JSON.stringify(uniqueFallbackCells(generated, cellCount))");
   });
 });

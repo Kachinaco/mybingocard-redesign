@@ -4,6 +4,7 @@ import { createPasswordResetToken } from "@/lib/db/password-resets";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { trackActivity } from "@/lib/activity";
 import { trackApiError } from "@/lib/api-error-tracking";
+import { readJsonObject } from "@/lib/request-json";
 
 function getBaseUrl(): string {
   return (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
@@ -11,8 +12,12 @@ function getBaseUrl(): string {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const email = String(body?.email || "").trim().toLowerCase();
+    const body = await readJsonObject(request);
+    if (!body.ok) {
+      return NextResponse.json({ error: body.error }, { status: 400 });
+    }
+
+    const email = String(body.data.email || "").trim().toLowerCase();
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });

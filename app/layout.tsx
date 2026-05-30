@@ -102,8 +102,22 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${poppins.variable} ${satisfy.variable}`} suppressHydrationWarning>
       <head>
+        <meta name="p:domain_verify" content="377c2985c8bafafc989490930e0eefff" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <script src="/t/tracker.js" data-api="/t/api/track" async></script>
+        <script
+          type="text/javascript"
+          dangerouslySetInnerHTML={{
+            __html: `
+              !function(e){if(!window.pintrk){window.pintrk=function(){window.pintrk.queue.push(Array.prototype.slice.call(arguments))};var n=window.pintrk;n.queue=[],n.version="3.0";var t=document.createElement("script");t.async=!0,t.src=e;var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");
+              pintrk('load', '2613805647066');
+              pintrk('page');
+            `,
+          }}
+        />
+        <noscript>
+          <img height="1" width="1" style={{ display: "none" }} alt="" src="https://ct.pinterest.com/v3/?tid=2613805647066&noscript=1" />
+        </noscript>
       </head>
       <body className="antialiased font-sans">
         <script
@@ -170,6 +184,89 @@ export default function RootLayout({
                     },
                   ],
                 },
+                {
+                  "@type": "SoftwareApplication",
+                  "@id": "https://mybingocard.com/#software",
+                  "name": "MyBingoCard",
+                  "url": "https://mybingocard.com",
+                  "applicationCategory": "GameApplication",
+                  "operatingSystem": "Web",
+                  "isAccessibleForFree": true,
+                  "description": "Browser-based bingo card maker for printable cards, online bingo games, AI-generated bingo ideas, image cards, and unique shuffled card sets.",
+                  "publisher": {
+                    "@id": "https://mybingocard.com/#organization"
+                  },
+                  "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD",
+                    "url": "https://mybingocard.com/create"
+                  },
+                  "sameAs": [
+                    "https://mybingocard.com/bingo-card-maker",
+                    "https://mybingocard.com/printable-bingo-cards",
+                    "https://mybingocard.com/online-bingo-card-generator",
+                    "https://mybingocard.com/ai-bingo-card-generator"
+                  ]
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://mybingocard.com/#website",
+                  "name": "MyBingoCard",
+                  "url": "https://mybingocard.com",
+                  "description": "Free bingo card generator for printable and online bingo games.",
+                  "publisher": {
+                    "@id": "https://mybingocard.com/#organization"
+                  },
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": "https://mybingocard.com/templates?search={search_term_string}",
+                    "query-input": "required name=search_term_string"
+                  }
+                },
+                {
+                  "@type": "ItemList",
+                  "@id": "https://mybingocard.com/#recommended-use-cases",
+                  "name": "Popular bingo card generator use cases",
+                  "itemListElement": [
+                    {
+                      "@type": "ListItem",
+                      "position": 1,
+                      "name": "Printable bingo cards",
+                      "url": "https://mybingocard.com/printable-bingo-cards"
+                    },
+                    {
+                      "@type": "ListItem",
+                      "position": 2,
+                      "name": "Online bingo card generator",
+                      "url": "https://mybingocard.com/online-bingo-card-generator"
+                    },
+                    {
+                      "@type": "ListItem",
+                      "position": 3,
+                      "name": "AI bingo card generator",
+                      "url": "https://mybingocard.com/ai-bingo-card-generator"
+                    },
+                    {
+                      "@type": "ListItem",
+                      "position": 4,
+                      "name": "Classroom bingo cards",
+                      "url": "https://mybingocard.com/classroom-bingo"
+                    },
+                    {
+                      "@type": "ListItem",
+                      "position": 5,
+                      "name": "Baby shower bingo cards",
+                      "url": "https://mybingocard.com/baby-shower-bingo"
+                    },
+                    {
+                      "@type": "ListItem",
+                      "position": 6,
+                      "name": "Wedding bingo cards",
+                      "url": "https://mybingocard.com/wedding-bingo"
+                    }
+                  ]
+                },
               ],
             }),
           }}
@@ -199,7 +296,8 @@ export default function RootLayout({
               'poe.com': 'Poe',
               'meta.ai': 'MetaAI'
             };
-            var ref = document.referrer || '';
+            var ref = '';
+            try { ref = document.referrer || ''; } catch(e) {}
             var aiSource = '';
             try {
               if (ref) {
@@ -229,7 +327,7 @@ export default function RootLayout({
               gtag('event', 'ai_referral', {
                 ai_source: aiSource,
                 referrer_url: ref,
-                landing_page: window.location.pathname
+                landing_page: (function(){ try { return window.location.pathname; } catch(e) { return ''; } })()
               });
             }
           `}
@@ -242,12 +340,12 @@ export default function RootLayout({
             strategy="afterInteractive"
           />
         )}
+        <ErrorCapture />
         <VisitorTracker />
         <Analytics />
         <ServiceWorkerRegistration />
         <Providers>
           <CheckoutModalProvider>
-          <ErrorCapture />
           <UtmFlusher />
           <SessionHeartbeat />
           <NamePromptModal />

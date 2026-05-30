@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { isImageCell, parseImageCell } from "@/lib/cellContent";
 import ThemedCardWrapper from "@/components/ThemedCardWrapper";
+import { getBrowserStorageItem, setBrowserStorageItem } from "@/lib/browser-storage";
 
 interface RecentlyPlayedItem {
   cardId: string;
@@ -22,7 +23,7 @@ function MiniCardPreview({ cardId }: { cardId: string }) {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(`mybingo_state_${cardId}`);
+      const saved = getBrowserStorageItem("localStorage", `mybingo_state_${cardId}`);
       if (saved) setState(JSON.parse(saved));
     } catch {}
     // Fetch card data for cells and size
@@ -86,7 +87,7 @@ export default function DashboardEngagement() {
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem("mybingo_recently_played");
+      const stored = getBrowserStorageItem("localStorage", "mybingo_recently_played");
       if (stored) {
         const items: RecentlyPlayedItem[] = JSON.parse(stored);
         // Validate each card still exists, remove stale entries
@@ -101,7 +102,7 @@ export default function DashboardEngagement() {
           setRecentlyPlayed(valid);
           // Update localStorage to remove stale entries
           if (valid.length !== items.length) {
-            localStorage.setItem("mybingo_recently_played", JSON.stringify(valid));
+            setBrowserStorageItem("localStorage", "mybingo_recently_played", JSON.stringify(valid));
           }
         });
       }

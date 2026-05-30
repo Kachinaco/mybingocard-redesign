@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { isImageCell, parseImageCell } from "@/lib/cellContent";
 import ThemedCardWrapper from "@/components/ThemedCardWrapper";
+import { getBrowserStorageItem } from "@/lib/browser-storage";
 
 interface SavedState {
   marked: number[];
@@ -13,7 +14,7 @@ export default function FavCardPreview({ card }: { card: any }) {
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(`mybingo_state_${card._id}`);
+      const saved = getBrowserStorageItem("localStorage", `mybingo_state_${card._id}`);
       if (saved) {
         const state: SavedState = JSON.parse(saved);
         if (state.marked) setSavedMarks(new Set(state.marked));

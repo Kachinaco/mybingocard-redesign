@@ -6,38 +6,9 @@ import { notifyClientErrorCaptured, notifyClientErrorSpike } from "@/lib/discord
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { symbolicateStack } from "@/lib/source-map-resolver";
 
-// ---------------------------------------------------------------------------
-// Simple in-memory rate limiter: max 10 errors per IP per minute
-// ---------------------------------------------------------------------------
-const rateBuckets = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 10;
-const RATE_WINDOW_MS = 60_000;
 const ALERT_WINDOW_MS = 10 * 60_000;
 const ALERT_COOLDOWN_MS = 30 * 60_000;
 const CAPTURE_ALERT_COOLDOWN_MS = 15 * 60_000;
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const bucket = rateBuckets.get(ip);
-
-  if (!bucket || now >= bucket.resetAt) {
-    rateBuckets.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return false;
-  }
-
-  bucket.count += 1;
-  return bucket.count > RATE_LIMIT;
-}
-
-// Periodically prune expired buckets so the map doesn't grow forever
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, bucket] of rateBuckets) {
-    if (now >= bucket.resetAt) {
-      rateBuckets.delete(ip);
-    }
-  }
-}, 5 * 60_000); // every 5 minutes
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -147,10 +118,6 @@ function getSeverity(doc: { type: string; pageUrl: string | null; source: string
   if (isCriticalPath || (isPaymentResource && isCheckoutLoadFailure)) return "high" as const;
   if (doc.type === "resource_load_failed") return "low" as const;
   return "medium" as const;
-}
-
-function isCrawlerUserAgent(userAgent: string | null): boolean {
-  return /bot|crawler|spider|slurp|duckduckbot|bingpreview|yandexrenderresourcesbot/i.test(userAgent || "");
 }
 
 async function maybeAlertForFingerprint(
@@ -301,11 +268,10 @@ export async function POST(req: NextRequest) {
   // Always return 200 so we never break the client
   const ok = () => NextResponse.json({ ok: true });
 
-  try {
-    const ip = getIp(req);
-    if (isRateLimited(ip)) return ok();
+	  try {
+	    const ip = getIp(req);
 
-    let body: Record<string, unknown>;
+	    let body: Record<string, unknown>;
     try {
       body = (await req.json()) as Record<string, unknown>;
     } catch {
@@ -347,11 +313,7 @@ export async function POST(req: NextRequest) {
     const severity = getSeverity(doc);
     const storedDoc = { ...doc, fingerprint, severity };
 
-    if (doc.type === "resource_load_failed" && isCrawlerUserAgent(doc.userAgent)) {
-      return ok();
-    }
-
-    const client = await clientPromise;
+	    const client = await clientPromise;
     const db = client.db("mybingocard");
     await db.collection("error_events").insertOne(storedDoc);
 

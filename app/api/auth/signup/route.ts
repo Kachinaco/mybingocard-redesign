@@ -7,10 +7,16 @@ import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { getReferralByCode, createReferral } from "@/lib/db/referrals";
 import { parseUserAgent } from "@/lib/parse-user-agent";
 import { sanitizePostVerificationCallback } from "@/lib/auth/verify-email-redirect";
+import { readJsonObject } from "@/lib/request-json";
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password, website, callbackUrl, utm_source, utm_medium, utm_campaign, utm_content, utm_term, referrer } = await request.json();
+    const body = await readJsonObject(request);
+    if (!body.ok) {
+      return NextResponse.json({ error: body.error }, { status: 400 });
+    }
+
+    const { name, email, password, callbackUrl, utm_source, utm_medium, utm_campaign, utm_content, utm_term, referrer } = body.data;
     const requestContext = getRequestActivityContext(request);
 
     // Validate input
@@ -26,33 +32,6 @@ export async function POST(request: Request) {
         { error: "Password must be at least 8 characters" },
         { status: 400 }
       );
-    }
-
-    // Honeypot: bots fill in the "website" field, humans leave it blank
-    if (website) {
-      // Silently accept but don't create the user (fool the bot)
-      return NextResponse.json({ message: "User created successfully", user: { id: "bot", name, email } }, { status: 201 });
-    }
-
-    // Name validation: reject bot-like names (3+ consecutive uppercase letters in a single token)
-    const nameLooksLikeBot = /[A-Z]{3,}/.test(name.replace(/\s+/g, ' ').split(' ').filter((w: string) => w.length > 6).join(''));
-    if (nameLooksLikeBot) {
-      return NextResponse.json({ error: "Please enter your real name" }, { status: 400 });
-    }
-
-    // Rate limiting: max 5 signups per IP per hour
-    const ip = requestContext.ipAddress || "unknown";
-    if (ip !== "unknown") {
-      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      const { default: clientPromisePre } = await import("@/lib/mongodb");
-      const dbPre = (await clientPromisePre).db("mybingocard");
-      const recentFromIp = await dbPre.collection("users").countDocuments({
-        createdAt: { $gte: oneHourAgo },
-        createdByIp: ip,
-      });
-      if (recentFromIp >= 5) {
-        return NextResponse.json({ error: "Too many accounts created from this location. Please try again later." }, { status: 429 });
-      }
     }
 
     // Check if user already exists

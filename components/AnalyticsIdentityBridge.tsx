@@ -2,6 +2,10 @@
 
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
+import {
+  getBrowserStorageItem,
+  setBrowserStorageItem,
+} from "@/lib/browser-storage";
 
 declare global {
   interface Window {
@@ -17,7 +21,7 @@ declare global {
 
 function getCentralAnonymousId(): string {
   try {
-    return window.townrankerVisitor?.anonymousId || localStorage.getItem("_tr_anon") || "";
+    return window.townrankerVisitor?.anonymousId || getBrowserStorageItem("localStorage", "_tr_anon") || "";
   } catch {
     return window.townrankerVisitor?.anonymousId || "";
   }
@@ -25,24 +29,38 @@ function getCentralAnonymousId(): string {
 
 function getCentralSessionId(): string {
   try {
-    return window.townrankerVisitor?.sessionId || sessionStorage.getItem("_tr_sess") || "";
+    return window.townrankerVisitor?.sessionId || getBrowserStorageItem("sessionStorage", "_tr_sess") || "";
   } catch {
     return window.townrankerVisitor?.sessionId || "";
   }
 }
 
-function getStorageItem(storage: Storage, key: string): string {
+function getStorageItem(name: "localStorage" | "sessionStorage", key: string): string {
   try {
-    return storage.getItem(key) || "";
+    return getBrowserStorageItem(name, key);
   } catch {
     return "";
   }
 }
 
 function setSessionItem(key: string, value: string) {
+  setBrowserStorageItem("sessionStorage", key, value);
+}
+
+function safeDocumentReferrer(): string {
   try {
-    sessionStorage.setItem(key, value);
-  } catch {}
+    return document.referrer || "";
+  } catch {
+    return "";
+  }
+}
+
+function safeCurrentUrl(): string {
+  try {
+    return window.location.href || "";
+  } catch {
+    return "";
+  }
 }
 
 export default function AnalyticsIdentityBridge() {
@@ -69,18 +87,18 @@ export default function AnalyticsIdentityBridge() {
       }
 
       const dedupeKey = `mybingo_analytics_identified:${userId}:${anonymousId}`;
-      if (getStorageItem(sessionStorage, dedupeKey)) return;
+      if (getStorageItem("sessionStorage", dedupeKey)) return;
 
       const payload = {
         anonymousId,
         sessionId: getCentralSessionId(),
         landingUrl:
           window.townrankerVisitor?.landingUrl ||
-          getStorageItem(sessionStorage, "_tr_landing_url") ||
+          getStorageItem("sessionStorage", "_tr_landing_url") ||
           "",
-        referrer: window.townrankerVisitor?.referrer || document.referrer || "",
-        currentUrl: window.location.href,
-        legacyAnonymousId: getStorageItem(localStorage, "tr_anonymous_id"),
+        referrer: window.townrankerVisitor?.referrer || safeDocumentReferrer(),
+        currentUrl: safeCurrentUrl(),
+        legacyAnonymousId: getStorageItem("localStorage", "tr_anonymous_id"),
       };
 
       fetch("/api/analytics/identify", {

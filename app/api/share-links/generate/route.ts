@@ -20,25 +20,8 @@ const appUrl = (
 const PRICE_PER_LINK_CENTS = 10;
 const MIN_SHARE_LINKS = 5;
 const MAX_EXPIRES_DAYS = 365;
-const RATE_LIMIT_MAX = 5;
-const RATE_LIMIT_WINDOW_MS = 60_000;
 
-const checkoutRateLimit = new Map<string, number[]>();
 let checkoutRefsIndexEnsured = false;
-
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now();
-  const windowStart = now - RATE_LIMIT_WINDOW_MS;
-  const timestamps = checkoutRateLimit.get(userId) || [];
-  const recent = timestamps.filter((t) => t > windowStart);
-  if (recent.length >= RATE_LIMIT_MAX) {
-    checkoutRateLimit.set(userId, recent);
-    return false;
-  }
-  recent.push(now);
-  checkoutRateLimit.set(userId, recent);
-  return true;
-}
 
 function sanitizeContactList(input: unknown): string[] {
   if (!Array.isArray(input)) return [];
@@ -84,13 +67,6 @@ export async function POST(request: Request) {
 
     const sessionUserId = session.user.id;
     const sessionUserEmail = session.user.email;
-
-    if (!checkRateLimit(sessionUserId)) {
-      return NextResponse.json(
-        { error: "Too many checkout attempts, please wait a minute" },
-        { status: 429 }
-      );
-    }
 
     const body = await request.json();
     const {

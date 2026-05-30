@@ -16,8 +16,8 @@ describe("materializePdfImageCells", () => {
       const first = await materializePdfImageCells([imageCell], { assetDir: tempDir, cache });
       const second = await materializePdfImageCells([imageCell], { assetDir: tempDir, cache });
 
-      const firstImg = parseImageCell(first.cells[0]);
-      const secondImg = parseImageCell(second.cells[0]);
+      const firstImg = parseImageCell(first.cells[0]!);
+      const secondImg = parseImageCell(second.cells[0]!);
 
       expect(firstImg?.imageUrl.startsWith("file://")).toBe(true);
       expect(secondImg?.imageUrl).toBe(firstImg?.imageUrl);
@@ -35,7 +35,7 @@ describe("materializePdfImageCells", () => {
 
     try {
       const result = await materializePdfImageCells([imageCell], { assetDir: tempDir, cache: new Map() });
-      const parsed = parseImageCell(result.cells[0]);
+      const parsed = parseImageCell(result.cells[0]!);
 
       expect(parsed?.imageUrl).toBe("/api/images/abc123");
       expect(result.tempFiles).toHaveLength(0);

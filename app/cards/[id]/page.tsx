@@ -13,6 +13,11 @@ import AdUnit from "@/components/AdUnit";
 import FavoriteButton from "@/components/FavoriteButton";
 import StartGameButton from "@/components/StartGameButton";
 import { trackClientActivity } from "@/lib/activity-client";
+import {
+  getBrowserStorageItem,
+  removeBrowserStorageItem,
+  setBrowserStorageItem,
+} from "@/lib/browser-storage";
 import { redirectToCheckout } from "@/lib/upgrade";
 import {
   BATCH_PACKS,
@@ -143,10 +148,10 @@ export default function CardViewPage() {
     if (!card) return;
     try {
       const key = "mybingo_recently_played";
-      const stored = JSON.parse(localStorage.getItem(key) || "[]");
+      const stored = JSON.parse(getBrowserStorageItem("localStorage", key) || "[]");
       const filtered = stored.filter((i: any) => i.cardId !== card._id);
       filtered.unshift({ cardId: card._id, cardName: card.title, lastPlayed: new Date().toISOString() });
-      localStorage.setItem(key, JSON.stringify(filtered.slice(0, 10)));
+      setBrowserStorageItem("localStorage", key, JSON.stringify(filtered.slice(0, 10)));
     } catch {}
   }, [card]);
 
@@ -172,8 +177,8 @@ export default function CardViewPage() {
 
     const viewedAt = Date.now();
     const seenKey = `mybingo_card_last_seen_${card._id}`;
-    const previousSeenAt = Number(localStorage.getItem(seenKey) || 0);
-    localStorage.setItem(seenKey, String(viewedAt));
+    const previousSeenAt = Number(getBrowserStorageItem("localStorage", seenKey) || 0);
+    setBrowserStorageItem("localStorage", seenKey, String(viewedAt));
 
     trackClientActivity(notice ? "post_save_card_viewed" : "card_viewed", {
       cardId: card._id,
@@ -201,7 +206,7 @@ export default function CardViewPage() {
       setCard(data.card);
       // Restore saved game state from localStorage
       try {
-        const saved = localStorage.getItem(`mybingo_state_${cardId}`);
+        const saved = getBrowserStorageItem("localStorage", `mybingo_state_${cardId}`);
         if (saved) {
           const state = JSON.parse(saved);
           if (state.marked && Array.isArray(state.marked)) {
@@ -299,7 +304,7 @@ export default function CardViewPage() {
         setUndoStack(s => [...s, index + 1]);
       }
       // Save to localStorage
-      try { localStorage.setItem(`mybingo_state_${cardId}`, JSON.stringify({ marked: Array.from(next), bingo: checkBingo(next), undoStack: [...(undoStack || []), next.has(index) ? index + 1 : -(index + 1)], timestamp: Date.now() })); } catch {}
+      setBrowserStorageItem("localStorage", `mybingo_state_${cardId}`, JSON.stringify({ marked: Array.from(next), bingo: checkBingo(next), undoStack: [...(undoStack || []), next.has(index) ? index + 1 : -(index + 1)], timestamp: Date.now() }));
       const hasBingo = checkBingo(next);
       if (hasBingo && !bingo) {
         setBingo(true);
@@ -361,7 +366,7 @@ export default function CardViewPage() {
         setShowBingo(false);
       }
       // Save to localStorage
-      try { localStorage.setItem(`mybingo_state_${cardId}`, JSON.stringify({ marked: Array.from(next), bingo: checkBingo(next), undoStack: undoStack.slice(0, -1), timestamp: Date.now() })); } catch {}
+      setBrowserStorageItem("localStorage", `mybingo_state_${cardId}`, JSON.stringify({ marked: Array.from(next), bingo: checkBingo(next), undoStack: undoStack.slice(0, -1), timestamp: Date.now() }));
       return next;
     });
   };
@@ -373,7 +378,7 @@ export default function CardViewPage() {
     setUndoStack([]);
     setBingo(false);
     setShowBingo(false);
-    try { localStorage.removeItem(`mybingo_state_${cardId}`); } catch {}
+    removeBrowserStorageItem("localStorage", `mybingo_state_${cardId}`);
   };
 
   const toggleFullscreen = async () => {

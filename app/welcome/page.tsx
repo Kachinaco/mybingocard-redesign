@@ -4,7 +4,10 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Welcome - Create Your Bingo Card | MyBingoCard",
   description: "Create custom bingo cards in seconds. Free to start, then save or export when you are ready. Perfect for parties, classrooms, team building, and more.",
-  robots: "noindex",
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 const demoBingoItems = [

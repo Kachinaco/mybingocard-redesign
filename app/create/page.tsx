@@ -32,6 +32,11 @@ import {
   normalizeBingoVariant,
   type BingoVariant,
 } from "@/lib/classic-bingo";
+import {
+  getBrowserStorageItem,
+  removeBrowserStorageItem,
+  setBrowserStorageItem,
+} from "@/lib/browser-storage";
 
 type GridSize = 3 | 4 | 5;
 type PlanType = "FREE" | "PREMIUM";
@@ -76,12 +81,7 @@ function CreateCardContent() {
     if (typeof window === "undefined") return false;
 
     const nativeHandler = (window as any).webkit?.messageHandlers?.mybingocardOAuth;
-    let nativeAppFlag = false;
-    try {
-      nativeAppFlag = window.localStorage.getItem("mybingocard-ios-app") === "1";
-    } catch {
-      nativeAppFlag = false;
-    }
+    const nativeAppFlag = getBrowserStorageItem("localStorage", "mybingocard-ios-app") === "1";
 
     if (searchParams.get("app") !== "1" && !nativeAppFlag && !nativeHandler) {
       return false;
@@ -171,7 +171,7 @@ function CreateCardContent() {
   // Show new user tip if they have 0 cards and haven't dismissed it
   useEffect(() => {
     if (!checkingPermission && permissionStatus?.cardsCreated === 0 && !cardIdFromUrl) {
-      const dismissed = typeof window !== "undefined" && localStorage.getItem("new_user_tip_dismissed");
+      const dismissed = getBrowserStorageItem("localStorage", "new_user_tip_dismissed");
       if (!dismissed) setShowNewUserTip(true);
     }
   }, [checkingPermission, permissionStatus, cardIdFromUrl]);
@@ -396,7 +396,7 @@ function CreateCardContent() {
       let draftTemplateId: string | undefined;
 
       try {
-        const saved = localStorage.getItem("mybingo_card_draft");
+        const saved = getBrowserStorageItem("localStorage", "mybingo_card_draft");
         if (saved) {
           const draft = JSON.parse(saved);
           if (draft.title) { setTitle(draft.title); draftHasTitle = true; }
@@ -497,14 +497,31 @@ function CreateCardContent() {
 
     // If user just signed in and has a pending draft, save it directly from localStorage
     // (avoids race condition where React state hasn't settled yet)
-    const draftRaw = localStorage.getItem("mybingo_card_draft");
-    if (session?.user && draftRaw && !cardIdFromUrl) {
-      // Prevent auto-save from also firing a duplicate POST
+    const draftRaw = getBrowserStorageItem("localStorage", "mybingo_card_draft");
+    const pendingDraftSaveLockKey = "mybingo_pending_draft_save_in_progress";
+    if (
+      session?.user &&
+      draftRaw &&
+      !cardIdFromUrl &&
+      !createInFlightRef.current &&
+      getBrowserStorageItem("sessionStorage", pendingDraftSaveLockKey) !== "1"
+    ) {
+      // Prevent auto-save and duplicate effect runs from also firing POSTs.
       createInFlightRef.current = true;
+      setBrowserStorageItem("sessionStorage", pendingDraftSaveLockKey, "1");
       (async () => {
         try {
           const draft = JSON.parse(draftRaw);
-          if (draft.title && draft.cells?.some((c: string) => c?.trim())) {
+          const draftCells = Array.isArray(draft.cells) ? draft.cells : [];
+          if (draft.title && draftCells.some((c: string) => c?.trim())) {
+            const cellsForDraft = await uploadDataUrlImages(draftCells);
+            if (cellsForDraft !== draftCells) {
+              setBrowserStorageItem(
+                "localStorage",
+                "mybingo_card_draft",
+                JSON.stringify({ ...draft, cells: cellsForDraft })
+              );
+            }
             const response = await fetch("/api/cards", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -515,7 +532,7 @@ function CreateCardContent() {
                 rows: draft.rows || draft.size || 3,
                 columns: draft.columns || draft.size || 3,
                 bingoVariant: normalizeBingoVariant(draft.bingoVariant),
-                cells: draft.cells,
+                cells: cellsForDraft,
                 freeSpace: draft.freeSpace ?? true,
                 isPublic: draft.isPublic ?? false,
                 style: draft.style || {},
@@ -526,7 +543,7 @@ function CreateCardContent() {
               if (data.card?._id) {
                 currentCardIdRef.current = data.card._id;
               }
-              localStorage.removeItem("mybingo_card_draft");
+              removeBrowserStorageItem("localStorage", "mybingo_card_draft");
               router.replace(`/cards/${data.card._id}?created=1`);
               return;
             }
@@ -535,6 +552,7 @@ function CreateCardContent() {
           console.error("Failed to save draft after sign-in:", e);
         } finally {
           createInFlightRef.current = false;
+          removeBrowserStorageItem("sessionStorage", pendingDraftSaveLockKey);
         }
       })();
     }
@@ -571,6 +589,28 @@ function CreateCardContent() {
     style,
   });
 
+  const dataUrlToBlob = (dataUrl: string): Blob => {
+    const commaIndex = dataUrl.indexOf(",");
+    if (commaIndex === -1) {
+      throw new Error("Invalid data URL");
+    }
+
+    const header = dataUrl.slice(0, commaIndex);
+    const body = dataUrl.slice(commaIndex + 1);
+    const mimeType = /^data:([^;,]+)/.exec(header)?.[1] || "application/octet-stream";
+
+    if (header.includes(";base64")) {
+      const binary = window.atob(body);
+      const bytes = new Uint8Array(binary.length);
+      for (let j = 0; j < binary.length; j++) {
+        bytes[j] = binary.charCodeAt(j);
+      }
+      return new Blob([bytes], { type: mimeType });
+    }
+
+    return new Blob([decodeURIComponent(body)], { type: mimeType });
+  };
+
   // Convert data URL images to server uploads before saving
   const uploadDataUrlImages = async (cellsToProcess: string[]): Promise<string[]> => {
     const updatedCells = [...cellsToProcess];
@@ -583,8 +623,7 @@ function CreateCardContent() {
       if (imgData && imgData.imageId.startsWith("temp_") && imgData.imageUrl.startsWith("data:")) {
         try {
           // Convert data URL to blob
-          const response = await fetch(imgData.imageUrl);
-          const blob = await response.blob();
+          const blob = dataUrlToBlob(imgData.imageUrl);
 
           // Upload to server
           const formData = new FormData();
@@ -654,6 +693,22 @@ function CreateCardContent() {
         setAutoSaveError(t("autosave.add_title"));
         showMobileToast(t("error.title_required"));
       }
+      return false;
+    }
+
+    if (!session?.user && !currentCardIdRef.current) {
+      trackClientActivity("card_save_blocked", {
+        reason: "not_logged_in",
+        title: payload.title,
+        size: payload.size,
+        cells_filled: cellsFilledCount,
+        status: 401,
+        server_error: "client_redirect_to_signup",
+        is_update: false,
+      });
+      setAutoSaveState("idle");
+      setAutoSaveError("");
+      redirectToSignupForCreation();
       return false;
     }
 
@@ -737,9 +792,9 @@ function CreateCardContent() {
       const savedCard = data.card;
       const isNewCard = !currentCardIdRef.current;
       // Clean up draft from localStorage on successful save
-      try { localStorage.removeItem("mybingo_card_draft"); } catch (e) {}
+      removeBrowserStorageItem("localStorage", "mybingo_card_draft");
       if (hasDataUrlImages) {
-        try { localStorage.removeItem("mybingo_anon_uploads"); } catch (e) {}
+        removeBrowserStorageItem("localStorage", "mybingo_anon_uploads");
       }
       if (savedCard?._id && !currentCardIdRef.current) {
         currentCardIdRef.current = savedCard._id;
@@ -935,7 +990,7 @@ function CreateCardContent() {
 
   const persistDraft = () => {
     try {
-      localStorage.setItem("mybingo_card_draft", JSON.stringify({
+      setBrowserStorageItem("localStorage", "mybingo_card_draft", JSON.stringify({
         title,
         description,
         size,
@@ -1136,6 +1191,11 @@ function CreateCardContent() {
       if (bingoVariant === "custom" && filledCells < neededCells) {
         setError(`Need at least ${neededCells} filled items for batch generation of ${rows}x${columns} cards`);
         setBatchLoading(false);
+        return;
+      }
+
+      if (!session?.user) {
+        redirectToSignupForCreation();
         return;
       }
 
@@ -1558,7 +1618,7 @@ function CreateCardContent() {
                 </Link>.
               </p>
               <button
-                onClick={() => { setShowNewUserTip(false); localStorage.setItem("new_user_tip_dismissed", "1"); }}
+                onClick={() => { setShowNewUserTip(false); setBrowserStorageItem("localStorage", "new_user_tip_dismissed", "1"); }}
                 className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
                 title="Dismiss"
               >

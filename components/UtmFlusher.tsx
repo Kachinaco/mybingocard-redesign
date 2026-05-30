@@ -2,8 +2,21 @@
 
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
+import {
+  getBrowserStorageItem,
+  removeBrowserStorageItem,
+  setBrowserStorageItem,
+} from "@/lib/browser-storage";
 
 const ANON_KEY = "tr_anonymous_id";
+
+function navigatorValue(key: "userAgent" | "language"): string {
+  try {
+    return typeof navigator !== "undefined" ? navigator[key] : "";
+  } catch {
+    return "";
+  }
+}
 
 /**
  * Reads UTM params and anonymousId stored in localStorage and sends them to the
@@ -16,21 +29,21 @@ export default function UtmFlusher() {
   useEffect(() => {
     if (status !== "authenticated") return;
 
-    const stored = localStorage.getItem("utm_params");
-    const anonymousId = localStorage.getItem(ANON_KEY);
+    const stored = getBrowserStorageItem("localStorage", "utm_params");
+    const anonymousId = getBrowserStorageItem("localStorage", ANON_KEY);
 
     // Flush device info for OAuth/magic-link signups (runs once, flag prevents repeats)
-    if (!localStorage.getItem("device_info_flushed")) {
+    if (!getBrowserStorageItem("localStorage", "device_info_flushed")) {
       fetch("/api/user/update-device", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userAgent: navigator.userAgent,
-          language: navigator.language,
+          userAgent: navigatorValue("userAgent"),
+          language: navigatorValue("language"),
         }),
       })
         .then((res) => {
-          if (res.ok) localStorage.setItem("device_info_flushed", "1");
+          if (res.ok) setBrowserStorageItem("localStorage", "device_info_flushed", "1");
         })
         .catch(() => {});
     }
@@ -41,7 +54,7 @@ export default function UtmFlusher() {
     try {
       const params = stored ? JSON.parse(stored) : {};
       if (params && typeof params !== "object") {
-        localStorage.removeItem("utm_params");
+        removeBrowserStorageItem("localStorage", "utm_params");
         return;
       }
 
@@ -51,7 +64,7 @@ export default function UtmFlusher() {
       };
 
       if (Object.keys(payload).length === 0) {
-        localStorage.removeItem("utm_params");
+        removeBrowserStorageItem("localStorage", "utm_params");
         return;
       }
 
@@ -62,14 +75,14 @@ export default function UtmFlusher() {
       })
         .then((response) => {
           if (response.ok) {
-            localStorage.removeItem("utm_params");
+            removeBrowserStorageItem("localStorage", "utm_params");
             // Don't remove anonymousId — it's still needed for activity tracking.
             // It's written to the user record once; the endpoint is idempotent.
           }
         })
         .catch(() => {});
     } catch {
-      localStorage.removeItem("utm_params");
+      removeBrowserStorageItem("localStorage", "utm_params");
     }
   }, [status]);
 

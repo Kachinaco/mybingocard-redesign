@@ -10,6 +10,11 @@ import PlaySoloButton from "@/components/PlaySoloButton";
 import StartGameButton from "@/components/StartGameButton";
 import ShareBatchButton from "@/components/ShareBatchButton";
 import { trackClientActivity } from "@/lib/activity-client";
+import {
+  getBrowserStorageItem,
+  removeBrowserStorageItem,
+  setBrowserStorageItem,
+} from "@/lib/browser-storage";
 
 interface Card {
   _id: string;
@@ -196,15 +201,15 @@ function MyCardsPageInner() {
 
   const cleanUpLocalStorage = (deletedIds: string[]) => {
     try {
-      const stored = localStorage.getItem("mybingo_recently_played");
+      const stored = getBrowserStorageItem("localStorage", "mybingo_recently_played");
       if (stored) {
         const items = JSON.parse(stored);
         const filtered = items.filter((item: any) => !deletedIds.includes(item.cardId));
-        localStorage.setItem("mybingo_recently_played", JSON.stringify(filtered));
+        setBrowserStorageItem("localStorage", "mybingo_recently_played", JSON.stringify(filtered));
       }
       // Also clean up saved game states
       deletedIds.forEach((id) => {
-        localStorage.removeItem(`mybingo_state_${id}`);
+        removeBrowserStorageItem("localStorage", `mybingo_state_${id}`);
       });
     } catch {}
   };

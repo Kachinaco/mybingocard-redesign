@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     canonical: "https://mybingocard.com/terms",
   },
   robots: {
-    index: false,
+    index: true,
     follow: true,
   },
 };

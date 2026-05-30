@@ -1,7 +1,15 @@
-const CACHE_NAME = "mybingocard-v2";
+const CACHE_NAME = "mybingocard-v4";
 const STATIC_ASSETS = [
   "/manifest.json",
 ];
+
+function shouldBypassRuntimeCache(url) {
+  return (
+    url.pathname === "/sw.js" ||
+    url.pathname.startsWith("/_next/") ||
+    url.pathname.startsWith("/t/")
+  );
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -24,6 +32,11 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
 
   if (request.method !== "GET" || url.origin !== self.location.origin) {
+    return;
+  }
+
+  if (shouldBypassRuntimeCache(url)) {
+    event.respondWith(fetch(request));
     return;
   }
 

@@ -43,8 +43,9 @@ describe("activity tracking depth", () => {
     expect(sanitized.password).toBe("[redacted]");
     expect((sanitized.nested as Record<string, unknown>).apiToken).toBe("[redacted]");
     expect((sanitized.nested as Record<string, unknown>).ok).toBe("kept");
-    expect(((sanitized.items as Array<Record<string, unknown>>)[0]).session_cookie).toBe("[redacted]");
-    expect(((sanitized.items as Array<Record<string, unknown>>)[0]).label).toBe("visible");
+    const firstItem = (sanitized.items as Array<Record<string, unknown>>)[0];
+    expect(firstItem?.session_cookie).toBe("[redacted]");
+    expect(firstItem?.label).toBe("visible");
   });
 
   test("admin user activity feed exposes deep event details for inspection", () => {

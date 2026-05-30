@@ -4,6 +4,12 @@ import { SessionProvider, useSession } from "next-auth/react";
 import { useEffect } from "react";
 import ImpersonationBanner from "@/components/ImpersonationBanner";
 import AnalyticsIdentityBridge from "@/components/AnalyticsIdentityBridge";
+import {
+  getBrowserStorageItem,
+  listBrowserStorageKeys,
+  removeBrowserStorageItem,
+  setBrowserStorageItem,
+} from "@/lib/browser-storage";
 
 function LocalStorageGuard() {
   const { data: session, status } = useSession();
@@ -12,20 +18,15 @@ function LocalStorageGuard() {
     if (status !== "authenticated" || !session?.user?.id) return;
 
     const currentUserId = session.user.id;
-    const storedUserId = localStorage.getItem("mybingo_user_id");
+    const storedUserId = getBrowserStorageItem("localStorage", "mybingo_user_id");
 
     if (storedUserId && storedUserId !== currentUserId) {
-      const keysToRemove: string[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith("mybingo_")) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach((key) => localStorage.removeItem(key));
+      listBrowserStorageKeys("localStorage")
+        .filter((key) => key.startsWith("mybingo_"))
+        .forEach((key) => removeBrowserStorageItem("localStorage", key));
     }
 
-    localStorage.setItem("mybingo_user_id", currentUserId);
+    setBrowserStorageItem("localStorage", "mybingo_user_id", currentUserId);
   }, [session, status]);
 
   return null;

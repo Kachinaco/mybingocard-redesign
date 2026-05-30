@@ -2,10 +2,16 @@ import { NextResponse } from "next/server";
 import { getCouponByCode } from "@/lib/db/coupons";
 import { trackActivity } from "@/lib/activity";
 import { trackApiError } from "@/lib/api-error-tracking";
+import { readJsonObject } from "@/lib/request-json";
 
 export async function POST(request: Request) {
   try {
-    const { code } = await request.json();
+    const body = await readJsonObject(request);
+    if (!body.ok) {
+      return NextResponse.json({ valid: false, error: body.error }, { status: 400 });
+    }
+
+    const { code } = body.data;
 
     if (!code) {
       return NextResponse.json({ valid: false, error: "No code provided" });

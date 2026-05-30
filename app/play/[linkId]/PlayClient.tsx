@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { trackClientActivity } from "@/lib/activity-client";
+import { getBrowserStorageItem, setBrowserStorageItem } from "@/lib/browser-storage";
 import PlayCard, { type PlayCardData } from "./PlayCard";
 
 interface PlayClientProps {
@@ -52,13 +53,8 @@ function trackPlayingOnce(
 ) {
   if (typeof window === "undefined") return;
   const key = `_played_${linkId}`;
-  try {
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, "1");
-  } catch {
-    // If sessionStorage is unavailable (private mode quirks), fall through
-    // and fire once per full page load anyway.
-  }
+  if (getBrowserStorageItem("sessionStorage", key)) return;
+  setBrowserStorageItem("sessionStorage", key, "1");
   trackClientActivity("share_link_playing", {
     linkId,
     cardId: payload.cardId,

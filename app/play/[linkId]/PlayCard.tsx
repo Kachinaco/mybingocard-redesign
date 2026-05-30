@@ -6,6 +6,11 @@ import { useTextFit } from "@/lib/useTextFit";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { trackClientActivity } from "@/lib/activity-client";
 import {
+  getBrowserStorageItem,
+  removeBrowserStorageItem,
+  setBrowserStorageItem,
+} from "@/lib/browser-storage";
+import {
   checkWinByGrid,
   formatClassicCellLabel,
   getBingoGridShape,
@@ -52,7 +57,7 @@ function loadLocalState(
   total: number,
 ): { marked: number[]; bingo: boolean } | null {
   try {
-    const raw = localStorage.getItem(getStorageKey(linkId));
+    const raw = getBrowserStorageItem("localStorage", getStorageKey(linkId));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object") return null;
@@ -82,18 +87,15 @@ function loadLocalState(
 }
 
 function saveLocalState(linkId: string, marked: Set<number>, bingo: boolean) {
-  try {
-    localStorage.setItem(
-      getStorageKey(linkId),
-      JSON.stringify({ marked: Array.from(marked), bingo }),
-    );
-  } catch {}
+  setBrowserStorageItem(
+    "localStorage",
+    getStorageKey(linkId),
+    JSON.stringify({ marked: Array.from(marked), bingo }),
+  );
 }
 
 function clearLocalState(linkId: string) {
-  try {
-    localStorage.removeItem(getStorageKey(linkId));
-  } catch {}
+  removeBrowserStorageItem("localStorage", getStorageKey(linkId));
 }
 
 export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {

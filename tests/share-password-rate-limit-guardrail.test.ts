@@ -8,15 +8,12 @@ const shareRouteSource = readFileSync(
 );
 
 describe("share password guardrails", () => {
-  test("rate limits password-protected share link attempts before bcrypt compare", () => {
-    expect(shareRouteSource).toContain("const PASSWORD_ATTEMPT_MAX = 10");
-    expect(shareRouteSource).toContain("function checkPasswordAttemptLimit");
-    expect(shareRouteSource).toContain("status: 429");
+  test("does not rate-limit password-protected share link attempts before bcrypt compare", () => {
+    expect(shareRouteSource).not.toContain("PASSWORD_ATTEMPT_MAX");
+    expect(shareRouteSource).not.toContain("checkPasswordAttemptLimit");
+    expect(shareRouteSource).not.toContain("Too many password attempts");
 
-    const limiterIndex = shareRouteSource.indexOf("checkPasswordAttemptLimit(shareLink, request)");
     const bcryptIndex = shareRouteSource.indexOf("bcrypt.compare(password, card.sharePassword)");
-    expect(limiterIndex).toBeGreaterThan(-1);
     expect(bcryptIndex).toBeGreaterThan(-1);
-    expect(limiterIndex).toBeLessThan(bcryptIndex);
   });
 });

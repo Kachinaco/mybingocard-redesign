@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { joinGameRoom, getGameRoom } from "@/lib/db/games";
 import { trackActivity, getRequestActivityContext } from "@/lib/activity";
-import clientPromise from "@/lib/mongodb";
-import type { Db } from "mongodb";
+import { readJsonObject } from "@/lib/request-json";
 
 function validatePlayerName(name: unknown): string | null {
   if (typeof name !== "string") return null;
@@ -14,21 +13,6 @@ function validatePlayerName(name: unknown): string | null {
   return cleaned;
 }
 
-let ttlIndexEnsured = false;
-async function ensureJoinAttemptsTTL(db: Db) {
-  if (ttlIndexEnsured) return;
-  try {
-    await db.collection("game_join_attempts").createIndex(
-      { createdAt: 1 },
-      { expireAfterSeconds: 300, name: "join_attempts_ttl" }
-    );
-    ttlIndexEnsured = true;
-  } catch (err) {
-    console.warn("game_join_attempts TTL index setup skipped:", (err as Error).message);
-    ttlIndexEnsured = true;
-  }
-}
-
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ roomCode: string }> }
@@ -37,7 +21,12 @@ export async function POST(
     const session = await auth();
 
     const { roomCode } = await params;
-    const { playerName } = await request.json();
+    const body = await readJsonObject(request);
+    if (!body.ok) {
+      return NextResponse.json({ error: body.error }, { status: 400 });
+    }
+
+    const { playerName } = body.data;
 
     const cleanedName = validatePlayerName(playerName);
     if (!cleanedName) {
@@ -46,47 +35,6 @@ export async function POST(
         { status: 400 }
       );
     }
-
-    // Rate limiting (per-IP + per-roomCode)
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-    await ensureJoinAttemptsTTL(db);
-
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      request.headers.get("x-real-ip") ||
-      "unknown";
-    const windowStart = new Date(Date.now() - 60 * 1000);
-
-    if (ip !== "unknown") {
-      const ipCount = await db.collection("game_join_attempts").countDocuments({
-        ip,
-        createdAt: { $gte: windowStart },
-      });
-      if (ipCount >= 10) {
-        return NextResponse.json(
-          { error: "Too many join attempts. Please wait a moment." },
-          { status: 429 }
-        );
-      }
-    }
-
-    const roomCount = await db.collection("game_join_attempts").countDocuments({
-      roomCode,
-      createdAt: { $gte: windowStart },
-    });
-    if (roomCount >= 30) {
-      return NextResponse.json(
-        { error: "Too many join attempts. Please wait a moment." },
-        { status: 429 }
-      );
-    }
-
-    await db.collection("game_join_attempts").insertOne({
-      ip,
-      roomCode,
-      createdAt: new Date(),
-    });
 
     const finalName = cleanedName;
 

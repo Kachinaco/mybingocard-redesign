@@ -1,6 +1,8 @@
 // Web Audio API sound effects for bingo game
 // All sounds are generated programmatically - no external files needed
 
+import { getBrowserStorageItem, setBrowserStorageItem } from "@/lib/browser-storage";
+
 let audioCtx: AudioContext | null = null;
 let soundEnabled = true;
 
@@ -16,15 +18,12 @@ function getAudioContext(): AudioContext {
 
 export function setSoundEnabled(enabled: boolean) {
   soundEnabled = enabled;
-  if (typeof window !== "undefined") {
-    localStorage.setItem("bingo-sounds", enabled ? "on" : "off");
-  }
+  setBrowserStorageItem("localStorage", "bingo-sounds", enabled ? "on" : "off");
 }
 
 export function isSoundEnabled(): boolean {
-  if (typeof window === "undefined") return true;
-  const stored = localStorage.getItem("bingo-sounds");
-  if (stored !== null) {
+  const stored = getBrowserStorageItem("localStorage", "bingo-sounds");
+  if (stored) {
     soundEnabled = stored === "on";
   }
   return soundEnabled;

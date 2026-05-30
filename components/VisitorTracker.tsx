@@ -5,6 +5,10 @@ import { usePathname } from "next/navigation";
 import { ATTRIBUTION_COOKIE_NAME } from "@/lib/attribution";
 import { trackClientActivity } from "@/lib/activity-client";
 import {
+  getBrowserStorageItem,
+  setBrowserStorageItem,
+} from "@/lib/browser-storage";
+import {
   getSessionStats,
   updateSessionStats,
   hasCoreAction,
@@ -33,33 +37,94 @@ type FormFieldState = {
   initialLength: number | null;
 };
 
+let memorySessionId: string | null = null;
+let memorySessionStart: number | null = null;
+let memoryPageCount = 0;
+
+function safeString(read: () => unknown, fallback = ""): string {
+  try {
+    const value = read();
+    return typeof value === "string" ? value : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function safeNumber(read: () => unknown, fallback = 0): number {
+  try {
+    const value = read();
+    return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function safeBoolean(read: () => unknown, fallback = false): boolean {
+  try {
+    return Boolean(read());
+  } catch {
+    return fallback;
+  }
+}
+
+function currentPage(): string {
+  return safeString(() => `${window.location.pathname}${window.location.search}`);
+}
+
+function currentHostname(): string {
+  return safeString(() => window.location.hostname);
+}
+
+function documentTitle(): string {
+  return safeString(() => document.title);
+}
+
+function documentReferrer(): string {
+  return safeString(() => document.referrer);
+}
+
+function navigatorString(key: "userAgent" | "language"): string {
+  return safeString(() => navigator[key]);
+}
+
+function asElement(target: EventTarget | null): Element | null {
+  try {
+    return target instanceof Element ? target : null;
+  } catch {
+    return null;
+  }
+}
+
 function getClickTargetInfo(el: Element): Record<string, string> {
-  const tag = el.tagName.toLowerCase();
-  const text = (el.textContent || "").trim().slice(0, 50);
-  const dataTrack = el.closest("[data-track]")?.getAttribute("data-track") || "";
-  const id = el.id || el.closest("[id]")?.id || "";
+  const tag = safeString(() => el.tagName.toLowerCase());
+  const text = safeString(() => el.textContent).trim().slice(0, 50);
+  const dataTrack = safeString(() => el.closest("[data-track]")?.getAttribute("data-track") || "");
+  const id = safeString(() => (el as HTMLElement).id || (el.closest("[id]") as HTMLElement | null)?.id || "");
+  const rawClassName = safeString(() => typeof el.className === "string" ? el.className : "");
   const className =
-    typeof el.className === "string"
-      ? el.className
-          .split(/\s+/)
-          .find(
-            (c) =>
-              c &&
-              !c.startsWith("__") &&
-              !/^[a-z]{1,3}[A-Z0-9]/.test(c) &&
-              c.length > 2
-          ) || ""
-      : "";
+    rawClassName
+      .split(/\s+/)
+      .find(
+        (c) =>
+          c &&
+          !c.startsWith("__") &&
+          !/^[a-z]{1,3}[A-Z0-9]/.test(c) &&
+          c.length > 2
+      ) || "";
 
   return { tag, text, dataTrack, id, className };
 }
 
 function isInteractiveElement(el: Element): boolean {
-  if (el.matches(INTERACTIVE_SELECTORS)) return true;
-  let parent: Element | null = el.parentElement;
-  while (parent) {
-    if (parent.matches(INTERACTIVE_SELECTORS)) return true;
-    parent = parent.parentElement;
+  try {
+    if (el.matches(INTERACTIVE_SELECTORS)) return true;
+    let parent: Element | null = el.parentElement;
+    while (parent) {
+      if (parent.matches(INTERACTIVE_SELECTORS)) return true;
+      parent = parent.parentElement;
+    }
+  } catch {
+    return false;
   }
   return false;
 }
@@ -68,21 +133,25 @@ function shouldTrackDeadClick(el: Element): boolean {
   let current: Element | null = el;
   let depth = 0;
 
-  while (current && current !== document.body && depth < 4) {
-    const className = typeof current.className === "string" ? current.className : "";
-    if (
-      current.hasAttribute("data-track") ||
-      current.hasAttribute("data-dead-click") ||
-      current.hasAttribute("aria-label") ||
-      current.hasAttribute("role") ||
-      current.hasAttribute("tabindex") ||
-      /(^|\s)(cursor-pointer|[^\s]*hover:[^\s]*)($|\s)/.test(className)
-    ) {
-      return true;
-    }
+  try {
+    while (current && current !== document.body && depth < 4) {
+      const className = typeof current.className === "string" ? current.className : "";
+      if (
+        current.hasAttribute("data-track") ||
+        current.hasAttribute("data-dead-click") ||
+        current.hasAttribute("aria-label") ||
+        current.hasAttribute("role") ||
+        current.hasAttribute("tabindex") ||
+        /(^|\s)(cursor-pointer|[^\s]*hover:[^\s]*)($|\s)/.test(className)
+      ) {
+        return true;
+      }
 
-    current = current.parentElement;
-    depth += 1;
+      current = current.parentElement;
+      depth += 1;
+    }
+  } catch {
+    return false;
   }
 
   return false;
@@ -96,30 +165,46 @@ function isSensitiveField(el: HTMLInputElement | HTMLSelectElement | HTMLTextAre
 
 function getFieldLength(el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement): number | null {
   if (isSensitiveField(el)) return null;
-  if (el instanceof HTMLSelectElement) return el.selectedOptions.length;
-  if (el instanceof HTMLInputElement && ["checkbox", "radio"].includes(el.type)) return null;
-  return typeof el.value === "string" ? el.value.length : null;
+  try {
+    if (el instanceof HTMLSelectElement) return el.selectedOptions.length;
+    if (el instanceof HTMLInputElement && ["checkbox", "radio"].includes(el.type)) return null;
+    return typeof el.value === "string" ? el.value.length : null;
+  } catch {
+    return null;
+  }
 }
 
 function getFormFieldInfo(el: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement): Record<string, unknown> {
-  const form = el.closest("form");
-  const type = el instanceof HTMLInputElement ? el.type : el.tagName.toLowerCase();
-  const rect = el.getBoundingClientRect();
+  const form = (() => {
+    try {
+      return el.closest("form");
+    } catch {
+      return null;
+    }
+  })();
+  const type = el instanceof HTMLInputElement ? el.type : safeString(() => el.tagName.toLowerCase());
+  const rect = (() => {
+    try {
+      return el.getBoundingClientRect();
+    } catch {
+      return { left: 0, top: 0, width: 0, height: 0 };
+    }
+  })();
 
   return {
-    tag: el.tagName.toLowerCase(),
+    tag: safeString(() => el.tagName.toLowerCase()),
     type,
-    id: el.id || "",
-    name: el.name || "",
-    autocomplete: el.getAttribute("autocomplete") || "",
-    required: Boolean(el.required),
-    disabled: Boolean(el.disabled),
-    readOnly: "readOnly" in el ? Boolean(el.readOnly) : false,
-    checked: el instanceof HTMLInputElement && ["checkbox", "radio"].includes(el.type) ? el.checked : null,
+    id: safeString(() => el.id),
+    name: safeString(() => el.name),
+    autocomplete: safeString(() => el.getAttribute("autocomplete") || ""),
+    required: safeBoolean(() => el.required),
+    disabled: safeBoolean(() => el.disabled),
+    readOnly: "readOnly" in el ? safeBoolean(() => (el as HTMLInputElement | HTMLTextAreaElement).readOnly) : false,
+    checked: el instanceof HTMLInputElement && ["checkbox", "radio"].includes(el.type) ? safeBoolean(() => el.checked) : null,
     value_length: getFieldLength(el),
     form_id: form?.id || "",
     form_name: form?.getAttribute("name") || "",
-    page: `${window.location.pathname}${window.location.search}`,
+    page: currentPage(),
     x: Math.round(rect.left),
     y: Math.round(rect.top),
     width: Math.round(rect.width),
@@ -135,21 +220,23 @@ const ATTRIBUTION_STORAGE_KEY = "utm_params";
 
 function getSessionId(): string {
   const key = "tr_session_id";
-  const existing = window.sessionStorage.getItem(key);
+  const existing = getBrowserStorageItem("sessionStorage", key);
   if (existing) return existing;
 
-  const value = `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-  window.sessionStorage.setItem(key, value);
+  const value = memorySessionId || `sess_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  memorySessionId = value;
+  setBrowserStorageItem("sessionStorage", key, value);
   return value;
 }
 
 function getSessionStartTime(): number {
   const key = "tr_session_start";
-  const existing = window.sessionStorage.getItem(key);
+  const existing = getBrowserStorageItem("sessionStorage", key);
   if (existing) return parseInt(existing, 10);
 
-  const now = Date.now();
-  window.sessionStorage.setItem(key, String(now));
+  const now = memorySessionStart || Date.now();
+  memorySessionStart = now;
+  setBrowserStorageItem("sessionStorage", key, String(now));
   return now;
 }
 
@@ -161,7 +248,7 @@ function classifySession(pageCount: number, durationSeconds: number): string {
 }
 
 function fireSessionSummary(sessionId: string) {
-  const pageCount = parseInt(window.sessionStorage.getItem("tr_page_count") || "1", 10);
+  const pageCount = parseInt(getBrowserStorageItem("sessionStorage", "tr_page_count") || String(memoryPageCount || 1), 10);
   const sessionStart = getSessionStartTime();
   const durationSeconds = Math.max(0, Math.round((Date.now() - sessionStart) / 1000));
   const sessionType = classifySession(pageCount, durationSeconds);
@@ -184,8 +271,6 @@ function detectReturningVisitor(sessionId: string) {
   if (!stats) return;
 
   const { lastVisit, sessionCount } = stats;
-  const isFirstVisit = !lastVisit;
-
   if (lastVisit) {
     const lastDate = new Date(lastVisit).getTime();
     const now = Date.now();
@@ -203,16 +288,6 @@ function detectReturningVisitor(sessionId: string) {
         { sessionId }
       );
     }
-  } else {
-    trackClientActivity(
-      "returning_visitor",
-      {
-        days_since_last_visit: 0,
-        total_sessions: 1,
-        is_first_visit: true,
-      },
-      { sessionId }
-    );
   }
 
   updateSessionStats();
@@ -220,13 +295,14 @@ function detectReturningVisitor(sessionId: string) {
 
 function incrementPageCount(): number {
   const key = "tr_page_count";
-  const current = parseInt(window.sessionStorage.getItem(key) || "0", 10) + 1;
-  window.sessionStorage.setItem(key, String(current));
+  const current = parseInt(getBrowserStorageItem("sessionStorage", key) || String(memoryPageCount || 0), 10) + 1;
+  memoryPageCount = current;
+  setBrowserStorageItem("sessionStorage", key, String(current));
   return current;
 }
 
 function getUtmParams(): Record<string, string> {
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(safeString(() => window.location.search));
   return {
     source: params.get("utm_source") || "",
     medium: params.get("utm_medium") || "",
@@ -237,7 +313,7 @@ function getUtmParams(): Record<string, string> {
 }
 
 function getAttributionFromLocation(): Record<string, string> {
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(safeString(() => window.location.search));
   return {
     utm_source: params.get("utm_source") || "",
     utm_medium: params.get("utm_medium") || "",
@@ -249,7 +325,7 @@ function getAttributionFromLocation(): Record<string, string> {
 
 function readStoredAttribution(): Record<string, string> {
   try {
-    const raw = window.localStorage.getItem(ATTRIBUTION_STORAGE_KEY);
+    const raw = getBrowserStorageItem("localStorage", ATTRIBUTION_STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw);
     return parsed && typeof parsed === "object" ? parsed : {};
@@ -259,16 +335,17 @@ function readStoredAttribution(): Record<string, string> {
 }
 
 function getExternalReferrer(): string {
-  if (!document.referrer) return "";
+  const referrer = documentReferrer();
+  if (!referrer) return "";
 
   try {
-    const referrerUrl = new URL(document.referrer);
-    if (referrerUrl.hostname === window.location.hostname) {
+    const referrerUrl = new URL(referrer);
+    if (referrerUrl.hostname === currentHostname()) {
       return "";
     }
-    return document.referrer;
+    return referrer;
   } catch {
-    return document.referrer;
+    return referrer;
   }
 }
 
@@ -289,8 +366,13 @@ function persistAttribution() {
   }
 
   if (Object.keys(next).length > 0) {
-    window.localStorage.setItem(ATTRIBUTION_STORAGE_KEY, JSON.stringify(next));
-    document.cookie = `${ATTRIBUTION_COOKIE_NAME}=${encodeURIComponent(JSON.stringify(next))}; path=/; max-age=2592000; SameSite=Lax`;
+    const serialized = JSON.stringify(next);
+    setBrowserStorageItem("localStorage", ATTRIBUTION_STORAGE_KEY, serialized);
+    try {
+      document.cookie = `${ATTRIBUTION_COOKIE_NAME}=${encodeURIComponent(serialized)}; path=/; max-age=2592000; SameSite=Lax`;
+    } catch {
+      // Attribution cookies are best-effort only.
+    }
   }
 }
 
@@ -313,7 +395,7 @@ export default function VisitorTracker() {
     const onClick = (event: MouseEvent) => {
       metricsRef.current.clicks += 1;
 
-      const target = event.target as Element | null;
+      const target = asElement(event.target);
       if (!target) return;
 
       const info = getClickTargetInfo(target);
@@ -326,7 +408,7 @@ export default function VisitorTracker() {
           "button_clicked",
           {
             ...info,
-            page: `${window.location.pathname}${window.location.search}`,
+            page: currentPage(),
             x: event.clientX,
             y: event.clientY,
           },
@@ -338,7 +420,7 @@ export default function VisitorTracker() {
           "dead_click",
           {
             ...info,
-            page: `${window.location.pathname}${window.location.search}`,
+            page: currentPage(),
             x: event.clientX,
             y: event.clientY,
           },
@@ -362,7 +444,7 @@ export default function VisitorTracker() {
           {
             ...info,
             clickCount: nearby.length,
-            page: `${window.location.pathname}${window.location.search}`,
+            page: currentPage(),
             x: event.clientX,
             y: event.clientY,
           },
@@ -385,14 +467,14 @@ export default function VisitorTracker() {
     };
 
     const onInput = (event: Event) => {
-      const target = event.target as Element | null;
+      const target = asElement(event.target);
       if (target?.closest("form")) {
         metricsRef.current.formInteractions += 1;
       }
     };
 
     const onFieldFocus = (event: FocusEvent) => {
-      const target = event.target as Element | null;
+      const target = asElement(event.target);
       if (!target?.matches(FORM_FIELD_SELECTOR)) return;
 
       const field = target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -405,7 +487,7 @@ export default function VisitorTracker() {
     };
 
     const onFieldChange = (event: Event) => {
-      const target = event.target as Element | null;
+      const target = asElement(event.target);
       if (!target?.matches(FORM_FIELD_SELECTOR)) return;
 
       const field = target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -425,7 +507,7 @@ export default function VisitorTracker() {
     };
 
     const onFieldBlur = (event: FocusEvent) => {
-      const target = event.target as Element | null;
+      const target = asElement(event.target);
       if (!target?.matches(FORM_FIELD_SELECTOR)) return;
 
       const field = target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
@@ -445,29 +527,38 @@ export default function VisitorTracker() {
     };
 
     const onScroll = () => {
-      const top = window.scrollY || document.documentElement.scrollTop;
+      const top = safeNumber(() => window.scrollY) || safeNumber(() => document.documentElement.scrollTop);
       const max =
-        document.documentElement.scrollHeight -
-        document.documentElement.clientHeight;
+        safeNumber(() => document.documentElement.scrollHeight) -
+        safeNumber(() => document.documentElement.clientHeight);
       const depth = max > 0 ? Math.round((top / max) * 100) : 0;
       if (depth > metricsRef.current.maxScrollDepth) {
         metricsRef.current.maxScrollDepth = depth;
       }
     };
 
-    document.body.addEventListener("click", onClick, { passive: true });
-    document.body.addEventListener("focusin", onFieldFocus);
-    document.body.addEventListener("change", onFieldChange, { passive: true });
-    document.body.addEventListener("focusout", onFieldBlur);
+    const body = (() => {
+      try {
+        return document.body;
+      } catch {
+        return null;
+      }
+    })();
+    if (!body) return;
+
+    body.addEventListener("click", onClick, { passive: true });
+    body.addEventListener("focusin", onFieldFocus);
+    body.addEventListener("change", onFieldChange, { passive: true });
+    body.addEventListener("focusout", onFieldBlur);
     window.addEventListener("mousemove", onMouseMove, { passive: true });
     window.addEventListener("input", onInput, { passive: true });
     window.addEventListener("scroll", onScroll, { passive: true });
 
     return () => {
-      document.body.removeEventListener("click", onClick);
-      document.body.removeEventListener("focusin", onFieldFocus);
-      document.body.removeEventListener("change", onFieldChange);
-      document.body.removeEventListener("focusout", onFieldBlur);
+      body.removeEventListener("click", onClick);
+      body.removeEventListener("focusin", onFieldFocus);
+      body.removeEventListener("change", onFieldChange);
+      body.removeEventListener("focusout", onFieldBlur);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("input", onInput);
       window.removeEventListener("scroll", onScroll);
@@ -496,25 +587,25 @@ export default function VisitorTracker() {
     };
 
     const send = (reason: string, extra?: Record<string, unknown>) => {
-      const page = `${window.location.pathname}${window.location.search}`;
+      const page = currentPage();
       const payload: Record<string, unknown> = {
         sessionId,
         sessionPageCount,
-        domain: window.location.hostname,
+        domain: currentHostname(),
         page,
-        pageTitle: document.title,
-        referrer: document.referrer || "",
+        pageTitle: documentTitle(),
+        referrer: documentReferrer(),
         utm: getUtmParams(),
-        userAgent: navigator.userAgent,
-        language: navigator.language,
+        userAgent: navigatorString("userAgent"),
+        language: navigatorString("language"),
         screen: {
-          width: window.screen.width,
-          height: window.screen.height,
-          colorDepth: window.screen.colorDepth,
+          width: safeNumber(() => window.screen.width),
+          height: safeNumber(() => window.screen.height),
+          colorDepth: safeNumber(() => window.screen.colorDepth),
         },
         viewport: {
-          width: window.innerWidth,
-          height: window.innerHeight,
+          width: safeNumber(() => window.innerWidth),
+          height: safeNumber(() => window.innerHeight),
         },
         timeOnPage: Math.max(0, Math.round((Date.now() - startedAtRef.current) / 1000)),
         scrollDepth: metricsRef.current.maxScrollDepth,
@@ -532,16 +623,20 @@ export default function VisitorTracker() {
         trackClientActivity("page_engagement", payload, { sessionId, keepalive: true });
       }
 
-      fetch("/api/track-visitor", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-        keepalive: true,
-      }).catch(() => {
+      try {
+        fetch("/api/track-visitor", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+          keepalive: true,
+        }).catch(() => {
+          // Tracking errors are intentionally non-blocking.
+        });
+      } catch {
         // Tracking errors are intentionally non-blocking.
-      });
+      }
     };
 
     const initialTimer = window.setTimeout(() => {
@@ -586,7 +681,7 @@ export default function VisitorTracker() {
               "tab_returned",
               {
                 away_duration_seconds: awaySeconds,
-                page: `${window.location.pathname}${window.location.search}`,
+                page: currentPage(),
               },
               { sessionId }
             );

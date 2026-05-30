@@ -1,5 +1,6 @@
 "use client";
 
+import { getBrowserStorageItem, setBrowserStorageItem } from "@/lib/browser-storage";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface DarkModeContextType {
@@ -18,7 +19,7 @@ export function DarkModeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem("darkMode");
+    const stored = getBrowserStorageItem("localStorage", "darkMode");
     if (stored === "true") {
       setDark(true);
       document.documentElement.classList.add("dark");
@@ -29,7 +30,7 @@ export function DarkModeProvider({ children }: { children: React.ReactNode }) {
   const toggle = () => {
     setDark((prev) => {
       const next = !prev;
-      localStorage.setItem("darkMode", String(next));
+      setBrowserStorageItem("localStorage", "darkMode", String(next));
       if (next) {
         document.documentElement.classList.add("dark");
       } else {

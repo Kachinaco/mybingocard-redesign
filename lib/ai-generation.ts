@@ -26,6 +26,8 @@ const MAX_RESPONSE_TOKENS = 400;
 const ENABLE_API_FALLBACK = process.env.AI_API_FALLBACK_ENABLED !== "0";
 const ENABLE_PAID_API_FALLBACK = process.env.AI_PAID_API_FALLBACK_ENABLED === "1";
 const ENABLE_CODEX_FALLBACK = process.env.AI_CODEX_FALLBACK_ENABLED === "1";
+const ENABLE_LOCAL_FALLBACK = process.env.AI_LOCAL_FALLBACK_ENABLED !== "0";
+const LOCAL_FALLBACK_MODEL = "template-v1";
 
 const TONE_MAP: Record<string, string> = {
   funny: "Humorous and playful. Include witty observations, exaggerations, and things that would make people laugh.",
@@ -194,6 +196,112 @@ export function extractJsonArray(text: string): string[] {
 
 function shellQuote(value: string): string {
   return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+function normalizeFallbackPhrase(value: string): string {
+  return value
+    .replace(/[^\w\s'&/-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .substring(0, 50);
+}
+
+function titleCase(value: string): string {
+  return value
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => (word.length <= 3 ? word.toLowerCase() : `${word.charAt(0).toUpperCase()}${word.slice(1).toLowerCase()}`))
+    .join(" ");
+}
+
+function collectPromptDetailSeeds(promptDetails?: AiPromptDetails): string[] {
+  if (!promptDetails) return [];
+
+  return Object.values(promptDetails)
+    .flatMap((value) => value.split(/[,;\n]/g))
+    .map(normalizeFallbackPhrase)
+    .filter((value) => value.length >= 2 && value.length <= 50);
+}
+
+function uniqueFallbackCells(items: string[], count: number): string[] {
+  const seen = new Set<string>();
+  const cells: string[] = [];
+
+  for (const item of items) {
+    const normalized = normalizeFallbackPhrase(item);
+    if (!normalized) continue;
+    const key = normalized.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    cells.push(titleCase(normalized));
+    if (cells.length >= count) break;
+  }
+
+  return cells;
+}
+
+function generateWithLocalFallback({
+  theme,
+  tone,
+  cellCount,
+  title,
+  useCase,
+  promptDetails,
+}: {
+  theme: string;
+  tone: string;
+  cellCount: number;
+  title?: string;
+  useCase?: string;
+  promptDetails?: AiPromptDetails;
+}): string {
+  const cleanedTheme = normalizeFallbackPhrase(title || theme || useCase || "Bingo");
+  const themeLabel = cleanedTheme || "Bingo";
+  const seedItems = collectPromptDetailSeeds(promptDetails);
+  const words = normalizeFallbackPhrase(themeLabel)
+    .split(/\s+/)
+    .filter((word) => word.length > 2)
+    .slice(0, 8);
+
+  const toneItems =
+    tone === "funny"
+      ? ["Awkward Pause", "Someone Laughs", "Unexpected Twist", "Classic Moment", "Inside Joke"]
+      : tone === "serious"
+        ? ["Helpful Tip", "Key Detail", "Important Reminder", "Clear Example", "Useful Fact"]
+        : ["Surprise Moment", "Shared Laugh", "Good Question", "New Idea", "Classic Example"];
+
+  const generated = [
+    ...seedItems,
+    ...words.map((word) => `${word} Moment`),
+    ...words.map((word) => `${word} Mentioned`),
+    ...words.map((word) => `${word} Example`),
+    `${themeLabel} Starts`,
+    `${themeLabel} Question`,
+    `${themeLabel} Surprise`,
+    `${themeLabel} Favorite`,
+    `${themeLabel} Memory`,
+    `${themeLabel} Story`,
+    `${themeLabel} Win`,
+    `${themeLabel} Challenge`,
+    `${themeLabel} Clue`,
+    `${themeLabel} Match`,
+    `${themeLabel} Choice`,
+    ...toneItems,
+    "Free Space Energy",
+    "Everyone Notices",
+    "Quick Reaction",
+    "Perfect Timing",
+    "Bonus Point",
+    "Close Call",
+    "Crowd Favorite",
+    "Someone Cheers",
+    "Great Guess",
+    "Almost There",
+    "Final Round",
+    "Winning Square",
+  ];
+
+  return JSON.stringify(uniqueFallbackCells(generated, cellCount));
 }
 
 async function generateWithCodexCli(model: string, prompt: string): Promise<string> {
@@ -414,13 +522,13 @@ export async function generateBingoCells({
   freeSpace: boolean;
   useCase?: string;
   promptDetails?: AiPromptDetails;
-}): Promise<{ cells: string[]; provider: "gemini" | "openrouter" | "moonshot" | "openai" | "anthropic" | "codex-cli"; model: string }> {
+}): Promise<{ cells: string[]; provider: "gemini" | "openrouter" | "moonshot" | "openai" | "anthropic" | "codex-cli" | "local"; model: string }> {
   const totalCells = size * size;
   const cellCount = freeSpace ? totalCells - 1 : totalCells;
   const prompt = buildBingoPrompt(theme.trim().substring(0, 500), tone || "mix", cellCount, title, useCase, promptDetails);
 
   const attempts: Array<{
-    provider: "gemini" | "openrouter" | "moonshot" | "openai" | "anthropic" | "codex-cli";
+    provider: "gemini" | "openrouter" | "moonshot" | "openai" | "anthropic" | "codex-cli" | "local";
     model: string;
     run: () => Promise<string>;
   }> = [];
@@ -463,6 +571,22 @@ export async function generateBingoCells({
       { provider: "codex-cli", model: CODEX_PRIMARY_MODEL, run: () => generateWithCodexCli(CODEX_PRIMARY_MODEL, prompt) },
       { provider: "codex-cli", model: CODEX_FALLBACK_MODEL, run: () => generateWithCodexCli(CODEX_FALLBACK_MODEL, prompt) }
     );
+  }
+
+  if (ENABLE_LOCAL_FALLBACK) {
+    attempts.push({
+      provider: "local",
+      model: LOCAL_FALLBACK_MODEL,
+      run: async () =>
+        generateWithLocalFallback({
+          theme,
+          tone,
+          cellCount,
+          title,
+          useCase,
+          promptDetails,
+        }),
+    });
   }
 
   if (attempts.length === 0) {
