@@ -5,6 +5,7 @@ import {
   getBrowserStorageItem,
   setBrowserStorageItem,
 } from "@/lib/browser-storage";
+import { trackMappedMetaPixelEvent } from "@/lib/meta-pixel";
 
 declare global {
   interface Window {
@@ -257,6 +258,12 @@ export function trackClientActivity(
     });
   } catch {
     // Breadcrumbs are diagnostic only and must never block tracking.
+  }
+
+  try {
+    trackMappedMetaPixelEvent(event, builtPayload);
+  } catch {
+    // Marketing pixel forwarding must never block product flows.
   }
 
   let payload: string;

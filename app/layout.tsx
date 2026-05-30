@@ -12,6 +12,7 @@ import NamePromptModal from "@/components/NamePromptModal";
 import ErrorCapture from "@/components/ErrorCapture";
 import PerformanceTracker from "@/components/PerformanceTracker";
 import { CheckoutModalProvider } from "@/components/CheckoutModal";
+import MetaPixel from "@/components/MetaPixel";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -104,7 +105,7 @@ export default function RootLayout({
       <head>
         <meta name="p:domain_verify" content="377c2985c8bafafc989490930e0eefff" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-        <script src="/t/tracker.js" data-api="/t/api/track" async></script>
+        <script src="/t/tracker.js" data-api="/t/api/track" defer></script>
         <script
           type="text/javascript"
           dangerouslySetInnerHTML={{
@@ -120,6 +121,7 @@ export default function RootLayout({
         </noscript>
       </head>
       <body className="antialiased font-sans">
+        <MetaPixel />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

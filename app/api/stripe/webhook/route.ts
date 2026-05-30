@@ -39,6 +39,7 @@ import {
   notifyTrialStarted,
   notifyTrialEndingSoon,
 } from "@/lib/discord";
+import { sendMetaConversionEvent } from "@/lib/meta-conversions";
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
 
@@ -338,6 +339,19 @@ export async function POST(request: Request) {
             currency: (session.currency || "usd").toUpperCase(),
             stripeSessionId: session.id,
           },
+        });
+
+        await sendMetaConversionEvent({
+          eventName: "Purchase",
+          eventId: session.id,
+          eventSourceUrl: appUrl,
+          email: session.customer_details?.email || session.customer_email || null,
+          userId: session.metadata?.userId || session.client_reference_id || null,
+          valueCents: session.amount_total,
+          currency: session.currency || "usd",
+          contentName: session.metadata?.purchaseType || session.mode || "checkout",
+          contentType: "product",
+          orderId: session.id,
         });
 
         notifyCheckoutCompleted(

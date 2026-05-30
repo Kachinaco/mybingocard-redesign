@@ -8,6 +8,7 @@ import { getReferralByCode, createReferral } from "@/lib/db/referrals";
 import { parseUserAgent } from "@/lib/parse-user-agent";
 import { sanitizePostVerificationCallback } from "@/lib/auth/verify-email-redirect";
 import { readJsonObject } from "@/lib/request-json";
+import { sendMetaConversionEvent } from "@/lib/meta-conversions";
 
 export async function POST(request: Request) {
   try {
@@ -147,6 +148,18 @@ export async function POST(request: Request) {
         referrer,
         referrerDomain,
       },
+    });
+
+    await sendMetaConversionEvent({
+      eventName: "CompleteRegistration",
+      eventId: `signup_${user._id.toString()}`,
+      eventSourceUrl: `${appUrl}/signup`,
+      email: user.email,
+      userId: user._id.toString(),
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+      contentName: "Account Signup",
+      contentType: "account",
     });
 
     // Track referral if mbc_referral cookie exists
