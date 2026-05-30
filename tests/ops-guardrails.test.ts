@@ -60,6 +60,8 @@ describe("production ops guardrails", () => {
     expect(recoverySource).toContain("submit-sitemap-to-gsc");
     expect(recoverySource).toContain("urlList");
     expect(recoverySource).toContain("submittedPublicMessages: false");
+    expect(recoverySource).toContain("INDEXNOW_RATE_LIMIT_COOLDOWN_MS");
+    expect(recoverySource).not.toContain('"/play"');
     expect(recoverySource).not.toContain("facebook.com");
     expect(recoverySource).not.toContain("pinterest.com");
   });

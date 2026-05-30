@@ -26,10 +26,10 @@ const PRIORITY_PATHS = [
   "/image-bingo-card-generator",
   "/custom-bingo-card-maker",
   "/pricing",
-  "/play",
   "/about",
   "/contact",
 ];
+const INDEXNOW_RATE_LIMIT_COOLDOWN_MS = Number(process.env.INDEXNOW_RATE_LIMIT_COOLDOWN_MS || 24 * 60 * 60 * 1000);
 
 function hasArg(name) {
   return process.argv.includes(name);
@@ -150,6 +150,16 @@ async function submitIndexNow(urls) {
   if (hasArg("--dry-run")) {
     return { skipped: true, payload };
   }
+  const previous = readPreviousResult();
+  const previousGeneratedAt = previous?.generatedAt ? new Date(previous.generatedAt).getTime() : 0;
+  if (!hasArg("--force-indexnow") && previous?.indexNow?.status === 429 && Date.now() - previousGeneratedAt < INDEXNOW_RATE_LIMIT_COOLDOWN_MS) {
+    return {
+      skipped: true,
+      reason: "IndexNow returned 429 recently; cooldown active",
+      previousGeneratedAt: previous.generatedAt,
+      payload,
+    };
+  }
   const res = await fetch(INDEXNOW_ENDPOINT, {
     method: "POST",
     headers: {
@@ -160,6 +170,14 @@ async function submitIndexNow(urls) {
   });
   const body = await res.text().catch(() => "");
   return { ok: res.ok, status: res.status, body: body.slice(0, 500), payload };
+}
+
+function readPreviousResult() {
+  try {
+    return JSON.parse(fs.readFileSync(REPORT_PATH, "utf8"));
+  } catch {
+    return null;
+  }
 }
 
 function submitGscSitemap() {
@@ -216,7 +234,7 @@ async function main() {
   const outPath = writeResult(result);
   console.log(JSON.stringify(result, null, 2));
   console.log(`Recovery result written: ${outPath}`);
-  if (!indexNow.skipped && !indexNow.ok) process.exitCode = 1;
+  if (!indexNow.skipped && !indexNow.ok && indexNow.status !== 429) process.exitCode = 1;
 }
 
 main().catch((error) => {
