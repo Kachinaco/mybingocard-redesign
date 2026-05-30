@@ -78,7 +78,7 @@ function readRecentAccessRows() {
   const rows = [];
   const lineRe = /^(\S+) \S+ \S+ \[([^\]]+)\] "(\S+) (.*?) ([^"]+)" (\d{3}) \S+ "([^"]*)" "([^"]*)"/;
   for (const line of raw.split("\n")) {
-    const match = lineRe.match(line);
+    const match = line.match(lineRe);
     if (!match) continue;
     const at = parseNginxTime(match[2]);
     if (!at || at.getTime() < cutoff) continue;

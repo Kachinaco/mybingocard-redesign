@@ -39,6 +39,7 @@ describe("production ops guardrails", () => {
     expect(monitorSource).toContain("/_next/static/chunks/");
     expect(monitorSource).toContain("COOLDOWN_MINUTES");
     expect(monitorSource).toContain("--discord");
+    expect(monitorSource).not.toContain("lineRe.match");
   });
 
   test("traffic truth report cross-checks nginx, first-party activity, central analytics, and GSC", () => {
