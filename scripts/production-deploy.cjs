@@ -186,7 +186,36 @@ function installBuiltNext(buildDir) {
     fs.renameSync(NEXT_DIR, NEXT_PREVIOUS_DIR);
   }
   fs.renameSync(builtNextDir, NEXT_DIR);
+  rewriteNextNodeModuleSymlinks();
   console.log("Installed staged .next build into the live app directory.");
+}
+
+function rewriteNextNodeModuleSymlinks() {
+  const nextNodeModulesDir = path.join(NEXT_DIR, "node_modules");
+  if (!fs.existsSync(nextNodeModulesDir)) return;
+
+  let rewritten = 0;
+  for (const entry of fs.readdirSync(nextNodeModulesDir, { withFileTypes: true })) {
+    if (!entry.isSymbolicLink()) continue;
+    const linkPath = path.join(nextNodeModulesDir, entry.name);
+    const currentTarget = fs.readlinkSync(linkPath);
+    const marker = "node_modules/";
+    const markerIndex = currentTarget.lastIndexOf(marker);
+    if (markerIndex === -1) continue;
+    const packagePath = currentTarget.slice(markerIndex + marker.length);
+    if (!packagePath || packagePath.startsWith("..")) continue;
+
+    const liveTarget = path.join(APP_DIR, "node_modules", packagePath);
+    const relativeTarget = path.relative(path.dirname(linkPath), liveTarget);
+    if (currentTarget === relativeTarget) continue;
+    fs.unlinkSync(linkPath);
+    fs.symlinkSync(relativeTarget, linkPath);
+    rewritten += 1;
+  }
+
+  if (rewritten > 0) {
+    console.log(`Rewrote ${rewritten} staged .next/node_modules symlinks for the live app path.`);
+  }
 }
 
 function buildApplication() {

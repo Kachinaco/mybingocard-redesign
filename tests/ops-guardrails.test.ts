@@ -37,6 +37,7 @@ describe("production ops guardrails", () => {
     expect(deploySource).toContain(".next-static-archive");
     expect(deploySource).toContain(".deploy-builds");
     expect(deploySource).toContain("installBuiltNext");
+    expect(deploySource).toContain("rewriteNextNodeModuleSymlinks");
     expect(deploySource).toContain("--in-place-build");
   });
 
