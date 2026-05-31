@@ -7,7 +7,7 @@ import { seoLandingPages, type SeoLandingPageData } from "@/lib/seo-landing-page
 import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 
 export const metadata: Metadata = {
-  title: "Free Bingo Card Generator for Printable & Online Bingo Games | MyBingoCard",
+  title: "MyBingoCard - Free Bingo Card Generator for Printable & Online Games",
   description:
     "Create custom bingo cards online for classrooms, baby showers, weddings, team building, holidays, and parties. Free printable bingo card generator with templates, PDF export, AI help, and live online play.",
   keywords: [
