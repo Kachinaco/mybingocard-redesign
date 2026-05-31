@@ -2406,7 +2406,7 @@ function CreateCardContent() {
                       }
                       className="w-full max-w-md bg-[#007AFF] text-white px-6 py-3 rounded-xl hover:bg-[#0066DD] hover:shadow-lg hover:shadow-blue-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-base shadow-md"
                     >
-                      {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save_dashboard") : session?.user ? t("btn.create_save_full") : "Join to Save Your Card"}
+                      {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save_dashboard") : session?.user ? "Save Card" : "Join to Save Your Card"}
                     </button>
                     )}
                   </div>
@@ -2463,7 +2463,7 @@ function CreateCardContent() {
                   disabled={loading || showPreview || isLoadingCard}
                   className="w-full bg-[#007AFF] text-white px-4 py-3.5 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed font-bold text-base shadow-md"
                 >
-                  {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save") : session?.user ? t("btn.create_save") : "Join to Save Your Card"}
+                  {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save") : session?.user ? "Save Card" : "Join to Save Your Card"}
                 </button>
                 )}
             </div>
