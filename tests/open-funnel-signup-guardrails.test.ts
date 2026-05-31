@@ -32,6 +32,7 @@ describe("open-funnel signup guardrails", () => {
   const providersSource = readSource("components/Providers.tsx");
   const utmFlusherSource = readSource("components/UtmFlusher.tsx");
   const signupRouteSource = readSource("app/api/auth/signup/route.ts");
+  const emailCaptureRouteSource = readSource("app/api/email-capture/route.ts");
   const proxySource = readSource("proxy.ts");
 
   test("critical signup and tracking paths use safe storage wrappers", () => {
@@ -84,6 +85,15 @@ describe("open-funnel signup guardrails", () => {
     expect(signupRouteSource).not.toContain("MBC_SIGNUP_IP_HOURLY_LIMIT");
     expect(signupRouteSource).not.toContain('user: { id: "bot"');
     expect(signupRouteSource).not.toContain("Silently accept");
+  });
+
+  test("server-side capture and signup support precise identity blocks", () => {
+    expect(signupRouteSource).toContain('collection("signup_blocks").findOne');
+    expect(signupRouteSource).toContain('event: "signup_blocked"');
+    expect(signupRouteSource).toContain('return NextResponse.json({ error: "Unable to create account" }, { status: 403 });');
+    expect(emailCaptureRouteSource).toContain('collection("signup_blocks").findOne');
+    expect(emailCaptureRouteSource).toContain('event: "email_capture_blocked"');
+    expect(emailCaptureRouteSource).toContain('return NextResponse.json({ success: true');
   });
 
   test("public server action probes are rejected without re-enabling broad action blocking", () => {

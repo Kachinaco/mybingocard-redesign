@@ -25,16 +25,43 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
     }
 
+    const normalizedInputEmail = email.toLowerCase().trim();
+    const reqCtx = getRequestActivityContext(request);
     const client = await clientPromise;
     const db = client.db("mybingocard");
+    const blockFilters: Array<Record<string, string>> = [{ type: "email", value: normalizedInputEmail }];
+    if (reqCtx.ipAddress) {
+      blockFilters.push({ type: "ip", value: reqCtx.ipAddress });
+    }
+    const captureBlock = await db.collection("signup_blocks").findOne({
+      active: { $ne: false },
+      $or: blockFilters,
+    });
+    if (captureBlock) {
+      trackActivity({
+        event: "email_capture_blocked",
+        source: "server",
+        userId: null,
+        email: normalizedInputEmail,
+        pathname: "/api/email-capture",
+        domain: reqCtx.domain,
+        ipAddress: reqCtx.ipAddress,
+        userAgent: reqCtx.userAgent,
+        metadata: {
+          source: source || "popup",
+          blockType: captureBlock.type,
+          reason: captureBlock.reason || "blocked_identity",
+        },
+      }).catch(() => {});
+      return NextResponse.json({ success: true, message: "Thanks! Check your email for your free templates." });
+    }
+
     const subscribers = await getEmailSubscribersCollection(db);
     const { email: normalizedEmail, duplicate } = await upsertEmailSubscriber(
       subscribers,
-      email,
+      normalizedInputEmail,
       source
     );
-
-    const reqCtx = getRequestActivityContext(request);
     trackActivity({
       event: "email_captured",
       source: "server",

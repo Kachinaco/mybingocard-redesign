@@ -19,6 +19,7 @@ export async function POST(request: Request) {
 
     const { name, email, password, callbackUrl, utm_source, utm_medium, utm_campaign, utm_content, utm_term, referrer } = body.data;
     const requestContext = getRequestActivityContext(request);
+    const normalizedEmail = typeof email === "string" ? email.toLowerCase().trim() : "";
 
     // Validate input
     if (!name || !email || !password) {
@@ -33,6 +34,34 @@ export async function POST(request: Request) {
         { error: "Password must be at least 8 characters" },
         { status: 400 }
       );
+    }
+
+    const blockFilters: Array<Record<string, string>> = [{ type: "email", value: normalizedEmail }];
+    if (requestContext.ipAddress) {
+      blockFilters.push({ type: "ip", value: requestContext.ipAddress });
+    }
+    const { default: clientPromiseBlock } = await import("@/lib/mongodb");
+    const dbBlock = (await clientPromiseBlock).db("mybingocard");
+    const signupBlock = await dbBlock.collection("signup_blocks").findOne({
+      active: { $ne: false },
+      $or: blockFilters,
+    });
+    if (signupBlock) {
+      await trackActivity({
+        event: "signup_blocked",
+        source: "server",
+        userId: null,
+        email: normalizedEmail,
+        pathname: requestContext.pathname,
+        domain: requestContext.domain,
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+        metadata: {
+          blockType: signupBlock.type,
+          reason: signupBlock.reason || "blocked_identity",
+        },
+      });
+      return NextResponse.json({ error: "Unable to create account" }, { status: 403 });
     }
 
     // Check if user already exists
