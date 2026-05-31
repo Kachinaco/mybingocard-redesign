@@ -31,6 +31,15 @@ describe("production ops guardrails", () => {
     expect(deploySource).toContain("--verify-only");
   });
 
+  test("production deploy guard preserves old Next static assets across builds", () => {
+    expect(deploySource).toContain("snapshotStaticAssets");
+    expect(deploySource).toContain("restoreArchivedStaticAssets");
+    expect(deploySource).toContain(".next-static-archive");
+    expect(deploySource).toContain(".deploy-builds");
+    expect(deploySource).toContain("installBuiltNext");
+    expect(deploySource).toContain("--in-place-build");
+  });
+
   test("regression monitor watches the exact outage classes found in QA", () => {
     expect(monitorSource).toContain("/api/cards/share/");
     expect(monitorSource).toContain("/api/images/");

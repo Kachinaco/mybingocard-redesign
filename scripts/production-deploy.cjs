@@ -2,9 +2,10 @@
 /**
  * Production deploy guard for mybingocard.com.
  *
- * This intentionally restarts PM2 from the application cwd after every build.
- * A build that rewrites .next without a matching process restart can leave
- * pages pointing at chunk files the running Next server does not serve.
+ * This intentionally builds outside the live .next directory, preserves old
+ * hashed static assets, then restarts PM2 from the application cwd. Building
+ * directly over .next can leave active browser tabs pointing at chunk files
+ * the running Next server still references but the build just deleted.
  */
 
 const { execFileSync, execSync } = require("node:child_process");
@@ -16,24 +17,32 @@ const APP_URL = (process.env.MYBINGOCARD_APP_URL || "https://mybingocard.com").r
 const PM2_NAME = process.env.MYBINGOCARD_PM2_NAME || "mybingocard";
 const USER_AGENT = "MyBingoCardDeployGuard/1.0";
 const NEXT_CHUNK_PATH = "/_next/static/chunks/";
+const NEXT_DIR = path.join(APP_DIR, ".next");
+const NEXT_STATIC_DIR = path.join(NEXT_DIR, "static");
+const NEXT_PREVIOUS_DIR = path.join(APP_DIR, ".next.previous");
+const STATIC_ARCHIVE_DIR = path.join(APP_DIR, ".next-static-archive");
+const DEPLOY_BUILDS_DIR = path.join(APP_DIR, ".deploy-builds");
+const STATIC_ARCHIVE_MAX_AGE_MS = Number(process.env.MYBINGOCARD_STATIC_ARCHIVE_MAX_AGE_DAYS || 14) * 24 * 60 * 60 * 1000;
 const args = new Set(process.argv.slice(2));
 
 function run(command, commandArgs, options = {}) {
   const label = [command, ...commandArgs].join(" ");
   console.log(`\n$ ${label}`);
+  const cwd = options.cwd || APP_DIR;
   execFileSync(command, commandArgs, {
-    cwd: APP_DIR,
+    cwd,
     stdio: "inherit",
-    env: process.env,
+    env: { ...process.env, PWD: cwd },
     ...options,
   });
 }
 
 function output(command, commandArgs, options = {}) {
+  const cwd = options.cwd || APP_DIR;
   return execFileSync(command, commandArgs, {
-    cwd: APP_DIR,
+    cwd,
     encoding: "utf8",
-    env: process.env,
+    env: { ...process.env, PWD: cwd },
     ...options,
   });
 }
@@ -67,6 +76,139 @@ function ensureNoTrackedDirtyFiles() {
   throw new Error(
     `Tracked production files are dirty. Commit/stash before deploy:\n${status}`
   );
+}
+
+function copyMissingFiles(sourceDir, targetDir) {
+  if (!fs.existsSync(sourceDir)) return 0;
+  let copied = 0;
+  fs.mkdirSync(targetDir, { recursive: true });
+  for (const entry of fs.readdirSync(sourceDir, { withFileTypes: true })) {
+    const sourcePath = path.join(sourceDir, entry.name);
+    const targetPath = path.join(targetDir, entry.name);
+    if (entry.isDirectory()) {
+      copied += copyMissingFiles(sourcePath, targetPath);
+      continue;
+    }
+    if (!entry.isFile() || fs.existsSync(targetPath)) continue;
+    fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+    fs.copyFileSync(sourcePath, targetPath);
+    copied += 1;
+  }
+  return copied;
+}
+
+function removeEmptyDirs(dir) {
+  if (!fs.existsSync(dir)) return true;
+  let empty = true;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const child = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (removeEmptyDirs(child)) {
+        fs.rmdirSync(child);
+      } else {
+        empty = false;
+      }
+      continue;
+    }
+    empty = false;
+  }
+  return empty;
+}
+
+function pruneArchivedStaticAssets() {
+  if (!fs.existsSync(STATIC_ARCHIVE_DIR) || STATIC_ARCHIVE_MAX_AGE_MS <= 0) return;
+  const cutoff = Date.now() - STATIC_ARCHIVE_MAX_AGE_MS;
+  let removed = 0;
+  function walk(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const itemPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walk(itemPath);
+        continue;
+      }
+      if (!entry.isFile()) continue;
+      const stat = fs.statSync(itemPath);
+      if (stat.mtimeMs < cutoff) {
+        fs.unlinkSync(itemPath);
+        removed += 1;
+      }
+    }
+  }
+  walk(STATIC_ARCHIVE_DIR);
+  removeEmptyDirs(STATIC_ARCHIVE_DIR);
+  if (removed > 0) console.log(`Pruned ${removed} archived static assets.`);
+}
+
+function snapshotStaticAssets() {
+  const copied = copyMissingFiles(NEXT_STATIC_DIR, STATIC_ARCHIVE_DIR);
+  console.log(`Archived ${copied} existing Next static assets for stale-client compatibility.`);
+}
+
+function restoreArchivedStaticAssets(targetStaticDir = NEXT_STATIC_DIR) {
+  const copied = copyMissingFiles(STATIC_ARCHIVE_DIR, targetStaticDir);
+  console.log(`Restored ${copied} archived Next static assets into the new build.`);
+}
+
+function prepareBuildDir() {
+  fs.mkdirSync(DEPLOY_BUILDS_DIR, { recursive: true });
+  return fs.mkdtempSync(path.join(DEPLOY_BUILDS_DIR, "build-"));
+}
+
+function copyAppToBuildDir(buildDir) {
+  run("rsync", [
+    "-a",
+    "--delete",
+    "--exclude", ".git/",
+    "--exclude", ".next/",
+    "--exclude", ".next.previous/",
+    "--exclude", ".next-static-archive/",
+    "--exclude", ".deploy-builds/",
+    "--exclude", "node_modules/",
+    `${APP_DIR}/`,
+    `${buildDir}/`,
+  ]);
+
+  const nodeModules = path.join(APP_DIR, "node_modules");
+  if (fs.existsSync(nodeModules)) {
+    fs.symlinkSync(nodeModules, path.join(buildDir, "node_modules"), "dir");
+  }
+}
+
+function installBuiltNext(buildDir) {
+  const builtNextDir = path.join(buildDir, ".next");
+  const buildIdPath = path.join(builtNextDir, "BUILD_ID");
+  if (!fs.existsSync(buildIdPath)) {
+    throw new Error(`Staged build did not produce ${buildIdPath}`);
+  }
+
+  fs.rmSync(NEXT_PREVIOUS_DIR, { recursive: true, force: true });
+  if (fs.existsSync(NEXT_DIR)) {
+    fs.renameSync(NEXT_DIR, NEXT_PREVIOUS_DIR);
+  }
+  fs.renameSync(builtNextDir, NEXT_DIR);
+  console.log("Installed staged .next build into the live app directory.");
+}
+
+function buildApplication() {
+  snapshotStaticAssets();
+
+  if (args.has("--in-place-build")) {
+    run("bun", ["run", "build"]);
+    restoreArchivedStaticAssets();
+    pruneArchivedStaticAssets();
+    return;
+  }
+
+  const buildDir = prepareBuildDir();
+  try {
+    copyAppToBuildDir(buildDir);
+    run("bun", ["run", "build"], { cwd: buildDir });
+    restoreArchivedStaticAssets(path.join(buildDir, ".next", "static"));
+    installBuiltNext(buildDir);
+    pruneArchivedStaticAssets();
+  } finally {
+    fs.rmSync(buildDir, { recursive: true, force: true });
+  }
 }
 
 function ensurePm2Cwd() {
@@ -158,7 +300,7 @@ async function main() {
   ensureNoTrackedDirtyFiles();
 
   if (!skipBuild) {
-    run("bun", ["run", "build"]);
+    buildApplication();
   }
 
   if (!skipRestart) {
