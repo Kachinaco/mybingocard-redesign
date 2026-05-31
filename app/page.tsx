@@ -7,12 +7,15 @@ import { seoLandingPages, type SeoLandingPageData } from "@/lib/seo-landing-page
 import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 
 export const metadata: Metadata = {
-  title: "MyBingoCard - Free Bingo Card Generator for Printable & Online Games",
+  title: "Free Bingo Card Generator & Bingo Card Maker | MyBingoCard",
   description:
-    "Create custom bingo cards online for classrooms, baby showers, weddings, team building, holidays, and parties. Free printable bingo card generator with templates, PDF export, AI help, and live online play.",
+    "Create custom bingo cards online with a free bingo card generator and bingo card maker. Make printable bingo boards, PDF cards, templates, AI ideas, and live online games.",
   keywords: [
     "free bingo card generator",
+    "bingo card generator",
     "printable bingo cards",
+    "bingo card maker",
+    "bingo board generator",
     "custom bingo cards",
     "online bingo card maker",
     "wedding bingo cards",
@@ -29,7 +32,17 @@ const faqItems = [
   {
     question: "How do I create a custom bingo card online?",
     answer:
-      "Start with a blank bingo card or a template, add your own words or images, choose a grid size, then print the PDF, share a link, or host the game online.",
+      "Start with a blank bingo card or a template, add your own words or images, choose a grid size, then print the PDF, share a link, or host the game online. MyBingoCard works as a bingo card generator, bingo card maker, and bingo board generator in one place.",
+  },
+  {
+    question: "Is this also a bingo board generator?",
+    answer:
+      "Yes. You can use MyBingoCard as a bingo board generator to make 3x3, 4x4, or 5x5 bingo boards, then print them as PDFs or share online cards with players.",
+  },
+  {
+    question: "What is the difference between a bingo card generator and a bingo card maker?",
+    answer:
+      "A bingo card generator usually creates shuffled card layouts quickly, while a bingo card maker gives you more control over words, images, colors, grid size, printing, and online play. MyBingoCard does both.",
   },
   {
     question: "Can I print bingo cards from MyBingoCard?",
@@ -52,6 +65,7 @@ const generatorFooterLinks = [
   "bingo-card-maker",
   "printable-bingo-cards",
   "online-bingo-card-generator",
+  "bingo-board-generator",
   "ai-bingo-card-generator",
   "word-bingo-generator",
   "math-bingo-generator",
@@ -177,11 +191,11 @@ export default function Home() {
                 </div>
                 
                 <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-6 leading-[1.1]">
-                  Create <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Custom Bingo Cards</span> - Print, Share, or Play Online
+                  Free <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Bingo Card Generator</span> for Printable and Online Cards
                 </h1>
                 
                 <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                  Make unique bingo cards for classrooms, baby showers, weddings, parties, team events, and social challenges. Add words or images, shuffle cards, export PDFs, or send a play link.
+                  Make unique bingo cards and bingo boards for classrooms, baby showers, weddings, parties, team events, and social challenges. Add words or images, shuffle cards, export PDFs, or send a play link.
                 </p>
 
                 {/* Primary CTA - prominent above the fold */}
@@ -249,10 +263,10 @@ export default function Home() {
           <div className="container mx-auto px-4 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-20 animate-fade-in-up">
               <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-6">
-                Everything you need to create and run a <span className="text-indigo-600">great bingo game</span>
+                Everything you need in a <span className="text-indigo-600">bingo card maker</span>
               </h2>
               <p className="text-lg text-slate-600">
-                Build printable bingo cards, online bingo games, and themed templates for real events and classrooms.
+                Build printable bingo cards, online bingo games, bingo boards, and themed templates for real events and classrooms.
               </p>
             </div>
 
@@ -305,7 +319,7 @@ export default function Home() {
                 Bingo Card Generator FAQ
               </h2>
               <p className="text-lg text-slate-600">
-                Short answers for the questions people ask before choosing a bingo card maker.
+                Short answers for the questions people ask before choosing a bingo card generator or bingo card maker.
               </p>
             </div>
 

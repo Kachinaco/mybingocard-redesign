@@ -88,13 +88,13 @@ function makeLongTailPage(input: LongTailPageInput): SeoLandingPageData {
 export const seoLandingPages: Record<string, SeoLandingPageData> = {
   "bingo-card-maker": {
     slug: "bingo-card-maker",
-    metaTitle: "Bingo Card Maker - Create Custom Printable Cards Online",
+    metaTitle: "Bingo Card Maker and Generator - Create Printable Cards",
     metaDescription:
-      "Use MyBingoCard as a free bingo card maker for printable PDFs, online play, custom words, images, templates, and unique shuffled cards.",
+      "Use MyBingoCard as a free bingo card maker and bingo card generator for printable PDFs, online play, custom words, images, templates, and unique shuffled cards.",
     eyebrow: "Bingo card maker",
-    h1: "Bingo Card Maker for Printable and Online Games",
+    h1: "Bingo Card Maker and Generator for Printable Games",
     lead:
-      "Create custom bingo cards in minutes for classrooms, parties, showers, work events, holidays, and game nights.",
+      "Create custom bingo cards in minutes with a bingo card maker that also generates printable, shuffled, and online cards.",
     accent: "indigo",
     sampleLabel: "All-purpose game",
     primaryCta: "Make a Bingo Card",
@@ -175,6 +175,96 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       },
     ],
     related: ["printable-bingo-cards", "online-bingo-card-generator", "custom-bingo-card-maker", "ai-bingo-card-generator"],
+  },
+  "bingo-board-generator": {
+    slug: "bingo-board-generator",
+    metaTitle: "Bingo Board Generator - Make Printable Bingo Boards Online",
+    metaDescription:
+      "Create printable bingo boards online with custom words, images, grid sizes, PDFs, and share links. Free bingo board generator for classes, parties, and events.",
+    eyebrow: "Bingo board generator",
+    h1: "Bingo Board Generator for Printable and Online Games",
+    lead:
+      "Make a bingo board online, customize every square, then print cards as PDFs or share a play link with your group.",
+    accent: "blue",
+    sampleLabel: "Printable board",
+    primaryCta: "Make a Bingo Board",
+    audience: "teachers, hosts, parents, event planners, and group leaders",
+    intro:
+      "A bingo board generator is useful when you need a clean 3x3, 4x4, or 5x5 board without designing it from scratch. MyBingoCard lets you add your own words or images, choose the grid size, shuffle unique cards, print PDFs, and run online bingo from the same card.",
+    sampleSquares: [
+      "Welcome",
+      "Prize",
+      "Question",
+      "Photo",
+      "FREE",
+      "Team",
+      "Laugh",
+      "Music",
+      "Winner",
+      "Share",
+      "Round",
+      "Guest",
+      "Board",
+      "Prompt",
+      "Bingo",
+      "Friend",
+      "Host",
+      "Theme",
+      "Card",
+      "Play",
+      "Marker",
+      "Table",
+      "Caller",
+      "Gift",
+      "Finish",
+    ],
+    benefits: [
+      {
+        title: "Choose the right board size",
+        description:
+          "Make quick 3x3 boards, flexible 4x4 boards, or classic 5x5 bingo boards with a free space.",
+      },
+      {
+        title: "Print or share the same board",
+        description:
+          "Use the same content for printable PDFs, online cards, or live games players can join from a browser.",
+      },
+      {
+        title: "Shuffle unique player cards",
+        description:
+          "Generate different layouts from the same square list so everyone is not playing the exact same board.",
+      },
+    ],
+    useCases: [
+      { title: "Classroom bingo boards", description: "Turn vocabulary, review questions, math facts, or sight words into printable boards." },
+      { title: "Party bingo boards", description: "Make boards for birthdays, showers, weddings, holidays, and family games." },
+      { title: "Work and team boards", description: "Create boards for meetings, onboarding, trainings, retreats, and icebreakers." },
+    ],
+    steps: [
+      "Choose a blank board or start from a template.",
+      "Add words, prompts, numbers, or images to the squares.",
+      "Pick a 3x3, 4x4, or 5x5 board layout.",
+      "Print the PDF, share cards online, or host the game live.",
+    ],
+    ideas: ["Classroom review board", "Party bingo board", "Team meeting board", "Holiday board", "Baby shower board", "Wedding reception board"],
+    faqs: [
+      {
+        question: "Can I make a printable bingo board?",
+        answer:
+          "Yes. Create the board online, choose the grid size, and export printable PDF bingo cards for your group.",
+      },
+      {
+        question: "Can I make different boards for each player?",
+        answer:
+          "Yes. MyBingoCard can shuffle your square list into unique boards so players do not all have the same layout.",
+      },
+      {
+        question: "Can I use a bingo board online instead of printing?",
+        answer:
+          "Yes. You can share online cards or host a live game so players mark their boards from a phone, tablet, or laptop.",
+      },
+    ],
+    related: ["bingo-card-maker", "printable-bingo-cards", "online-bingo-card-generator", "custom-bingo-card-maker"],
   },
   "printable-bingo-cards": {
     slug: "printable-bingo-cards",
