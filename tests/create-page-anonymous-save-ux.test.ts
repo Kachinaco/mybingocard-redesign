@@ -9,8 +9,8 @@ describe("create page anonymous save UX", () => {
     expect(source).not.toContain("Free to create — no credit card needed");
     expect(source).not.toContain('t("btn.signup_to_save")');
     expect(source).not.toContain('t("btn.signup_to_save_full")');
-    expect(source).toContain(': "Save Card"');
-    expect(source).toContain(': "Save"');
+    expect(source).toContain(': "Join to Save Your Card"');
+    expect(source).not.toContain(': "Save Card"');
   });
 
   test("redirects anonymous saves before posting oversized local-image drafts", () => {
