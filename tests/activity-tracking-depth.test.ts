@@ -43,6 +43,13 @@ describe("activity tracking depth", () => {
     expect(visitorTrackerSource).toContain("timeToFirstInteraction");
   });
 
+  test("visitor engagement heartbeats are throttled so stale tabs do not flood activity logs", () => {
+    expect(visitorTrackerSource).toContain("HEARTBEAT_INTERVAL_MS = 2 * 60 * 1000");
+    expect(visitorTrackerSource).toContain("STALE_HEARTBEAT_INTERVAL_MS = 15 * 60 * 1000");
+    expect(visitorTrackerSource).toContain('document.visibilityState === "hidden"');
+    expect(visitorTrackerSource).toContain("now - lastStaleHeartbeatAt < STALE_HEARTBEAT_INTERVAL_MS");
+  });
+
   test("visitor tracking avoids fingerprint probes", () => {
     expect(visitorTrackerSource).not.toContain("getImageData");
     expect(visitorTrackerSource).not.toContain("WEBGL_debug_renderer_info");

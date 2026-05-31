@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 
 interface BlogLayoutProps {
   children: React.ReactNode;
@@ -108,6 +109,11 @@ export default function BlogLayout({ children, title, date, readTime, category, 
                 <li><Link href="/create" className="text-slate-500 hover:text-indigo-600 transition-colors">Create Cards</Link></li>
                 <li><Link href="/templates" className="text-slate-500 hover:text-indigo-600 transition-colors">Templates</Link></li>
                 <li><Link href="/pricing" className="text-slate-500 hover:text-indigo-600 transition-colors">Pricing</Link></li>
+                <li>
+                  <a href={FACEBOOK_PAGE_URL} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-indigo-600 transition-colors">
+                    Facebook
+                  </a>
+                </li>
               </ul>
             </div>
             <div>

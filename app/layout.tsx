@@ -13,6 +13,7 @@ import ErrorCapture from "@/components/ErrorCapture";
 import PerformanceTracker from "@/components/PerformanceTracker";
 import { CheckoutModalProvider } from "@/components/CheckoutModal";
 import MetaPixel from "@/components/MetaPixel";
+import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -135,6 +136,9 @@ export default function RootLayout({
                   "url": "https://mybingocard.com",
                   "description": "Free bingo card generator for printable and online bingo games.",
                   "foundingDate": "2026",
+                  "sameAs": [
+                    FACEBOOK_PAGE_URL
+                  ],
                   "contactPoint": {
                     "@type": "ContactPoint",
                     "email": "support@mybingocard.com",
@@ -208,7 +212,8 @@ export default function RootLayout({
                     "https://mybingocard.com/bingo-card-maker",
                     "https://mybingocard.com/printable-bingo-cards",
                     "https://mybingocard.com/online-bingo-card-generator",
-                    "https://mybingocard.com/ai-bingo-card-generator"
+                    "https://mybingocard.com/ai-bingo-card-generator",
+                    FACEBOOK_PAGE_URL
                   ]
                 },
                 {

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { trackClientActivity } from "@/lib/activity-client";
+import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
@@ -33,6 +34,15 @@ export default function MobileNav() {
           <Link href="/pricing" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
             Pricing
           </Link>
+          <a
+            href={FACEBOOK_PAGE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => trackClientActivity("facebook_page_clicked", { source: "desktop_nav" })}
+            className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
+          >
+            Facebook
+          </a>
           {isLoggedIn ? (
             <>
               <Link
@@ -147,6 +157,18 @@ export default function MobileNav() {
             <Link href="/features" onClick={() => setOpen(false)} className="py-3 px-2 text-slate-700 font-medium hover:text-indigo-600 transition-colors">
               Features
             </Link>
+            <a
+              href={FACEBOOK_PAGE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => {
+                setOpen(false);
+                trackClientActivity("facebook_page_clicked", { source: "mobile_menu" });
+              }}
+              className="py-3 px-2 text-slate-700 font-medium hover:text-indigo-600 transition-colors"
+            >
+              Facebook
+            </a>
           </div>
         </div>
       )}

@@ -20,6 +20,7 @@ import FavCardPreview from "./FavCardPreview";
 import UpgradeBanner from "@/components/UpgradeBanner";
 import NpsWidget from "@/components/NpsWidget";
 import OnboardingChecklist from "@/components/OnboardingChecklist";
+import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -563,6 +564,9 @@ export default async function DashboardPage() {
               <Link href="/privacy" className="hover:text-indigo-600 transition-colors">Privacy</Link>
               <Link href="/terms" className="hover:text-indigo-600 transition-colors">Terms</Link>
               <Link href="/contact" className="hover:text-indigo-600 transition-colors">Contact</Link>
+              <a href={FACEBOOK_PAGE_URL} target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 transition-colors">
+                Facebook
+              </a>
             </div>
             <p className="text-xs text-slate-400">&copy; {new Date().getFullYear()} MyBingoCard</p>
           </div>

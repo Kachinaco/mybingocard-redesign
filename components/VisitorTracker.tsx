@@ -30,6 +30,8 @@ type ClickRecord = {
 
 const INTERACTIVE_SELECTORS = "a, button, input, select, textarea, [role='button'], [onclick], [tabindex]";
 const FORM_FIELD_SELECTOR = "input, select, textarea";
+const HEARTBEAT_INTERVAL_MS = 2 * 60 * 1000;
+const STALE_HEARTBEAT_INTERVAL_MS = 15 * 60 * 1000;
 
 type FormFieldState = {
   focusedAt: number;
@@ -719,13 +721,20 @@ export default function VisitorTracker() {
       send("page_view");
     }, 1200);
 
-    // Track metrics at each heartbeat to detect stale tabs
+    // Track metrics at a low cadence. Hidden tabs are handled by visibilitychange
+    // and stale visible tabs are capped so one open page cannot flood activity logs.
     let lastHeartbeatClicks = 0;
     let lastHeartbeatMouseMovements = 0;
+    let lastStaleHeartbeatAt = 0;
 
     const heartbeatTimer = window.setInterval(() => {
+      if (document.visibilityState === "hidden") {
+        return;
+      }
+
       const currentClicks = metricsRef.current.clicks;
       const currentMouse = metricsRef.current.mouseMovements;
+      const now = Date.now();
       const isStale =
         currentClicks === lastHeartbeatClicks &&
         currentMouse === lastHeartbeatMouseMovements;
@@ -734,11 +743,16 @@ export default function VisitorTracker() {
       lastHeartbeatMouseMovements = currentMouse;
 
       if (isStale) {
+        if (now - lastStaleHeartbeatAt < STALE_HEARTBEAT_INTERVAL_MS) {
+          return;
+        }
+        lastStaleHeartbeatAt = now;
         send("heartbeat", { is_stale: true });
       } else {
+        lastStaleHeartbeatAt = 0;
         send("heartbeat");
       }
-    }, 60000);
+    }, HEARTBEAT_INTERVAL_MS);
 
     const onVisibilityChange = () => {
       if (document.visibilityState === "hidden") {

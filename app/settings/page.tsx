@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { redirectToCheckout } from "@/lib/upgrade";
 import { trackClientActivity } from "@/lib/activity-client";
+import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
 
 export default function SettingsPage() {
   const { data: session, status, update: updateSession } = useSession();
@@ -512,6 +513,26 @@ export default function SettingsPage() {
                 className="w-5 h-5 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
               />
             </label>
+          </div>
+        </div>
+
+        {/* Community */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Community</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50">
+            <div>
+              <div className="text-sm font-medium text-slate-700">Facebook Page</div>
+              <div className="text-xs text-slate-500">Follow MyBingoCard for new templates, game ideas, and updates.</div>
+            </div>
+            <a
+              href={FACEBOOK_PAGE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackClientActivity("facebook_page_clicked", { source: "settings" })}
+              className="inline-flex items-center justify-center px-4 py-2 bg-[#1877f2] text-white text-sm font-semibold rounded-xl hover:bg-[#166fe5] transition-colors"
+            >
+              Follow on Facebook
+            </a>
           </div>
         </div>
 
