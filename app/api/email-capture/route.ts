@@ -31,7 +31,7 @@ export async function POST(request: Request) {
     const honeypot = evaluateHoneypot({
       hiddenField: companyName,
       startedAt: captureStartedAt,
-      minElapsedMs: 800,
+      minElapsedMs: 400,
     });
     if (honeypot.blocked) {
       trackActivity({
