@@ -6,6 +6,7 @@ import {
   upsertEmailSubscriber,
 } from "@/lib/email-capture/subscribers";
 import { readJsonObject } from "@/lib/request-json";
+import { evaluateHoneypot } from "@/lib/honeypot";
 
 export async function POST(request: Request) {
   try {
@@ -14,7 +15,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: body.error }, { status: 400 });
     }
 
-    const { email, source } = body.data;
+    const { email, source, companyName, captureStartedAt } = body.data;
 
     if (!email || typeof email !== "string") {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -27,6 +28,30 @@ export async function POST(request: Request) {
 
     const normalizedInputEmail = email.toLowerCase().trim();
     const reqCtx = getRequestActivityContext(request);
+    const honeypot = evaluateHoneypot({
+      hiddenField: companyName,
+      startedAt: captureStartedAt,
+      minElapsedMs: 800,
+    });
+    if (honeypot.blocked) {
+      trackActivity({
+        event: "email_capture_honeypot_blocked",
+        source: "server",
+        userId: null,
+        email: normalizedInputEmail,
+        pathname: "/api/email-capture",
+        domain: reqCtx.domain,
+        ipAddress: reqCtx.ipAddress,
+        userAgent: reqCtx.userAgent,
+        metadata: {
+          source: source || "popup",
+          reason: honeypot.reason,
+          elapsedMs: honeypot.elapsedMs,
+        },
+      }).catch(() => {});
+      return NextResponse.json({ success: true, message: "Thanks! Check your email for your free templates." });
+    }
+
     const client = await clientPromise;
     const db = client.db("mybingocard");
     const blockFilters: Array<Record<string, string>> = [{ type: "email", value: normalizedInputEmail }];

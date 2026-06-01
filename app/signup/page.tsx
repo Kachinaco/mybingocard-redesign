@@ -51,6 +51,8 @@ function SignupForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const hasFiredFunnelView = useRef(false);
+  const signupCompanyRef = useRef<HTMLInputElement>(null);
+  const signupStartedAt = useRef(Date.now());
 
   const startNativeOAuth = (provider: "google" | "apple", targetCallbackUrl: string) => {
     if (typeof window === "undefined") return false;
@@ -206,6 +208,8 @@ function SignupForm() {
           utm_content: searchParams.get("utm_content") || storedAttribution.utm_content || undefined,
           utm_term: searchParams.get("utm_term") || storedAttribution.utm_term || undefined,
           referrer: storedAttribution.referrer || safeDocumentReferrer() || undefined,
+          companyName: signupCompanyRef.current?.value || "",
+          signupStartedAt: signupStartedAt.current,
         }),
       });
 
@@ -413,6 +417,17 @@ function SignupForm() {
             </div>
 
             <form onSubmit={handleSignup} className="space-y-5">
+              <div className="absolute left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+                <label htmlFor="companyName">Company</label>
+                <input
+                  ref={signupCompanyRef}
+                  id="companyName"
+                  name="companyName"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
               {error && (
                 <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
                   <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -9,6 +9,7 @@ import { parseUserAgent } from "@/lib/parse-user-agent";
 import { sanitizePostVerificationCallback } from "@/lib/auth/verify-email-redirect";
 import { readJsonObject } from "@/lib/request-json";
 import { sendMetaConversionEvent } from "@/lib/meta-conversions";
+import { evaluateHoneypot } from "@/lib/honeypot";
 
 export async function POST(request: Request) {
   try {
@@ -17,9 +18,32 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: body.error }, { status: 400 });
     }
 
-    const { name, email, password, callbackUrl, utm_source, utm_medium, utm_campaign, utm_content, utm_term, referrer } = body.data;
+    const { name, email, password, callbackUrl, utm_source, utm_medium, utm_campaign, utm_content, utm_term, referrer, companyName, signupStartedAt } = body.data;
     const requestContext = getRequestActivityContext(request);
     const normalizedEmail = typeof email === "string" ? email.toLowerCase().trim() : "";
+
+    const honeypot = evaluateHoneypot({
+      hiddenField: companyName,
+      startedAt: signupStartedAt,
+      minElapsedMs: 1200,
+    });
+    if (honeypot.blocked) {
+      await trackActivity({
+        event: "signup_honeypot_blocked",
+        source: "server",
+        userId: null,
+        email: normalizedEmail || null,
+        pathname: requestContext.pathname,
+        domain: requestContext.domain,
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+        metadata: {
+          reason: honeypot.reason,
+          elapsedMs: honeypot.elapsedMs,
+        },
+      });
+      return NextResponse.json({ error: "Unable to create account" }, { status: 403 });
+    }
 
     // Validate input
     if (!name || !email || !password) {

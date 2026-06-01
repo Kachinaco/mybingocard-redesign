@@ -33,6 +33,8 @@ describe("open-funnel signup guardrails", () => {
   const utmFlusherSource = readSource("components/UtmFlusher.tsx");
   const signupRouteSource = readSource("app/api/auth/signup/route.ts");
   const emailCaptureRouteSource = readSource("app/api/email-capture/route.ts");
+  const emailCaptureSource = readSource("components/EmailCapture.tsx");
+  const honeypotSource = readSource("lib/honeypot.ts");
   const proxySource = readSource("proxy.ts");
 
   test("critical signup and tracking paths use safe storage wrappers", () => {
@@ -73,18 +75,25 @@ describe("open-funnel signup guardrails", () => {
     expect(activityClientSource).toContain("Activity tracking should never block product flows");
   });
 
-  test("signup no longer keeps a honeypot field in the real browser form", () => {
-    expect(signupPageSource).not.toContain("honeypot");
+  test("signup and email capture use narrow browser trap fields", () => {
+    expect(signupPageSource).toContain("signupCompanyRef");
+    expect(signupPageSource).toContain('name="companyName"');
+    expect(signupPageSource).toContain("signupStartedAt");
+    expect(emailCaptureSource).toContain("popupCompanyRef");
+    expect(emailCaptureSource).toContain("inlineCompanyRef");
+    expect(emailCaptureSource).toContain("captureStartedAt");
     expect(signupPageSource).not.toContain('name="website"');
-    expect(signupPageSource).not.toContain("website: honeypot");
   });
 
-  test("server-side signup does not keep honeypot or bot-name rejectors", () => {
-    expect(signupRouteSource).not.toContain("signup_honeypot_triggered");
+  test("server-side signup does not keep broad bot-name or IP-rate rejectors", () => {
     expect(signupRouteSource).not.toContain("nameLooksLikeBot");
     expect(signupRouteSource).not.toContain("MBC_SIGNUP_IP_HOURLY_LIMIT");
     expect(signupRouteSource).not.toContain('user: { id: "bot"');
     expect(signupRouteSource).not.toContain("Silently accept");
+    expect(signupRouteSource).toContain('event: "signup_honeypot_blocked"');
+    expect(emailCaptureRouteSource).toContain('event: "email_capture_honeypot_blocked"');
+    expect(honeypotSource).toContain("filled_hidden_field");
+    expect(honeypotSource).toContain("submitted_too_fast");
   });
 
   test("server-side capture and signup support precise identity blocks", () => {

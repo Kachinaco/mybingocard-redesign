@@ -11,6 +11,7 @@ export function EmailCapturePopup() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const shownAtRef = useRef<number | null>(null);
+  const popupCompanyRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Don't show if already dismissed or subscribed
@@ -34,7 +35,12 @@ export function EmailCapturePopup() {
       const res = await fetch("/api/email-capture", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, source: "popup" }),
+        body: JSON.stringify({
+          email,
+          source: "popup",
+          companyName: popupCompanyRef.current?.value || "",
+          captureStartedAt: shownAtRef.current || Date.now(),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to subscribe");
@@ -109,6 +115,17 @@ export function EmailCapturePopup() {
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="absolute left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+                <label htmlFor="popup-company-name">Company</label>
+                <input
+                  ref={popupCompanyRef}
+                  id="popup-company-name"
+                  name="companyName"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
               <input
                 type="email"
                 value={email}
@@ -143,6 +160,8 @@ export function EmailCaptureInline() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const inlineCompanyRef = useRef<HTMLInputElement>(null);
+  const inlineStartedAt = useRef(Date.now());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,7 +172,12 @@ export function EmailCaptureInline() {
       const res = await fetch("/api/email-capture", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, source: "inline_homepage" }),
+        body: JSON.stringify({
+          email,
+          source: "inline_homepage",
+          companyName: inlineCompanyRef.current?.value || "",
+          captureStartedAt: inlineStartedAt.current,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to subscribe");
@@ -187,6 +211,17 @@ export function EmailCaptureInline() {
         <p className="text-slate-500 text-sm mt-1">Wedding, classroom, and party designs. Yours free.</p>
       </div>
       <form onSubmit={handleSubmit} className="flex gap-3 max-w-md mx-auto">
+        <div className="absolute left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
+          <label htmlFor="inline-company-name">Company</label>
+          <input
+            ref={inlineCompanyRef}
+            id="inline-company-name"
+            name="companyName"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </div>
         <input
           type="email"
           value={email}
