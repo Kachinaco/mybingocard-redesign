@@ -1,5 +1,6 @@
 import net from "node:net";
 import tls from "node:tls";
+import crypto from "node:crypto";
 
 export type SmtpMail = {
   from: string;
@@ -17,6 +18,7 @@ export type SmtpSendResult = {
 };
 
 const SMTP_TIMEOUT_MS = 30_000;
+const DKIM_SIGNED_HEADERS = ["from", "to", "subject", "date", "message-id", "mime-version", "content-type"];
 
 function getConfig() {
   const host = process.env.EMAIL_SERVER_HOST;
@@ -54,6 +56,75 @@ function generateMessageId(from: string): string {
   const domain = extractEmailAddress(from).split("@")[1] || "mybingocard.com";
   const random = Math.random().toString(36).slice(2);
   return `<${Date.now().toString(36)}.${random}@${domain}>`;
+}
+
+function normalizeLineEndings(value: string): string {
+  return value.replace(/\r?\n/g, "\r\n");
+}
+
+function canonicalizeDkimBody(value: string): string {
+  const lines = normalizeLineEndings(value)
+    .split("\r\n")
+    .map((line) => line.replace(/[ \t]+$/g, ""));
+
+  while (lines.length > 0 && lines[lines.length - 1] === "") {
+    lines.pop();
+  }
+
+  return `${lines.join("\r\n")}\r\n`;
+}
+
+function canonicalizeDkimHeader(name: string, value: string): string {
+  const canonicalValue = value.replace(/\r?\n[ \t]*/g, " ").replace(/[ \t]+/g, " ").trim();
+  return `${name.toLowerCase().trim()}:${canonicalValue}\r\n`;
+}
+
+function getHeaderValue(headers: Record<string, string>, name: string): string | null {
+  const entry = Object.entries(headers).find(([key]) => key.toLowerCase() === name);
+  return entry ? entry[1] : null;
+}
+
+function getDkimConfig(from: string) {
+  const selector = process.env.DKIM_SELECTOR?.trim();
+  const privateKey = process.env.DKIM_PRIVATE_KEY?.replace(/\\n/g, "\n").trim();
+  const domain = (process.env.DKIM_DOMAIN || extractEmailAddress(from).split("@")[1] || "").trim();
+
+  if (!selector || !privateKey || !domain) {
+    return null;
+  }
+
+  return { selector, privateKey, domain };
+}
+
+function signDkim(headers: Record<string, string>, body: string): string | null {
+  const config = getDkimConfig(headers.From || "");
+  if (!config) {
+    return null;
+  }
+
+  const signedHeaders = DKIM_SIGNED_HEADERS.filter((name) => getHeaderValue(headers, name) !== null);
+  const bodyHash = crypto.createHash("sha256").update(canonicalizeDkimBody(body), "utf8").digest("base64");
+  const dkimHeaderValue = [
+    "v=1",
+    "a=rsa-sha256",
+    "c=relaxed/relaxed",
+    `d=${config.domain}`,
+    `s=${config.selector}`,
+    `h=${signedHeaders.join(":")}`,
+    `bh=${bodyHash}`,
+    "b=",
+  ].join("; ");
+
+  const headerInput = signedHeaders
+    .map((name) => canonicalizeDkimHeader(name, getHeaderValue(headers, name) || ""))
+    .join("");
+  const dkimInput = canonicalizeDkimHeader("DKIM-Signature", dkimHeaderValue).replace(/\r\n$/, "");
+  const signature = crypto
+    .createSign("RSA-SHA256")
+    .update(`${headerInput}${dkimInput}`, "utf8")
+    .sign(config.privateKey, "base64");
+
+  return `DKIM-Signature: ${dkimHeaderValue}${signature}`;
 }
 
 class SmtpConnection {
@@ -111,8 +182,9 @@ class SmtpConnection {
   }
 
   async command(command: string) {
+    const response = this.read();
     this.socket.write(`${command}\r\n`);
-    return this.read();
+    return response;
   }
 
   async upgradeToTls(host: string) {
@@ -177,26 +249,31 @@ function buildMessage(mail: SmtpMail): { messageId: string; data: string } {
   const headerText = Object.entries(headers)
     .map(([key, value]) => `${key}: ${sanitizeHeader(value)}`)
     .join("\r\n");
+  const body = [
+    `--${boundary}`,
+    'Content-Type: text/plain; charset="UTF-8"',
+    "Content-Transfer-Encoding: 8bit",
+    "",
+    mail.text,
+    "",
+    `--${boundary}`,
+    'Content-Type: text/html; charset="UTF-8"',
+    "Content-Transfer-Encoding: 8bit",
+    "",
+    mail.html,
+    "",
+    `--${boundary}--`,
+    "",
+  ].join("\r\n");
+  const dkimHeader = signDkim(headers, body);
 
   return {
     messageId,
     data: [
+      ...(dkimHeader ? [dkimHeader] : []),
       headerText,
       "",
-      `--${boundary}`,
-      'Content-Type: text/plain; charset="UTF-8"',
-      "Content-Transfer-Encoding: 8bit",
-      "",
-      mail.text,
-      "",
-      `--${boundary}`,
-      'Content-Type: text/html; charset="UTF-8"',
-      "Content-Transfer-Encoding: 8bit",
-      "",
-      mail.html,
-      "",
-      `--${boundary}--`,
-      "",
+      body,
     ].join("\r\n"),
   };
 }

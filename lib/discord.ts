@@ -57,7 +57,7 @@ function getCheckoutTypeLabel(checkoutType: "subscription" | "one_time") {
 
 async function sendStripeEventEmbed(
   title: string,
-  description: string,
+  _description: string,
   color: number,
   fields: Array<{ name: string; value: string; inline?: boolean }>,
   channel: DiscordNotificationChannel = "events"
@@ -65,7 +65,6 @@ async function sendStripeEventEmbed(
   await sendDiscordNotification("", [{
     title,
     color,
-    description,
     fields,
     footer: { text: "MyBingoCard • Stripe" },
     timestamp: new Date().toISOString(),
