@@ -4,7 +4,7 @@ import MobileNav from "@/components/MobileNav";
 import AdUnit from "@/components/AdUnit";
 import { EmailCaptureInline } from "@/components/EmailCapture";
 import { seoLandingPages, type SeoLandingPageData } from "@/lib/seo-landing-pages";
-import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
+import { FACEBOOK_PAGE_URL, REDDIT_COMMUNITY_URL } from "@/lib/social-links";
 
 export const metadata: Metadata = {
   title: "Free Bingo Card Generator & Bingo Card Maker | MyBingoCard",
@@ -502,6 +502,11 @@ export default function Home() {
                 <li>
                   <a href={FACEBOOK_PAGE_URL} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-indigo-600 transition-colors">
                     Facebook
+                  </a>
+                </li>
+                <li>
+                  <a href={REDDIT_COMMUNITY_URL} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-indigo-600 transition-colors">
+                    Reddit
                   </a>
                 </li>
                 <li><Link href="/privacy" className="text-slate-500 hover:text-indigo-600 transition-colors">Privacy Policy</Link></li>

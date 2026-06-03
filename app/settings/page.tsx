@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { redirectToCheckout } from "@/lib/upgrade";
 import { trackClientActivity } from "@/lib/activity-client";
-import { FACEBOOK_PAGE_URL } from "@/lib/social-links";
+import { FACEBOOK_PAGE_URL, REDDIT_COMMUNITY_URL } from "@/lib/social-links";
 
 export default function SettingsPage() {
   const { data: session, status, update: updateSession } = useSession();
@@ -519,7 +519,7 @@ export default function SettingsPage() {
         {/* Community */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-4">Community</h2>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50 mb-3">
             <div>
               <div className="text-sm font-medium text-slate-700">Facebook Page</div>
               <div className="text-xs text-slate-500">Follow MyBingoCard for new templates, game ideas, and updates.</div>
@@ -532,6 +532,21 @@ export default function SettingsPage() {
               className="inline-flex items-center justify-center px-4 py-2 bg-[#1877f2] text-white text-sm font-semibold rounded-xl hover:bg-[#166fe5] transition-colors"
             >
               Follow on Facebook
+            </a>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50">
+            <div>
+              <div className="text-sm font-medium text-slate-700">Reddit Community</div>
+              <div className="text-xs text-slate-500">Ask for card ideas, share use cases, and get MyBingoCard help.</div>
+            </div>
+            <a
+              href={REDDIT_COMMUNITY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackClientActivity("reddit_community_clicked", { source: "settings" })}
+              className="inline-flex items-center justify-center px-4 py-2 bg-[#ff4500] text-white text-sm font-semibold rounded-xl hover:bg-[#e33d00] transition-colors"
+            >
+              Visit Reddit
             </a>
           </div>
         </div>
