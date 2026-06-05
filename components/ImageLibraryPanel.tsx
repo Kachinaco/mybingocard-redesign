@@ -218,7 +218,7 @@ export default function ImageLibraryPanel({
             href="/pricing"
             className="inline-block px-5 py-2.5 bg-[#007AFF] text-white text-sm font-bold rounded-xl hover:shadow-md transition-all"
           >
-            Upgrade to Premium — $4.99/mo
+            Start 3-Day Trial for $7.99/mo
           </a>
           <p className="mt-2 text-[10px] text-gray-400">Cancel anytime</p>
         </div>

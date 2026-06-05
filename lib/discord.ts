@@ -588,6 +588,114 @@ export async function notifyBatchButtonClicked(
   }]);
 }
 
+export async function notifySaveCheckoutFunnelEvent(
+  email: string | null,
+  event: string,
+  options: {
+    pathname?: string | null;
+    sessionId?: string | null;
+    anonymousId?: string | null;
+    metadata?: Record<string, unknown>;
+    isGuest?: boolean;
+  }
+) {
+  const labels: Record<string, { title: string; status: string; color: number }> = {
+    card_save_attempted: {
+      title: "💾 Save Card Clicked",
+      status: "Save attempted",
+      color: 0x2563eb,
+    },
+    card_save_blocked: {
+      title: "🔒 Save Card Blocked",
+      status: "Save blocked",
+      color: 0xf97316,
+    },
+    save_blocked_auth_required: {
+      title: "🔐 Save Requires Signup",
+      status: "Auth required before checkout",
+      color: 0xa855f7,
+    },
+    oauth_signup_started: {
+      title: "🔑 OAuth Signup Clicked",
+      status: "OAuth started",
+      color: 0x6366f1,
+    },
+    checkout_auto_started_after_auth: {
+      title: "🛒 Checkout Auto-Started",
+      status: "Checkout opened after auth",
+      color: 0xf59e0b,
+    },
+    checkout_loaded: {
+      title: "🧾 Checkout Loaded",
+      status: "Stripe embedded checkout loaded",
+      color: 0xf59e0b,
+    },
+    checkout_cancel_clicked: {
+      title: "↩️ Checkout Closed",
+      status: "Checkout closed or canceled",
+      color: 0xef4444,
+    },
+    premium_gate_keep_drafting_clicked: {
+      title: "✏️ Kept Drafting",
+      status: "Skipped checkout and returned to draft mode",
+      color: 0x64748b,
+    },
+  };
+  const config = labels[event];
+  if (!config) return;
+
+  const metadata = options.metadata || {};
+  const fields = [
+    { name: "User", value: email || "Anonymous", inline: true },
+    { name: "Status", value: config.status, inline: true },
+    { name: "Page", value: options.pathname || "Unknown", inline: true },
+    { name: "Source", value: String(metadata.source || metadata.context || "unknown"), inline: true },
+    { name: "Plan", value: String(metadata.plan || metadata.plan_type || metadata.planType || "unknown"), inline: true },
+    { name: "Guest?", value: options.isGuest ? "Yes" : "No", inline: true },
+  ];
+
+  if (metadata.provider) {
+    fields.push({ name: "Provider", value: String(metadata.provider), inline: true });
+  }
+  if (metadata.reason) {
+    fields.push({ name: "Reason", value: String(metadata.reason), inline: true });
+  }
+  if (metadata.title) {
+    fields.push({ name: "Card", value: truncateDiscordField(String(metadata.title), 300), inline: false });
+  }
+  if (typeof metadata.cells_filled === "number" || typeof metadata.size === "number") {
+    fields.push({
+      name: "Draft",
+      value: `${typeof metadata.cells_filled === "number" ? metadata.cells_filled : "?"} cells filled${typeof metadata.size === "number" ? ` / ${metadata.size}x${metadata.size}` : ""}`,
+      inline: true,
+    });
+  }
+  if (typeof metadata.cards_created === "number" || typeof metadata.cards_limit === "number") {
+    fields.push({
+      name: "Save Limit",
+      value: `${typeof metadata.cards_created === "number" ? metadata.cards_created : "?"} / ${typeof metadata.cards_limit === "number" ? metadata.cards_limit : "?"}`,
+      inline: true,
+    });
+  }
+  if (metadata.next_step) {
+    fields.push({ name: "Next Step", value: String(metadata.next_step), inline: true });
+  }
+  if (options.anonymousId) {
+    fields.push({ name: "Visitor", value: truncateDiscordField(options.anonymousId, 120), inline: true });
+  }
+  if (options.sessionId) {
+    fields.push({ name: "Session ID", value: formatSessionId(options.sessionId), inline: false });
+  }
+
+  await sendDiscordNotification("", [{
+    title: config.title,
+    color: config.color,
+    fields: fields.slice(0, 20),
+    footer: { text: "MyBingoCard • Save checkout funnel" },
+    timestamp: new Date().toISOString(),
+  }]);
+}
+
 export async function notifyTrialStarted(
   name: string,
   email: string,

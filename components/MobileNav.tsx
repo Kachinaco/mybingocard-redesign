@@ -85,7 +85,7 @@ export default function MobileNav() {
                 href="/signup"
                 className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 transform hover:-translate-y-0.5"
               >
-                Start Free
+                Start a Draft
               </Link>
             </>
           )}
@@ -148,7 +148,7 @@ export default function MobileNav() {
                     onClick={() => setOpen(false)}
                     className="flex-1 text-center py-3 font-bold text-white bg-gradient-to-r from-violet-600 to-indigo-600 rounded-xl hover:shadow-lg transition-all"
                   >
-                    Start Free
+                    Start a Draft
                   </Link>
                 </>
               )}

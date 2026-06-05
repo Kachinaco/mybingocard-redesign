@@ -19,16 +19,16 @@ describe("card PDF export guardrails", () => {
   });
 
   test("single-card PDF API denies free-plan PDF downloads", () => {
-    expect(pdfRouteSource).toContain('if (user.planType === "FREE")');
-    expect(pdfRouteSource).toContain("batchPurchaseRequired: true");
-    expect(pdfRouteSource).toContain("requires a purchased batch");
+    expect(pdfRouteSource).toContain("if (!hasPremiumAccess(user))");
+    expect(pdfRouteSource).toContain("trialRequired: true");
+    expect(pdfRouteSource).toContain("Start your 3-day trial or choose lifetime access to export PDF files.");
   });
 
   test("PNG export is not shown or allowed for free users", () => {
     expect(cardPageSource).toContain("canExportPNG: data.plan?.canExportPNG || false");
     expect(cardPageSource).not.toContain("Download PNG");
-    expect(pngRouteSource).toContain('if (user.planType === "FREE")');
-    expect(pngRouteSource).toContain("PNG export requires Premium.");
+    expect(pngRouteSource).toContain("if (!hasPremiumAccess(user))");
+    expect(pngRouteSource).toContain("Start your 3-day trial or choose lifetime access to export PNG files.");
     expect(pngRouteSource).toContain("upgradeRequired: true");
   });
 
@@ -43,7 +43,7 @@ describe("card PDF export guardrails", () => {
     expect(stripeConfigSource).not.toContain("Standard PDF export");
     expect(pricingPageSource).not.toContain("Standard PDF export");
     expect(pricingPageSource).not.toContain("standard PDF export");
-    expect(pricingPageSource).toContain("Browser print + paid batch PDF packs");
+    expect(pricingPageSource).toContain("1 saved bingo card");
     expect(pricingPageSource).toContain('["PDF export", "Browser print + paid batch PDF packs", "HD, no watermark", "HD, no watermark"]');
   });
 });

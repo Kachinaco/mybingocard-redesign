@@ -28,7 +28,7 @@ export interface Subscription {
 // Plan limits configuration
 export const PLAN_LIMITS = {
   free: {
-    maxCards: 0,
+    maxCards: 1,
     maxExports: 0,
     canAccessPremiumTemplates: false,
     canRemoveWatermark: false,
@@ -213,31 +213,34 @@ export async function getUserCardCount(userId: string): Promise<number> {
 export async function canCreateCard(userId: string): Promise<boolean> {
   const subscription = await getSubscriptionByUserId(userId);
 
-  if (subscription && isSubscriptionEntitled(subscription)) {
+  let user: any = null;
+  try {
+    const client = await clientPromise;
+    const db = client.db("mybingocard");
+    user = await db.collection("users").findOne(
+      { _id: new ObjectId(userId) },
+      { projection: { createdAt: 1, planType: 1, subscriptionStatus: 1, trialEndsAt: 1 } }
+    );
+  } catch {
+    // userId not a valid ObjectId — fall through to legacy subscription/free checks
+  }
+
+  if (hasPremiumAccess(user)) {
+    return true;
+  }
+
+  if (subscription && subscription.plan !== "free" && isSubscriptionEntitled(subscription)) {
     const maxCards = subscription.limits.maxCards;
     if (maxCards === -1) return true;
     const currentCount = await getUserCardCount(userId);
     return currentCount < maxCards;
   }
 
-  // No subscription record — fall back to users.planType field
-  try {
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-    const user = await db.collection("users").findOne(
-      { _id: new ObjectId(userId) },
-      { projection: { createdAt: 1, planType: 1, subscriptionStatus: 1, trialEndsAt: 1 } }
-    );
-    if (hasPremiumAccess(user as any)) {
-      return true;
-    }
-
-    const effectiveCardLimit = getEffectiveCardLimit(user as any);
+  if (user) {
+    const effectiveCardLimit = getEffectiveCardLimit(user);
     if (effectiveCardLimit === -1) return true;
     const currentCount = await getUserCardCount(userId);
     return currentCount < effectiveCardLimit;
-  } catch {
-    // userId not a valid ObjectId — fall through to free limit
   }
 
   // Free plan: check card count against free limit

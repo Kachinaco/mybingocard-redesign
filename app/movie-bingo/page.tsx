@@ -4,9 +4,9 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Movie Bingo Cards — Free Movie Night Bingo Generator | MyBingoCard",
+  title: "Movie Bingo Cards — Custom Movie Night Bingo Generator | MyBingoCard",
   description:
-    "Create movie bingo cards for your next movie night or watch party. Free film bingo generator with tropes, cliches, and custom squares. Printable movie night bingo cards with instant PDF download.",
+    "Create movie bingo cards for your next movie night or watch party. Custom film bingo generator with tropes, cliches, and custom squares. Printable movie night bingo cards with PDF export after checkout.",
   alternates: {
     canonical: "https://mybingocard.com/movie-bingo",
   },
@@ -26,7 +26,7 @@ const schema = {
   name: "Movie Bingo Card Generator",
   url: "https://mybingocard.com/movie-bingo",
   description:
-    "Free movie bingo card generator. Create printable movie night bingo cards with film tropes, cliches, and custom squares — perfect for watch parties and movie nights.",
+    "Custom movie bingo card generator. Create printable movie night bingo cards with film tropes, cliches, and custom squares — perfect for watch parties and movie nights.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -106,7 +106,7 @@ export default function MovieBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Create Free
+                Start a Draft
               </Link>
             </nav>
           </div>
@@ -131,7 +131,7 @@ export default function MovieBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Make every movie night unforgettable with custom movie bingo cards! Our free film bingo generator lets you create printable bingo cards packed with classic movie tropes, cliches, and moments — from plot twists and jump scares to villain monologues and post-credit scenes. Every card is uniquely shuffled so the whole watch party can play along without duplicates. Perfect for family movie nights, Oscar watch parties, horror marathons, or date night at home. Print beautiful PDF cards or share digital links so everyone can play on their phones. With genre-specific templates for action, comedy, romance, horror, and sci-fi, you can customize cards to match any film. The ultimate movie night bingo generator — free, fast, and ridiculously fun.
+                    Make every movie night unforgettable with custom movie bingo cards! Our film bingo draft editor lets you create printable bingo cards packed with classic movie tropes, cliches, and moments — from plot twists and jump scares to villain monologues and post-credit scenes. Every card is uniquely shuffled so the whole watch party can play along without duplicates. Perfect for family movie nights, Oscar watch parties, horror marathons, or date night at home. Export printable PDF cards or share digital links after checkout so everyone can play on their phones. With genre-specific templates for action, comedy, romance, horror, and sci-fi, you can customize cards to match any film. A movie night bingo draft editor that is easy to customize for your watch party.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function MovieBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to start · Works with any film · Print or play digital</p>
+                  <p className="text-sm text-slate-400">Free to draft · Works with any film · PDF export after checkout</p>
                 </div>
 
                 <div className="relative">
@@ -161,7 +161,7 @@ export default function MovieBingoPage() {
           <section className="py-20 bg-white">
             <div className="container mx-auto px-4 lg:px-8">
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
-                The ultimate watch party companion
+                A customizable watch party companion
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
                 Movie bingo turns passive watching into an interactive group experience everyone loves.
@@ -171,7 +171,7 @@ export default function MovieBingoPage() {
                   { icon: "🎬", title: "Movie Tropes", desc: "Pre-loaded with the best film cliches — plot twists, jump scares, villain speeches, and dramatic rain scenes." },
                   { icon: "✏️", title: "Custom Word Lists", desc: "Add your own squares for specific movies, franchises, or directors. Make bingo cards for Marvel, Star Wars, or any series." },
                   { icon: "🎥", title: "Works with Any Film", desc: "Action, comedy, horror, romance, sci-fi — movie bingo cards work with every genre and any movie you watch." },
-                  { icon: "🖨️", title: "Print-Ready PDFs", desc: "Download high-resolution PDF cards perfectly sized for movie night. Crisp printing every time." },
+                  { icon: "🖨️", title: "PDF Exports", desc: "Export clean PDF cards after checkout, sized for movie night and crisp printing." },
                   { icon: "🍿", title: "Great for Watch Parties", desc: "Oscar nights, horror marathons, franchise binges — movie bingo keeps the whole group engaged and laughing." },
                   { icon: "🎞️", title: "Fun for Movie Buffs", desc: "Film nerds and casual viewers alike love spotting tropes. The perfect game for cinephiles of all levels." },
                 ].map((f) => (
@@ -195,11 +195,11 @@ export default function MovieBingoPage() {
                 Lights, camera, bingo!
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Create movie bingo cards in under 2 minutes. Free to start, then save or export when you are ready.
+                Draft movie bingo cards in under 2 minutes, then start checkout to save or export.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-amber-50 transition-all duration-300 shadow-xl">
-                  Create Movie Bingo Cards Free
+                  Start a Free Movie Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
                   See Pricing Plans
@@ -224,7 +224,7 @@ export default function MovieBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  The free bingo card generator for movie nights, watch parties, and every occasion.
+                  The free bingo draft editor for movie nights, watch parties, and every occasion.
                 </p>
               </div>
               <div>
@@ -246,7 +246,7 @@ export default function MovieBingoPage() {
               </div>
             </div>
             <div className="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
-              <p>&copy; 2025 MyBingoCard. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
             </div>
           </div>
         </footer>

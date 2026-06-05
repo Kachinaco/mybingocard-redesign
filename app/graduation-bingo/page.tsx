@@ -3,9 +3,9 @@ import Link from "next/link";
 import LandingPageTracker from "@/components/LandingPageTracker";
 
 export const metadata: Metadata = {
-  title: "Graduation Bingo Cards Printable — Free Graduation Bingo Generator | MyBingoCard",
+  title: "Graduation Bingo Cards Printable — Custom Graduation Bingo Generator | MyBingoCard",
   description:
-    "Create free printable graduation bingo cards for your ceremony or party. The best graduation bingo generator — custom squares, instant PDF for any graduation celebration.",
+    "Create custom printable graduation bingo cards for your ceremony or party. The best graduation bingo generator — custom squares, PDF export for any graduation celebration.",
   alternates: {
     canonical: "https://mybingocard.com/graduation-bingo",
   },
@@ -25,7 +25,7 @@ const schema = {
   name: "Graduation Bingo Cards Printable Generator",
   url: "https://mybingocard.com/graduation-bingo",
   description:
-    "Create free printable graduation bingo cards. Custom squares, instant PDF for any graduation ceremony.",
+    "Create custom printable graduation bingo cards. Custom squares, PDF export for any graduation ceremony.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
@@ -89,7 +89,7 @@ export default function GraduationBingoPage() {
                 🎓 Graduation Bingo
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
-                Free Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Graduation Bingo</span> Cards
+                Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Graduation Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
                 Make the long ceremony fly by! Create fun graduation bingo cards for family and friends to play while watching their grad walk the stage.
@@ -128,7 +128,7 @@ export default function GraduationBingoPage() {
         </main>
 
         <footer className="bg-white border-t border-slate-200 py-8 text-center text-slate-500 text-sm">
-          <p>&copy; 2025 MyBingoCard. All rights reserved. · <Link href="/privacy" className="hover:text-indigo-600">Privacy</Link> · <Link href="/terms" className="hover:text-indigo-600">Terms</Link></p>
+          <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved. · <Link href="/privacy" className="hover:text-indigo-600">Privacy</Link> · <Link href="/terms" className="hover:text-indigo-600">Terms</Link></p>
         </footer>
       </div>
     </>

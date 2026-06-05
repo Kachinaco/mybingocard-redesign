@@ -119,28 +119,28 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
   const reasonContent = {
     card_limit: {
       title: "Upgrade to Premium",
-      description: "Premium unlocks AI generation, premium templates, HD export, and the rest of the advanced bingo tools.",
-      features: ["AI-powered card generation", "All premium templates", "HD PDF & PNG export", "Custom colors & fonts", "Up to 500 cards per batch", "Ad-free experience"],
+      description: "Premium unlocks unlimited saves, sharing, exports, unlimited AI generation, premium templates, and the rest of the advanced bingo tools.",
+      features: ["Unlimited AI-powered card generation", "All premium templates", "PDF and PNG export after checkout", "Custom colors & fonts", "Up to 500 cards per batch", "Cleaner saved and shared cards"],
     },
     premium_template: {
       title: "Unlock This Template",
-      description: "This template is part of our Premium collection. Get instant access to all templates and more.",
-      features: ["All premium templates included", "HD PDF & PNG export", "Custom colors & fonts", "AI-powered card generation", "Up to 500 cards per batch", "Ad-free experience"],
+      description: "This template is part of our Premium collection. Get access to all templates and more after checkout.",
+      features: ["All premium templates included", "PDF and PNG export after checkout", "Custom colors & fonts", "Unlimited AI-powered generation", "Up to 500 cards per batch", "Cleaner saved and shared cards"],
     },
     ai_generate: {
-      title: "Unlock AI Generation",
-      description: "Let AI create your bingo card cells instantly. Describe your theme and get a perfect card in seconds.",
-      features: ["AI-powered cell generation", "Describe any theme or topic", "HD PDF & PNG export", "All premium templates", "Custom colors & fonts", "Ad-free experience"],
+      title: "Remove AI Limits",
+      description: "Let AI create your bingo card cells without the daily free limit. Describe your theme and get a polished draft in seconds.",
+      features: ["Unlimited AI-powered cell generation", "Describe any theme or topic", "PDF and PNG export after checkout", "All premium templates", "Custom colors & fonts", "Cleaner saved and shared cards"],
     },
     batch_generate: {
       title: "Generate Cards in Bulk",
       description: "Create up to 500 unique shuffled cards at once. Perfect for classrooms, events, and parties.",
-      features: ["Up to 500 unique cards per batch", "Print-ready PDF export", "Every card uniquely shuffled", "AI-powered generation", "Premium templates", "Ad-free experience"],
+      features: ["Up to 500 unique cards per batch", "PDF export after checkout", "Every card uniquely shuffled", "Unlimited AI-powered generation", "Premium templates", "Cleaner saved and shared cards"],
     },
     modal: {
       title: "Upgrade to Premium",
-      description: "Get the most out of MyBingoCard with AI generation, premium templates, larger batches, and cleaner exports.",
-      features: ["AI-powered card generation", "HD PDF & PNG export", "All premium templates", "Custom colors & fonts", "Up to 500 cards per batch", "Ad-free experience"],
+      description: "Get the most out of MyBingoCard with unlimited saves, sharing, unlimited AI generation, premium templates, larger batches, and cleaner exports.",
+      features: ["Unlimited AI-powered card generation", "PDF and PNG export after checkout", "All premium templates", "Custom colors & fonts", "Up to 500 cards per batch", "Cleaner saved and shared cards"],
     },
   }[reason];
 
@@ -159,7 +159,7 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
 
     trackClientActivity("plan_selected", {
       plan: "lifetime",
-      price: 14.99,
+      price: 29.99,
       source: "upgrade_modal",
     });
 
@@ -198,7 +198,7 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
 
       trackClientActivity("checkout_loaded", {
         plan: "lifetime",
-        price: 14.99,
+        price: 29.99,
         session_id: data.sessionId || "",
       });
     } catch {
@@ -222,7 +222,7 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
 
     trackClientActivity("plan_selected", {
       plan: "premium",
-      price: 4.99,
+      price: 7.99,
       source: "upgrade_modal",
     });
 
@@ -266,7 +266,7 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
 
       trackClientActivity("checkout_loaded", {
         plan: "premium",
-        price: 4.99,
+        price: 7.99,
         session_id: data.sessionId || "",
       });
     } catch {
@@ -292,7 +292,7 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
           <div>
             <div className="text-center mb-4">
               <h2 className="text-xl font-bold text-slate-900">Complete Your Upgrade</h2>
-              <p className="text-slate-500 text-sm mt-1">{checkoutType === "lifetime" ? "Premium Lifetime — $14.99 one-time" : "Premium — $4.99/mo · Cancel anytime"}</p>
+              <p className="text-slate-500 text-sm mt-1">{checkoutType === "lifetime" ? "Premium Lifetime for $29.99 once" : "Premium trial, then $7.99/mo"}</p>
             </div>
             <EmbeddedCheckoutProvider stripe={stripe} options={{ clientSecret }}>
               <EmbeddedCheckout />
@@ -332,17 +332,17 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
                 disabled={loading}
                 className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-indigo-200 transition-all disabled:opacity-70"
               >
-                {loading ? "Loading..." : reason === "ai_generate" ? "Upgrade for AI — $14.99 lifetime" : "Get Lifetime Access \u2014 $14.99"}
+                {loading ? "Loading..." : reason === "ai_generate" ? "Upgrade for AI for $29.99 lifetime" : "Get Lifetime Access for $29.99"}
               </button>
               <button
                 onClick={handleUpgrade}
                 disabled={loading}
                 className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-all disabled:opacity-70 border border-slate-200"
               >
-                {loading ? "Loading..." : "Subscribe Monthly \u2014 $4.99/mo"}
+                {loading ? "Loading..." : "Start 3-Day Trial for $7.99/mo"}
               </button>
               </div>
-              <p className="text-center text-xs text-slate-400 mt-3">Lifetime: one payment, forever. Monthly: cancel anytime.</p>
+              <p className="text-center text-xs text-slate-400 mt-3">Lifetime is one payment. Monthly starts with a 3-day trial.</p>
             </div>
           </>
         )}

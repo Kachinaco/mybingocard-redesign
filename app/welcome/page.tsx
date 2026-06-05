@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Welcome - Create Your Bingo Card | MyBingoCard",
-  description: "Create custom bingo cards in seconds. Free to start, then save or export when you are ready. Perfect for parties, classrooms, team building, and more.",
+  description: "Draft custom bingo cards in seconds, then start checkout to save or export. Perfect for parties, classrooms, team building, and more.",
   robots: {
     index: true,
     follow: true,
@@ -68,7 +68,7 @@ export default function WelcomePage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            Free to start
+            Free to draft
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
@@ -79,7 +79,7 @@ export default function WelcomePage() {
           </h1>
 
           <p className="text-xl text-slate-600 mb-8 max-w-xl mx-auto">
-            Add your own words, phrases, or images. Download or play online instantly.
+            Add your own words, phrases, or images. Export or play online after checkout.
           </p>
 
           {/* Main CTA */}
@@ -94,7 +94,7 @@ export default function WelcomePage() {
           </Link>
 
           <p className="text-sm text-slate-500 mt-4">
-            Free to create. No account needed.
+            Free to draft. Checkout unlocks saving and exports.
           </p>
           </div>
 
@@ -122,8 +122,8 @@ export default function WelcomePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
             </div>
-            <h3 className="font-semibold text-slate-900 mb-2">Download PDF</h3>
-            <p className="text-sm text-slate-600">Print your cards or share the PDF file</p>
+            <h3 className="font-semibold text-slate-900 mb-2">PDF Export</h3>
+            <p className="text-sm text-slate-600">Export a PDF or play online after checkout</p>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 text-center">
@@ -133,7 +133,7 @@ export default function WelcomePage() {
               </svg>
             </div>
             <h3 className="font-semibold text-slate-900 mb-2">Play Online</h3>
-            <p className="text-sm text-slate-600">Host live games with friends and family</p>
+            <p className="text-sm text-slate-600">Host live games after checkout</p>
           </div>
         </div>
 

@@ -528,7 +528,7 @@ function MyCardsPageInner() {
                 href="/create"
                 className="inline-flex items-center justify-center px-8 py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all font-bold text-lg"
               >
-                Create Your First Card
+                Start Your First Draft
               </Link>
             </div>
           ) : (

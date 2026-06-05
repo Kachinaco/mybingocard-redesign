@@ -96,7 +96,7 @@ function Header() {
           <div className="w-px h-4 bg-slate-200"></div>
           <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
           <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-            Create Free
+            Start a Draft
           </Link>
         </nav>
       </div>
@@ -248,7 +248,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
                       Browse Templates
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-500">Free to start. No credit card required.</p>
+                  <p className="text-sm text-slate-500">Free to draft. Start a trial or choose lifetime when you are ready to save.</p>
                 </div>
                 <BingoPreview page={page} />
               </div>
@@ -267,8 +267,8 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
                 <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
                   <h3 className="text-lg font-bold text-slate-900 mb-4">What you can make</h3>
                   <ul className="space-y-3 text-sm text-slate-600">
-                    <li className="flex gap-3"><span className={accent.text}>✓</span><span>Printable PDF bingo cards for in-person games</span></li>
-                    <li className="flex gap-3"><span className={accent.text}>✓</span><span>Online cards players can mark on phones or laptops</span></li>
+                    <li className="flex gap-3"><span className={accent.text}>✓</span><span>PDF exports after checkout for in-person games</span></li>
+                    <li className="flex gap-3"><span className={accent.text}>✓</span><span>Online play links after checkout for phones or laptops</span></li>
                     <li className="flex gap-3"><span className={accent.text}>✓</span><span>Unique shuffled cards for groups and classes</span></li>
                     <li className="flex gap-3"><span className={accent.text}>✓</span><span>Reusable card themes you can edit later</span></li>
                   </ul>
@@ -432,7 +432,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
                   <div className="space-y-5 text-slate-200">
                     <div>
                       <h3 className="font-bold text-white mb-1">Before the game</h3>
-                      <p>Build the card, remove weak squares, choose print or online play, and make enough unique cards for the group.</p>
+                      <p>Build the card, remove weak squares, choose export or online play after checkout, and make enough unique cards for the group.</p>
                     </div>
                     <div>
                       <h3 className="font-bold text-white mb-1">During the game</h3>
@@ -487,13 +487,13 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
             <div className="container mx-auto px-4 max-w-3xl">
               <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to make your card?</h2>
               <p className="text-slate-300 text-lg mb-8">
-                Start with a blank bingo card, customize the content, then print it, share it, or play online.
+                Start with a blank bingo card, customize the content, then export, share it, or play online after checkout.
               </p>
               <Link
                 href={useThisListHref}
                 className="inline-flex bg-white text-slate-900 px-9 py-4 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-colors"
               >
-                Create a Free Bingo Card
+                Start a Free Draft
               </Link>
             </div>
           </section>

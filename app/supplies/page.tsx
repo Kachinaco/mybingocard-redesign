@@ -267,7 +267,7 @@ export default function SuppliesPage() {
               <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
             </div>
             <div className="text-slate-500 text-sm">
-              &copy; 2025 MyBingoCard. All rights reserved.
+              &copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.
             </div>
             <div className="flex gap-6 text-sm font-medium text-slate-500">
               <Link href="/pricing" className="hover:text-indigo-600 transition-colors">Pricing</Link>

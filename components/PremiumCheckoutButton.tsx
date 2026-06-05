@@ -25,12 +25,12 @@ export default function PremiumCheckoutButton({
     try {
       trackClientActivity("plan_selected", {
         plan: "premium",
-        price: 4.99,
+        price: 7.99,
         source,
       });
 
       await redirectToCheckout({
-        label: "Premium — $4.99/mo · Cancel anytime",
+        label: "Premium trial, then $7.99/mo",
         successPath,
       });
     } finally {

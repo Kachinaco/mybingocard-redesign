@@ -192,10 +192,10 @@ export default function SeoSupportBlock({ slug }: { slug: string }) {
           </h2>
           <div className="mt-5 space-y-4 text-sm leading-7 text-slate-600 md:text-base">
             <p>
-              A useful bingo page should do more than offer a blank grid. It should help {content.audience} decide what belongs on the card, how the game will be played, and whether the final version should be printed, shared online, or used during live play. This page is built for {content.setting}, so the square ideas and calls to action should support a real event instead of a generic worksheet.
+              A useful bingo page should do more than offer a blank grid. It should help {content.audience} decide what belongs on the card, how the game will be played, and whether the final version should be exported, shared online after checkout, or used during live play after checkout. This page is built for {content.setting}, so the square ideas and calls to action should support a real event instead of a generic worksheet.
             </p>
             <p>
-              The strongest cards combine recognizable moments with a few details that feel specific to the group. For {content.label}, that usually means starting with familiar prompts like {content.examples.join(", ")}, then editing the wording so it matches the host, class, guests, or team. MyBingoCard keeps that workflow flexible: you can start from a template, paste your own list, shuffle unique cards, and decide later whether to print PDFs or share a browser link.
+              The strongest cards combine recognizable moments with a few details that feel specific to the group. For {content.label}, that usually means starting with familiar prompts like {content.examples.join(", ")}, then editing the wording so it matches the host, class, guests, or team. MyBingoCard keeps that workflow flexible: you can start from a template, paste your own list, shuffle unique cards, and decide later whether to export PDFs or share a browser link after checkout.
             </p>
           </div>
         </div>

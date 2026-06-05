@@ -6,7 +6,7 @@ import BlogPostTracker from "../BlogPostTracker";
 export const metadata: Metadata = {
   title: "20+ Holiday Bingo Ideas for Christmas & Beyond (2026)",
   description:
-    "Creative holiday bingo card ideas for Christmas parties, Hanukkah celebrations, New Year gatherings, and winter events. Free printable holiday bingo cards included.",
+    "Creative holiday bingo card ideas for Christmas parties, Hanukkah celebrations, New Year gatherings, and winter events. Draft custom cards, then save and export after checkout.",
   keywords: ["holiday bingo", "Christmas bingo", "holiday bingo cards", "Christmas party games", "holiday party ideas", "printable holiday bingo"],
   alternates: { canonical: "https://mybingocard.com/blog/holiday-bingo-ideas" },
   openGraph: {
@@ -151,7 +151,7 @@ export default function HolidayBingoIdeas() {
 
         <h2>Create Your Holiday Bingo Cards</h2>
         <p>
-          Ready to bring holiday bingo to your next gathering? Our <Link href="/holiday-bingo">free holiday bingo card maker</Link> lets you create festive, printable cards in minutes. Choose from holiday themes, customize your squares, and generate unique cards for every guest.
+          Ready to bring holiday bingo to your next gathering? Our <Link href="/holiday-bingo">holiday bingo draft editor</Link> lets you create festive, printable cards in minutes. Choose from holiday themes, customize your squares, and generate unique cards for every guest.
         </p>
       </BlogLayout>
     </>

@@ -42,7 +42,7 @@ export async function redirectToCheckout(invocation?: CheckoutInvocation): Promi
       priceId: priceId || undefined,
       purchaseType: isLifetime ? "lifetime" : options.purchaseType,
       batchCount: options.batchCount,
-      label: isLifetime ? "Premium Lifetime — $14.99 one-time" : options.label,
+      label: isLifetime ? "Premium Lifetime for $29.99 once" : options.label,
       returnPath: options.successPath,
     });
     return;

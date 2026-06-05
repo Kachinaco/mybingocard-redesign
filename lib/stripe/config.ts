@@ -31,6 +31,18 @@ export const STRIPE_CONFIG = {
   webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",
 };
 
+export const PREMIUM_MONTHLY_PRICE = 7.99;
+export const PREMIUM_TRIAL_DAYS = 3;
+export const LIFETIME_PRICE_ID = process.env.STRIPE_PREMIUM_ONETIME_PRICE_ID || "price_1TeG1ZGk2tmTlW8ZYqNKvjfX";
+export const LIFETIME_PRICE = 29.99;
+
+function splitPriceIds(value?: string): string[] {
+  return (value || "")
+    .split(/[;,\s]+/)
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
 // Subscription Plans - 2-tier: Free + Premium
 export const PLANS = {
   FREE: {
@@ -38,16 +50,16 @@ export const PLANS = {
     price: 0,
     priceId: null,
     features: [
-      "3 bingo cards",
+      "1 saved bingo card",
       "All grid sizes (3x3, 4x4, 5x5)",
       "5 starter templates",
       "Image bingo cards",
-      "Browser print and paid batch PDF packs",
-      "Share links",
-      "Includes ads",
+      "Preview before checkout",
+      "Profile and saved-card access",
+      "Export and sharing after checkout",
     ],
     limits: {
-      maxCards: 3,
+      maxCards: 1,
       maxSize: 5,
       maxBatchSize: 1,
       canExportPNG: false,
@@ -56,26 +68,26 @@ export const PLANS = {
       canUseCustomColors: false,
       canUseAdvancedTemplates: false,
       canShuffleSharedCards: false,
-      canUploadImages: true,
-      maxImageUploads: 25,
+      canUploadImages: false,
+      maxImageUploads: 0,
       canUseAiGenerate: false,
       adFree: false,
     },
   },
   PREMIUM: {
     name: "Premium",
-    monthlyPrice: 4.99,
-    price: 4.99,
-    priceId: process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID || "price_1T7OqQGk2tmTlW8Zn2uPMYGh",
+    monthlyPrice: PREMIUM_MONTHLY_PRICE,
+    price: PREMIUM_MONTHLY_PRICE,
+    priceId: process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID || "price_1TeG1YGk2tmTlW8ZF1abKglT",
     features: [
       "Unlimited bingo cards",
       "All grid sizes (3x3, 4x4, 5x5)",
       "All premium templates",
-      "AI-powered card generation",
-      "HD PDF & PNG export",
+      "Unlimited AI-powered card generation",
+      "PDF and PNG export after checkout",
       "Custom colors & fonts",
       "Up to 500 cards per batch",
-      "Ad-free experience",
+      "Cleaner saved and shared card experience",
       "Priority support",
     ],
     limits: {
@@ -96,12 +108,18 @@ export const PLANS = {
   },
 } as const;
 
-export const LIFETIME_PRICE_ID = process.env.STRIPE_PREMIUM_ONETIME_PRICE_ID || "price_1TIDDjGk2tmTlW8Zak5xV69e";
-export const LIFETIME_PRICE = 14.99;
+export const PREMIUM_MONTHLY_PRICE_IDS = Array.from(new Set([
+  PLANS.PREMIUM.priceId,
+  ...splitPriceIds(process.env.STRIPE_PREMIUM_LEGACY_MONTHLY_PRICE_IDS || "price_1T7OqQGk2tmTlW8Zn2uPMYGh"),
+])).filter(Boolean);
 
 export type PlanType = keyof typeof PLANS;
 
 export function getPlanByPriceId(priceId: string): PlanType | null {
+  if (PREMIUM_MONTHLY_PRICE_IDS.includes(priceId)) {
+    return "PREMIUM";
+  }
+
   for (const [key, plan] of Object.entries(PLANS)) {
     if ("priceId" in plan && plan.priceId === priceId) {
       return key as PlanType;

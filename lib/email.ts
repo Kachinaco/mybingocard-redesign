@@ -318,11 +318,11 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<boolea
   const subject = "Welcome to MyBingoCard!";
   const bodyHtml = `
     ${renderPanel(renderBulletList([
-      "Create themed bingo cards in minutes.",
-      "Share cards instantly with a simple link.",
-      "Export to PDF and run games anywhere."
+      "Draft themed bingo cards in minutes.",
+      "Start checkout when you are ready to save or share.",
+      "Use Premium for PDF export, live games, and larger batches."
     ]), "violet")}
-    <p style="margin:0;font-size:15px;color:#334155;">You are all set, ${escapeHtml(firstName)}. Start with your first card and invite players right away.</p>
+    <p style="margin:0;font-size:15px;color:#334155;">You are all set, ${escapeHtml(firstName)}. Start with your first draft, then choose a trial or lifetime access when you are ready to save.</p>
   `;
 
   return sendEmail({
@@ -330,17 +330,17 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<boolea
     subject,
     html: renderLayout({
       theme: "violet",
-      preheader: "Welcome to MyBingoCard - start creating your first bingo card.",
+      preheader: "Welcome to MyBingoCard - start drafting your first bingo card.",
       headline: `Welcome, ${firstName}`,
       intro: "Thanks for joining MyBingoCard. We built this to make fun, custom bingo experiences fast and easy.",
       bodyHtml,
-      ctaLabel: "Create Your First Card",
+      ctaLabel: "Start Your First Draft",
       ctaUrl: trackableUrl(`${appUrl}/create`, to, "welcome", "main_cta"),
       ctaHint: "Takes about 2 minutes to set up.",
       email: to,
       campaignId: "welcome",
     }),
-    text: `Welcome, ${firstName}!\n\nThanks for joining MyBingoCard.\n\nYou can now:\n- Create themed bingo cards in minutes\n- Share cards instantly with a link\n- Export to PDF\n\nStart here: ${appUrl}/create\n\nNeed help? Reply to this email.`,
+    text: `Welcome, ${firstName}!\n\nThanks for joining MyBingoCard.\n\nYou can now:\n- Draft themed bingo cards in minutes\n- Start checkout when you are ready to save or share\n- Use Premium for PDF export, live games, and larger batches\n\nStart here: ${appUrl}/create\n\nNeed help? Reply to this email.`,
     marketing: true,
   });
 }
@@ -595,8 +595,8 @@ export async function sendLiveGamesAnnouncementEmail(to: string, name: string): 
         )}
         ${renderBulletList([
           "Host a live bingo game from any card you've created",
-          "Players join instantly from their phone — no app, no signup required",
-          "Real-time calling, live score tracking, and instant bingo detection",
+          "Players join from their phone without installing an app",
+          "Real-time calling, live score tracking, and automatic bingo detection",
           "Perfect for classrooms, parties, team meetings, and game nights",
         ])}
         <p style="margin:16px 0 0 0;font-size:15px;color:#334155;">All you need is a bingo card and a room full of people.</p>
@@ -607,7 +607,7 @@ export async function sendLiveGamesAnnouncementEmail(to: string, name: string): 
       email: to,
       campaignId: "live-games-announcement",
     }),
-    text: `Hi ${firstName},\n\nSomething exciting is dropping this Friday, March 13th.\n\nWe're launching Live Multiplayer Bingo Games.\n\nHere's what's coming:\n- Host a live bingo game from any card you've created\n- Players join instantly from their phone — no app, no signup required\n- Real-time calling, live score tracking, and instant bingo detection\n- Perfect for classrooms, parties, team meetings, and game nights\n\nGet your cards ready: https://mybingocard.com/dashboard\n\nSee you Friday!\n\n— The MyBingoCard Team`,
+    text: `Hi ${firstName},\n\nSomething exciting is dropping this Friday, March 13th.\n\nWe're launching Live Multiplayer Bingo Games.\n\nHere's what's coming:\n- Host a live bingo game from any card you've created\n- Players join from their phone without installing an app\n- Real-time calling, live score tracking, and automatic bingo detection\n- Perfect for classrooms, parties, team meetings, and game nights\n\nGet your cards ready: https://mybingocard.com/dashboard\n\nSee you Friday!\n\n— The MyBingoCard Team`,
     marketing: true,
   });
 }
@@ -637,12 +637,12 @@ export async function sendAbandonedCheckoutEmail(
     ? [
         "AI-powered card generation for faster setup.",
         "Premium templates, larger batches, and custom styling.",
-        "HD PDF & PNG export for print-ready cards.",
-        "Ad-free experience across your whole account.",
+        "PDF and PNG export after checkout for polished cards.",
+        "Cleaner saved and shared cards across your whole account.",
       ]
     : [
         `${batchCount ?? "Multiple"} unique shuffled cards from your item list.`,
-        "Print-ready PDF export in seconds.",
+        "PDF export after checkout in seconds.",
         "Perfect for parties, classrooms, and game nights.",
       ];
 
@@ -674,7 +674,7 @@ export async function sendAbandonedCheckoutEmail(
       campaignId: "abandoned-checkout",
     }),
     text: isSubscription
-      ? `Hi ${firstName},\n\nYou started upgrading to Premium but didn't finish.\n\nPremium includes:\n- AI-powered card generation\n- Premium templates, larger batches, and custom styling\n- HD PDF & PNG export\n- Ad-free experience\n\nComplete your upgrade: ${appUrl}/pricing\n\nQuestions? Reply to this email.`
+      ? `Hi ${firstName},\n\nYou started upgrading to Premium but didn't finish.\n\nPremium includes:\n- AI-powered card generation\n- Premium templates, larger batches, and custom styling\n- PDF and PNG export after checkout\n- Cleaner saved and shared cards\n\nComplete your upgrade: ${appUrl}/pricing\n\nQuestions? Reply to this email.`
       : `Hi ${firstName},\n\nYou were close to generating ${batchCount ? `${batchCount} unique bingo cards` : "your card batch"}.\n\nHead back to finish: ${appUrl}/create\n\nQuestions? Reply to this email.`,
     marketing: true,
   });
@@ -693,7 +693,7 @@ export async function sendCardComebackEmail(
     ${renderPanel(renderBulletList([
       "Open the card and tap squares to play solo.",
       "Copy a share link for players.",
-      "Download a PDF if you want to print it.",
+      "Export a PDF after checkout if you want to print it.",
     ]), "emerald")}
     <p style="margin:0;font-size:15px;color:#334155;">Your saved card is still in your dashboard whenever you need it.</p>
   `;
@@ -904,16 +904,16 @@ export async function sendCardLimitEmail(to: string, name: string) {
     subject: `${firstName}, unlock Premium bingo features`,
     html: renderLayout({
       theme: "violet",
-      preheader: "Upgrade to Premium for AI, HD export, and larger batches.",
+      preheader: "Upgrade to Premium for AI, PDF and PNG export, and larger batches.",
       headline: "Unlock Premium bingo features",
       intro: `Hey ${firstName}, Premium gives you the faster and more customizable way to create, export, and share bingo cards.`,
       bodyHtml: `
         ${renderPanel(renderBulletList([
           "AI-powered card generation",
-          "HD PDF and PNG export",
+          "PDF and PNG exports",
           "All premium templates",
           "Batch generate up to 500 cards",
-          "Ad-free experience",
+          "Cleaner saved and shared cards",
         ]), "violet")}
         <p style="margin:0;font-size:15px;color:#334155;">Upgrade takes 30 seconds and you can start creating right away.</p>`,
       ctaLabel: "Upgrade to Premium →",
@@ -922,7 +922,7 @@ export async function sendCardLimitEmail(to: string, name: string) {
       email: to,
       campaignId: "card-limit",
     }),
-    text: `Hey ${firstName},\n\nPremium gives you AI generation, HD export, premium templates, custom styling, and bigger batch generation.\n\nUpgrade here: ${appUrl}/pricing\n\nQuestions? Reply to this email.`,
+    text: `Hey ${firstName},\n\nPremium gives you AI generation, PDF and PNG export, premium templates, custom styling, and bigger batch generation.\n\nUpgrade here: ${appUrl}/pricing\n\nQuestions? Reply to this email.`,
     marketing: true,
   });
 }

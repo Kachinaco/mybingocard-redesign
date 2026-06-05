@@ -2,16 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "How to Play Bingo — Rules, Tips & Free Cards | MyBingoCard",
+  title: "How to Play Bingo — Rules, Tips & Custom Cards | MyBingoCard",
   description:
-    "Learn how to play bingo with our complete guide. Bingo rules explained, game variations, tips for hosting, and free printable bingo cards. Everything you need for your next bingo game.",
+    "Learn how to play bingo with our complete guide. Bingo rules explained, game variations, tips for hosting, and custom printable bingo cards. Everything you need for your next bingo game.",
   alternates: {
     canonical: "https://mybingocard.com/how-to-play-bingo",
   },
   openGraph: {
-    title: "How to Play Bingo — Rules, Tips & Free Cards | MyBingoCard",
+    title: "How to Play Bingo — Rules, Tips & Custom Cards | MyBingoCard",
     description:
-      "Learn how to play bingo with our complete guide. Bingo rules, winning patterns, game variations, hosting tips, and free printable cards.",
+      "Learn how to play bingo with our complete guide. Bingo rules, winning patterns, game variations, hosting tips, and custom printable cards.",
     url: "https://mybingocard.com/how-to-play-bingo",
     siteName: "MyBingoCard",
     type: "article",
@@ -37,7 +37,7 @@ const faqItems = [
   {
     question: "Can you play bingo with custom words instead of numbers?",
     answer:
-      "Yes! Custom bingo uses words, phrases, or images instead of numbers. It is popular for baby showers, classrooms, team building events, and holiday parties. MyBingoCard lets you create custom bingo cards with any content you want — just type your items and generate unique cards instantly.",
+      "Yes! Custom bingo uses words, phrases, or images instead of numbers. It is popular for baby showers, classrooms, team building events, and holiday parties. MyBingoCard lets you create custom bingo cards with any content you want — just type your items and draft shuffled cards quickly.",
   },
   {
     question: "What is the difference between 75-ball and 90-ball bingo?",
@@ -245,7 +245,7 @@ export default function HowToPlayBingoPage() {
                 href="/create"
                 className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20"
               >
-                Create Free
+                Start a Draft
               </Link>
             </nav>
           </div>
@@ -280,7 +280,7 @@ export default function HowToPlayBingoPage() {
                   href="/create"
                   className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300"
                 >
-                  Create Free Bingo Cards
+                  Start a Draft
                 </Link>
                 <a
                   href="#basic-rules"
@@ -702,9 +702,9 @@ export default function HowToPlayBingoPage() {
                               href="/create"
                               className="text-indigo-600 hover:text-indigo-700 font-medium underline underline-offset-2"
                             >
-                              Create and print cards for free
+                              Create a free draft, then export or use digital cards after checkout
                             </Link>{" "}
-                            or use digital cards on phones and tablets
+                            on phones and tablets
                           </span>
                         </li>
                         <li className="flex gap-2">
@@ -870,14 +870,14 @@ export default function HowToPlayBingoPage() {
                   </h2>
                   <p className="text-slate-300 mb-8 text-lg max-w-xl mx-auto leading-relaxed">
                     Create custom bingo cards for your next game night, party,
-                    or classroom activity. Free to start, no account required.
+                    or classroom activity. Start with a draft, then choose Premium when you need to save or export.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Link
                       href="/create"
                       className="inline-block px-8 py-4 bg-gradient-to-r from-violet-500 to-indigo-500 text-white rounded-xl font-bold text-lg hover:from-violet-400 hover:to-indigo-400 transition-all shadow-lg shadow-indigo-500/30"
                     >
-                      Create Free Bingo Cards
+                      Start a Draft
                     </Link>
                     <Link
                       href="/templates"
@@ -919,7 +919,7 @@ export default function HowToPlayBingoPage() {
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
                   The easiest way to create custom bingo cards for any occasion.
-                  Free online bingo card maker with templates, PDF export, and
+                  Online bingo draft editor with templates, PDF export after checkout, and
                   live multiplayer games.
                 </p>
               </div>
@@ -991,7 +991,7 @@ export default function HowToPlayBingoPage() {
               </div>
             </div>
             <div className="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
-              <p>&copy; 2025 MyBingoCard. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
             </div>
           </div>
         </footer>

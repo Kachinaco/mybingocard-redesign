@@ -57,7 +57,7 @@ export default function PartyBingoTips() {
 
         <h3>Create Your Cards</h3>
         <p>
-          Use <Link href="/create">MyBingoCard&apos;s free generator</Link> to create custom cards. A few key tips:
+          Use <Link href="/create">MyBingoCard&apos;s free draft editor</Link> to create custom cards. A few key tips:
         </p>
         <ul>
           <li>Use 30-40 unique items even though only 24 fit per card — this ensures variety</li>
@@ -144,7 +144,7 @@ export default function PartyBingoTips() {
 
         <h2>Create Your Party Bingo Cards</h2>
         <p>
-          Ready to host the best party bingo game? Use our <Link href="/party-bingo">free party bingo card generator</Link> to create beautiful, customized cards in minutes. Every card is unique, print-ready, and free.
+          Ready to host the best party bingo game? Use our <Link href="/party-bingo">party bingo draft editor</Link> to create beautiful, customized cards in minutes. Every card can be uniquely shuffled, with print export available after checkout.
         </p>
       </BlogLayout>
     </>

@@ -568,7 +568,7 @@ export default function TemplatesPage() {
                   href="/create"
                   className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20"
                 >
-                  Create Free
+                  Start a Draft
                 </Link>
               </>
             )}
@@ -768,7 +768,7 @@ export default function TemplatesPage() {
                 </svg>
               </div>
               <h2 className="text-2xl font-bold text-slate-900">Sign in to continue</h2>
-              <p className="text-slate-500 mt-2">This is a premium template. Create a free account or sign in to get started.</p>
+              <p className="text-slate-500 mt-2">This is a premium template. Sign in, then start a trial or choose lifetime access to use it.</p>
             </div>
 
             <div className="space-y-3">
@@ -776,7 +776,7 @@ export default function TemplatesPage() {
                 href="/signup?callbackUrl=/templates"
                 className="block w-full py-3.5 bg-[#007AFF] text-white rounded-xl font-bold text-center hover:bg-blue-600 transition-colors"
               >
-                Create Free Account
+                Sign In or Create Account
               </Link>
               <Link
                 href="/login?callbackUrl=/templates"

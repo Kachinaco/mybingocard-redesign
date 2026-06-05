@@ -462,12 +462,12 @@ export default function SocialShare({ url, title, cardId, userPlanType, openEmai
                   <button
                     type="button"
                     onClick={() => openCheckout({
-                      label: "Premium — $4.99/mo · Email shares included",
+                      label: "Premium — $7.99/mo · Email shares included",
                       returnPath: window.location.pathname,
                     })}
                     className="mt-2 w-full rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-black text-indigo-700 transition hover:bg-indigo-100"
                   >
-                    Or subscribe for $4.99/mo and email batches are included
+                    Or start the 3-day trial and email batches are included
                   </button>
                 )}
               </div>

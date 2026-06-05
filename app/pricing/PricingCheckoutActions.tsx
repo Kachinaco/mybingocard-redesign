@@ -130,7 +130,7 @@ export function PricingCheckoutButton({
     setLoading(true);
 
     try {
-      const price = purchaseType === "monthly" ? 4.99 : 14.99;
+      const price = purchaseType === "monthly" ? 7.99 : 29.99;
       const plan = purchaseType === "monthly" ? "premium" : "lifetime";
 
       if (purchaseType === "monthly") {

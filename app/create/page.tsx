@@ -5,7 +5,7 @@ import { useAnalytics } from "@/lib/analytics/client";
 import { trackClientActivity } from "@/lib/activity-client";
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSession, signIn } from "next-auth/react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
 import AdUnit from "@/components/AdUnit";
 import PremiumCheckoutButton from "@/components/PremiumCheckoutButton";
@@ -68,6 +68,10 @@ type CardPayload = {
   style: CellStyle;
 };
 
+const pendingSaveCheckoutIntentKey = "mybingo_pending_save_checkout_intent";
+const saveCheckoutCallbackUrl = "/create?checkout=save";
+type AuthModalIntent = "draft_only" | "save_checkout";
+
 function CreateCardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -118,6 +122,7 @@ function CreateCardContent() {
   });
   const [loading, setLoading] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalIntent, setAuthModalIntent] = useState<AuthModalIntent>("draft_only");
   const [magicEmail, setMagicEmail] = useState("");
   const [magicSent, setMagicSent] = useState(false);
   const [magicLoading, setMagicLoading] = useState(false);
@@ -142,6 +147,8 @@ function CreateCardContent() {
     cardsCreated?: number;
     cardsLimit?: number;
     planType?: PlanType;
+    legacyFreeAccess?: boolean;
+    hasPremiumAccess?: boolean;
   } | null>(null);
   const [checkingPermission, setCheckingPermission] = useState(true);
   const [mobileToast, setMobileToast] = useState("");
@@ -163,6 +170,7 @@ function CreateCardContent() {
   const prevStyleRef = useRef<CellStyle>(style);
   const draftLoadTrackedRef = useRef(false);
   const batchCancelTrackedRef = useRef(false);
+  const autoCheckoutStartedRef = useRef(false);
 
   useEffect(() => {
     currentCardIdRef.current = currentCardId;
@@ -501,6 +509,7 @@ function CreateCardContent() {
     const pendingDraftSaveLockKey = "mybingo_pending_draft_save_in_progress";
     if (
       session?.user &&
+      permissionStatus?.allowed &&
       draftRaw &&
       !cardIdFromUrl &&
       !createInFlightRef.current &&
@@ -560,7 +569,7 @@ function CreateCardContent() {
     return () => {
       cancelled = true;
     };
-  }, [cardIdFromUrl, searchParamsKey, session?.user]);
+  }, [cardIdFromUrl, searchParamsKey, session?.user, permissionStatus?.allowed]);
 
   const showMobileToast = (msg: string) => {
     setMobileToast(msg);
@@ -706,9 +715,35 @@ function CreateCardContent() {
         server_error: "client_redirect_to_signup",
         is_update: false,
       });
+      trackClientActivity("save_blocked_auth_required", {
+        source: "save_card",
+        title: payload.title,
+        size: payload.size,
+        cells_filled: cellsFilledCount,
+        next_step: "auth_then_free_save",
+      });
       setAutoSaveState("idle");
       setAutoSaveError("");
       redirectToSignupForCreation();
+      return false;
+    }
+
+    if (session?.user && permissionStatus && !permissionStatus.allowed) {
+      persistDraft();
+      trackClientActivity("card_save_blocked", {
+        reason: "trial_required",
+        title: payload.title,
+        size: payload.size,
+        cells_filled: cellsFilledCount,
+        status: 403,
+        server_error: "client_trial_required",
+        is_update: Boolean(currentCardIdRef.current),
+      });
+      setAutoSaveState("error");
+      setAutoSaveError(permissionStatus.reason || "Free card limit reached");
+      setError(permissionStatus.reason || "Upgrade for unlimited saved cards, exports, and sharing.");
+      setUpgradeReason("card_limit");
+      setShowUpgradeModal(true);
       return false;
     }
 
@@ -1083,20 +1118,37 @@ function CreateCardContent() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [title, cells, size, rows, columns, bingoVariant, freeSpace, isPublic, style, description]);
 
-  const redirectToSignupForCreation = () => {
+  const redirectToSignupForCreation = (options?: { autoCheckoutAfterAuth?: boolean }) => {
     persistDraft();
+    const shouldAutoCheckout = Boolean(options?.autoCheckoutAfterAuth);
+    setAuthModalIntent(shouldAutoCheckout ? "save_checkout" : "draft_only");
+    if (shouldAutoCheckout) {
+      setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1");
+    } else {
+      removeBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey);
+    }
     setShowAuthModal(true);
+  };
+
+  const closeAuthModal = () => {
+    setShowAuthModal(false);
+    setAuthModalIntent("draft_only");
+    removeBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey);
   };
 
   const handleMagicLink = async () => {
     if (!magicEmail.trim()) return;
     setMagicLoading(true);
+    const callbackUrl = authModalIntent === "save_checkout" ? saveCheckoutCallbackUrl : "/create";
     try {
-      track("magic_link_requested", { callbackUrl: "/create", context: "create_page" });
+      if (authModalIntent === "save_checkout") {
+        setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1");
+      }
+      track("magic_link_requested", { callbackUrl, context: "create_page" });
       const response = await fetch("/api/auth/magic-link/request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: magicEmail, callbackUrl: "/create" }),
+        body: JSON.stringify({ email: magicEmail, callbackUrl }),
       });
       if (!response.ok) throw new Error("magic_link_failed");
       setMagicSent(true);
@@ -1398,6 +1450,60 @@ function CreateCardContent() {
 
   const isEditingExistingCard = Boolean(cardIdFromUrl || currentCardId);
   const editorUnlocked = Boolean(!permissionStatus || permissionStatus.allowed || isEditingExistingCard);
+  const isPremiumGateActive = Boolean(
+    permissionStatus && !permissionStatus.allowed && permissionStatus.upgradeRequired && !isEditingExistingCard
+  );
+  const continueAnonymousDraft = async () => {
+    removeBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey);
+    trackClientActivity("premium_gate_keep_drafting_clicked", undefined, { keepalive: true });
+    await signOut({ callbackUrl: "/create" });
+  };
+
+  useEffect(() => {
+    if (autoCheckoutStartedRef.current) return;
+    if (!session?.user || checkingPermission || !permissionStatus || permissionStatus.allowed || isEditingExistingCard) {
+      return;
+    }
+
+    const hasPendingIntent =
+      searchParams.get("checkout") === "save" ||
+      getBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey) === "1";
+
+    if (!hasPendingIntent) return;
+
+    autoCheckoutStartedRef.current = true;
+    removeBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey);
+
+    if (searchParams.get("checkout") === "save" && typeof window !== "undefined") {
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.delete("checkout");
+      window.history.replaceState(null, "", nextUrl.pathname + nextUrl.search + nextUrl.hash);
+    }
+
+    trackClientActivity("checkout_auto_started_after_auth", {
+      source: "save_card",
+      plan: "premium",
+      cards_created: permissionStatus.cardsCreated ?? null,
+      cards_limit: permissionStatus.cardsLimit ?? null,
+    });
+
+    redirectToCheckout({
+      label: "Premium trial, then $7.99/mo",
+      successPath: "/dashboard",
+    }).catch((checkoutError) => {
+      console.error("Auto checkout after auth failed:", checkoutError);
+      setError("Failed to start checkout. Please try again.");
+    });
+  }, [
+    session?.user,
+    checkingPermission,
+    permissionStatus,
+    permissionStatus?.allowed,
+    permissionStatus?.cardsCreated,
+    permissionStatus?.cardsLimit,
+    isEditingExistingCard,
+    searchParams,
+  ]);
   const autoSaveLabel =
     autoSaveState === "saving"
       ? currentCardId
@@ -1412,7 +1518,8 @@ function CreateCardContent() {
         : session?.user
           ? "Changes save automatically"
           : "Sign in to save automatically";
-  const isPremiumBatchUser = permissionStatus?.planType === "PREMIUM";
+  const isPremiumBatchUser = Boolean(permissionStatus?.hasPremiumAccess);
+  const canUploadImages = Boolean(permissionStatus?.hasPremiumAccess || permissionStatus?.legacyFreeAccess);
   const selectedBatchPrice = formatBatchPackPrice(batchCount);
   const selectedBatchPurchases = availableBatchCounts[batchCount] || 0;
   const hasSelectedBatchPurchase = selectedBatchPurchases > 0;
@@ -1482,12 +1589,14 @@ function CreateCardContent() {
               <span className="sm:hidden">{showPreview ? "Edit" : "Preview"}</span>
               <span className="hidden sm:inline">{showPreview ? "Back to Edit" : "Preview Card"}</span>
             </button>
-            <Link
-              href="/dashboard"
-              className="px-3 sm:px-5 py-2.5 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-all duration-200"
-            >
-              Cancel
-            </Link>
+            {editorUnlocked && (
+              <Link
+                href="/dashboard"
+                className="px-3 sm:px-5 py-2.5 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-all duration-200"
+              >
+                Cancel
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -1545,7 +1654,7 @@ function CreateCardContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span className="text-sm">
-                Build your card first. Sign up free when you&apos;re ready to save it.{" "}
+                Build your card first. Sign in when you&apos;re ready to save it.{" "}
                 <Link href="/signup?callbackUrl=/create" className="font-semibold underline underline-offset-2 hover:text-[#007AFF]">
                   Sign up now
                 </Link>{" "}
@@ -1575,30 +1684,31 @@ function CreateCardContent() {
           )}
 
           {/* Paywall - Premium-only feature access */}
-          {permissionStatus && !permissionStatus.allowed && permissionStatus.upgradeRequired && !isEditingExistingCard && (
+          {isPremiumGateActive && (
             <div className="mb-8 bg-blue-50 border-2 border-blue-200 rounded-2xl p-8 text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
                 <svg className="w-8 h-8 text-[#007AFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">This feature requires Premium</h2>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Unlock AI generation, HD export, premium templates, and bigger batch generation.
+                Start your 3-day trial to save more cards, export files, share links, remove AI limits, and generate larger batches.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   onClick={redirectToCheckout}
                   className="bg-[#007AFF] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-sm transition-all"
                 >
-                  Upgrade to Premium — $4.99/mo
+                  Start 3-Day Trial for $7.99/mo
                 </button>
-                <Link
-                  href="/dashboard"
+                <button
+                  type="button"
+                  onClick={continueAnonymousDraft}
                   className="px-6 py-4 text-gray-600 hover:text-gray-900 font-semibold transition-colors"
                 >
-                  Back to Dashboard
-                </Link>
+                  Keep drafting without saving
+                </button>
               </div>
-              <p className="mt-4 text-xs text-gray-400">Billed at $4.99/month. Cancel anytime.</p>
+              <p className="mt-4 text-xs text-gray-400">3-day trial, then $7.99/month. Cancel anytime.</p>
             </div>
           )}
 
@@ -1609,7 +1719,7 @@ function CreateCardContent() {
             </div>
           )}
 
-          {showNewUserTip && (
+          {showNewUserTip && !isPremiumGateActive && (
             <div className="mb-6 bg-gray-50 border border-gray-200 rounded-xl px-5 py-3 flex items-center justify-between gap-4 animate-fade-in-up">
               <p className="text-sm text-gray-600">
                 First time? Type a title above and fill in the squares, or{" "}
@@ -2444,7 +2554,7 @@ function CreateCardContent() {
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                 </svg>
-                Get Premium — AI, Batch, Unlimited Cards — $14.99 lifetime
+                Get Premium with unlimited saves, larger batches, and no daily AI limit for $29.99 lifetime
               </button>
             </div>
           )}
@@ -2476,7 +2586,7 @@ function CreateCardContent() {
       {/* Save Card Auth Modal */}
       {showAuthModal && (
         <div
-          onClick={(e) => { if (e.target === e.currentTarget) setShowAuthModal(false); }}
+          onClick={(e) => { if (e.target === e.currentTarget) closeAuthModal(); }}
           style={{
             position: "fixed", inset: 0, zIndex: 9999,
             background: "rgba(15,23,42,0.6)", backdropFilter: "blur(4px)",
@@ -2492,7 +2602,7 @@ function CreateCardContent() {
           }}>
             {/* Close */}
             <button
-              onClick={() => setShowAuthModal(false)}
+              onClick={closeAuthModal}
               style={{
                 position: "absolute", top: "16px", right: "16px",
                 background: "#f1f5f9", border: "none", borderRadius: "50%",
@@ -2502,7 +2612,7 @@ function CreateCardContent() {
               }}
             >×</button>
 
-            {/* Card saved icon */}
+            {/* Card ready icon */}
             <div style={{ fontSize: "40px", marginBottom: "12px" }}>🎯</div>
 
             <h2 style={{ margin: "0 0 6px", fontSize: "22px", fontWeight: 800, color: "#1e293b", letterSpacing: "-0.5px" }}>
@@ -2514,10 +2624,10 @@ function CreateCardContent() {
               </p>
             )}
             <p style={{ margin: "0 0 6px", fontSize: "14px", color: "#64748b" }}>
-              Sign up to save, share, and download your card.
+              Sign in to save this card.
             </p>
             <p style={{ margin: "0 0 24px", fontSize: "13px", color: "#94a3b8" }}>
-              Free — takes 10 seconds. Your card will be waiting.
+              Free accounts can save 1 card. Premium unlocks exports, sharing, AI, and unlimited saves.
             </p>
 
             {!magicSent ? (
@@ -2526,9 +2636,13 @@ function CreateCardContent() {
                 <button
                   data-mybingocard-oauth-provider="google"
                   onClick={() => {
-                    trackClientActivity("oauth_signup_started", { provider: "google", callbackUrl: "/create" });
-                    if (startNativeOAuth("google", "/create")) return;
-                    signIn("google", { callbackUrl: "/create" });
+                    const callbackUrl = authModalIntent === "save_checkout" ? saveCheckoutCallbackUrl : "/create";
+                    if (authModalIntent === "save_checkout") {
+                      setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1");
+                    }
+                    trackClientActivity("oauth_signup_started", { provider: "google", callbackUrl });
+                    if (startNativeOAuth("google", callbackUrl)) return;
+                    signIn("google", { callbackUrl });
                   }}
                   style={{
                     width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
@@ -2552,9 +2666,13 @@ function CreateCardContent() {
                   <button
                     data-mybingocard-oauth-provider="apple"
                     onClick={() => {
-                      trackClientActivity("oauth_signup_started", { provider: "apple", callbackUrl: "/create" });
-                      if (startNativeOAuth("apple", "/create")) return;
-                      signIn("apple", { callbackUrl: "/create" });
+                      const callbackUrl = authModalIntent === "save_checkout" ? saveCheckoutCallbackUrl : "/create";
+                      if (authModalIntent === "save_checkout") {
+                        setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1");
+                      }
+                      trackClientActivity("oauth_signup_started", { provider: "apple", callbackUrl });
+                      if (startNativeOAuth("apple", callbackUrl)) return;
+                      signIn("apple", { callbackUrl });
                     }}
                     style={{
                       width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
@@ -2615,7 +2733,7 @@ function CreateCardContent() {
                 <div style={{ fontSize: "48px", marginBottom: "12px" }}>📬</div>
                 <h3 style={{ margin: "0 0 8px", fontSize: "18px", fontWeight: 700, color: "#1e293b" }}>Check your inbox</h3>
                 <p style={{ margin: "0 0 16px", fontSize: "14px", color: "#64748b", lineHeight: 1.5 }}>
-                  We sent a magic link to <strong>{magicEmail}</strong>.<br />Click it to sign in and save your card.
+                  We sent a magic link to <strong>{magicEmail}</strong>.<br />Click it to sign in, return to your draft, and start checkout.
                 </p>
                 <button
                   onClick={() => { setMagicSent(false); setMagicEmail(""); }}
@@ -2634,7 +2752,7 @@ function CreateCardContent() {
         open={imagePickerCellIndex !== null}
         onClose={() => setImagePickerCellIndex(null)}
         onPick={handleImagePicked}
-        canUploadImages={true}
+        canUploadImages={canUploadImages}
         isLoggedIn={Boolean(session?.user)}
         context="cell_image"
         cellIndex={imagePickerCellIndex ?? undefined}
@@ -2651,7 +2769,7 @@ export default function CreateCardPage() {
         <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center px-6 py-16">
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#007AFF]">MyBingoCard Editor</p>
           <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">Create Bingo Cards Online</h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Build printable and online bingo cards for classrooms, baby showers, weddings, parties, and team events. Customize every square, then print, share, or play online.</p>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Build bingo card drafts for classrooms, baby showers, weddings, parties, and team events. Customize every square, then export, share, or play online after checkout.</p>
           <div className="mt-8 flex flex-wrap gap-3 text-sm font-semibold">
             <Link href="/templates" className="rounded-md bg-[#007AFF] px-4 py-2 text-white">Browse Templates</Link>
             <Link href="/pricing" className="rounded-md border border-slate-300 px-4 py-2 text-slate-700">See Premium Features</Link>

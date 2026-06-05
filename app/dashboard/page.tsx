@@ -21,6 +21,7 @@ import UpgradeBanner from "@/components/UpgradeBanner";
 import NpsWidget from "@/components/NpsWidget";
 import OnboardingChecklist from "@/components/OnboardingChecklist";
 import { FACEBOOK_PAGE_URL, REDDIT_COMMUNITY_URL } from "@/lib/social-links";
+import { getEffectiveCardLimit, hasPremiumAccess } from "@/lib/subscription-status";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -35,7 +36,7 @@ export default async function DashboardPage() {
 
   const currentPlan = user?.planType || "FREE";
   const plan = PLANS[currentPlan as keyof typeof PLANS] || PLANS.FREE;
-  const isSubscribed = currentPlan !== "FREE";
+  const isSubscribed = hasPremiumAccess(user);
   const isNewUser = user?.createdAt && (Date.now() - new Date(user.createdAt).getTime()) < 60000;
   const cancelPending = Boolean(user?.cancelAtPeriodEnd && user?.currentPeriodEnd);
   const subscriptionEndsOn = user?.currentPeriodEnd
@@ -61,7 +62,7 @@ export default async function DashboardPage() {
     .filter(Boolean);
   const latestCard = recentCards[0];
   const totalCards = allCards.length;
-  const monthlyLimit = Number(plan.limits.maxCards);
+  const monthlyLimit = isSubscribed ? Number(PLANS.PREMIUM.limits.maxCards) : getEffectiveCardLimit(user);
   const usagePercent = monthlyLimit > 0
     ? Math.min(100, Math.round((totalCards / monthlyLimit) * 100))
     : isSubscribed ? 18 : 0;

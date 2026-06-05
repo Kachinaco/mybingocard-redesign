@@ -8,6 +8,7 @@ import clientPromise from "@/lib/mongodb";
 import { getUserById } from "@/lib/db/users";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyCheckoutStarted } from "@/lib/discord";
+import { hasPremiumAccess, isLegacyFreeUser } from "@/lib/subscription-status";
 import type { BatchPurchase } from "@/lib/db/batchPurchases";
 import type { BingoCard } from "@/lib/db/cards";
 
@@ -276,6 +277,17 @@ export async function POST(request: Request) {
 
     // Resolve current user record for Stripe customer reuse.
     const userRecord = await getUserById(sessionUserId);
+    if (!hasPremiumAccess(userRecord) && !isLegacyFreeUser(userRecord)) {
+      return NextResponse.json(
+        {
+          error: "Start your 3-day trial or choose lifetime access to create share links.",
+          upgradeRequired: true,
+          trialRequired: true,
+        },
+        { status: 403 }
+      );
+    }
+
     let reusableCustomerId = userRecord?.stripeCustomerId || null;
 
     if (!reusableCustomerId) {

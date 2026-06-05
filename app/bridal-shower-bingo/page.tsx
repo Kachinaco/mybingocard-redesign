@@ -3,9 +3,9 @@ import Link from "next/link";
 import LandingPageTracker from "@/components/LandingPageTracker";
 
 export const metadata: Metadata = {
-  title: "Bridal Shower Bingo Cards Printable — Free Bridal Shower Bingo Generator | MyBingoCard",
+  title: "Bridal Shower Bingo Cards Printable — Custom Bridal Shower Bingo Generator | MyBingoCard",
   description:
-    "Create free printable bridal shower bingo cards for your guests. The best bridal shower bingo card generator — custom squares, instant PDF download for any bridal shower.",
+    "Create custom printable bridal shower bingo cards for your guests. The best bridal shower bingo card generator — custom squares, PDF export after checkout for any bridal shower.",
   alternates: {
     canonical: "https://mybingocard.com/bridal-shower-bingo",
   },
@@ -25,7 +25,7 @@ const schema = {
   name: "Bridal Shower Bingo Cards Printable Generator",
   url: "https://mybingocard.com/bridal-shower-bingo",
   description:
-    "Create free printable bridal shower bingo cards. Custom squares, instant PDF download, and digital play.",
+    "Create custom printable bridal shower bingo cards. Custom squares, PDF export after checkout, and digital play.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
@@ -89,10 +89,10 @@ export default function BridalShowerBingoPage() {
                 💐 Bridal Shower Bingo
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
-                Free Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500">Bridal Shower Bingo</span> Cards
+                Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500">Bridal Shower Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                Turn gift opening into a party game! Create unique bingo cards for every guest, print instantly, and celebrate the bride-to-be in style.
+                Turn gift opening into a party game! Create unique bingo cards for every guest, export after checkout, and celebrate the bride-to-be in style.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/create" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl font-bold text-lg hover:opacity-90 shadow-lg shadow-pink-500/30">
@@ -107,7 +107,7 @@ export default function BridalShowerBingoPage() {
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-rose-500 to-pink-500 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">She Said Yes! Now Make It Fun 💍</h2>
-            <p className="text-rose-100 text-lg mb-8">Bridal shower bingo is the #1 party game that keeps every guest engaged. Free to create!</p>
+            <p className="text-rose-100 text-lg mb-8">Bridal shower bingo is the #1 party game that keeps every guest engaged. Free to draft, then upgrade when you need to save or export.</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-rose-600 rounded-xl font-bold text-lg hover:bg-rose-50 transition-colors shadow-lg">Create Bridal Shower Bingo</Link>
           </div>
 
@@ -128,7 +128,7 @@ export default function BridalShowerBingoPage() {
         </main>
 
         <footer className="bg-white border-t border-slate-200 py-8 text-center text-slate-500 text-sm">
-          <p>&copy; 2025 MyBingoCard. All rights reserved. · <Link href="/privacy" className="hover:text-indigo-600">Privacy</Link> · <Link href="/terms" className="hover:text-indigo-600">Terms</Link></p>
+          <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved. · <Link href="/privacy" className="hover:text-indigo-600">Privacy</Link> · <Link href="/terms" className="hover:text-indigo-600">Terms</Link></p>
         </footer>
       </div>
     </>

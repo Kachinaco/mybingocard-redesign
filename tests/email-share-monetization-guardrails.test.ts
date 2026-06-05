@@ -18,7 +18,7 @@ describe("email share monetization guardrails", () => {
 
   test("free email sharing opens paid checkout instead of sending directly", () => {
     expect(socialShareSource).toContain('purchaseType: "email_share_batch"');
-    expect(socialShareSource).toContain("Or subscribe for $4.99/mo and email batches are included");
+    expect(socialShareSource).toContain("Or start the 3-day trial and email batches are included");
     expect(socialShareSource).toContain("Pay ${emailPack?.label || \"\"} & Send");
     expect(embeddedCheckoutSource).toContain('purchaseType === "email_share_batch"');
     expect(embeddedCheckoutSource).toContain("share_email_checkout_refs");
@@ -26,7 +26,7 @@ describe("email share monetization guardrails", () => {
 
   test("server blocks free users from bypassing checkout and webhook sends paid links", () => {
     expect(emailShareRouteSource).toContain('checkoutRequired: true');
-    expect(emailShareRouteSource).toContain('user?.planType !== "PREMIUM"');
+    expect(emailShareRouteSource).toContain("hasPremiumAccess(user)");
     expect(emailShareRouteSource).toContain("createSharedLink");
     expect(webhookSource).toContain('session.metadata?.purchaseType === "email_share_batch"');
     expect(webhookSource).toContain("email_share_batch_sent");

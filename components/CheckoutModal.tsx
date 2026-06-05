@@ -43,7 +43,7 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
     stripe: null,
     loading: false,
     error: "",
-    label: "Premium — $4.99/mo",
+    label: "Premium — $7.99/mo",
   });
 
   // Refs for tracking checkout timing and context
@@ -116,8 +116,8 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
       ? process.env.NEXT_PUBLIC_STRIPE_PREMIUM_ONETIME_PRICE_ID
       : process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_PRICE_ID);
     const label = options?.label || (purchaseType === "lifetime"
-      ? "Premium Lifetime — $14.99 one-time"
-      : "Premium — $4.99/mo · Cancel anytime");
+      ? "Premium Lifetime for $29.99 once"
+      : "Premium trial, then $7.99/mo");
 
     if (!priceId && purchaseType === "subscription") {
       setState(s => ({ ...s, isOpen: true, error: "Checkout is temporarily unavailable." }));
@@ -201,7 +201,7 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
         ? batchPack.amount / 100
         : purchaseType === "email_share_batch"
           ? undefined
-        : 4.99;
+        : 7.99;
 
       // Store context for close/cancel tracking
       checkoutOpenedAtRef.current = Date.now();

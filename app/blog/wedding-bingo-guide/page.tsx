@@ -41,7 +41,7 @@ export default function WeddingBingoGuide() {
         categoryGradient="from-violet-500 to-fuchsia-500"
       >
         <p>
-          Wedding bingo has become one of the most popular reception games — and for good reason. It keeps guests entertained during downtime, works for every age group, and turns ordinary wedding moments into exciting, shared experiences. This comprehensive guide covers everything you need to plan the perfect wedding bingo game.
+          Wedding bingo has become one of the most popular reception games, and for good reason. It keeps guests entertained during downtime, works for every age group, and turns ordinary wedding moments into exciting, shared experiences. This guide covers the practical pieces for planning a wedding bingo game.
         </p>
 
         <h2>Why Wedding Bingo Works</h2>
@@ -97,7 +97,7 @@ export default function WeddingBingoGuide() {
         <h2>How to Set Up Wedding Bingo</h2>
         <h3>Cards</h3>
         <p>
-          Print one card per guest. Place them at each seat with a small pen or marker. Use our <Link href="/wedding-bingo">free wedding bingo card generator</Link> to create beautiful cards that match your wedding colors. Each card is uniquely shuffled automatically.
+          Print one card per guest. Place them at each seat with a small pen or marker. Use our <Link href="/wedding-bingo">wedding bingo draft editor</Link> to create beautiful cards that match your wedding colors. Each card is uniquely shuffled automatically.
         </p>
 
         <h3>Timing</h3>
@@ -130,7 +130,7 @@ export default function WeddingBingoGuide() {
 
         <h2>Create Your Wedding Bingo Cards</h2>
         <p>
-          Ready to add wedding bingo to your reception? Our <Link href="/wedding-bingo">free wedding bingo card generator</Link> creates elegant, print-ready cards that match your wedding style. Each card is unique, and you can generate as many as you need in seconds.
+          Ready to add wedding bingo to your reception? Our <Link href="/wedding-bingo">wedding bingo draft editor</Link> creates elegant cards you can export after checkout that match your wedding style. Each card is unique, and larger batches are available after checkout.
         </p>
       </BlogLayout>
     </>

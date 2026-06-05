@@ -35,9 +35,9 @@ const satisfy = Satisfy({
 export const metadata: Metadata = {
   metadataBase: new URL("https://mybingocard.com"),
   applicationName: "MyBingoCard",
-  title: "Free Bingo Card Generator | Printable & Online Bingo Cards | MyBingoCard",
+  title: "Free Bingo Draft Editor | Printable & Online Bingo Cards | MyBingoCard",
   description:
-    "Create printable and online bingo cards for classrooms, baby showers, weddings, team building, holidays, and parties. Free bingo card generator with templates, AI help, PDF export, and live play.",
+    "Draft printable and online bingo cards for classrooms, baby showers, weddings, team building, holidays, and parties. Free bingo draft editor with templates, AI help, PDF export, and live play.",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -59,8 +59,8 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Free Bingo Card Generator | MyBingoCard",
-    description: "Create printable and online bingo cards for classrooms, parties, baby showers, weddings, and team building.",
+    title: "Free Bingo Draft Editor | MyBingoCard",
+    description: "Draft printable and online bingo cards for classrooms, parties, baby showers, weddings, and team building.",
     url: "https://mybingocard.com",
     siteName: "MyBingoCard",
     type: "website",
@@ -70,14 +70,14 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "MyBingoCard free bingo card generator preview",
+        alt: "MyBingoCard free bingo draft editor preview",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Free Bingo Card Generator | MyBingoCard",
-    description: "Create printable and online bingo cards for classrooms, parties, baby showers, weddings, and team building.",
+    title: "Free Bingo Draft Editor | MyBingoCard",
+    description: "Draft printable and online bingo cards for classrooms, parties, baby showers, weddings, and team building.",
     images: ["/opengraph-image"],
   },
   appleWebApp: {
@@ -134,7 +134,7 @@ export default function RootLayout({
                   "@id": "https://mybingocard.com/#organization",
                   "name": "MyBingoCard",
                   "url": "https://mybingocard.com",
-                  "description": "Free bingo card generator for printable and online bingo games.",
+                  "description": "Free bingo draft editor for printable and online bingo games.",
                   "foundingDate": "2026",
                   "sameAs": [
                     FACEBOOK_PAGE_URL,
@@ -155,7 +155,7 @@ export default function RootLayout({
                   "operatingSystem": "Web",
                   "browserRequirements": "Requires JavaScript and a modern web browser.",
                   "isAccessibleForFree": true,
-                  "description": "Create printable and online bingo cards for classrooms, parties, baby showers, weddings, team building, holidays, and more.",
+                  "description": "Draft printable and online bingo cards for classrooms, parties, baby showers, weddings, team building, holidays, and more.",
                   "featureList": [
                     "Printable bingo card PDFs",
                     "Online bingo card sharing",
@@ -173,21 +173,21 @@ export default function RootLayout({
                       "price": "0",
                       "priceCurrency": "USD",
                       "name": "Free",
-                      "description": "Free bingo card generator with starter templates, browser printing, and paid batch PDF packs",
+                      "description": "Free bingo draft editor with starter templates, browser printing, and paid batch PDF packs",
                     },
                     {
                       "@type": "Offer",
-                      "price": "4.99",
+                      "price": "7.99",
                       "priceCurrency": "USD",
                       "name": "Premium Monthly",
-                      "description": "AI generation, image bingo cards, HD exports, and premium templates",
+                      "description": "AI generation, image bingo cards, PDF and PNG exports, and premium templates",
                     },
                     {
                       "@type": "Offer",
-                      "price": "14.99",
+                      "price": "29.99",
                       "priceCurrency": "USD",
                       "name": "Premium Lifetime",
-                      "description": "One-time payment for lifetime AI generation, HD exports, and premium templates",
+                      "description": "One-time payment for lifetime AI generation, PDF and PNG exports, and premium templates",
                     },
                   ],
                 },
@@ -223,7 +223,7 @@ export default function RootLayout({
                   "@id": "https://mybingocard.com/#website",
                   "name": "MyBingoCard",
                   "url": "https://mybingocard.com",
-                  "description": "Free bingo card generator for printable and online bingo games.",
+                  "description": "Free bingo draft editor for printable and online bingo games.",
                   "publisher": {
                     "@id": "https://mybingocard.com/#organization"
                   },

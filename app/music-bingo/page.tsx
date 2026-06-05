@@ -4,9 +4,9 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Music Bingo Cards — Free Song Bingo Generator | MyBingoCard",
+  title: "Music Bingo Cards — Custom Song Bingo Generator | MyBingoCard",
   description:
-    "Create music bingo cards for your next party or event. Free song bingo generator with custom playlists, name that tune bingo, and printable music bingo cards. Instant PDF download.",
+    "Create music bingo cards for your next party or event. Custom song bingo generator with custom playlists, name that tune bingo, and printable music bingo cards. PDF export after checkout.",
   alternates: {
     canonical: "https://mybingocard.com/music-bingo",
   },
@@ -26,7 +26,7 @@ const schema = {
   name: "Music Bingo Card Generator",
   url: "https://mybingocard.com/music-bingo",
   description:
-    "Free music bingo card generator. Create printable song bingo cards for parties, events, and name that tune games — custom playlists, genre themes, and instant PDF download.",
+    "Custom music bingo card generator. Create printable song bingo cards for parties, events, and name that tune games — custom playlists, genre themes, and PDF export after checkout.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -106,7 +106,7 @@ export default function MusicBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Create Free
+                Start a Draft
               </Link>
             </nav>
           </div>
@@ -131,7 +131,7 @@ export default function MusicBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Turn any playlist into a thrilling music bingo night with our free song bingo card generator! Create custom music bingo cards featuring hit songs, classic rock anthems, 90s jams, country favorites, or any genre you love. Each card is uniquely shuffled so every player gets a different combination — perfect for house parties, bar trivia nights, team socials, and fundraiser events. Play name that tune style where the DJ spins tracks and players mark their cards, or use our built-in playlist mode for a fully automated music bingo experience. Print beautiful PDF cards for in-person events or share digital links for remote play. With genre-themed templates, custom word lists, and support for any music library, our music bingo generator makes it easy to host an unforgettable game night.
+                    Turn any playlist into a thrilling music bingo night with our song bingo draft editor! Create custom music bingo cards featuring hit songs, classic rock anthems, 90s jams, country favorites, or any genre you love. Each card is uniquely shuffled so every player gets a different combination — perfect for house parties, bar trivia nights, team socials, and fundraiser events. Play name that tune style where the DJ spins tracks and players mark their cards, or use our built-in playlist mode for a fully automated music bingo experience. Export printable PDF cards or share digital links after checkout for in-person events and remote play. With genre-themed templates, custom word lists, and support for any music library, our music bingo generator makes it easy to host an unforgettable game night.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function MusicBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to start · Any genre · Print or play digital</p>
+                  <p className="text-sm text-slate-400">Free to draft · Any genre · PDF export after checkout</p>
                 </div>
 
                 <div className="relative">
@@ -171,7 +171,7 @@ export default function MusicBingoPage() {
                   { icon: "🎵", title: "Song Recognition", desc: "Play name that tune bingo — the DJ spins a track, players mark their cards. First to five in a row wins!" },
                   { icon: "🎧", title: "Custom Playlists", desc: "Build bingo cards from any playlist — Spotify favorites, decade hits, genre deep cuts, or your own song list." },
                   { icon: "🎉", title: "Party Mode", desc: "Host an epic music bingo night at bars, house parties, or corporate events with automated game flow." },
-                  { icon: "🖨️", title: "Print or Play Digital", desc: "Download print-ready PDF cards for in-person events or share digital links for remote music bingo." },
+                  { icon: "🖨️", title: "PDF Export or Digital Play", desc: "Export PDF cards or share digital links after checkout for in-person events and remote music bingo." },
                   { icon: "🎸", title: "Genre Themes", desc: "Classic rock, 80s pop, country, hip-hop, jazz — themed templates for every musical taste." },
                   { icon: "👨‍👩‍👧", title: "Fun for All Ages", desc: "From kids' sing-alongs to adult trivia nights — music bingo brings every generation together." },
                 ].map((f) => (
@@ -195,11 +195,11 @@ export default function MusicBingoPage() {
                 Hit play on the best party game ever
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Create music bingo cards in under 2 minutes. Free to start, then save or export when you are ready.
+                Draft music bingo cards in under 2 minutes, then start checkout to save or export.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-rose-50 transition-all duration-300 shadow-xl">
-                  Create Music Bingo Cards Free
+                  Start a Free Music Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
                   See Pricing Plans
@@ -224,7 +224,7 @@ export default function MusicBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  The free bingo card generator for music nights, parties, classrooms, and every occasion.
+                  The free bingo draft editor for music nights, parties, classrooms, and every occasion.
                 </p>
               </div>
               <div>
@@ -246,7 +246,7 @@ export default function MusicBingoPage() {
               </div>
             </div>
             <div className="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
-              <p>&copy; 2025 MyBingoCard. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
             </div>
           </div>
         </footer>

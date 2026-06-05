@@ -7,9 +7,12 @@ describe("create page anonymous save UX", () => {
 
   test("does not show a separate oversized signup nudge in the sticky bottom bar", () => {
     expect(source).not.toContain("Free to create — no credit card needed");
+    expect(source).not.toContain("Free — takes 10 seconds. Your card will be waiting.");
+    expect(source).not.toContain("Sign up to save, share, and download your card.");
     expect(source).not.toContain('t("btn.signup_to_save")');
     expect(source).not.toContain('t("btn.signup_to_save_full")');
     expect(source).toContain('session?.user ? "Save Card" : "Join to Save Your Card"');
+    expect(source).toContain("Sign in to save this card.");
   });
 
   test("redirects anonymous saves before posting oversized local-image drafts", () => {
@@ -20,7 +23,21 @@ describe("create page anonymous save UX", () => {
     expect(anonymousGuardIndex).toBeGreaterThan(-1);
     expect(createPostIndex).toBeGreaterThan(anonymousGuardIndex);
     expect(saveCardSource).toContain('server_error: "client_redirect_to_signup"');
+    expect(saveCardSource).toContain('trackClientActivity("save_blocked_auth_required"');
+    expect(saveCardSource).toContain('next_step: "auth_then_free_save"');
     expect(saveCardSource).toContain("redirectToSignupForCreation();");
+    expect(saveCardSource).not.toContain("redirectToSignupForCreation({ autoCheckoutAfterAuth: true });");
+  });
+
+  test("keeps explicit checkout intent separate from ordinary save auth", () => {
+    expect(source).toContain('const pendingSaveCheckoutIntentKey = "mybingo_pending_save_checkout_intent";');
+    expect(source).toContain('const saveCheckoutCallbackUrl = "/create?checkout=save";');
+    expect(source).toContain('setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1")');
+    expect(source).toContain('searchParams.get("checkout") === "save"');
+    expect(source).toContain('trackClientActivity("checkout_auto_started_after_auth"');
+    expect(source).toContain('next_step: "auth_then_free_save"');
+    expect(source).toContain('successPath: "/dashboard"');
+    expect(source).toContain('removeBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey)');
   });
 
   test("uploads pending data-url draft images after sign-in before creating the card", () => {

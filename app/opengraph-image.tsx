@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "MyBingoCard free bingo card generator";
+export const alt = "MyBingoCard free bingo draft editor";
 export const size = {
   width: 1200,
   height: 630,
@@ -55,10 +55,10 @@ export default function Image() {
             B
           </div>
           <div style={{ fontSize: 70, lineHeight: 1.04, fontWeight: 900, letterSpacing: 0 }}>
-            Free Bingo Card Generator
+            Free Bingo Draft Editor
           </div>
           <div style={{ marginTop: 26, fontSize: 30, lineHeight: 1.35, color: "#475569" }}>
-            Create printable PDFs, share online cards, and run custom bingo games for any event.
+            Draft custom bingo cards, then export, share, or run games after checkout.
           </div>
           <div
             style={{

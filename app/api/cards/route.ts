@@ -167,7 +167,8 @@ export async function POST(request: Request) {
 
     // Sharing is a premium feature — force isPublic to false for free users
     const userPlan = user?.planType || "FREE";
-    if (userPlan === "FREE" && data.isPublic) {
+    const userHasPremiumAccess = hasPremiumAccess(user);
+    if (!userHasPremiumAccess && data.isPublic) {
       data.isPublic = false;
     }
 
@@ -307,7 +308,7 @@ export async function PUT(request: Request) {
     }
 
     const user = await getUserById(session.user.id);
-    if (!hasPremiumAccess(user)) {
+    if (!hasCardSaveAccess(user)) {
       await trackActivity({
         event: "card_save_blocked",
         source: "server",
@@ -332,6 +333,13 @@ export async function PUT(request: Request) {
         },
         { status: 403 }
       );
+    }
+
+    if (!hasPremiumAccess(user)) {
+      data.isPublic = false;
+      delete data.shareLink;
+      delete data.sharePassword;
+      delete data.shareExpiresAt;
     }
 
     const nextVariant = normalizeBingoVariant(data.bingoVariant ?? existingCard.bingoVariant);

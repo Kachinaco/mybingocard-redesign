@@ -63,7 +63,7 @@ export default function AboutPage() {
 
               <div>
                 <h2 className="text-xl font-bold text-slate-900 mb-3">Get Started</h2>
-                <p className="text-slate-600 leading-relaxed">Create your first card for free at <Link href="/create" className="text-indigo-600 hover:text-indigo-700 font-medium underline">mybingocard.com/create</Link> or browse our templates at <Link href="/templates" className="text-indigo-600 hover:text-indigo-700 font-medium underline">mybingocard.com/templates</Link>.</p>
+                <p className="text-slate-600 leading-relaxed">Start your first draft for free at <Link href="/create" className="text-indigo-600 hover:text-indigo-700 font-medium underline">mybingocard.com/create</Link> or browse our templates at <Link href="/templates" className="text-indigo-600 hover:text-indigo-700 font-medium underline">mybingocard.com/templates</Link>.</p>
               </div>
 
           </div>

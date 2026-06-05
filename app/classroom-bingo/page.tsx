@@ -4,7 +4,7 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Bingo Cards for Teachers — Free Classroom Bingo Generator | MyBingoCard",
+  title: "Bingo Cards for Teachers — Custom Classroom Bingo Generator | MyBingoCard",
   description:
     "Create printable classroom bingo cards for teachers in minutes. Build vocabulary bingo, math fact bingo, spelling bingo, and review games for any subject.",
   alternates: {
@@ -26,7 +26,7 @@ const schema = {
   name: "Classroom Bingo Cards for Teachers",
   url: "https://mybingocard.com/classroom-bingo",
   description:
-    "Free classroom bingo card generator for teachers. Create printable bingo cards for vocabulary, math facts, spelling, and more — perfect for K-12 classrooms.",
+    "Custom classroom bingo card generator for teachers. Create printable bingo cards for vocabulary, math facts, spelling, and more — perfect for K-12 classrooms.",
   applicationCategory: "EducationApplication",
   operatingSystem: "All",
   offers: {
@@ -106,7 +106,7 @@ export default function ClassroomBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Create Free
+                Start a Draft
               </Link>
             </nav>
           </div>
@@ -131,7 +131,7 @@ export default function ClassroomBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Transform any lesson into an engaging classroom bingo game! Our free bingo card generator for teachers makes it simple to create educational bingo cards for vocabulary practice, math facts, spelling words, science terms, or any subject you teach. Each printable card is automatically randomized so every student gets a unique layout, eliminating copying. Perfect for end-of-unit reviews, brain breaks, holiday learning, or reward activities. Export print-ready PDFs for the whole class or assign digital cards for remote learning. With grade-level templates ranging from kindergarten to high school, you can customize card size, add images, and brand cards with your classroom theme. The best free bingo maker for teachers — try it today and watch student engagement soar!
+                    Transform any lesson into an engaging classroom bingo game! Our free bingo draft editor for teachers makes it simple to create educational bingo cards for vocabulary practice, math facts, spelling words, science terms, or any subject you teach. Each printable card is automatically randomized so every student gets a unique layout, eliminating copying. Perfect for end-of-unit reviews, brain breaks, holiday learning, or reward activities. Export PDF files or assign digital cards after checkout for the whole class or remote learning. With grade-level templates ranging from kindergarten to high school, you can customize card size, add images, and brand cards with your classroom theme. The bingo draft editor teachers trust — try it today and use it for a more interactive review activity.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function ClassroomBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to start · PDF export and online play · Sign up in seconds</p>
+                  <p className="text-sm text-slate-400">Free to draft · 3-day trial to save · PDF export after checkout</p>
                 </div>
 
                 <div className="relative">
@@ -195,11 +195,11 @@ export default function ClassroomBingoPage() {
                 Make learning a game your students love
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Create classroom bingo cards in under 2 minutes. Free to start — sign up in seconds.
+                Draft classroom bingo cards in under 2 minutes, then start a trial when you are ready to save.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-blue-50 transition-all duration-300 shadow-xl">
-                  Create Classroom Bingo Free
+                  Start a Free Classroom Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
                   See Pricing Plans
@@ -224,7 +224,7 @@ export default function ClassroomBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  The bingo card generator trusted by thousands of teachers and educators worldwide.
+                  A bingo draft editor for teachers, tutors, homeschool families, and classroom activity planners.
                 </p>
               </div>
               <div>
@@ -246,7 +246,7 @@ export default function ClassroomBingoPage() {
               </div>
             </div>
             <div className="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
-              <p>&copy; 2025 MyBingoCard. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
             </div>
           </div>
         </footer>

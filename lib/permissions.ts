@@ -66,7 +66,7 @@ export function canExportHD(planType: PlanType): PermissionCheck {
   if (!plan.limits.canExportHD) {
     return {
       allowed: false,
-      reason: "HD exports require Premium plan.",
+      reason: "PDF and PNG exports require Premium plan.",
       upgradeRequired: true,
     };
   }

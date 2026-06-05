@@ -6,12 +6,12 @@ import BlogPostTracker from "../BlogPostTracker";
 export const metadata: Metadata = {
   title: "How to Make Custom Bingo Cards in 5 Minutes — Step-by-Step Guide",
   description:
-    "Learn how to make custom bingo cards online for free. Step-by-step guide to creating personalized, printable bingo cards for any event using MyBingoCard.",
-  keywords: ["how to make bingo cards", "custom bingo cards", "bingo card maker", "create bingo cards", "printable bingo cards", "free bingo card generator"],
+    "Learn how to make custom bingo cards online from a free draft. Step-by-step guide to creating personalized, printable bingo cards for any event using MyBingoCard.",
+  keywords: ["how to make bingo cards", "custom bingo cards", "bingo card maker", "create bingo cards", "printable bingo cards", "free bingo draft editor"],
   alternates: { canonical: "https://mybingocard.com/blog/how-to-make-custom-bingo-cards" },
   openGraph: {
     title: "How to Make Custom Bingo Cards in 5 Minutes",
-    description: "Step-by-step guide to creating free custom bingo cards for any event.",
+    description: "Step-by-step guide to creating custom bingo card drafts for any event.",
     url: "https://mybingocard.com/blog/how-to-make-custom-bingo-cards",
     type: "article",
     publishedTime: "2026-03-01",
@@ -57,7 +57,7 @@ export default function HowToMakeCustomBingoCards() {
 
         <h2>Step 1: Choose Your Theme</h2>
         <p>
-          Start by deciding what your bingo card is for. The theme determines everything from your word list to the card&apos;s color scheme. Here are the most popular themes:
+          Start by deciding what your bingo card is for. The theme determines everything from your word list to the card&apos;s color scheme. Here are common themes:
         </p>
         <ul>
           <li><strong>Wedding Bingo</strong> — Reception moments like first dance, cake cutting, speeches</li>
@@ -77,7 +77,7 @@ export default function HowToMakeCustomBingoCards() {
 
         <h2>Step 3: Design Your Card</h2>
         <p>
-          With <Link href="/create">MyBingoCard&apos;s free card creator</Link>, you can customize every aspect of your card:
+          With <Link href="/create">MyBingoCard&apos;s free draft editor</Link>, you can customize every aspect of your card:
         </p>
         <ul>
           <li><strong>Colors</strong> — Match your event&apos;s color palette</li>
@@ -91,16 +91,16 @@ export default function HowToMakeCustomBingoCards() {
           This is the magic of digital bingo card makers. When you hit &quot;generate,&quot; each card is automatically shuffled so every guest receives a unique layout. This means no two players have the same card, which prevents simultaneous winners and keeps the game competitive.
         </p>
         <p>
-          With MyBingoCard, you can start free with a few cards, then upgrade or buy a batch pack when you need more unique cards from a single word list.
+          With MyBingoCard, you can start with a free draft, then upgrade or buy a batch pack when you need more unique cards from a single word list.
         </p>
 
-        <h2>Step 5: Print or Share Digitally</h2>
+        <h2>Step 5: Export or Share After Checkout</h2>
         <p>
-          You have two options for distributing your bingo cards:
+          After checkout, you have two options for distributing your bingo cards:
         </p>
         <ul>
-          <li><strong>Print-ready PDF</strong> — Download a high-resolution PDF sized perfectly for standard paper. Print at home or at a print shop.</li>
-          <li><strong>Digital share link</strong> — Send a unique link to each player. They can play on their phone, tablet, or computer — no printing needed.</li>
+          <li><strong>PDF export</strong> — Export a clean PDF after checkout, sized for standard paper and print shops.</li>
+          <li><strong>Digital share link</strong> — Send a unique link to each player after checkout. They can play on their phone, tablet, or computer — no printing needed.</li>
         </ul>
 
         <h2>Tips for a Great Bingo Game</h2>
@@ -113,7 +113,7 @@ export default function HowToMakeCustomBingoCards() {
 
         <h2>Start Creating Your Bingo Cards Now</h2>
         <p>
-          Ready to make your own custom bingo cards? Head to our <Link href="/create">bingo card creator</Link>, build your card in under 5 minutes, and start free with text or image cards. Upgrade only if you want Premium features like AI generation, HD export, and larger batches.
+          Ready to make your own custom bingo cards? Head to our <Link href="/create">bingo card creator</Link>, build your card in under 5 minutes, and start with a free text bingo draft. Upgrade only if you want Premium features like AI generation, PDF and PNG export, and larger batches.
         </p>
       </BlogLayout>
     </>

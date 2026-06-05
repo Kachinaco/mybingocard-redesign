@@ -235,7 +235,7 @@ export async function getAdminStats(): Promise<AdminStats> {
       .toArray(),
   ]);
 
-  const mrr = paidUsers * 4.99;
+  const mrr = paidUsers * 7.99;
   const totalNetRevenue = (netRevenueData[0]?.totalCents ?? 0) / 100;
 
   const subscriptionStatusBreakdown: Record<string, number> = {};

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { stripe, PLANS, getPlanByPriceId } from "@/lib/stripe/config";
+import { stripe, PLANS, getPlanByPriceId, PREMIUM_TRIAL_DAYS } from "@/lib/stripe/config";
 import { getUserByEmail, updateUserSubscription } from "@/lib/db/users";
 import { getBatchPack, isBatchCount } from "@/lib/batchPacks";
 import { upsertBatchPurchaseFromCheckout } from "@/lib/db/batchPurchases";
@@ -225,7 +225,7 @@ export async function POST(request: Request) {
           return false;
         }
 
-        return subscription.items.data.some((item) => item.price.id === priceId);
+        return subscription.items.data.some((item) => getPlanByPriceId(item.price.id) === planType);
       });
 
       if (match) {
@@ -278,9 +278,11 @@ export async function POST(request: Request) {
     };
 
     const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
+      trial_period_days: PREMIUM_TRIAL_DAYS,
       metadata: {
         userId: session.user.email,
         planType,
+        purchaseType: "subscription_trial",
       },
     };
 

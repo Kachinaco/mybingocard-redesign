@@ -6,7 +6,7 @@ import SeoSupportBlock from "@/components/SeoSupportBlock";
 export const metadata: Metadata = {
   title: "Family Reunion Bingo Cards Generator — MyBingoCard",
   description:
-    "Create free family reunion bingo cards for your next family gathering. Printable family reunion icebreaker bingo card generator with custom squares for reunions, cookouts, and family events.",
+    "Create custom family reunion bingo cards for your next family gathering. Printable family reunion icebreaker bingo card generator with custom squares for reunions, cookouts, and family events.",
   alternates: {
     canonical: "https://mybingocard.com/family-reunion-bingo",
   },
@@ -26,7 +26,7 @@ const schema = {
   name: "Family Reunion Bingo Cards Generator",
   url: "https://mybingocard.com/family-reunion-bingo",
   description:
-    "Free family reunion bingo cards generator. Create, customize, and print bingo cards for family gatherings, reunions, and cookouts in minutes.",
+    "Custom family reunion bingo draft generator. Create, customize, and print bingo cards for family gatherings, reunions, and cookouts in minutes.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -97,7 +97,7 @@ export default function FamilyReunionBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Create Free
+                Start a Draft
               </Link>
             </nav>
           </div>
@@ -122,7 +122,7 @@ export default function FamilyReunionBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Turn your family reunion into an unforgettable event with custom family gathering bingo cards that get everyone laughing and mingling. Our free family reunion bingo card generator creates unique icebreaker cards filled with those classic reunion moments everyone recognizes. Each card is randomly shuffled so cousins, grandparents, and long-lost relatives all get a different layout to play. Print beautiful PDFs for the picnic table or share digital cards so far-flung family members can join in virtually. Whether it&apos;s an annual cookout, a milestone anniversary, or a first-time reunion, these family bingo cards break the ice and bring generations together.
+                    Turn your family reunion into an unforgettable event with custom family gathering bingo cards that get everyone laughing and mingling. Our family reunion bingo draft editor creates unique icebreaker cards filled with those classic reunion moments everyone recognizes. Each card is randomly shuffled so cousins, grandparents, and long-lost relatives all get a different layout to play. Export printable PDFs or share digital cards after checkout for the picnic table or far-flung family members joining virtually. Whether it&apos;s an annual cookout, a milestone anniversary, or a first-time reunion, these family bingo cards break the ice and bring generations together.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -138,7 +138,7 @@ export default function FamilyReunionBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to start · Sign up in seconds · Instant PDF download</p>
+                  <p className="text-sm text-slate-400">Free to draft · 3-day trial to save · PDF export after checkout</p>
                 </div>
 
                 <div className="relative">
@@ -170,8 +170,8 @@ export default function FamilyReunionBingoPage() {
                   },
                   {
                     icon: "🖨️",
-                    title: "Print-Ready PDFs",
-                    desc: "High-resolution PDFs perfect for picnic tables, reunion packets, or take-home keepsakes for the whole family.",
+                    title: "PDF Exports",
+                    desc: "Clean PDFs for picnic tables, reunion packets, or take-home keepsakes for the whole family.",
                   },
                   {
                     icon: "🔀",
@@ -181,7 +181,7 @@ export default function FamilyReunionBingoPage() {
                   {
                     icon: "📱",
                     title: "Virtual Reunion Ready",
-                    desc: "Share a link so family members who couldn&apos;t make the trip can still play along from anywhere in the world.",
+                    desc: "Share a link after checkout so family members who couldn&apos;t make the trip can still play along from anywhere in the world.",
                   },
                   {
                     icon: "✏️",
@@ -191,7 +191,7 @@ export default function FamilyReunionBingoPage() {
                   {
                     icon: "💸",
                     title: "Free for Everyone",
-                    desc: "Create family reunion bingo cards completely free. No budget needed — just fun for all ages and generations.",
+                    desc: "Create family reunion bingo cards as a free draft. Start without a budget, then choose Premium when you need saved cards, exports, or sharing.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -214,7 +214,7 @@ export default function FamilyReunionBingoPage() {
                 Ready to bring the family together?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Create your family reunion bingo cards in under 2 minutes. Free to start — the perfect icebreaker for any gathering.
+                Draft your family reunion bingo cards in under 2 minutes, then start checkout to save or export — the perfect icebreaker for any gathering.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-emerald-50 transition-all duration-300 shadow-xl">
@@ -265,7 +265,7 @@ export default function FamilyReunionBingoPage() {
               </div>
             </div>
             <div className="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
-              <p>&copy; 2025 MyBingoCard. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
             </div>
           </div>
         </footer>

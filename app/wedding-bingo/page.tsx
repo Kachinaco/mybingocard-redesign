@@ -4,9 +4,9 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Wedding Bingo Cards Printable — Free Wedding Bingo Generator | MyBingoCard",
+  title: "Wedding Bingo Cards Printable — Custom Wedding Bingo Generator | MyBingoCard",
   description:
-    "Create free printable wedding bingo cards for guests. The best wedding bingo cards printable generator — custom squares, instant PDF, and digital play for any wedding.",
+    "Create custom printable wedding bingo cards for guests. The best wedding bingo cards printable generator — custom squares, PDF export, and digital play for any wedding.",
   alternates: {
     canonical: "https://mybingocard.com/wedding-bingo",
   },
@@ -26,7 +26,7 @@ const schema = {
   name: "Wedding Bingo Cards Printable Generator",
   url: "https://mybingocard.com/wedding-bingo",
   description:
-    "Create free printable wedding bingo cards for guests. Custom wedding bingo with instant PDF download and digital play options.",
+    "Create custom printable wedding bingo cards for guests. Custom wedding bingo with PDF export after checkout and digital play options.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -106,7 +106,7 @@ export default function WeddingBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Create Free
+                Start a Draft
               </Link>
             </nav>
           </div>
@@ -131,7 +131,7 @@ export default function WeddingBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Add a fun, interactive twist to your wedding reception with custom printable wedding bingo cards! Our free wedding bingo card generator lets couples and wedding planners create beautiful, personalized bingo cards that guests play throughout the ceremony and reception. Fill squares with classic wedding moments — first kiss, bouquet toss, happy tears, dad jokes during the speech — or add your own personalized touches. Every card is uniquely shuffled so dozens of guests can play simultaneously without identical cards. Download print-ready PDFs sized perfectly for place settings, or share digital links so guests can play on their phones without printing. With elegant design themes, custom color palettes to match your wedding colors, and a free space you can personalize, these are the most beautiful wedding bingo cards printable online. Start creating your wedding bingo cards today!
+                    Add a fun, interactive twist to your wedding reception with custom printable wedding bingo cards! Our wedding bingo draft editor lets couples and wedding planners create beautiful, personalized bingo cards that guests play throughout the ceremony and reception. Fill squares with classic wedding moments — first kiss, bouquet toss, happy tears, dad jokes during the speech — or add your own personalized touches. Every card is uniquely shuffled so dozens of guests can play simultaneously without identical cards. Export PDF files or share digital links after checkout so guests can play on paper or phones. With elegant design themes, custom color palettes to match your wedding colors, and a free space you can personalize, you can create polished wedding bingo cards that fit the style of your event. Start with a free draft, then choose Premium when you need to save, export, or share.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function WeddingBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to start · Elegant themes · Print-ready PDF export</p>
+                  <p className="text-sm text-slate-400">Free to draft · Elegant themes · PDF export after checkout</p>
                 </div>
 
                 <div className="relative">
@@ -170,9 +170,9 @@ export default function WeddingBingoPage() {
                 {[
                   { icon: "💌", title: "Elegant Designs", desc: "Beautiful wedding-themed templates with floral motifs, gold accents, and classic typography." },
                   { icon: "🎨", title: "Match Your Colors", desc: "Customize card colors to perfectly match your wedding palette — blush, navy, sage, or any shade." },
-                  { icon: "🖨️", title: "Print-Ready PDFs", desc: "Perfect sizing for place cards, table inserts, or full sheets. High resolution for crisp printing." },
-                  { icon: "📱", title: "Digital Cards", desc: "Skip the printing — share a link and guests play on their phones. Great for outdoor venues." },
-                  { icon: "👨‍👩‍👧", title: "All-Age Fun", desc: "Grandparents to kids — wedding bingo is the one game everyone at the table can enjoy." },
+                  { icon: "🖨️", title: "PDF Exports", desc: "Export after checkout with sizing for place cards, table inserts, or full sheets." },
+                  { icon: "📱", title: "Digital Cards", desc: "Skip the printing after checkout — share a link and guests play on their phones. Great for outdoor venues." },
+                  { icon: "👨‍👩‍👧", title: "All-Age Fun", desc: "Wedding bingo is easy to explain for mixed-age tables, from kids to grandparents." },
                   { icon: "🎁", title: "Winner Prizes", desc: "Add a prize square — first to yell BINGO wins a centerpiece, wine bottle, or gift card!" },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -195,11 +195,11 @@ export default function WeddingBingoPage() {
                 Give your guests something to cheer about
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Create beautiful printable wedding bingo cards in under 2 minutes. Free to start, then save or export when you are ready.
+                Draft beautiful printable wedding bingo cards in under 2 minutes, then start checkout to save or export.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-violet-50 transition-all duration-300 shadow-xl">
-                  Create Wedding Bingo Cards Free
+                  Start a Free Wedding Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
                   See Pricing Plans
@@ -246,7 +246,7 @@ export default function WeddingBingoPage() {
               </div>
             </div>
             <div className="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
-              <p>&copy; 2025 MyBingoCard. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
             </div>
           </div>
         </footer>

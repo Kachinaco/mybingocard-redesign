@@ -7,11 +7,11 @@ import { seoLandingPages, type SeoLandingPageData } from "@/lib/seo-landing-page
 import { FACEBOOK_PAGE_URL, REDDIT_COMMUNITY_URL } from "@/lib/social-links";
 
 export const metadata: Metadata = {
-  title: "Free Bingo Card Generator & Bingo Card Maker | MyBingoCard",
+  title: "Free Bingo Draft Editor & Bingo Card Maker | MyBingoCard",
   description:
-    "Create custom bingo cards online with a free bingo card generator and bingo card maker. Make printable bingo boards, PDF cards, templates, AI ideas, and live online games.",
+    "Create custom bingo cards online with a free bingo draft editor and bingo card maker. Make printable bingo boards, PDF cards, templates, AI ideas, and Premium live online games.",
   keywords: [
-    "free bingo card generator",
+    "free bingo draft editor",
     "bingo card generator",
     "printable bingo cards",
     "bingo card maker",
@@ -32,17 +32,17 @@ const faqItems = [
   {
     question: "How do I create a custom bingo card online?",
     answer:
-      "Start with a blank bingo card or a template, add your own words or images, choose a grid size, then print the PDF, share a link, or host the game online. MyBingoCard works as a bingo card generator, bingo card maker, and bingo board generator in one place.",
+      "Start with a blank bingo card or a template, add your own words or images, choose a grid size, then export a PDF, share a link, or host the game online after checkout. MyBingoCard works as a bingo card generator, bingo card maker, and bingo board generator in one place.",
   },
   {
     question: "Is this also a bingo board generator?",
     answer:
-      "Yes. You can use MyBingoCard as a bingo board generator to make 3x3, 4x4, or 5x5 bingo boards, then print them as PDFs or share online cards with players.",
+      "Yes. You can use MyBingoCard as a bingo board generator to make 3x3, 4x4, or 5x5 bingo boards, then export PDFs or share online cards with players after checkout.",
   },
   {
     question: "What is the difference between a bingo card generator and a bingo card maker?",
     answer:
-      "A bingo card generator usually creates shuffled card layouts quickly, while a bingo card maker gives you more control over words, images, colors, grid size, printing, and online play. MyBingoCard does both.",
+      "A bingo card generator usually creates shuffled card layouts quickly, while a bingo card maker gives you more control over words, images, colors, grid size, printing, and online play after checkout. MyBingoCard does both.",
   },
   {
     question: "Can I print bingo cards from MyBingoCard?",
@@ -57,7 +57,7 @@ const faqItems = [
   {
     question: "Can people play MyBingoCard games online?",
     answer:
-      "Yes. You can share bingo cards with links and host live multiplayer bingo games so players can join from phones, tablets, or laptops.",
+      "Yes. You can share bingo cards with links and host live multiplayer bingo games after checkout, so players can join from phones, tablets, or laptops.",
   },
 ];
 
@@ -187,21 +187,21 @@ export default function Home() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
                   </span>
-                  <span className="text-xs font-semibold text-indigo-900 uppercase tracking-wide">Free Bingo Card Generator</span>
+                  <span className="text-xs font-semibold text-indigo-900 uppercase tracking-wide">Free Bingo Draft Editor</span>
                 </div>
                 
                 <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-6 leading-[1.1]">
-                  Free <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Bingo Card Generator</span> for Printable and Online Cards
+                  Free <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Bingo Draft Editor</span> for Printable and Online Cards
                 </h1>
                 
                 <p className="text-xl text-slate-600 mb-10 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                  Make unique bingo cards and bingo boards for classrooms, baby showers, weddings, parties, team events, and social challenges. Add words or images, shuffle cards, export PDFs, or send a play link.
+                  Make unique bingo cards and bingo boards for classrooms, baby showers, weddings, parties, team events, and social challenges. Add words or images, shuffle cards, export PDFs after checkout, or send a play link.
                 </p>
 
                 {/* Primary CTA - prominent above the fold */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <Link href="/create" className="group bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3">
-                    Create a Free Bingo Card
+                    Start a Free Draft
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                   </Link>
                   <Link href="/templates" className="bg-white text-indigo-600 border-2 border-indigo-200 px-8 py-5 rounded-2xl font-bold text-lg hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-300 flex items-center justify-center gap-2">
@@ -211,7 +211,7 @@ export default function Home() {
 
 
                 <p className="mt-4 text-sm text-slate-500 text-center lg:text-left">
-                  Free to start. No credit card required.
+                  Free to draft. Start a trial or choose lifetime when you are ready to save.
                 </p>
 
                 <div className="mt-8 flex items-center justify-center lg:justify-start gap-4 text-sm text-slate-500">
@@ -243,10 +243,10 @@ export default function Home() {
         <section className="py-12 border-y border-slate-200 bg-slate-50/50">
           <div className="container mx-auto px-6 lg:px-8">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-12">
-              <StatCard number="3" label="Free Cards" />
+              <StatCard number="Draft" label="Free Preview" />
               <StatCard number="3x3-5x5" label="Grid Sizes" />
               <StatCard number="PDF" label="Print Exports" />
-              <StatCard number="Links" label="Online Play" />
+              <StatCard number="Premium" label="Online Play" />
             </div>
           </div>
         </section>
@@ -286,13 +286,13 @@ export default function Home() {
               <FeatureCard
                 icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>}
                 title="Print and Batch PDFs"
-                description="Print small games from your browser, or use Premium and event packs for HD exports and larger PDF batches."
+                description="Print small games from your browser, or use Premium and event packs for PDF/PNG exports and larger batches."
                 delay=""
               />
               <FeatureCard
                 icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>}
                 title="Virtual Play"
-                description="Host games remotely or in the room. Players join from a browser link on their phones, no app required."
+                description="Host games remotely or in the room after checkout. Players join from a browser link on their phones, no app required."
                 delay="animation-delay-200"
               />
               <FeatureCard
@@ -304,7 +304,7 @@ export default function Home() {
               <FeatureCard
                 icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>}
                 title="AI Card Generator"
-                description="Describe your theme, pick a tone, and AI fills in every cell instantly. Dating bingo, office meetings, baby showers — done in seconds."
+                description="Describe your theme, pick a tone, and AI generates a polished draft. Dating bingo, office meetings, baby showers — done in seconds."
                 delay=""
               />
             </div>
@@ -362,7 +362,7 @@ export default function Home() {
                 Built for <span className="text-indigo-600">real bingo jobs</span>
               </h2>
               <p className="text-lg text-slate-600">
-                Start from the setup closest to your event, then print cards, share links, or host online.
+                Start from the setup closest to your event, then export, share links, or host online after checkout.
               </p>
             </div>
 
@@ -371,25 +371,25 @@ export default function Home() {
                 title="Vocabulary review"
                 audience="Teacher"
                 description="Turn a unit word list into a classroom review game students can play on paper or devices."
-                steps={["Paste vocabulary terms", "Choose 4x4 or 5x5", "Print or share a class link"]}
+                steps={["Paste vocabulary terms", "Choose 4x4 or 5x5", "Export or share after checkout"]}
               />
               <WorkflowCard
                 title="Gift-opening bingo"
                 audience="Baby shower host"
                 description="Use common registry gifts, shuffle unique cards, and keep guests involved during present opening."
-                steps={["Start from a gift list", "Create unique cards", "Print table-ready PDFs"]}
+                steps={["Start from a gift list", "Create unique cards", "Export after checkout"]}
               />
               <WorkflowCard
                 title="Remote team game"
                 audience="HR team"
                 description="Run meeting bingo, onboarding bingo, or an icebreaker without asking players to install an app."
-                steps={["Share the browser link", "Show a join QR code", "Verify winners in the host view"]}
+                steps={["Start checkout", "Share the browser link", "Verify winners in the host view"]}
               />
               <WorkflowCard
                 title="Wedding reception game"
                 audience="Wedding planner"
                 description="Create reception-safe squares for speeches, photos, dancing, dessert, and guest moments."
-                steps={["Use a reception template", "Add couple-specific details", "Print cards or use phone play"]}
+                steps={["Use a reception template", "Add couple-specific details", "Export or use phone play after checkout"]}
               />
               <WorkflowCard
                 title="Activity-center bingo"
@@ -401,7 +401,7 @@ export default function Home() {
                 title="Holiday party bingo"
                 audience="Party host"
                 description="Make seasonal cards for family gatherings, office parties, classrooms, or neighborhood events."
-                steps={["Pick a holiday list", "Add party-specific squares", "Print or share with guests"]}
+                steps={["Pick a holiday list", "Add party-specific squares", "Export after checkout or share"]}
               />
             </div>
           </div>
@@ -436,14 +436,14 @@ export default function Home() {
                Make printable or online bingo cards in a few minutes for classrooms, parties, showers, work events, and holiday games.
              </p>
              <p className="text-indigo-300 mb-12">
-               Start free, then upgrade only if you need AI tools, image cards, HD exports, or bigger batches.
+               Start with a free draft, then upgrade only if you need AI tools, image cards, PDF and PNG exports, or bigger batches.
              </p>
              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/create"
                   className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-indigo-50 transition-all duration-300 shadow-xl"
                 >
-                  Start Creating For Free
+                  Start a Draft
                 </Link>
                 <Link
                   href="/pricing"
@@ -470,7 +470,7 @@ export default function Home() {
                 <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
               </Link>
               <p className="text-slate-500 max-w-sm leading-relaxed">
-                Free bingo card generator for printable and online bingo games. Build custom cards for classrooms, parties, showers, weddings, and team events.
+                Free bingo draft editor for printable and online bingo games. Build custom cards for classrooms, parties, showers, weddings, and team events.
               </p>
             </div>
             <div>

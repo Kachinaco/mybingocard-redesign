@@ -496,7 +496,7 @@ export default function SharedCardPage() {
             <div className="font-black text-2xl animate-pulse mb-3">🎉 BINGO! You won! 🎉</div>
             <p className="text-yellow-100 text-sm mb-3">Want to make your own bingo cards for your next event?</p>
             <Link href="/create" className="inline-block px-5 py-2 bg-white text-orange-600 rounded-xl font-bold text-sm hover:bg-orange-50 transition shadow-md">
-              Create Your Own Card — Free
+              Start Your Own Draft
             </Link>
           </div>
         )}
@@ -701,7 +701,7 @@ export default function SharedCardPage() {
             </p>
             <div className="flex gap-3 justify-center flex-wrap">
               <Link href="/create" className="px-5 py-2.5 bg-white text-indigo-600 rounded-xl hover:bg-indigo-50 transition font-semibold text-sm">
-                Start Creating Free
+                Start a Draft
               </Link>
               <Link href="/templates" className="px-5 py-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-400 transition font-semibold text-sm">
                 Browse Templates

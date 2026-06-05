@@ -547,7 +547,7 @@ export default function PlayClient({ linkId }: PlayClientProps) {
               href="/create"
               className="px-5 py-2.5 bg-white text-indigo-600 rounded-xl hover:bg-indigo-50 transition font-semibold text-sm"
             >
-              Start Creating Free
+              Start a Draft
             </Link>
             <Link
               href="/templates"

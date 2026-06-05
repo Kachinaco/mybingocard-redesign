@@ -12,8 +12,10 @@ const stripeConfigSource = readFileSync(
 );
 
 describe("pricing page copy consistency", () => {
-  test("matches the free plan table row to the 3-card free plan", () => {
-    expect(pricingPageSource).toContain('["Bingo cards", "3 cards", "Unlimited", "Unlimited"]');
+  test("matches the free plan table row to the one-card free plan", () => {
+    expect(pricingPageSource).toContain('["Bingo cards", "1 saved card", "Unlimited", "Unlimited"]');
+    expect(stripeConfigSource).toContain('"1 saved bingo card"');
+    expect(stripeConfigSource).toContain('"Profile and saved-card access"');
   });
 
   test("matches premium batch-generation copy to the configured 500-card batch limit", () => {
@@ -27,8 +29,8 @@ describe("pricing page copy consistency", () => {
     expect(pricingPageSource).toContain("Select pack");
   });
 
-  test("shows image bingo cells available on the free plan", () => {
-    expect(stripeConfigSource).toContain("maxImageUploads: 25");
+  test("keeps image bingo cells available while requiring Premium for server uploads", () => {
+    expect(stripeConfigSource).toContain("maxImageUploads: 0");
     expect(pricingPageSource).toContain('["Image bingo cells", "Yes", "Yes", "Yes"]');
   });
 });

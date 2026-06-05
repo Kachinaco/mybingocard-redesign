@@ -4,9 +4,9 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Super Bowl Bingo Cards Printable — Free Super Bowl Bingo Generator | MyBingoCard",
+  title: "Super Bowl Bingo Cards Printable — Custom Super Bowl Bingo Generator | MyBingoCard",
   description:
-    "Create free printable Super Bowl bingo cards for your watch party. The best Super Bowl bingo generator — custom squares, instant PDF perfect for any football party.",
+    "Create custom printable Super Bowl bingo cards for your watch party. The best Super Bowl bingo generator — custom squares, PDF export perfect for any football party.",
   alternates: {
     canonical: "https://mybingocard.com/super-bowl-bingo",
   },
@@ -26,7 +26,7 @@ const schema = {
   name: "Super Bowl Bingo Cards Printable Generator",
   url: "https://mybingocard.com/super-bowl-bingo",
   description:
-    "Create free printable Super Bowl bingo cards for your watch party. Custom squares, instant PDF download.",
+    "Create custom printable Super Bowl bingo cards for your watch party. Custom squares, PDF export after checkout.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
@@ -90,7 +90,7 @@ export default function SuperBowlBingoPage() {
                 🏈 Super Bowl Bingo
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
-                Free Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">Super Bowl Bingo</span> Cards
+                Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">Super Bowl Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
                 Even non-football fans can have a blast! Super Bowl bingo keeps your whole watch party engaged — from the commercials to the halftime show to the final score.
@@ -109,7 +109,7 @@ export default function SuperBowlBingoPage() {
           <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6 mb-20">
             {[
               { icon: "📺", title: "For Every Fan", desc: "Football fans play by game action. Non-fans play by commercials and halftime moments." },
-              { icon: "🏆", title: "Party Prizes", desc: "Set prizes for BINGO winners. Best conversation starter your party has ever had." },
+              { icon: "🏆", title: "Party Prizes", desc: "Set prizes for BINGO winners. A simple prize plan gives players another reason to follow along." },
               { icon: "🍕", title: "Print for Everyone", desc: "Generate unique cards for each guest so everyone has a different layout." },
             ].map((f) => (
               <div key={f.title} className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 text-center">
@@ -122,7 +122,7 @@ export default function SuperBowlBingoPage() {
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-green-600 to-emerald-600 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">Touchdown! Time to Play 🏈</h2>
-            <p className="text-green-100 text-lg mb-8">Create a unique card for every guest at your Super Bowl party. Free to start!</p>
+            <p className="text-green-100 text-lg mb-8">Draft a unique card for every guest at your Super Bowl party, then start checkout to save.</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-green-700 rounded-xl font-bold text-lg hover:bg-green-50 transition-colors shadow-lg">Create Super Bowl Bingo</Link>
           </div>
 
@@ -144,7 +144,7 @@ export default function SuperBowlBingoPage() {
         </main>
 
         <footer className="bg-white border-t border-slate-200 py-8 text-center text-slate-500 text-sm">
-          <p>&copy; 2025 MyBingoCard. All rights reserved. · <Link href="/privacy" className="hover:text-indigo-600">Privacy</Link> · <Link href="/terms" className="hover:text-indigo-600">Terms</Link></p>
+          <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved. · <Link href="/privacy" className="hover:text-indigo-600">Privacy</Link> · <Link href="/terms" className="hover:text-indigo-600">Terms</Link></p>
         </footer>
       </div>
     </>

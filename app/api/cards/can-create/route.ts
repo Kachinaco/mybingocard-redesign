@@ -29,7 +29,7 @@ export async function GET() {
       return NextResponse.json({
         allowed: true,
         cardsCreated: 0,
-        cardsLimit: 3,
+        cardsLimit: 1,
         planType,
       });
     }
@@ -63,7 +63,7 @@ export async function GET() {
       ? undefined
       : legacyFree
         ? `You've reached the legacy free plan limit of ${maxCards} saved cards. Existing cards can still be edited.`
-        : "Start your 3-day trial or choose lifetime access to save, export, share, and publish bingo cards.";
+        : `You've used your ${maxCards} free saved card. Upgrade for unlimited cards, exports, sharing, and publishing.`;
 
     return NextResponse.json({
       allowed,
@@ -74,6 +74,7 @@ export async function GET() {
       cardsLimit: maxCards,
       planType,
       legacyFreeAccess: legacyFree,
+      hasPremiumAccess: entitled,
       subscriptionStatus: user.subscriptionStatus,
       currentPeriodEnd: user.currentPeriodEnd || null,
       cancelAtPeriodEnd: user.cancelAtPeriodEnd || false,

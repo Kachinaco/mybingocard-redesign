@@ -8,28 +8,28 @@ import {
 } from "./PricingCheckoutActions";
 
 const FREE_FEATURES = [
-  "Create 3 bingo cards",
+  "1 saved bingo card",
   "3x3, 4x4, and 5x5 grids",
   "5 starter templates",
   "Text and image bingo cells",
-  "Browser printing",
-  "Online share links",
-  "Optional paid batch PDF packs",
+  "Preview before checkout",
+  "Profile and saved-card access",
+  "Optional lifetime upgrade",
 ];
 
 const PREMIUM_FEATURES = [
   "AI-powered card ideas",
   "All premium templates",
-  "HD PDF and PNG exports",
+  "PDF and PNG exports",
   "Custom colors and fonts",
   "Up to 500 cards per batch",
   "Unique shuffled card per viewer",
-  "Ad-free shared cards",
+  "Saved cards and share links",
   "Priority support",
 ];
 
 const PLAN_ROWS = [
-  ["Bingo cards", "3 cards", "Unlimited", "Unlimited"],
+  ["Bingo cards", "1 saved card", "Unlimited", "Unlimited"],
   ["Grid sizes", "3x3, 4x4, 5x5", "3x3, 4x4, 5x5", "3x3, 4x4, 5x5"],
   ["Templates", "5 starter", "All premium", "All premium"],
   ["AI generation", "-", "Yes", "Yes"],
@@ -38,31 +38,31 @@ const PLAN_ROWS = [
   ["PNG export", "-", "Yes", "Yes"],
   ["Custom colors & fonts", "-", "Yes", "Yes"],
   ["Batch generation", "-", "Up to 500", "Up to 500"],
-  ["Online play links", "Yes", "Yes", "Yes"],
-  ["Ads", "Yes", "Ad-free", "Ad-free"],
-  ["Billing", "-", "$4.99/mo", "One-time $14.99"],
+  ["Online play links", "Premium required", "Yes", "Yes"],
+  ["Saved card experience", "1 saved card", "Saved cards and share links", "Cleaner saved and shared cards"],
+  ["Billing", "-", "3-day trial, then $7.99/mo", "One-time $29.99"],
 ];
 
 const FAQ_ITEMS = [
   {
     question: "What can I do on the free plan?",
     answer:
-      "The free plan lets you create up to 3 bingo cards with text or image cells, 5 starter templates, browser printing, online share links, and optional paid batch PDF packs.",
+      "The free plan lets new users create a profile, save 1 bingo card, and preview cards. Start the 3-day Premium trial or choose lifetime access when you are ready for unlimited saves, exports, sharing, or publishing.",
   },
   {
     question: "What is included in Premium?",
     answer:
-      "Premium includes AI card ideas, all premium templates, HD PDF and PNG exports, custom styles, larger batches up to 500 cards, ad-free sharing, and unique shuffled cards for online viewers.",
+      "Premium includes AI card ideas, all premium templates, PDF and PNG exports, custom styles, larger batches up to 500 cards, share links, and unique shuffled cards for online viewers.",
   },
   {
     question: "Can I pay once instead of subscribing?",
     answer:
-      "Yes. The Lifetime plan is a one-time payment of $14.99 for permanent Premium access. One-time batch PDF packs are also available for event hosts who only need a larger print run.",
+      "Yes. The Lifetime plan is a one-time payment of $29.99 for permanent Premium access.",
   },
   {
     question: "Can I cancel monthly Premium?",
     answer:
-      "Yes. Monthly Premium is billed through Stripe at $4.99/month and can be canceled anytime from your account settings.",
+      "Yes. Monthly Premium starts with a 3-day trial, then bills through Stripe at $7.99/month. You can cancel anytime from your account settings.",
   },
 ];
 
@@ -132,10 +132,10 @@ export default function PricingPage() {
             Simple, Transparent Pricing
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-            Free bingo cards, Premium tools, and one-time event packs
+            Draft first, then start Premium when you are ready to save
           </h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
-            Start free with text and image bingo cards. Upgrade when you need AI ideas, premium templates, HD exports, larger batches, ad-free sharing, or a one-time pack for a single event.
+            Start with a free text bingo draft. Upgrade when you need AI ideas, premium templates, PDF and PNG exports, larger batches, cleaner sharing, or a one-time pack for a single event.
           </p>
         </section>
 
@@ -152,7 +152,7 @@ export default function PricingPage() {
             </div>
             <div className="p-8 pt-0 mt-auto">
               <Link href="/signup" className="block w-full py-4 px-6 bg-slate-100 text-slate-700 rounded-xl font-bold text-center hover:bg-slate-200 transition-colors border border-slate-200">
-                Create Free Account
+                Start a Drafting
               </Link>
             </div>
           </div>
@@ -162,9 +162,10 @@ export default function PricingPage() {
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Premium</h2>
               <p className="text-sm text-slate-500 mb-6">Best for teachers, recurring events, HR teams, and planners.</p>
               <div className="flex items-baseline gap-1 mb-8">
-                <span className="text-5xl font-black text-slate-900 tracking-tight">$4.99</span>
+                <span className="text-5xl font-black text-slate-900 tracking-tight">$7.99</span>
                 <span className="text-slate-500 font-medium">/month</span>
               </div>
+              <p className="-mt-5 mb-6 text-sm font-semibold text-indigo-600">3-day trial first</p>
               <PlanFeatureList features={PREMIUM_FEATURES} />
             </div>
             <div className="p-8 pt-0 mt-auto">
@@ -172,7 +173,7 @@ export default function PricingPage() {
                 purchaseType="monthly"
                 className="w-full py-4 px-6 rounded-xl font-bold transition-all duration-200 bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-indigo-500/30"
               >
-                Subscribe Monthly
+                Start 3-Day Trial
               </PricingCheckoutButton>
             </div>
           </div>
@@ -185,10 +186,10 @@ export default function PricingPage() {
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Lifetime</h2>
               <p className="text-sm text-slate-500 mb-6">Permanent Premium access with no renewal.</p>
               <div className="flex items-baseline gap-1 mb-8">
-                <span className="text-5xl font-black text-slate-900 tracking-tight">$14.99</span>
+                <span className="text-5xl font-black text-slate-900 tracking-tight">$29.99</span>
                 <span className="text-slate-500 font-medium">once</span>
               </div>
-              <PlanFeatureList features={[...PREMIUM_FEATURES, "Lifetime access - never pay again"]} />
+              <PlanFeatureList features={[...PREMIUM_FEATURES, "Lifetime access, never pay again"]} />
             </div>
             <div className="p-8 pt-0 mt-auto">
               <PricingCheckoutButton
@@ -296,7 +297,7 @@ export default function PricingPage() {
                 Start with the free editor, then upgrade only when you need Premium exports, AI help, or larger batches.
               </p>
               <Link href="/create" className="inline-block px-8 py-4 bg-white text-slate-900 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-colors shadow-lg shadow-white/10">
-                Create Your First Card
+                Start Your First Draft
               </Link>
             </div>
           </div>

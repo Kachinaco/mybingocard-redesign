@@ -6,6 +6,7 @@ import {
   notifyBatchSelected,
   notifyBingoAchieved,
   notifyExportButtonClicked,
+  notifySaveCheckoutFunnelEvent,
   notifyUpgradeDismissed,
 } from "@/lib/discord";
 import { readJsonObject } from "@/lib/request-json";
@@ -98,6 +99,29 @@ export async function POST(request: Request) {
           planType: typeof metadata.plan_type === "string" ? metadata.plan_type : typeof metadata.planType === "string" ? metadata.planType : null,
           cardsPerPage: typeof metadata.cardsPerPage === "number" ? metadata.cardsPerPage : null,
           grayscale: typeof metadata.grayscale === "boolean" ? metadata.grayscale : undefined,
+          isGuest: !session?.user,
+        }
+      ).catch(() => {});
+    }
+
+    if (
+      event === "card_save_attempted" ||
+      event === "card_save_blocked" ||
+      event === "save_blocked_auth_required" ||
+      event === "oauth_signup_started" ||
+      event === "checkout_auto_started_after_auth" ||
+      event === "checkout_loaded" ||
+      event === "checkout_cancel_clicked" ||
+      event === "premium_gate_keep_drafting_clicked"
+    ) {
+      notifySaveCheckoutFunnelEvent(
+        session?.user?.email || null,
+        event,
+        {
+          pathname: typeof body.data.pathname === "string" ? body.data.pathname : requestContext.pathname,
+          sessionId: typeof body.data.sessionId === "string" ? body.data.sessionId : null,
+          anonymousId: typeof body.data.anonymousId === "string" ? body.data.anonymousId : null,
+          metadata,
           isGuest: !session?.user,
         }
       ).catch(() => {});

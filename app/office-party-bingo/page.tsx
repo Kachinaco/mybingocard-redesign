@@ -6,7 +6,7 @@ import SeoSupportBlock from "@/components/SeoSupportBlock";
 export const metadata: Metadata = {
   title: "Office Bingo Card Generator — Free Work Party Bingo | MyBingoCard",
   description:
-    "Create hilarious office bingo cards for your next work party or team meeting. Free office bingo card generator — perfect for holiday parties, team events, and remote meetings.",
+    "Create hilarious office bingo cards for your next work party or team meeting. Custom office bingo card generator — perfect for holiday parties, team events, and remote meetings.",
   alternates: {
     canonical: "https://mybingocard.com/office-party-bingo",
   },
@@ -26,7 +26,7 @@ const schema = {
   name: "Office Bingo Card Generator",
   url: "https://mybingocard.com/office-party-bingo",
   description:
-    "Free office bingo card generator for work parties, holiday events, and team meetings. Create hilarious, custom office bingo cards instantly.",
+    "Custom office bingo card generator for work parties, holiday events, and team meetings. Create hilarious custom office bingo card drafts quickly.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -106,7 +106,7 @@ export default function OfficePartyBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Create Free
+                Start a Draft
               </Link>
             </nav>
           </div>
@@ -131,7 +131,7 @@ export default function OfficePartyBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Liven up your next work party, holiday gathering, or team meeting with custom office bingo cards! Our free office bingo card generator creates hilarious, shareable cards full of relatable workplace moments — from jargon-heavy buzzwords to the infamous muted mic. Perfect for company holiday parties, virtual team events, remote happy hours, or just a fun Friday afternoon. Add your own inside jokes, company memes, or department-specific phrases to make every card uniquely yours. Each card is auto-randomized so no two employees have the same layout. Generate print-ready PDFs for in-person parties or share digital links for remote teams. Whether you&apos;re planning a small team celebration or a company-wide event, our work party bingo generator makes engagement easy and free!
+                    Liven up your next work party, holiday gathering, or team meeting with custom office bingo cards! Our office bingo draft editor creates hilarious, shareable cards full of relatable workplace moments — from jargon-heavy buzzwords to the infamous muted mic. Perfect for company holiday parties, virtual team events, remote happy hours, or just a fun Friday afternoon. Add your own inside jokes, company memes, or department-specific phrases to make every card uniquely yours. Each card is auto-randomized so no two employees have the same layout. Export PDF files or share digital links after checkout for in-person parties and remote teams. Whether you&apos;re planning a small team celebration or a company-wide event, our work party bingo generator makes engagement easy to plan!
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function OfficePartyBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to start · Sign up in seconds · Works on any device</p>
+                  <p className="text-sm text-slate-400">Free to draft · 3-day trial to save · Works on any device</p>
                 </div>
 
                 <div className="relative">
@@ -195,11 +195,11 @@ export default function OfficePartyBingoPage() {
                 Make the office party one they&apos;ll talk about Monday
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Create your office bingo cards in under 2 minutes. Free to start, then save or export when you are ready.
+                Draft your office bingo cards in under 2 minutes, then start checkout to save or export.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-amber-50 transition-all duration-300 shadow-xl">
-                  Create Office Bingo Cards Free
+                  Start a Free Office Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
                   See Pricing Plans
@@ -246,7 +246,7 @@ export default function OfficePartyBingoPage() {
               </div>
             </div>
             <div className="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
-              <p>&copy; 2025 MyBingoCard. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
             </div>
           </div>
         </footer>

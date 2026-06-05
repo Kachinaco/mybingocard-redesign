@@ -343,7 +343,7 @@ export default async function AdminOverviewPage() {
             </div>
             <div className="text-sm text-white/80 sm:text-right">
               <p>{stats.paidUsers.toLocaleString()} paying subscribers</p>
-              <p>$4.99/mo per user</p>
+              <p>$7.99/mo per user</p>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { getUserById } from "@/lib/db/users";
 import { createSharedLink } from "@/lib/db/sharedLinks";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { sendShareLinkInvitationEmail } from "@/lib/email";
+import { hasPremiumAccess } from "@/lib/subscription-status";
 
 const MAX_RECIPIENTS = 500;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -84,11 +85,12 @@ export async function POST(
     }
 
     const user = await getUserById(sessionUserId);
-    if (user?.planType !== "PREMIUM") {
+    if (!hasPremiumAccess(user)) {
       return NextResponse.json(
         {
-          error: "Email sharing requires checkout.",
+          error: "Start your 3-day trial or choose lifetime access to email share links.",
           checkoutRequired: true,
+          trialRequired: true,
           recipientCount: emails.length,
         },
         { status: 402 }

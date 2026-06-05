@@ -68,6 +68,8 @@ interface Card {
 
 interface UserPlan {
   planType: string;
+  hasPremiumAccess: boolean;
+  legacyFreeAccess: boolean;
   canExportHD: boolean;
   canExportPNG: boolean;
   canRemoveBranding: boolean;
@@ -241,6 +243,8 @@ export default function CardViewPage() {
       if (data.plan) {
         setUserPlan({
           planType: data.plan.planName || data.planType,
+          hasPremiumAccess: Boolean(data.hasPremiumAccess),
+          legacyFreeAccess: Boolean(data.legacyFreeAccess),
           canExportHD: data.plan?.canExportHD || false,
           canExportPNG: data.plan?.canExportPNG || false,
           canRemoveBranding: data.plan?.canRemoveBranding || false,
@@ -481,6 +485,20 @@ export default function CardViewPage() {
 
   const generateShareLink = async (source: unknown = "card_page") => {
     if (!card) return false;
+    if (userPlan && !userPlan.hasPremiumAccess && !userPlan.legacyFreeAccess) {
+      trackClientActivity("share_link_blocked", {
+        cardId,
+        title: card.title,
+        source: typeof source === "string" ? source : "card_page",
+        reason: "premium_required",
+        context: "owner_card",
+      });
+      await redirectToCheckout({
+        label: "Premium trial, then $7.99/mo",
+        successPath: `/cards/${cardId}?next=share`,
+      });
+      return false;
+    }
     try {
       const eventSource = typeof source === "string" ? source : "card_page";
       setGeneratingLink(true);
@@ -602,7 +620,7 @@ export default function CardViewPage() {
 
   // --- Batch functions ---
   const loadBatchPurchases = async () => {
-    if (!session?.user || userPlan?.planType === "Premium") {
+    if (!session?.user || userPlan?.hasPremiumAccess) {
       setAvailableBatchCounts({});
       return;
     }
@@ -797,7 +815,7 @@ export default function CardViewPage() {
   const shareUrl = card.shareLink ? `${typeof window !== "undefined" ? window.location.origin : ""}/share/${card.shareLink}` : "";
   const qrCodeUrl = shareUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(shareUrl)}` : "";
 
-  const isPremiumBatchUser = userPlan?.planType === "Premium";
+  const isPremiumBatchUser = Boolean(userPlan?.hasPremiumAccess);
   const shouldUseBatchForPdf = status === "authenticated" && !isPremiumBatchUser;
   const selectedBatchPrice = formatBatchPackPrice(batchCount);
   const selectedPack = BATCH_PACKS[batchCount];
@@ -1130,7 +1148,7 @@ export default function CardViewPage() {
                           <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 space-y-3">
                             <div>
                               <p className="text-sm font-black text-emerald-900">
-                                {batchPdfDownloaded ? "Your PDF download started." : `${batchResult.count} cards are ready.`}
+                                {batchPdfDownloaded ? "Your PDF export started." : `${batchResult.count} cards are ready.`}
                               </p>
                               <p className="mt-1 text-xs text-emerald-700">
                                 {batchPdfDownloaded
@@ -1176,7 +1194,7 @@ export default function CardViewPage() {
                                 <p className="mt-0.5 text-base font-black text-slate-950">{batchCount} cards</p>
                                 <p className="text-xs text-slate-600">
                                   {isPremiumBatchUser || hasSelectedBatchPurchase
-                                    ? "Generate now, then download as PDF."
+                                    ? "Generate now, then export as PDF after checkout."
                                     : "One-time paid download. No subscription required."}
                                 </p>
                               </div>
@@ -1204,13 +1222,13 @@ export default function CardViewPage() {
                             {!isPremiumBatchUser && !hasSelectedBatchPurchase && (
                               <div className="mt-3 rounded-xl border border-indigo-200 bg-indigo-50 p-3">
                                 <p className="text-xs font-bold text-indigo-950">
-                                  Or subscribe for $4.99/mo and batches up to 500 cards are included.
+                                  Or subscribe for $7.99/mo and batches up to 500 cards are included.
                                 </p>
                                 <button
                                   onClick={() => redirectToCheckout()}
                                   className="mt-2 w-full rounded-lg bg-indigo-600 px-3 py-2 text-xs font-black text-white transition hover:bg-indigo-700"
                                 >
-                                  Subscribe for $4.99/mo
+                                  Subscribe for $7.99/mo
                                 </button>
                               </div>
                             )}
@@ -1511,7 +1529,7 @@ export default function CardViewPage() {
                       {!isPremiumBatchUser && !hasSelectedBatchPurchase && (
                         <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2">
                           <p className="text-xs font-bold text-indigo-950">
-                            Or subscribe for $4.99/mo and batches are included.
+                            Or subscribe for $7.99/mo and batches are included.
                           </p>
                           <button
                             onClick={() => redirectToCheckout()}

@@ -87,7 +87,7 @@ export function EmailCapturePopup() {
               </svg>
             </div>
             <h3 className="text-xl font-bold text-slate-900 mb-2">You&apos;re in!</h3>
-            <p className="text-slate-500 text-sm">Check your inbox for your 5 free premium bingo templates.</p>
+            <p className="text-slate-500 text-sm">Check your inbox for starter template ideas.</p>
             <button
               onClick={dismiss}
               className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-xl font-semibold text-sm hover:bg-indigo-700 transition"
@@ -108,10 +108,10 @@ export function EmailCapturePopup() {
             </div>
 
             <h3 className="text-2xl font-bold text-slate-900 text-center mb-2">
-              Get 5 Free Premium Templates
+              Get 5 Starter Template Ideas
             </h3>
             <p className="text-slate-500 text-center text-sm mb-6">
-              Professionally designed bingo templates for weddings, classrooms, and parties. Yours free, instantly.
+              Professionally designed bingo templates for weddings, classrooms, and parties. Get starter ideas instantly.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -207,7 +207,7 @@ export function EmailCaptureInline() {
           </svg>
           Free Gift
         </span>
-        <h3 className="text-xl font-bold text-slate-900">Get 5 Free Premium Templates</h3>
+        <h3 className="text-xl font-bold text-slate-900">Get 5 Starter Template Ideas</h3>
         <p className="text-slate-500 text-sm mt-1">Wedding, classroom, and party designs. Yours free.</p>
       </div>
       <form onSubmit={handleSubmit} className="flex gap-3 max-w-md mx-auto">

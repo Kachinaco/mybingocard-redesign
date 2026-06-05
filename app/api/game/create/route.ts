@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getCardById } from "@/lib/db/cards";
-import { addFeatureUsed } from "@/lib/db/users";
+import { addFeatureUsed, getUserById } from "@/lib/db/users";
 import { createGameRoom } from "@/lib/db/games";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { getCallPoolForVariant, normalizeBingoVariant } from "@/lib/classic-bingo";
+import { hasPremiumAccess } from "@/lib/subscription-status";
 
 export async function POST(request: Request) {
   try {
@@ -26,6 +27,18 @@ export async function POST(request: Request) {
 
     if (card.userId.toString() !== session.user.id) {
       return NextResponse.json({ error: "You can only create games from your own cards" }, { status: 403 });
+    }
+
+    const user = await getUserById(session.user.id);
+    if (!hasPremiumAccess(user)) {
+      return NextResponse.json(
+        {
+          error: "Start your 3-day trial or choose lifetime access to host live games.",
+          upgradeRequired: true,
+          trialRequired: true,
+        },
+        { status: 403 }
+      );
     }
 
     const bingoVariant = normalizeBingoVariant(card.bingoVariant);

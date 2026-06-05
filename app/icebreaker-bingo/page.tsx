@@ -6,7 +6,7 @@ import SeoSupportBlock from "@/components/SeoSupportBlock";
 export const metadata: Metadata = {
   title: "Icebreaker Bingo Cards — Free People Bingo & Get to Know You Bingo | MyBingoCard",
   description:
-    "Create icebreaker bingo cards for team meetings, classrooms, and networking events. Free human bingo generator with get to know you questions, people bingo cards, and printable PDF download.",
+    "Create icebreaker bingo cards for team meetings, classrooms, and networking events. Custom human bingo generator with get to know you questions, people bingo cards, and printable PDF export.",
   alternates: {
     canonical: "https://mybingocard.com/icebreaker-bingo",
   },
@@ -26,7 +26,7 @@ const schema = {
   name: "Icebreaker Bingo Card Generator",
   url: "https://mybingocard.com/icebreaker-bingo",
   description:
-    "Free icebreaker bingo card generator. Create printable people bingo cards for team meetings, classrooms, onboarding, and networking events — get to know you bingo with custom questions and instant PDF download.",
+    "Custom icebreaker bingo card generator. Create printable people bingo cards for team meetings, classrooms, onboarding, and networking events — get to know you bingo with custom questions and PDF export after checkout.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -106,7 +106,7 @@ export default function IcebreakerBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Create Free
+                Start a Draft
               </Link>
             </nav>
           </div>
@@ -131,7 +131,7 @@ export default function IcebreakerBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Break the ice and get people talking with custom icebreaker bingo cards — the ultimate get to know you game for any group! Our free people bingo generator makes it easy to create human bingo cards where players mingle, ask questions, and find someone who matches each square. Perfect for first-day-of-school activities, new employee onboarding, corporate team building, networking events, and conference mixers. Each card is uniquely shuffled so every participant gets a different layout, encouraging everyone to talk to as many people as possible. Print beautiful PDF cards for in-person events or share digital links for remote teams. With customizable questions, group-size flexibility, and templates for classrooms, offices, and social gatherings, our icebreaker bingo generator turns awkward introductions into genuine connections.
+                    Break the ice and get people talking with custom icebreaker bingo cards — an easy get to know you activity for groups! Our people bingo draft editor makes it easy to create human bingo cards where players mingle, ask questions, and find someone who matches each square. Perfect for first-day-of-school activities, new employee onboarding, corporate team building, networking events, and conference mixers. Each card is uniquely shuffled so every participant gets a different layout, encouraging everyone to talk to as many people as possible. Export printable PDF cards or share digital links after checkout for in-person events and remote teams. With customizable questions, group-size flexibility, and templates for classrooms, offices, and social gatherings, our icebreaker bingo generator turns awkward introductions into genuine connections.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function IcebreakerBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to start · Any group size · Print or play digital</p>
+                  <p className="text-sm text-slate-400">Free to draft · Any group size · PDF export after checkout</p>
                 </div>
 
                 <div className="relative">
@@ -171,7 +171,7 @@ export default function IcebreakerBingoPage() {
                   { icon: "🤝", title: "Break the Ice Fast", desc: "Skip the awkward introductions. People bingo gets everyone mingling and discovering shared interests in minutes." },
                   { icon: "✏️", title: "Custom Questions", desc: "Add your own get-to-know-you prompts — hobbies, experiences, fun facts, or industry-specific icebreakers." },
                   { icon: "👥", title: "Works for Any Group Size", desc: "From small teams of 10 to conferences of 500 — icebreaker bingo scales effortlessly to any audience." },
-                  { icon: "🖨️", title: "Print or Digital", desc: "Download print-ready PDF cards for in-person events or share digital links for remote and hybrid teams." },
+                  { icon: "🖨️", title: "Print or Digital", desc: "Export PDF cards or share digital links after checkout for remote and hybrid teams." },
                   { icon: "💼", title: "Perfect for Onboarding", desc: "New hire orientation, first day of class, or team kickoff — human bingo makes everyone feel welcome fast." },
                   { icon: "🎓", title: "Great for Classrooms", desc: "Teachers love people bingo for back-to-school activities. Students learn names and build friendships through play." },
                 ].map((f) => (
@@ -195,11 +195,11 @@ export default function IcebreakerBingoPage() {
                 Turn strangers into friends in five minutes
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Create icebreaker bingo cards in under 2 minutes. Free to start, then save or export when you are ready.
+                Draft icebreaker bingo cards in under 2 minutes, then start checkout to save or export.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-sky-50 transition-all duration-300 shadow-xl">
-                  Create Icebreaker Bingo Cards Free
+                  Start a Free Icebreaker Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
                   See Pricing Plans
@@ -224,7 +224,7 @@ export default function IcebreakerBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  The free bingo card generator for icebreakers, team building, classrooms, and every occasion.
+                  The free bingo draft editor for icebreakers, team building, classrooms, and every occasion.
                 </p>
               </div>
               <div>
@@ -246,7 +246,7 @@ export default function IcebreakerBingoPage() {
               </div>
             </div>
             <div className="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
-              <p>&copy; 2025 MyBingoCard. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
             </div>
           </div>
         </footer>

@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Free Bingo Card Templates - Printable Wedding, Baby Shower & Classroom Cards",
+  title: "Bingo Card Templates - Custom Wedding, Baby Shower & Classroom Cards",
   description:
-    "Browse free printable bingo card templates for weddings, baby showers, classrooms, holidays, parties, office events, and more. Customize and print instantly.",
+    "Browse custom printable bingo card templates for weddings, baby showers, classrooms, holidays, parties, office events, and more. Customize and export after checkout.",
   alternates: {
     canonical: "https://mybingocard.com/templates",
   },
   openGraph: {
-    title: "Free Bingo Card Templates | MyBingoCard",
+    title: "Bingo Card Templates | MyBingoCard",
     description:
       "Customize printable bingo card templates for weddings, baby showers, classrooms, holidays, parties, and office events.",
     url: "https://mybingocard.com/templates",

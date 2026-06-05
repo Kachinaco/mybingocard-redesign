@@ -4,9 +4,9 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Birthday Bingo Cards Printable — Free Birthday Bingo Generator | MyBingoCard",
+  title: "Birthday Bingo Cards Printable — Custom Birthday Bingo Generator | MyBingoCard",
   description:
-    "Create free printable birthday bingo cards for your party guests. The best birthday bingo card generator — custom squares, instant PDF, and digital play for any birthday celebration.",
+    "Create custom printable birthday bingo cards for your party guests. The best birthday bingo card generator — custom squares, PDF export, and digital play for any birthday celebration.",
   alternates: {
     canonical: "https://mybingocard.com/birthday-bingo",
   },
@@ -26,7 +26,7 @@ const schema = {
   name: "Birthday Bingo Cards Printable Generator",
   url: "https://mybingocard.com/birthday-bingo",
   description:
-    "Create free printable birthday bingo cards for guests. Custom birthday bingo with instant PDF download and digital play options.",
+    "Create custom printable birthday bingo cards for guests. Custom birthday bingo with PDF export after checkout and digital play options.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -115,10 +115,10 @@ export default function BirthdayBingoPage() {
                 🎂 Birthday Bingo
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
-                Free Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500">Birthday Bingo</span> Cards
+                Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500">Birthday Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                Make any birthday party unforgettable with custom bingo cards. Generate unique cards for every guest, download as PDF, and play in minutes.
+                Make any birthday party unforgettable with custom bingo cards. Generate unique cards for every guest, export as PDF after checkout, and play in minutes.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
@@ -147,7 +147,7 @@ export default function BirthdayBingoPage() {
             <div className="grid md:grid-cols-3 gap-8">
               {[
                 { icon: "🎈", title: "Keeps Guests Engaged", desc: "No more awkward silences. Bingo gets everyone involved from kids to grandparents." },
-                { icon: "🖨️", title: "Print in Minutes", desc: "Generate unique cards for every guest and download a print-ready PDF instantly." },
+                { icon: "🖨️", title: "PDF Export", desc: "Generate unique card drafts, then export a PDF after checkout." },
                 { icon: "✨", title: "Fully Customizable", desc: "Add inside jokes, personalized squares, and custom themes to match any party." },
               ].map((f) => (
                 <div key={f.title} className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 text-center">
@@ -162,7 +162,7 @@ export default function BirthdayBingoPage() {
           {/* CTA Banner */}
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-yellow-500 to-orange-500 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">Ready to Party? 🎉</h2>
-            <p className="text-yellow-100 text-lg mb-8">Create your custom birthday bingo cards in under 2 minutes. Free to start!</p>
+            <p className="text-yellow-100 text-lg mb-8">Draft your custom birthday bingo cards in under 2 minutes, then start checkout to save.</p>
             <Link
               href="/create"
               className="inline-block px-8 py-4 bg-white text-orange-600 rounded-xl font-bold text-lg hover:bg-yellow-50 transition-colors shadow-lg"
@@ -196,7 +196,7 @@ export default function BirthdayBingoPage() {
         </main>
 
         <footer className="bg-white border-t border-slate-200 py-8 text-center text-slate-500 text-sm">
-          <p>&copy; 2025 MyBingoCard. All rights reserved. · <Link href="/privacy" className="hover:text-indigo-600">Privacy</Link> · <Link href="/terms" className="hover:text-indigo-600">Terms</Link></p>
+          <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved. · <Link href="/privacy" className="hover:text-indigo-600">Privacy</Link> · <Link href="/terms" className="hover:text-indigo-600">Terms</Link></p>
         </footer>
       </div>
     </>

@@ -6,7 +6,7 @@ import SeoSupportBlock from "@/components/SeoSupportBlock";
 export const metadata: Metadata = {
   title: "Team Building Bingo Cards Generator — MyBingoCard",
   description:
-    "Create free team building bingo cards for corporate events, icebreakers, and workplace activities. Printable team building bingo card generator with custom squares for offsites, retreats, and team bonding.",
+    "Create custom team building bingo cards for corporate events, icebreakers, and workplace activities. Printable team building bingo card generator with custom squares for offsites, retreats, and team bonding.",
   alternates: {
     canonical: "https://mybingocard.com/team-building-bingo",
   },
@@ -26,7 +26,7 @@ const schema = {
   name: "Team Building Bingo Cards Generator",
   url: "https://mybingocard.com/team-building-bingo",
   description:
-    "Free team building bingo cards generator. Create, customize, and print bingo cards for corporate icebreakers, offsites, and workplace team bonding in minutes.",
+    "Custom team building bingo draft generator. Create, customize, and print bingo cards for corporate icebreakers, offsites, and workplace team bonding in minutes.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -97,7 +97,7 @@ export default function TeamBuildingBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Create Free
+                Start a Draft
               </Link>
             </nav>
           </div>
@@ -122,7 +122,7 @@ export default function TeamBuildingBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Kick off your next corporate event with custom team building bingo cards that turn awkward icebreakers into genuinely fun group activities. Our free workplace bingo card generator creates unique cards filled with team bonding moments that encourage collaboration and laughter. Every card is randomly shuffled so each team member gets a different layout, sparking conversation and friendly competition across departments. Print professional-quality PDFs for in-person offsites and retreats, or share digital cards for remote teams to play on video calls. Whether you&apos;re onboarding new hires, planning a company retreat, or running a weekly team meeting icebreaker, create your corporate bingo cards in minutes.
+                    Kick off your next corporate event with custom team building bingo cards that turn awkward icebreakers into genuinely fun group activities. Our workplace bingo draft editor creates unique cards filled with team bonding moments that encourage collaboration and laughter. Every card is randomly shuffled so each team member gets a different layout, sparking conversation and friendly competition across departments. Export clean PDFs or share digital cards after checkout for in-person offsites, retreats, and remote teams on video calls. Whether you&apos;re onboarding new hires, planning a company retreat, or running a weekly team meeting icebreaker, create your corporate bingo cards in minutes.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -138,7 +138,7 @@ export default function TeamBuildingBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to start · Sign up in seconds · Instant PDF download</p>
+                  <p className="text-sm text-slate-400">Free to draft · 3-day trial to save · PDF export after checkout</p>
                 </div>
 
                 <div className="relative">
@@ -170,8 +170,8 @@ export default function TeamBuildingBingoPage() {
                   },
                   {
                     icon: "🖨️",
-                    title: "Print-Ready PDFs",
-                    desc: "Professional-quality PDFs sized for conference rooms, offsite packets, or desk handouts across the whole team.",
+                    title: "PDF Exports",
+                    desc: "Export clean PDFs after checkout for conference rooms, offsite packets, or desk handouts.",
                   },
                   {
                     icon: "🔀",
@@ -181,7 +181,7 @@ export default function TeamBuildingBingoPage() {
                   {
                     icon: "💻",
                     title: "Remote Team Ready",
-                    desc: "Share a link on Slack or Teams so remote employees can play along on video calls — no printing needed.",
+                    desc: "Share a link after checkout on Slack or Teams so remote employees can play along on video calls — no printing needed.",
                   },
                   {
                     icon: "✏️",
@@ -190,8 +190,8 @@ export default function TeamBuildingBingoPage() {
                   },
                   {
                     icon: "💸",
-                    title: "Free for Your Team",
-                    desc: "Create team building bingo cards completely free. No budget approval needed — just instant team fun.",
+                    title: "Free Drafts for Your Team",
+                    desc: "Create team building bingo cards as a free draft. Start without budget approval, then choose Premium when you need saved cards, exports, or sharing.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -214,7 +214,7 @@ export default function TeamBuildingBingoPage() {
                 Ready to energize your next team event?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Create your team building bingo cards in under 2 minutes. Free to start — works for in-person offsites and remote teams alike.
+                Draft your team building bingo cards in under 2 minutes, then start checkout to save or export — works for in-person offsites and remote teams alike.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-blue-50 transition-all duration-300 shadow-xl">
@@ -265,7 +265,7 @@ export default function TeamBuildingBingoPage() {
               </div>
             </div>
             <div className="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
-              <p>&copy; 2025 MyBingoCard. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
             </div>
           </div>
         </footer>

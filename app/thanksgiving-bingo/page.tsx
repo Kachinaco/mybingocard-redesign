@@ -4,9 +4,9 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Thanksgiving Bingo Cards Printable — Free Thanksgiving Bingo Generator | MyBingoCard",
+  title: "Thanksgiving Bingo Cards Printable — Custom Thanksgiving Bingo Generator | MyBingoCard",
   description:
-    "Create free printable Thanksgiving bingo cards for your family dinner or party. The best Thanksgiving bingo generator — custom squares, instant PDF for any Thanksgiving celebration.",
+    "Create custom printable Thanksgiving bingo cards for your family dinner or party. The best Thanksgiving bingo generator — custom squares, PDF export for any Thanksgiving celebration.",
   alternates: {
     canonical: "https://mybingocard.com/thanksgiving-bingo",
   },
@@ -26,7 +26,7 @@ const schema = {
   name: "Thanksgiving Bingo Cards Printable Generator",
   url: "https://mybingocard.com/thanksgiving-bingo",
   description:
-    "Create free printable Thanksgiving bingo cards. Custom squares, instant PDF for any Thanksgiving dinner or party.",
+    "Create custom printable Thanksgiving bingo cards. Custom squares, PDF export for any Thanksgiving dinner or party.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
@@ -90,7 +90,7 @@ export default function ThanksgivingBingoPage() {
                 🦃 Thanksgiving Bingo
               </div>
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
-                Free Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500">Thanksgiving Bingo</span> Cards
+                Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500">Thanksgiving Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
                 Keep the whole family entertained before and after the feast! Create unique Thanksgiving bingo cards for kids and adults and make memories at the dinner table.
@@ -108,7 +108,7 @@ export default function ThanksgivingBingoPage() {
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">Give Thanks & Play Bingo! 🦃</h2>
-            <p className="text-amber-100 text-lg mb-8">A bingo card for every chair at the table. Free to create, free to play, free to love.</p>
+            <p className="text-amber-100 text-lg mb-8">A bingo card for every chair at the table. Free to draft, easy to play, free to love.</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-orange-600 rounded-xl font-bold text-lg hover:bg-amber-50 transition-colors shadow-lg">Create Thanksgiving Bingo</Link>
           </div>
 
@@ -130,7 +130,7 @@ export default function ThanksgivingBingoPage() {
         </main>
 
         <footer className="bg-white border-t border-slate-200 py-8 text-center text-slate-500 text-sm">
-          <p>&copy; 2025 MyBingoCard. All rights reserved. · <Link href="/privacy" className="hover:text-indigo-600">Privacy</Link> · <Link href="/terms" className="hover:text-indigo-600">Terms</Link></p>
+          <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved. · <Link href="/privacy" className="hover:text-indigo-600">Privacy</Link> · <Link href="/terms" className="hover:text-indigo-600">Terms</Link></p>
         </footer>
       </div>
     </>

@@ -3,8 +3,12 @@ import { auth } from "@/auth";
 import { getCardById, updateCard, generateShareLink } from "@/lib/db/cards";
 import { getUserById } from "@/lib/db/users";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
-import { hasCardSaveAccess } from "@/lib/subscription-status";
+import { hasPremiumAccess, isLegacyFreeUser } from "@/lib/subscription-status";
 import bcrypt from "bcryptjs";
+
+function hasShareSettingsAccess(user: Parameters<typeof isLegacyFreeUser>[0]): boolean {
+  return hasPremiumAccess(user) || isLegacyFreeUser(user);
+}
 
 export async function POST(
   request: Request,
@@ -39,7 +43,7 @@ export async function POST(
     }
 
     const user = await getUserById(session.user.id);
-    if (!hasCardSaveAccess(user)) {
+    if (!hasShareSettingsAccess(user)) {
       return NextResponse.json(
         {
           error: "Start your 3-day trial or choose lifetime access to share bingo cards.",
@@ -118,7 +122,7 @@ export async function PUT(
     }
 
     const user = await getUserById(session.user.id);
-    if (!hasCardSaveAccess(user)) {
+    if (!hasShareSettingsAccess(user)) {
       return NextResponse.json(
         {
           error: "Start your 3-day trial or choose lifetime access to update share settings.",

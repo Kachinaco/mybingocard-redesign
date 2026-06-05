@@ -24,7 +24,8 @@ describe("free image bingo access", () => {
   test("uses entitlement-aware upload permission in the image picker", () => {
     expect(createPageSource).not.toContain('setUpgradeReason("image_picker")');
     expect(createPageSource).toContain("setImagePickerCellIndex(index)");
-    expect(createPageSource).toContain("canUploadImages={Boolean(permissionStatus?.allowed)}");
+    expect(createPageSource).toContain("const canUploadImages = Boolean(permissionStatus?.hasPremiumAccess || permissionStatus?.legacyFreeAccess)");
+    expect(createPageSource).toContain("canUploadImages={canUploadImages}");
   });
 
   test("uses upload permission instead of premium status inside the picker", () => {

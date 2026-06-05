@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { stripe, PLANS, getPlanByPriceId, LIFETIME_PRICE_ID } from "@/lib/stripe/config";
+import { stripe, PLANS, getPlanByPriceId, LIFETIME_PRICE_ID, LIFETIME_PRICE, PREMIUM_TRIAL_DAYS } from "@/lib/stripe/config";
 import { getUserByEmail } from "@/lib/db/users";
 import { getCardById } from "@/lib/db/cards";
 import { getBatchPack, isBatchCount } from "@/lib/batchPacks";
@@ -377,7 +377,7 @@ export async function POST(request: Request) {
         userAgent: requestContext.userAgent,
         metadata: {
           purchaseType: "lifetime",
-          amount: 1499,
+          amount: Math.round(LIFETIME_PRICE * 100),
           checkoutSessionId: checkoutSession.id,
           checkoutMode: "embedded",
         },
@@ -385,7 +385,7 @@ export async function POST(request: Request) {
 
       notifyCheckoutStarted(
         session.user.email, session.user.name || "", "one_time",
-        "Premium Lifetime", 1499, "usd", checkoutSession.id
+        "Premium Lifetime", Math.round(LIFETIME_PRICE * 100), "usd", checkoutSession.id
       ).catch(console.error);
 
       return NextResponse.json({ clientSecret: checkoutSession.client_secret, sessionId: checkoutSession.id });
@@ -405,9 +405,10 @@ export async function POST(request: Request) {
 
     // Check for existing active subscription
     if (customerId) {
-      const subs = await stripe.subscriptions.list({ customer: customerId, status: "active", limit: 5 });
+      const subs = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 10 });
       const alreadySubscribed = subs.data.some(s =>
-        s.items.data.some(item => item.price.id === priceId)
+        ["active", "trialing", "past_due", "unpaid"].includes(s.status) &&
+        s.items.data.some(item => getPlanByPriceId(item.price.id) === planType)
       );
       if (alreadySubscribed) {
         return NextResponse.json({ error: "Already subscribed", alreadySubscribed: true }, { status: 409 });
@@ -420,6 +421,7 @@ export async function POST(request: Request) {
       ui_mode: "embedded",
       mode: "subscription",
       payment_method_types: ["card"],
+      payment_method_collection: "always",
       allow_promotion_codes: true,
       line_items: [{ price: priceId, quantity: 1 }],
       return_url: subReturnUrl,
@@ -431,7 +433,8 @@ export async function POST(request: Request) {
         purchaseType: "subscription",
       },
       subscription_data: {
-        metadata: { userId: session.user.email, planType },
+        trial_period_days: PREMIUM_TRIAL_DAYS,
+        metadata: { userId: session.user.email, planType, purchaseType: "subscription_trial" },
       },
     };
 

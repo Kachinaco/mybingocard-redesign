@@ -5,7 +5,7 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 export const metadata: Metadata = {
   title: "Trivia Bingo Cards Generator — MyBingoCard",
   description:
-    "Create free trivia bingo cards for trivia nights, pub quizzes, and game nights. Printable trivia night bingo card generator with custom squares for bars, restaurants, and party trivia events.",
+    "Create custom trivia bingo cards for trivia nights, pub quizzes, and game nights. Printable trivia night bingo card generator with custom squares for bars, restaurants, and party trivia events.",
   alternates: {
     canonical: "https://mybingocard.com/trivia-bingo",
   },
@@ -25,7 +25,7 @@ const schema = {
   name: "Trivia Bingo Cards Generator",
   url: "https://mybingocard.com/trivia-bingo",
   description:
-    "Free trivia bingo cards generator. Create, customize, and print bingo cards for trivia nights, pub quizzes, and game nights in minutes.",
+    "Custom trivia bingo draft generator. Create, customize, and print bingo cards for trivia nights, pub quizzes, and game nights in minutes.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -96,7 +96,7 @@ export default function TriviaBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Create Free
+                Start a Draft
               </Link>
             </nav>
           </div>
@@ -121,7 +121,7 @@ export default function TriviaBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Add an extra layer of excitement to your trivia night with custom trivia bingo cards that keep every team engaged from the first question to the final answer. Our free pub quiz bingo card generator creates unique cards filled with those classic trivia night moments everyone knows and loves. Each card is randomly shuffled so every table gets a different layout, adding a fun side game to your regular trivia competition. Print crisp PDFs for bar and restaurant trivia events, or share digital cards for virtual game nights with friends. Whether you&apos;re a trivia host looking to spice up your weekly event or planning a one-time game night, create your trivia bingo cards in minutes with zero design work.
+                    Add an extra layer of excitement to your trivia night with custom trivia bingo cards that keep every team engaged from the first question to the final answer. Our pub quiz bingo draft editor creates unique cards filled with those classic trivia night moments everyone knows and loves. Each card is randomly shuffled so every table gets a different layout, adding a fun side game to your regular trivia competition. Export crisp PDFs or share digital cards after checkout for bar, restaurant, and virtual trivia nights. Whether you&apos;re a trivia host looking to spice up your weekly event or planning a one-time game night, create your trivia bingo cards in minutes with zero design work.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -137,7 +137,7 @@ export default function TriviaBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to start · Sign up in seconds · Instant PDF download</p>
+                  <p className="text-sm text-slate-400">Free to draft · 3-day trial to save · PDF export after checkout</p>
                 </div>
 
                 <div className="relative">
@@ -169,8 +169,8 @@ export default function TriviaBingoPage() {
                   },
                   {
                     icon: "🖨️",
-                    title: "Print-Ready PDFs",
-                    desc: "High-resolution PDFs sized perfectly for bar tables, restaurant events, or take-home trivia party handouts.",
+                    title: "PDF Exports",
+                    desc: "Clean PDFs sized for bar tables, restaurant events, or take-home trivia party handouts.",
                   },
                   {
                     icon: "🔀",
@@ -180,7 +180,7 @@ export default function TriviaBingoPage() {
                   {
                     icon: "📱",
                     title: "Virtual Game Night",
-                    desc: "Share a link for remote trivia nights. Players mark squares on their phones — perfect for Zoom game nights.",
+                    desc: "Share a link after checkout for remote trivia nights. Players mark squares on their phones — perfect for Zoom game nights.",
                   },
                   {
                     icon: "✏️",
@@ -190,7 +190,7 @@ export default function TriviaBingoPage() {
                   {
                     icon: "💸",
                     title: "Free for Hosts",
-                    desc: "Create trivia bingo cards completely free. Perfect for bars, restaurants, and home game nights on any budget.",
+                    desc: "Create trivia bingo cards as a free draft. Start without a budget, then choose Premium when you need saved cards, exports, or sharing.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -213,7 +213,7 @@ export default function TriviaBingoPage() {
                 Ready to level up trivia night?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Create your trivia bingo cards in under 2 minutes. Free to start — the perfect side game for any pub quiz or game night.
+                Draft your trivia bingo cards in under 2 minutes, then start checkout to save or export — the perfect side game for any pub quiz or game night.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-purple-50 transition-all duration-300 shadow-xl">
@@ -263,7 +263,7 @@ export default function TriviaBingoPage() {
               </div>
             </div>
             <div className="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
-              <p>&copy; 2025 MyBingoCard. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
             </div>
           </div>
         </footer>

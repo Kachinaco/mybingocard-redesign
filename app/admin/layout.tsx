@@ -96,7 +96,7 @@ async function getLayoutBadges() {
     openTickets,
     pastDueUsers,
     recentErrorGroups,
-    mrr: paidUsers * 4.99,
+    mrr: paidUsers * 7.99,
     activeUsers: paidUsers,
   };
 }

@@ -296,7 +296,7 @@ export default function AdminUserDetailPage() {
   const trialIsActive = trialDaysRemaining !== null && trialDaysRemaining > 0;
   const trialIsExpired = trialDaysRemaining !== null && trialDaysRemaining <= 0;
 
-  // Figure out which day of the trial the user is on (assumes 7-day trial)
+  // Figure out which day of the trial the user is on (assumes the current trial window)
   const trialDayNumber = trialEnd
     ? Math.max(1, 8 - Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))))
     : null;

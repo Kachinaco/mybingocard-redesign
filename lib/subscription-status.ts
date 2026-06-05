@@ -3,6 +3,7 @@ import type { User } from "@/lib/db/users";
 
 export const ACTIVE_LIKE_SUBSCRIPTION_STATUSES = ["active", "trialing", "past_due", "unpaid"] as const;
 export const LEGACY_FREE_ACCESS_CUTOFF = new Date("2026-06-03T07:00:00.000Z");
+export const NEW_FREE_CARD_LIMIT = 1;
 export const LEGACY_FREE_CARD_LIMIT = 3;
 export const LEGACY_FREE_IMAGE_UPLOAD_LIMIT = 25;
 
@@ -55,13 +56,15 @@ export function isLegacyFreeUser(
 export function hasCardSaveAccess(
   user?: Pick<User, "createdAt" | "planType" | "subscriptionStatus" | "trialEndsAt"> | null
 ): boolean {
-  return hasPremiumAccess(user) || isLegacyFreeUser(user);
+  if (!user) return false;
+  return getEffectiveCardLimit(user) !== 0;
 }
 
 export function getEffectiveCardLimit(
   user?: Pick<User, "createdAt" | "planType" | "subscriptionStatus" | "trialEndsAt"> | null
 ): number {
+  if (!user) return 0;
   if (hasPremiumAccess(user)) return -1;
   if (isLegacyFreeUser(user)) return LEGACY_FREE_CARD_LIMIT;
-  return 0;
+  return NEW_FREE_CARD_LIMIT;
 }

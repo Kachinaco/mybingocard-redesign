@@ -41,7 +41,7 @@ const posts = [
   {
     slug: "best-bingo-games-baby-showers",
     title: "The 7 Best Bingo Games for Baby Showers",
-    excerpt: "From gift bingo to baby prediction cards — discover the most popular baby shower bingo variations that guests absolutely love.",
+    excerpt: "From gift bingo to baby prediction cards — discover baby shower bingo variations that guests absolutely love.",
     date: "February 24, 2026",
     readTime: "8 min read",
     category: "Baby Shower",
@@ -109,7 +109,7 @@ export default function BlogPage() {
             <div className="w-px h-4 bg-slate-200"></div>
             <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
             <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-              Create Free
+              Start a Draft
             </Link>
           </nav>
         </div>
@@ -173,10 +173,10 @@ export default function BlogPage() {
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">Ready to create your own bingo cards?</h2>
             <p className="text-slate-600 mb-8 max-w-xl mx-auto">
-              Put these ideas into action — create free custom bingo cards in under 2 minutes.
+              Put these ideas into action — draft custom bingo cards in under 2 minutes.
             </p>
             <Link href="/create" className="inline-flex bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300">
-              Create Free Bingo Cards
+              Start a Draft
             </Link>
           </div>
         </section>
@@ -196,7 +196,7 @@ export default function BlogPage() {
                 <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
               </Link>
               <p className="text-slate-500 max-w-sm leading-relaxed">
-                Free bingo card generator for printable and online games, from classrooms to parties and weddings.
+                Free bingo draft editor for printable and online games, from classrooms to parties and weddings.
               </p>
             </div>
             <div>
@@ -218,7 +218,7 @@ export default function BlogPage() {
             </div>
           </div>
           <div className="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
-            <p>&copy; 2025 MyBingoCard. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
           </div>
         </div>
       </footer>      <SeoSupportBlock slug="blog" />
