@@ -24,14 +24,21 @@ const ALLOWED_MIME_TYPES = [
 ];
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const MAX_UPLOADS_FREE = 25;
+const MAX_UPLOADS_FREE = 0;
+const MAX_UPLOADS_LEGACY_FREE = 25;
 const MAX_UPLOADS_PREMIUM = 500;
 
-export function getUploadLimits(isPremium: boolean) {
+export function getUploadLimits(isPremium: boolean, isLegacyFree: boolean = false) {
+  const maxUploads = isPremium
+    ? MAX_UPLOADS_PREMIUM
+    : isLegacyFree
+      ? MAX_UPLOADS_LEGACY_FREE
+      : MAX_UPLOADS_FREE;
+
   return {
     maxFileSize: MAX_FILE_SIZE,
-    maxUploads: isPremium ? MAX_UPLOADS_PREMIUM : MAX_UPLOADS_FREE,
-    canUpload: true,
+    maxUploads,
+    canUpload: maxUploads > 0,
   };
 }
 

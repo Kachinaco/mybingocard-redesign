@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { getCardById, updateCard } from "@/lib/db/cards";
 import { getUserById } from "@/lib/db/users";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { hasCardSaveAccess, hasPremiumAccess } from "@/lib/subscription-status";
 import {
   getBingoGridShape,
   normalizeBingoVariant,
@@ -85,6 +86,34 @@ export async function PUT(
       );
     }
 
+    const cardOwner = await getUserById(session.user.id);
+    if (!hasCardSaveAccess(cardOwner)) {
+      await trackActivity({
+        event: "card_save_blocked",
+        source: "server",
+        userId: session.user.id,
+        email: session.user.email || null,
+        pathname: requestContext.pathname,
+        domain: requestContext.domain,
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+        metadata: {
+          reason: "trial_required_for_update",
+          cardId: id,
+          planType: cardOwner?.planType || "FREE",
+          subscriptionStatus: cardOwner?.subscriptionStatus || "inactive",
+        },
+      });
+      return NextResponse.json(
+        {
+          error: "Start your 3-day trial or choose lifetime access to save changes.",
+          upgradeRequired: true,
+          trialRequired: true,
+        },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { title, description, size, cells, freeSpace, isPublic, style } = body;
     const bingoVariant = normalizeBingoVariant(body.bingoVariant);
@@ -128,9 +157,8 @@ export async function PUT(
       );
     }
     // Sharing is a premium feature — force isPublic to false for free users
-    const cardOwner = await getUserById(session.user.id);
     const ownerPlan = cardOwner?.planType || "FREE";
-    const finalIsPublic = ownerPlan === "FREE" ? false : !!isPublic;
+    const finalIsPublic = hasPremiumAccess(cardOwner) ? !!isPublic : false;
 
     // Update the card
     const updatedCard = await updateCard(id, {

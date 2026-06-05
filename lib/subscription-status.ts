@@ -2,6 +2,9 @@ import type Stripe from "stripe";
 import type { User } from "@/lib/db/users";
 
 export const ACTIVE_LIKE_SUBSCRIPTION_STATUSES = ["active", "trialing", "past_due", "unpaid"] as const;
+export const LEGACY_FREE_ACCESS_CUTOFF = new Date("2026-06-03T07:00:00.000Z");
+export const LEGACY_FREE_CARD_LIMIT = 3;
+export const LEGACY_FREE_IMAGE_UPLOAD_LIMIT = 25;
 
 export function hasFutureTrialEnd(trialEndsAt?: Date | string | null): boolean {
   if (!trialEndsAt) return false;
@@ -33,4 +36,32 @@ export function hasPremiumAccess(user?: Pick<User, "planType" | "subscriptionSta
   if (user.subscriptionStatus === "lifetime") return true;
   if (user.planType !== "PREMIUM") return false;
   return isActiveLikeSubscriptionStatus(user.subscriptionStatus) || isUserOnTrial(user);
+}
+
+export function isLegacyFreeUser(
+  user?: Pick<User, "createdAt" | "planType" | "subscriptionStatus" | "trialEndsAt"> | null
+): boolean {
+  if (!user || !user.createdAt) return false;
+  if (hasPremiumAccess(user)) return false;
+
+  const createdAt = user.createdAt instanceof Date
+    ? user.createdAt
+    : new Date(String(user.createdAt));
+
+  if (Number.isNaN(createdAt.getTime())) return false;
+  return createdAt < LEGACY_FREE_ACCESS_CUTOFF;
+}
+
+export function hasCardSaveAccess(
+  user?: Pick<User, "createdAt" | "planType" | "subscriptionStatus" | "trialEndsAt"> | null
+): boolean {
+  return hasPremiumAccess(user) || isLegacyFreeUser(user);
+}
+
+export function getEffectiveCardLimit(
+  user?: Pick<User, "createdAt" | "planType" | "subscriptionStatus" | "trialEndsAt"> | null
+): number {
+  if (hasPremiumAccess(user)) return -1;
+  if (isLegacyFreeUser(user)) return LEGACY_FREE_CARD_LIMIT;
+  return 0;
 }

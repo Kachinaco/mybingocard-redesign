@@ -1,5 +1,6 @@
 import clientPromise from "../mongodb";
 import { ObjectId } from "mongodb";
+import { getEffectiveCardLimit, hasPremiumAccess } from "@/lib/subscription-status";
 
 export type SubscriptionPlan = "free" | "starter" | "pro" | "unlimited";
 
@@ -27,8 +28,8 @@ export interface Subscription {
 // Plan limits configuration
 export const PLAN_LIMITS = {
   free: {
-    maxCards: 3,
-    maxExports: 10,
+    maxCards: 0,
+    maxExports: 0,
     canAccessPremiumTemplates: false,
     canRemoveWatermark: false,
   },
@@ -225,12 +226,16 @@ export async function canCreateCard(userId: string): Promise<boolean> {
     const db = client.db("mybingocard");
     const user = await db.collection("users").findOne(
       { _id: new ObjectId(userId) },
-      { projection: { planType: 1 } }
+      { projection: { createdAt: 1, planType: 1, subscriptionStatus: 1, trialEndsAt: 1 } }
     );
-    if (user?.planType && user.planType !== "FREE") {
-      // Paid plan (e.g. PREMIUM) — unlimited cards
+    if (hasPremiumAccess(user as any)) {
       return true;
     }
+
+    const effectiveCardLimit = getEffectiveCardLimit(user as any);
+    if (effectiveCardLimit === -1) return true;
+    const currentCount = await getUserCardCount(userId);
+    return currentCount < effectiveCardLimit;
   } catch {
     // userId not a valid ObjectId — fall through to free limit
   }

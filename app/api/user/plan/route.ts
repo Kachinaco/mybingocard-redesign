@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getUserByEmail } from "@/lib/db/users";
 import { getPlanPermissions } from "@/lib/permissions";
-import { getTrialDaysLeft, isUserOnTrial } from "@/lib/subscription-status";
+import { getEffectiveCardLimit, getTrialDaysLeft, hasPremiumAccess, isLegacyFreeUser, isUserOnTrial, LEGACY_FREE_IMAGE_UPLOAD_LIMIT } from "@/lib/subscription-status";
 
 export async function GET() {
   try {
@@ -24,7 +24,18 @@ export async function GET() {
       );
     }
 
-    const permissions = getPlanPermissions(user.planType);
+    const entitled = hasPremiumAccess(user);
+    const legacyFreeAccess = isLegacyFreeUser(user);
+    const effectivePlanType = entitled ? "PREMIUM" : "FREE";
+    const permissions = getPlanPermissions(effectivePlanType);
+    const effectivePermissions = legacyFreeAccess
+      ? {
+          ...permissions,
+          maxCards: getEffectiveCardLimit(user),
+          canUploadImages: true,
+          maxImageUploads: LEGACY_FREE_IMAGE_UPLOAD_LIMIT,
+        }
+      : permissions;
 
     const isOnTrial = isUserOnTrial(user);
     const trialDaysLeft = getTrialDaysLeft(user.trialEndsAt);
@@ -32,10 +43,13 @@ export async function GET() {
     return NextResponse.json({
       planType: user.planType,
       subscriptionStatus: user.subscriptionStatus,
+      effectivePlanType,
+      hasPremiumAccess: entitled,
+      legacyFreeAccess,
       currentPeriodEnd: user.currentPeriodEnd,
       cancelAtPeriodEnd: user.cancelAtPeriodEnd || false,
       cancelAt: user.cancelAt || null,
-      plan: permissions,
+      plan: effectivePermissions,
       isOnTrial,
       trialEndsAt: user.trialEndsAt || null,
       trialDaysLeft,

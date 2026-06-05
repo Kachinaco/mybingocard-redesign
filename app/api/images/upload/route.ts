@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createImage, getUserImageCount, getUploadLimits, isAllowedMimeType } from "@/lib/db/images";
 import { getUserById, addFeatureUsed } from "@/lib/db/users";
+import { hasPremiumAccess, isLegacyFreeUser } from "@/lib/subscription-status";
 import { trackActivity, getRequestActivityContext } from "@/lib/activity";
 import sharp from "sharp";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -26,8 +27,9 @@ export async function POST(request: Request) {
 
     // Check plan limits using user.planType (same as all other API routes)
     const user = await getUserById(userId);
-    const isPremium = user?.planType === "PREMIUM";
-    const limits = getUploadLimits(isPremium);
+    const isPremium = hasPremiumAccess(user);
+    const isLegacyFree = isLegacyFreeUser(user);
+    const limits = getUploadLimits(isPremium, isLegacyFree);
 
     if (!limits.canUpload) {
       return NextResponse.json(

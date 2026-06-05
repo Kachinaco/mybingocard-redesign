@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getUserImages, deleteImage, getUserImageCount, getUploadLimits } from "@/lib/db/images";
 import { getUserById } from "@/lib/db/users";
+import { hasPremiumAccess, isLegacyFreeUser } from "@/lib/subscription-status";
 import { unlink } from "node:fs/promises";
 
 export async function GET() {
@@ -14,8 +15,9 @@ export async function GET() {
     const images = await getUserImages(session.user.id);
 
     const user = await getUserById(session.user.id);
-    const isPremium = user?.planType === "PREMIUM";
-    const limits = getUploadLimits(isPremium);
+    const isPremium = hasPremiumAccess(user);
+    const isLegacyFree = isLegacyFreeUser(user);
+    const limits = getUploadLimits(isPremium, isLegacyFree);
     const count = await getUserImageCount(session.user.id);
 
     return NextResponse.json({
@@ -33,6 +35,7 @@ export async function GET() {
         count,
         limit: limits.maxUploads,
         canUpload: limits.canUpload,
+        legacyFreeAccess: isLegacyFree,
       },
     });
   } catch (error) {

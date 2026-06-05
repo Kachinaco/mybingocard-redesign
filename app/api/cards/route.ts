@@ -8,7 +8,7 @@ import { getUserById, incrementCardStats } from "@/lib/db/users";
 import { getGeneratedBatchIdMapForCards } from "@/lib/db/batchPurchases";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyCardCreated, notifyFirstCard } from "@/lib/discord";
-import { isUserOnTrial } from "@/lib/subscription-status";
+import { hasCardSaveAccess, hasPremiumAccess, isUserOnTrial } from "@/lib/subscription-status";
 import {
   getBingoGridShape,
   normalizeBingoVariant,
@@ -65,6 +65,33 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
+      );
+    }
+
+    const user = await getUserById(session.user.id);
+    if (!hasCardSaveAccess(user)) {
+      await trackActivity({
+        event: "card_save_blocked",
+        source: "server",
+        userId: session.user.id,
+        email: session.user.email || null,
+        pathname: requestContext.pathname,
+        domain: requestContext.domain,
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+        metadata: {
+          reason: "trial_required",
+          planType: user?.planType || "FREE",
+          subscriptionStatus: user?.subscriptionStatus || "inactive",
+        },
+      });
+      return NextResponse.json(
+        {
+          error: "Start your 3-day trial or choose lifetime access to save bingo cards.",
+          upgradeRequired: true,
+          trialRequired: true,
+        },
+        { status: 403 }
       );
     }
 
@@ -139,7 +166,6 @@ export async function POST(request: Request) {
     }
 
     // Sharing is a premium feature — force isPublic to false for free users
-    const user = await getUserById(session.user.id);
     const userPlan = user?.planType || "FREE";
     if (userPlan === "FREE" && data.isPublic) {
       data.isPublic = false;
@@ -276,6 +302,34 @@ export async function PUT(request: Request) {
     if (existingCard.userId.toString() !== session.user.id) {
       return NextResponse.json(
         { error: "Forbidden" },
+        { status: 403 }
+      );
+    }
+
+    const user = await getUserById(session.user.id);
+    if (!hasPremiumAccess(user)) {
+      await trackActivity({
+        event: "card_save_blocked",
+        source: "server",
+        userId: session.user.id,
+        email: session.user.email || null,
+        pathname: requestContext.pathname,
+        domain: requestContext.domain,
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+        metadata: {
+          reason: "trial_required_for_update",
+          cardId: data.cardId,
+          planType: user?.planType || "FREE",
+          subscriptionStatus: user?.subscriptionStatus || "inactive",
+        },
+      });
+      return NextResponse.json(
+        {
+          error: "Start your 3-day trial or choose lifetime access to save changes.",
+          upgradeRequired: true,
+          trialRequired: true,
+        },
         { status: 403 }
       );
     }

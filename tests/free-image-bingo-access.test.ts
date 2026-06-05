@@ -12,18 +12,19 @@ const uploadRouteSource = readSource("app/api/images/upload/route.ts");
 const imageServeRouteSource = readSource("app/api/images/[imageId]/route.ts");
 
 describe("free image bingo access", () => {
-  test("allows free plans to create image bingo cells with a bounded upload limit", () => {
+  test("allows free drafts to use image cells while new free uploads stay blocked", () => {
     expect(stripeConfigSource).toContain('"Image bingo cards"');
-    expect(stripeConfigSource).toContain("canUploadImages: true");
-    expect(stripeConfigSource).toContain("maxImageUploads: 25");
-    expect(imageDbSource).toContain("const MAX_UPLOADS_FREE = 25");
-    expect(imageDbSource).toContain("canUpload: true");
+    expect(stripeConfigSource).toContain("canUploadImages: false");
+    expect(stripeConfigSource).toContain("maxImageUploads: 0");
+    expect(imageDbSource).toContain("const MAX_UPLOADS_FREE = 0");
+    expect(imageDbSource).toContain("const MAX_UPLOADS_LEGACY_FREE = 25");
+    expect(imageDbSource).toContain("canUpload: maxUploads > 0");
   });
 
-  test("does not route free logged-in users to the upgrade modal for image picking", () => {
+  test("uses entitlement-aware upload permission in the image picker", () => {
     expect(createPageSource).not.toContain('setUpgradeReason("image_picker")');
     expect(createPageSource).toContain("setImagePickerCellIndex(index)");
-    expect(createPageSource).toContain("canUploadImages={true}");
+    expect(createPageSource).toContain("canUploadImages={Boolean(permissionStatus?.allowed)}");
   });
 
   test("uses upload permission instead of premium status inside the picker", () => {
@@ -33,7 +34,8 @@ describe("free image bingo access", () => {
   });
 
   test("the upload API uses the shared image upload limits", () => {
-    expect(uploadRouteSource).toContain("const limits = getUploadLimits(isPremium)");
+    expect(uploadRouteSource).toContain("isLegacyFreeUser");
+    expect(uploadRouteSource).toContain("const limits = getUploadLimits(isPremium, isLegacyFree)");
     expect(uploadRouteSource).toContain("currentCount >= limits.maxUploads");
   });
 

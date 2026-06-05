@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getCardById, updateCard, generateShareLink } from "@/lib/db/cards";
+import { getUserById } from "@/lib/db/users";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { hasCardSaveAccess } from "@/lib/subscription-status";
 import bcrypt from "bcryptjs";
 
 export async function POST(
@@ -32,6 +34,18 @@ export async function POST(
     if (card.userId.toString() !== session.user.id) {
       return NextResponse.json(
         { error: "You don't have permission to share this card" },
+        { status: 403 }
+      );
+    }
+
+    const user = await getUserById(session.user.id);
+    if (!hasCardSaveAccess(user)) {
+      return NextResponse.json(
+        {
+          error: "Start your 3-day trial or choose lifetime access to share bingo cards.",
+          upgradeRequired: true,
+          trialRequired: true,
+        },
         { status: 403 }
       );
     }
@@ -100,6 +114,18 @@ export async function PUT(
       return NextResponse.json(
         { error: "Not found or forbidden" },
         { status: 404 }
+      );
+    }
+
+    const user = await getUserById(session.user.id);
+    if (!hasCardSaveAccess(user)) {
+      return NextResponse.json(
+        {
+          error: "Start your 3-day trial or choose lifetime access to update share settings.",
+          upgradeRequired: true,
+          trialRequired: true,
+        },
+        { status: 403 }
       );
     }
 

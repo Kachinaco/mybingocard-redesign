@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getUserByEmail } from "@/lib/db/users";
 import { PLANS } from "@/lib/stripe/config";
+import { getEffectiveCardLimit, hasPremiumAccess, isLegacyFreeUser } from "@/lib/subscription-status";
 import clientPromise from "@/lib/mongodb";
 import { trackActivity } from "@/lib/activity";
-import { sendCardLimitEmail } from "@/lib/email";
 
 export async function GET() {
   try {
@@ -38,7 +38,9 @@ export async function GET() {
       userId: user._id.toString(),
     });
 
-    const maxCards = plan.limits.maxCards;
+    const entitled = hasPremiumAccess(user);
+    const legacyFree = isLegacyFreeUser(user);
+    const maxCards = getEffectiveCardLimit(user);
     const allowed = maxCards === -1 || totalCards < maxCards;
 
     trackActivity({
@@ -50,37 +52,28 @@ export async function GET() {
       metadata: {
         allowed,
         cards_created: totalCards,
-        cards_limit: maxCards,
-        plan_type: planType,
+      cards_limit: maxCards,
+      plan_type: planType,
+      entitled,
+      legacy_free: legacyFree,
       },
     }).catch(() => {});
 
-    // Send card-limit upsell email (once per user)
-    if (!allowed && planType === "FREE") {
-      const alreadySent = await db.collection("drip_log").findOne({
-        userId: user._id,
-        campaignId: "card_limit_hit",
-      });
-      if (!alreadySent) {
-        sendCardLimitEmail(session.user.email, user.name || "there").catch(() => {});
-        db.collection("drip_log").insertOne({
-          userId: user._id,
-          campaignId: "card_limit_hit",
-          email: session.user.email,
-          subject: "You hit your card limit",
-          sentAt: new Date(),
-          status: "sent",
-        }).catch(() => {});
-      }
-    }
+    const reason = allowed
+      ? undefined
+      : legacyFree
+        ? `You've reached the legacy free plan limit of ${maxCards} saved cards. Existing cards can still be edited.`
+        : "Start your 3-day trial or choose lifetime access to save, export, share, and publish bingo cards.";
 
     return NextResponse.json({
       allowed,
-      reason: allowed ? undefined : `You've reached the free plan limit of ${maxCards} cards. Upgrade to Premium for more cards plus AI generation, larger batches, and advanced exports.`,
-      upgradeRequired: !allowed,
+      reason,
+      upgradeRequired: !allowed && !legacyFree,
+      trialRequired: !allowed && !legacyFree,
       cardsCreated: totalCards,
       cardsLimit: maxCards,
       planType,
+      legacyFreeAccess: legacyFree,
       subscriptionStatus: user.subscriptionStatus,
       currentPeriodEnd: user.currentPeriodEnd || null,
       cancelAtPeriodEnd: user.cancelAtPeriodEnd || false,
