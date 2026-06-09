@@ -4,7 +4,7 @@ import MobileNav from "@/components/MobileNav";
 import AdUnit from "@/components/AdUnit";
 import { EmailCaptureInline } from "@/components/EmailCapture";
 import { seoLandingPages, type SeoLandingPageData } from "@/lib/seo-landing-pages";
-import { FACEBOOK_PAGE_URL, REDDIT_COMMUNITY_URL } from "@/lib/social-links";
+import { FACEBOOK_PAGE_URL, IOS_APP_STORE_URL, REDDIT_COMMUNITY_URL } from "@/lib/social-links";
 
 export const metadata: Metadata = {
   title: "Free Bingo Draft Editor & Bingo Card Maker | MyBingoCard",
@@ -213,6 +213,25 @@ export default function Home() {
                 <p className="mt-4 text-sm text-slate-500 text-center lg:text-left">
                   Free to draft. Start a trial or choose lifetime when you are ready to save.
                 </p>
+
+                <div className="mt-6 flex flex-col items-center gap-2 lg:items-start">
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Also available for iPhone</p>
+                  <a
+                    href={IOS_APP_STORE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Download MyBingoCard on the App Store"
+                    className="inline-flex h-12 items-center justify-center rounded-lg px-1 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  >
+                    <img
+                      src="/badges/download-on-the-app-store.svg"
+                      alt="Download on the App Store"
+                      width={120}
+                      height={40}
+                      className="h-10 w-auto"
+                    />
+                  </a>
+                </div>
 
                 <div className="mt-8 flex items-center justify-center lg:justify-start gap-4 text-sm text-slate-500">
                   <div className="flex -space-x-3">
