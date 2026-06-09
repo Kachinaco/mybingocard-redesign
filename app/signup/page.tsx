@@ -7,6 +7,7 @@ import Link from "next/link";
 import { trackClientActivity } from "@/lib/activity-client";
 import { buildVerifyEmailPageUrl } from "@/lib/auth/verify-email-page-links";
 import { getBrowserStorageItem, setBrowserStorageItem } from "@/lib/browser-storage";
+import { sanitizeAuthCallbackUrl } from "@/lib/auth/callback-url";
 
 type StoredAttribution = {
   utm_source?: string;
@@ -34,10 +35,6 @@ function safeDocumentReferrer(): string {
   } catch {
     return "";
   }
-}
-
-function buildPostSignupPath(callbackUrl: string): string {
-  return callbackUrl.startsWith("/") ? callbackUrl : "/dashboard";
 }
 
 function SignupForm() {
@@ -83,7 +80,7 @@ function SignupForm() {
     if (!hasFiredFunnelView.current) {
       hasFiredFunnelView.current = true;
       trackClientActivity("funnel_signup_page_viewed", {
-        callbackUrl: searchParams.get("callbackUrl") || "/dashboard",
+        callbackUrl: sanitizeAuthCallbackUrl(searchParams.get("callbackUrl")),
       });
     }
   }, [searchParams]);
@@ -191,9 +188,9 @@ function SignupForm() {
       const storedAttribution = readStoredAttribution();
       trackClientActivity("signup_attempted", {
         method: "credentials",
-        callbackUrl: searchParams.get("callbackUrl") || "/dashboard",
+        callbackUrl: sanitizeAuthCallbackUrl(searchParams.get("callbackUrl")),
       });
-      const callbackUrl = buildPostSignupPath(searchParams.get("callbackUrl") || "/dashboard");
+      const callbackUrl = sanitizeAuthCallbackUrl(searchParams.get("callbackUrl"));
       const response = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -274,7 +271,7 @@ function SignupForm() {
   };
 
   const handleGoogleSignup = () => {
-    const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+    const callbackUrl = sanitizeAuthCallbackUrl(searchParams.get("callbackUrl"));
     trackClientActivity("oauth_signup_started", {
       provider: "google",
       callbackUrl,
@@ -285,7 +282,7 @@ function SignupForm() {
   };
 
   const handleAppleSignup = () => {
-    const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+    const callbackUrl = sanitizeAuthCallbackUrl(searchParams.get("callbackUrl"));
     trackClientActivity("oauth_signup_started", {
       provider: "apple",
       callbackUrl,

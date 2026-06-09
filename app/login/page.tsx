@@ -8,11 +8,12 @@ import { trackClientActivity } from "@/lib/activity-client";
 import { getInitialLoginEmails } from "@/lib/auth/login-prefill";
 import { useSession } from "next-auth/react";
 import { getBrowserStorageItem } from "@/lib/browser-storage";
+import { sanitizeAuthCallbackUrl } from "@/lib/auth/callback-url";
 
 function LoginContent() {
   const searchParams = useSearchParams();
   const sessionState = useSession();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = sanitizeAuthCallbackUrl(searchParams.get("callbackUrl"));
   const appleSignInEnabled = process.env.NEXT_PUBLIC_AUTH_APPLE_ENABLED === "true";
   const justVerified = searchParams.get("verified") === "1";
   const authError = searchParams.get("error") || "";

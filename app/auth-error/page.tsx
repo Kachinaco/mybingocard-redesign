@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Suspense, useEffect } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { getBrowserStorageItem } from "@/lib/browser-storage";
+import { sanitizeAuthCallbackUrl } from "@/lib/auth/callback-url";
 
 const errorMessages: Record<string, { title: string; message: string; action: string; href: string; showGoogle?: boolean }> = {
   Verification: {
@@ -47,7 +48,7 @@ function AuthErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get("error") || "Default";
   const info = errorMessages[error] ?? errorMessages.Default!;
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = sanitizeAuthCallbackUrl(searchParams.get("callbackUrl"));
   const startNativeOAuth = (provider: "google" | "apple", targetCallbackUrl: string) => {
     if (typeof window === "undefined") return false;
 

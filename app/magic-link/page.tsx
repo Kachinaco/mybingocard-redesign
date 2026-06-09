@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { sanitizeAuthCallbackUrl } from "@/lib/auth/callback-url";
 
 function MagicLinkContent() {
   const searchParams = useSearchParams();
@@ -10,7 +11,7 @@ function MagicLinkContent() {
 
   useEffect(() => {
     const token = searchParams.get("token") || "";
-    const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+    const callbackUrl = sanitizeAuthCallbackUrl(searchParams.get("callbackUrl"));
 
     if (!token) {
       setMessage("This magic link is missing its sign-in token.");
