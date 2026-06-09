@@ -10,6 +10,7 @@ import { sanitizePostVerificationCallback } from "@/lib/auth/verify-email-redire
 import { readJsonObject } from "@/lib/request-json";
 import { sendMetaConversionEvent } from "@/lib/meta-conversions";
 import { evaluateHoneypot } from "@/lib/honeypot";
+import { checkSignupAbuseLimit } from "@/lib/signup-abuse";
 
 export async function POST(request: Request) {
   try {
@@ -94,6 +95,40 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "User with this email already exists" },
         { status: 400 }
+      );
+    }
+
+    const signupLimit = await checkSignupAbuseLimit(dbBlock, {
+      email: normalizedEmail,
+      ipAddress: requestContext.ipAddress,
+      userAgent: requestContext.userAgent,
+    });
+    if (!signupLimit.allowed) {
+      await trackActivity({
+        event: "signup_rate_limit_blocked",
+        source: "server",
+        userId: null,
+        email: normalizedEmail,
+        pathname: requestContext.pathname,
+        domain: requestContext.domain,
+        ipAddress: requestContext.ipAddress,
+        userAgent: requestContext.userAgent,
+        metadata: {
+          reason: signupLimit.reason,
+          count: signupLimit.count,
+          limit: signupLimit.limit,
+          retryAfterSeconds: signupLimit.retryAfterSeconds,
+        },
+      });
+
+      return NextResponse.json(
+        { error: "Too many signup attempts. Please try again later." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(signupLimit.retryAfterSeconds),
+          },
+        }
       );
     }
 

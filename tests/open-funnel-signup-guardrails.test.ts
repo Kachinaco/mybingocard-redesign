@@ -32,6 +32,7 @@ describe("open-funnel signup guardrails", () => {
   const providersSource = readSource("components/Providers.tsx");
   const utmFlusherSource = readSource("components/UtmFlusher.tsx");
   const signupRouteSource = readSource("app/api/auth/signup/route.ts");
+  const signupAbuseSource = readSource("lib/signup-abuse.ts");
   const emailCaptureRouteSource = readSource("app/api/email-capture/route.ts");
   const emailCaptureSource = readSource("components/EmailCapture.tsx");
   const honeypotSource = readSource("lib/honeypot.ts");
@@ -85,7 +86,7 @@ describe("open-funnel signup guardrails", () => {
     expect(signupPageSource).not.toContain('name="website"');
   });
 
-  test("server-side signup does not keep broad bot-name or IP-rate rejectors", () => {
+  test("server-side signup does not keep broad bot-name or fake-success rejectors", () => {
     expect(signupRouteSource).not.toContain("nameLooksLikeBot");
     expect(signupRouteSource).not.toContain("MBC_SIGNUP_IP_HOURLY_LIMIT");
     expect(signupRouteSource).not.toContain('user: { id: "bot"');
@@ -94,6 +95,21 @@ describe("open-funnel signup guardrails", () => {
     expect(emailCaptureRouteSource).toContain('event: "email_capture_honeypot_blocked"');
     expect(honeypotSource).toContain("filled_hidden_field");
     expect(honeypotSource).toContain("submitted_too_fast");
+  });
+
+  test("server-side signup throttles before user creation or email delivery", () => {
+    const rateLimitIndex = signupRouteSource.indexOf("const signupLimit = await checkSignupAbuseLimit");
+    const createUserIndex = signupRouteSource.indexOf("const user = await createUser");
+    const verificationEmailIndex = signupRouteSource.indexOf("sendEmailVerificationEmail(email");
+
+    expect(signupRouteSource).toContain('from "@/lib/signup-abuse"');
+    expect(signupRouteSource).toContain('event: "signup_rate_limit_blocked"');
+    expect(rateLimitIndex).toBeGreaterThan(-1);
+    expect(createUserIndex).toBeGreaterThan(rateLimitIndex);
+    expect(verificationEmailIndex).toBeGreaterThan(rateLimitIndex);
+    expect(signupAbuseSource).toContain('collection("signup_attempts")');
+    expect(signupAbuseSource).toContain("expireAfterSeconds");
+    expect(signupAbuseSource).toContain("MBC_SIGNUP_RATE_SHORT_MAX");
   });
 
   test("server-side capture and signup support precise identity blocks", () => {

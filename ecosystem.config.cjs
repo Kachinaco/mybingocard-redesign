@@ -3,7 +3,7 @@ module.exports = {
     {
       name: "mybingocard",
       script: "/usr/bin/bash",
-      args: "-c 'bun run start -- -p 4000'",
+      args: "-c 'bun run start -- -H 127.0.0.1 -p 4000'",
       cwd: "/var/www/mybingocard.com",
       exec_mode: "fork",
       instances: 1,

@@ -11,6 +11,7 @@ describe("production ops guardrails", () => {
   const truthSource = readSource("scripts/traffic-truth-report.cjs");
   const recoverySource = readSource("scripts/traffic-recovery-submit.cjs");
   const cronSource = readSource("scripts/install-ops-cron.cjs");
+  const ecosystemSource = readSource("ecosystem.config.cjs");
 
   test("package exposes deploy, monitor, truth, and recovery commands", () => {
     expect(packageSource).toContain('"ops:monitor": "node scripts/ops-regression-monitor.cjs"');
@@ -29,6 +30,11 @@ describe("production ops guardrails", () => {
     expect(deploySource).toContain("/t/tracker.js");
     expect(deploySource).toContain("/t/api/track");
     expect(deploySource).toContain("--verify-only");
+  });
+
+  test("production app binds to localhost behind Nginx", () => {
+    expect(ecosystemSource).toContain("-H 127.0.0.1 -p 4000");
+    expect(ecosystemSource).not.toContain("0.0.0.0");
   });
 
   test("production deploy guard preserves old Next static assets across builds", () => {
