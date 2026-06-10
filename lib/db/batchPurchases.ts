@@ -9,8 +9,13 @@ export interface BatchPurchase {
   batchCount: BatchCount;
   amount: number;
   currency: string;
-  stripeSessionId: string;
+  purchaseProvider?: "stripe" | "apple";
+  stripeSessionId?: string;
   stripePaymentIntentId?: string | null;
+  appleTransactionId?: string | null;
+  appleOriginalTransactionId?: string | null;
+  appleProductId?: string | null;
+  appleEnvironment?: string | null;
   status: "paid" | "processing" | "generated" | "refunded" | "canceled";
   generatedCardIds: string[];
   purchasedAt: Date;
@@ -40,12 +45,56 @@ export async function upsertBatchPurchaseFromCheckout(data: {
     {
       $setOnInsert: {
         ...data,
+        purchaseProvider: "stripe",
         status: "paid",
         generatedCardIds: [],
         purchasedAt: now,
         generatedAt: null,
       },
       $set: {
+        updatedAt: now,
+      },
+    },
+    {
+      upsert: true,
+      returnDocument: "after",
+    }
+  );
+
+  return result;
+}
+
+export async function upsertBatchPurchaseFromAppleTransaction(data: {
+  userId: string;
+  email: string;
+  batchCount: BatchCount;
+  amount: number;
+  currency: string;
+  appleTransactionId: string;
+  appleOriginalTransactionId?: string | null;
+  appleProductId: string;
+  appleEnvironment?: string | null;
+}) {
+  const collection = await getBatchPurchasesCollection();
+  const now = new Date();
+
+  const result = await collection.findOneAndUpdate(
+    { appleTransactionId: data.appleTransactionId },
+    {
+      $setOnInsert: {
+        ...data,
+        purchaseProvider: "apple",
+        stripeSessionId: `apple:${data.appleTransactionId}`,
+        stripePaymentIntentId: null,
+        status: "paid",
+        generatedCardIds: [],
+        purchasedAt: now,
+        generatedAt: null,
+      },
+      $set: {
+        email: data.email,
+        appleOriginalTransactionId: data.appleOriginalTransactionId || null,
+        appleEnvironment: data.appleEnvironment || null,
         updatedAt: now,
       },
     },

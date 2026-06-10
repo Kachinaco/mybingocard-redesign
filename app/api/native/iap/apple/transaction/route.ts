@@ -8,6 +8,8 @@ import {
   PLAN_LIMITS,
   updateSubscription,
 } from "@/lib/db/subscriptions";
+import { getBatchPack, isBatchCount, type BatchCount } from "@/lib/batchPacks";
+import { upsertBatchPurchaseFromAppleTransaction } from "@/lib/db/batchPurchases";
 import { createVerify, X509Certificate } from "node:crypto";
 
 export const runtime = "nodejs";
@@ -15,6 +17,12 @@ export const runtime = "nodejs";
 const APPLE_BUNDLE_ID = "com.coryanalla.MyBingoCardApp";
 const APPLE_MONTHLY_PRODUCT_ID = "com.coryanalla.MyBingoCardApp.premium.monthly";
 const APPLE_LIFETIME_PRODUCT_ID = "com.coryanalla.MyBingoCardApp.premium.lifetime";
+const APPLE_BATCH_PRODUCT_IDS: Record<string, BatchCount> = {
+  "com.coryanalla.MyBingoCardApp.batch.30": 30,
+  "com.coryanalla.MyBingoCardApp.batch.100": 100,
+  "com.coryanalla.MyBingoCardApp.batch.250": 250,
+  "com.coryanalla.MyBingoCardApp.batch.500": 500,
+};
 
 type AppleTransactionPayload = {
   bundleId?: string;
@@ -119,9 +127,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Apple transaction bundle does not match this app" }, { status: 400 });
     }
 
-    const productId = transaction.productId;
-    if (productId !== APPLE_MONTHLY_PRODUCT_ID && productId !== APPLE_LIFETIME_PRODUCT_ID) {
-      return NextResponse.json({ error: "Apple product is not a MyBingoCard Premium product" }, { status: 400 });
+    const productId = transaction.productId || "";
+    const batchCount = APPLE_BATCH_PRODUCT_IDS[productId];
+    const isPremiumProduct = productId === APPLE_MONTHLY_PRODUCT_ID || productId === APPLE_LIFETIME_PRODUCT_ID;
+    if (!isPremiumProduct && !isBatchCount(batchCount)) {
+      return NextResponse.json({ error: "Apple product is not a MyBingoCard product" }, { status: 400 });
     }
 
     const now = new Date();
@@ -146,6 +156,62 @@ export async function POST(request: Request) {
 
     const client = await clientPromise;
     const db = client.db("mybingocard");
+
+    if (isBatchCount(batchCount)) {
+      if (!transaction.transactionId) {
+        return NextResponse.json({ error: "Apple batch transaction is missing transactionId" }, { status: 400 });
+      }
+
+      const batchPack = getBatchPack(batchCount);
+      if (!batchPack) {
+        return NextResponse.json({ error: "Apple batch product is not configured" }, { status: 400 });
+      }
+
+      const batchPurchase = await upsertBatchPurchaseFromAppleTransaction({
+        userId: user._id.toString(),
+        email: session.user.email,
+        batchCount,
+        amount: batchPack.amount,
+        currency: batchPack.currency,
+        appleTransactionId: transaction.transactionId,
+        appleOriginalTransactionId: transaction.originalTransactionId || transaction.transactionId,
+        appleProductId: productId,
+        appleEnvironment: transaction.environment || null,
+      });
+
+      await db.collection("apple_iap_transactions").updateOne(
+        { transactionId: transaction.transactionId },
+        {
+          $set: {
+            userId: user._id.toString(),
+            email: session.user.email,
+            productId,
+            purchaseType: "batch_pack",
+            batchCount,
+            batchPurchaseId: batchPurchase?._id?.toString?.() || null,
+            originalTransactionId: transaction.originalTransactionId || null,
+            environment: transaction.environment || null,
+            purchaseDate,
+            expiresDate: null,
+            status: "paid",
+            updatedAt: now,
+          },
+          $setOnInsert: {
+            createdAt: now,
+          },
+        },
+        { upsert: true }
+      );
+
+      return NextResponse.json({
+        success: true,
+        purchaseType: "batch_pack",
+        productId,
+        batchCount,
+        batchPurchaseId: batchPurchase?._id?.toString?.() || null,
+      });
+    }
+
     await db.collection("users").updateOne(
       { _id: user._id },
       {
@@ -196,6 +262,7 @@ export async function POST(request: Request) {
           userId: user._id.toString(),
           email: session.user.email,
           productId,
+          purchaseType: "premium",
           originalTransactionId: transaction.originalTransactionId || null,
           environment: transaction.environment || null,
           purchaseDate,
