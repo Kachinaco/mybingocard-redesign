@@ -118,29 +118,29 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
 
   const reasonContent = {
     card_limit: {
-      title: "Paid Sharing and Hosting",
-      description: "Creator tools are free. Premium is for direct player sharing and hosted live bingo events.",
-      features: ["Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer", "Cleaner shared card experience"],
+      title: "Paid Batches, Sharing, and Hosting",
+      description: "Creator tools are free. Premium is for printable batches, direct player sharing, and hosted live bingo events.",
+      features: ["Printable batches up to 500 cards", "Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer"],
     },
     premium_template: {
-      title: "Paid Sharing and Hosting",
-      description: "All templates are free. Premium is only needed for direct player sharing and hosted live bingo events.",
-      features: ["Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer", "Cleaner shared card experience"],
+      title: "Paid Batches, Sharing, and Hosting",
+      description: "All templates are free. Premium is only needed for printable batches, direct player sharing, and hosted live bingo events.",
+      features: ["Printable batches up to 500 cards", "Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer"],
     },
     ai_generate: {
-      title: "Paid Sharing and Hosting",
+      title: "Paid Batches, Sharing, and Hosting",
       description: "AI generation is included for signed-in users. Premium is for direct player sharing and hosted live bingo events.",
       features: ["Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer", "Cleaner shared card experience"],
     },
     batch_generate: {
-      title: "Paid Sharing and Hosting",
-      description: "Printable batches are free up to 500 cards. Premium is for direct player sharing and hosted live bingo events.",
-      features: ["Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer", "Cleaner shared card experience"],
+      title: "Paid Batches, Sharing, and Hosting",
+      description: "Printable batches use one-time batch packs, or Premium includes batches with direct player sharing and hosted live bingo events.",
+      features: ["Printable batches up to 500 cards", "Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer"],
     },
     modal: {
-      title: "Paid Sharing and Hosting",
-      description: "Creation, saving, exports, templates, images, AI, and printable batches are free. Premium is for direct sharing and hosted bingo events.",
-      features: ["Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer", "Cleaner shared card experience"],
+      title: "Paid Batches, Sharing, and Hosting",
+      description: "Creation, saving, exports, templates, images, and AI are free. Premium is for batches, direct sharing, and hosted bingo events.",
+      features: ["Printable batches up to 500 cards", "Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer"],
     },
   }[reason];
 

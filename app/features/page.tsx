@@ -47,8 +47,8 @@ const features = [
       </svg>
     ),
     title: "Print and Batch PDFs",
-    description: "Export PDF/PNG files and generate printable batches up to 500 cards for free.",
-    highlights: ["Browser printing", "Free PDF and PNG exports", "Free printable batches", "3x3, 4x4, and 5x5 grids"],
+    description: "Export PDF/PNG files for free and use paid printable batch packs for larger sets.",
+    highlights: ["Browser printing", "Free PDF and PNG exports", "Paid printable batches", "3x3, 4x4, and 5x5 grids"],
   },
   {
     icon: (
@@ -222,7 +222,7 @@ export default function FeaturesPage() {
         <div className="max-w-2xl mx-auto text-center">
           <div className="bg-gradient-to-br from-violet-600 to-indigo-600 rounded-3xl p-12 text-white shadow-2xl shadow-indigo-500/25">
             <h2 className="text-3xl font-black mb-4">Ready to create your first card?</h2>
-            <p className="text-indigo-100 mb-8 text-lg">Create, save, and export for free. Add paid sharing or hosting when your game needs it.</p>
+            <p className="text-indigo-100 mb-8 text-lg">Create, save, and export for free. Add paid batches, sharing, or hosting when your game needs it.</p>
             <Link
               href="/create"
               className="inline-flex items-center gap-2 bg-white text-indigo-700 font-bold px-8 py-4 rounded-2xl hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"

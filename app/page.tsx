@@ -47,7 +47,7 @@ const faqItems = [
   {
     question: "Can I print bingo cards from MyBingoCard?",
     answer:
-      "Yes. MyBingoCard exports printable bingo cards as PDF files for free, including printable batches up to 500 cards.",
+      "Yes. MyBingoCard exports individual printable bingo cards as PDF files for free, and larger printable batches use one-time batch packs or Premium.",
   },
   {
     question: "What types of bingo cards can I make?",
@@ -305,7 +305,7 @@ export default function Home() {
               <FeatureCard
                 icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>}
                 title="Print and Batch PDFs"
-                description="Export PDF and PNG files for free, or generate printable batches up to 500 cards when you need a larger set."
+                description="Export PDF and PNG files for free, or buy printable batch packs when you need a larger set."
                 delay=""
               />
               <FeatureCard

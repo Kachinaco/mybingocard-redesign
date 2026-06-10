@@ -104,7 +104,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Invalid batch size" }, { status: 400 });
       }
 
-      // Free tier batch pack — no checkout needed
+      // Zero-amount batch pack fallback; production packs should be paid.
       if (batchPack.amount === 0) {
         await upsertBatchPurchaseFromCheckout({
           userId: session.user.id,
@@ -117,7 +117,7 @@ export async function POST(request: Request) {
         });
 
         await trackActivity({
-          event: "batch_pack_free_claimed",
+          event: "batch_pack_zero_amount_claimed",
           source: "server",
           userId: session.user.id,
           email: session.user.email,

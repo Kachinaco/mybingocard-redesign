@@ -248,7 +248,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
                       Browse Templates
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-500">Free to create, save, customize, and export. Paid sharing and hosting are optional.</p>
+                  <p className="text-sm text-slate-500">Free to create, save, customize, and export. Paid batches, sharing, and hosting are optional.</p>
                 </div>
                 <BingoPreview page={page} />
               </div>
@@ -487,7 +487,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
             <div className="container mx-auto px-4 max-w-3xl">
               <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to make your card?</h2>
               <p className="text-slate-300 text-lg mb-8">
-                Start with a blank bingo card, customize the content, export it for free, then add paid sharing or hosted play when needed.
+                Start with a blank bingo card, customize the content, export it for free, then add paid batches, sharing, or hosted play when needed.
               </p>
               <Link
                 href={useThisListHref}

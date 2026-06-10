@@ -91,7 +91,7 @@ export async function POST(request: Request) {
         });
 
         await trackActivity({
-          event: "batch_pack_free_claimed",
+          event: "batch_pack_zero_amount_claimed",
           source: "server",
           userId: session.user.id,
           email: session.user.email,
@@ -109,7 +109,7 @@ export async function POST(request: Request) {
         return NextResponse.json({
           free: true,
           batchCount: batchPack.count,
-          message: "Free batch pack activated. You can now generate cards.",
+          message: "Batch pack activated. You can now generate cards.",
         });
       }
 

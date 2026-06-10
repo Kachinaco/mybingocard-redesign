@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getCardById } from "@/lib/db/cards";
 import { getUserByEmail } from "@/lib/db/users";
+import { hasPremiumAccess } from "@/lib/subscription-status";
 import puppeteer from "puppeteer";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { seededShuffle } from "@/lib/shuffle";
@@ -180,6 +181,16 @@ export async function POST(
     const user = await getUserByEmail(session.user.email);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    if (!hasPremiumAccess(user)) {
+      return NextResponse.json(
+        {
+          error: "Printable batch export requires a batch pack or Premium.",
+          batchPurchaseRequired: true,
+        },
+        { status: 403 }
+      );
     }
 
     const { id } = await params;

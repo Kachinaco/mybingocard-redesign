@@ -91,7 +91,7 @@ export default function HowToMakeCustomBingoCards() {
           This is the magic of digital bingo card makers. When you hit &quot;generate,&quot; each card is automatically shuffled so every guest receives a unique layout. This means no two players have the same card, which prevents simultaneous winners and keeps the game competitive.
         </p>
         <p>
-          With MyBingoCard, you can generate printable batches up to 500 cards for free from a single word list. Pay only when you need player share links or hosted live bingo.
+          With MyBingoCard, you can export individual cards for free and buy printable batch packs when you need up to 500 unique cards from a single word list. Pay only when you need larger printable sets, player share links, or hosted live bingo.
         </p>
 
         <h2>Step 5: Export for Free or Add Paid Sharing</h2>

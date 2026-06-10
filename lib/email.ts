@@ -319,10 +319,10 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<boolea
   const bodyHtml = `
     ${renderPanel(renderBulletList([
       "Draft themed bingo cards in minutes.",
-      "Save, customize, export, and generate printable batches for free.",
-      "Use paid sharing or Premium hosting when you need player links or live games."
+      "Save, customize, and export individual cards for free.",
+      "Use printable batch packs, paid sharing, or Premium hosting when you need larger sets or live games."
     ]), "violet")}
-    <p style="margin:0;font-size:15px;color:#334155;">You are all set, ${escapeHtml(firstName)}. Start with your first card, then add paid sharing or hosting only when you need it.</p>
+    <p style="margin:0;font-size:15px;color:#334155;">You are all set, ${escapeHtml(firstName)}. Start with your first card, then add paid batches, sharing, or hosting only when you need it.</p>
   `;
 
   return sendEmail({
@@ -340,7 +340,7 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<boolea
       email: to,
       campaignId: "welcome",
     }),
-    text: `Welcome, ${firstName}!\n\nThanks for joining MyBingoCard.\n\nYou can now:\n- Draft themed bingo cards in minutes\n- Save, customize, export, and generate printable batches for free\n- Use paid sharing or Premium hosting when you need player links or live games\n\nStart here: ${appUrl}/create\n\nNeed help? Reply to this email.`,
+    text: `Welcome, ${firstName}!\n\nThanks for joining MyBingoCard.\n\nYou can now:\n- Draft themed bingo cards in minutes\n- Save, customize, and export individual cards for free\n- Use printable batch packs, paid sharing, or Premium hosting when you need larger sets or live games\n\nStart here: ${appUrl}/create\n\nNeed help? Reply to this email.`,
     marketing: true,
   });
 }
@@ -410,11 +410,12 @@ export async function sendSubscriptionActivatedEmail(to: string, name: string, p
   const bodyHtml = `
     ${renderPanel(
       `<p style=\"margin:0 0 10px;font-size:14px;\"><strong>Plan:</strong> ${escapeHtml(planName)}</p>
-       <p style=\"margin:0;font-size:14px;\">Your paid sharing and hosting features are now enabled across your account.</p>`,
+       <p style=\"margin:0;font-size:14px;\">Your paid batch, sharing, and hosting features are now enabled across your account.</p>`,
       "emerald"
     )}
     ${renderBulletList([
-      "Host live bingo rooms and send direct player links.",
+      "Generate printable batches and host live bingo rooms.",
+      "Send direct player links.",
       "Use paid sharing workflows for groups.",
       "Manage your billing anytime from settings."
     ])}
@@ -904,12 +905,13 @@ export async function sendCardLimitEmail(to: string, name: string) {
     subject: `${firstName}, unlock Premium bingo features`,
     html: renderLayout({
       theme: "violet",
-      preheader: "Upgrade to Premium for live hosting and direct player sharing.",
+      preheader: "Upgrade to Premium for batches, live hosting, and direct player sharing.",
       headline: "Unlock Premium bingo features",
-      intro: `Hey ${firstName}, Premium gives you paid sharing and hosting tools for player-ready bingo events.`,
+      intro: `Hey ${firstName}, Premium gives you printable batches, paid sharing, and hosting tools for player-ready bingo events.`,
       bodyHtml: `
         ${renderPanel(renderBulletList([
           "Live bingo event rooms",
+          "Printable batches up to 500 cards",
           "Direct player links and email sharing",
           "Unique shuffled cards per viewer",
           "Paid sharing workflow for groups",
@@ -922,7 +924,7 @@ export async function sendCardLimitEmail(to: string, name: string) {
       email: to,
       campaignId: "card-limit",
     }),
-    text: `Hey ${firstName},\n\nPremium gives you live bingo event hosting, direct player links, email sharing, unique shuffled cards per viewer, and paid sharing workflows for groups.\n\nUpgrade here: ${appUrl}/pricing\n\nQuestions? Reply to this email.`,
+    text: `Hey ${firstName},\n\nPremium gives you printable batches up to 500 cards, live bingo event hosting, direct player links, email sharing, unique shuffled cards per viewer, and paid sharing workflows for groups.\n\nUpgrade here: ${appUrl}/pricing\n\nQuestions? Reply to this email.`,
     marketing: true,
   });
 }

@@ -36,7 +36,7 @@ describe("free plan limits", () => {
   test("describes the free plan as unlimited creator tools", () => {
     expect(stripeConfigSource).toContain('FREE: {');
     expect(stripeConfigSource).toContain('"Unlimited saved bingo cards"');
-    expect(stripeConfigSource).toContain('"Paid share links and hosted bingo events are optional"');
+    expect(stripeConfigSource).toContain('"Paid batches, share links, and hosted bingo events are optional"');
   });
 
   test("keeps legacy free detection without reducing the new free allowance", () => {

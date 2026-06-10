@@ -29,10 +29,10 @@ export default function AccountPendingCheckoutGate({ email }: { email: string })
             </div>
             <p className="text-xs font-bold uppercase tracking-wide text-indigo-600">Account pending checkout</p>
             <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-              Paid checkout is only for sharing and hosting
+              Paid checkout is only for batches, sharing, and hosting
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-600">
-              You are signed in{email ? ` as ${email}` : ""}. Creator tools are free; paid checkout is only needed for share links or hosted live games.
+              You are signed in{email ? ` as ${email}` : ""}. Creator tools are free; paid checkout is only needed for printable batches, share links, or hosted live games.
             </p>
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
               <PremiumCheckoutButton

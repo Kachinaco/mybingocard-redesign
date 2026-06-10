@@ -18,15 +18,16 @@ describe("pricing page copy consistency", () => {
     expect(stripeConfigSource).toContain('"Profile and saved-card access"');
   });
 
-  test("keeps free batch generation aligned to the configured 500-card batch limit", () => {
-    expect(stripeConfigSource).toContain("maxBatchSize: 500");
-    expect(pricingPageSource).toContain('"Up to 500 printable cards per batch"');
-    expect(pricingPageSource).toContain('["Batch generation", "Up to 500", "Up to 500", "Up to 500"]');
+  test("keeps printable batches paid for free users and included for Premium", () => {
+    expect(stripeConfigSource).toContain("maxBatchSize: 1");
+    expect(stripeConfigSource).toContain('"Paid printable batch packs"');
+    expect(pricingPageSource).toContain('"Optional printable batch packs"');
+    expect(pricingPageSource).toContain('["Batch generation", "Paid packs", "Up to 500 included", "Up to 500 included"]');
   });
 
-  test("links paid share-link explanation into the free batch flow", () => {
-    expect(pricingPageSource).toContain("Paid Share Links");
-    expect(pricingPageSource).toContain('href="/create?batchMode=1"');
+  test("links paid batch-pack explanation into the batch flow", () => {
+    expect(pricingPageSource).toContain("Paid Batch Packs and Share Links");
+    expect(pricingPageSource).toContain('href={`/create?batchMode=1&batchCount=${count}`}');
     expect(pricingPageSource).toContain("Create batch");
   });
 

@@ -85,11 +85,11 @@ export default function BestBingoCardGeneratorPage() {
           MyBingoCard is a strong bingo card generator for people who want one tool for both printable and online games. It is especially strong if you host recurring events, want better-looking exports, or need to move quickly from idea to finished cards.
         </p>
         <ul>
-          <li><strong>Free creator tools:</strong> create saved bingo cards with included templates, AI ideas, browser printing, PDF/PNG export, and printable batches up to 500 cards</li>
-          <li><strong>Printable and online:</strong> print your cards for free or add paid player links from the same setup</li>
+          <li><strong>Free creator tools:</strong> create saved bingo cards with included templates, AI ideas, browser printing, and single-card PDF/PNG export</li>
+          <li><strong>Printable and online:</strong> print individual cards for free, buy printable batch packs, or add paid player links from the same setup</li>
           <li><strong>Built for custom events:</strong> create cards for <Link href="/wedding-bingo">weddings</Link>, <Link href="/baby-shower-bingo">baby showers</Link>, <Link href="/classroom-bingo">classrooms</Link>, and <Link href="/party-bingo">parties</Link></li>
           <li><strong>Faster setup:</strong> use templates or <Link href="/create">build a custom bingo card from scratch</Link></li>
-          <li><strong>Paid workflow when you need it:</strong> direct player links, group sharing, and hosted live bingo events</li>
+          <li><strong>Paid workflow when you need it:</strong> printable batches, direct player links, group sharing, and hosted live bingo events</li>
         </ul>
 
         <h2>Why MyBingoCard Wins for Printable and Online Games</h2>

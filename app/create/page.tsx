@@ -16,6 +16,8 @@ import ShareBatchButton from "@/components/ShareBatchButton";
 import StartGameButton from "@/components/StartGameButton";
 import { isImageCell, parseImageCell, encodeImageCell } from "@/lib/cellContent";
 import {
+  BATCH_PACKS,
+  formatBatchPackPrice,
   isBatchCount,
   type BatchCount,
 } from "@/lib/batchPacks";
@@ -128,10 +130,11 @@ function CreateCardContent() {
   const [batchMode, setBatchMode] = useState(false);
   const [batchCount, setBatchCount] = useState<BatchCount>(30);
   const [batchLoading, setBatchLoading] = useState(false);
+  const [batchCheckoutLoading, setBatchCheckoutLoading] = useState(false);
   const [batchResult, setBatchResult] = useState<{count: number; cardIds: string[]} | null>(null);
   const [batchPdfLoading, setBatchPdfLoading] = useState<BatchPdfOption>(null);
   const [availableBatchCounts, setAvailableBatchCounts] = useState<AvailableBatchCounts>({});
-  const [, setLoadingBatchPurchases] = useState(false);
+  const [loadingBatchPurchases, setLoadingBatchPurchases] = useState(false);
   const [currentCardId, setCurrentCardId] = useState<string | null>(cardIdFromUrl);
   const [isLoadingCard, setIsLoadingCard] = useState(Boolean(cardIdFromUrl));
   const [autoSaveState, setAutoSaveState] = useState<AutoSaveState>("idle");
@@ -248,12 +251,13 @@ function CreateCardContent() {
 
   useEffect(() => {
     const batchCountFromUrl = Number(searchParams.get("batchCount"));
+    const requestedBatchMode = searchParams.get("batchMode") === "1" || searchParams.get("batchMode") === "true";
     if (isBatchCount(batchCountFromUrl)) {
       setBatchCount(batchCountFromUrl);
-      if (searchParams.get("batchMode") === "1" || searchParams.get("batchMode") === "true") {
-        setBatchMode(true);
-        setBatchResult(null);
-      }
+    }
+    if (requestedBatchMode) {
+      setBatchMode(true);
+      setBatchResult(null);
     }
   }, [searchParamsKey]);
 
@@ -1167,15 +1171,58 @@ function CreateCardContent() {
     }
   };
 
+  const handleBatchCheckout = async () => {
+    trackClientActivity("batch_primary_clicked", {
+      action: "buy",
+      source: "create_page",
+      batch_count: batchCount,
+      price: formatBatchPackPrice(batchCount),
+      plan_type: permissionStatus?.planType || "GUEST",
+      context: "create_page",
+    });
+    setBatchCheckoutLoading(true);
+    setError("");
+
+    try {
+      if (!session?.user) {
+        persistDraft();
+        const res = await fetch("/api/stripe/guest-batch-checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ batchCount }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.url) {
+          setError(data.error || "Failed to start checkout");
+          return;
+        }
+        window.location.href = data.url;
+        return;
+      }
+
+      await redirectToCheckout({
+        purchaseType: "batch_pack",
+        batchCount,
+        label: `${batchCount} Card Batch`,
+        successPath: `/create?batchPurchase=success&batchCount=${batchCount}`,
+      });
+    } catch (checkoutError) {
+      console.error("Batch checkout error:", checkoutError);
+      setError("Failed to start batch checkout");
+    } finally {
+      setBatchCheckoutLoading(false);
+    }
+  };
+
   const handleBatchGenerate = async () => {
     trackClientActivity("batch_primary_clicked", {
       action: "generate",
       source: "create_page",
       batch_count: batchCount,
-      price: "free",
+      price: formatBatchPackPrice(batchCount),
       plan_type: permissionStatus?.planType || "GUEST",
       has_ready_purchase: hasSelectedBatchPurchase,
-      is_premium_batch_user: true,
+      is_premium_batch_user: isPremiumBatchUser,
       context: "create_page",
     });
     setBatchLoading(true);
@@ -1284,7 +1331,7 @@ function CreateCardContent() {
       source: "create_page",
       action: "pdf_layout",
       batch_count: batchResult.count,
-      price: "free",
+      price: isPremiumBatchUser ? "premium" : formatBatchPackPrice(batchCount),
       plan_type: permissionStatus?.planType || "GUEST",
       batchCount: batchResult.count,
       cardCount: batchResult.cardIds.length,
@@ -1463,8 +1510,9 @@ function CreateCardContent() {
         : session?.user
           ? "Changes save automatically"
           : "Sign in to save automatically";
-  const isPremiumBatchUser = true;
+  const isPremiumBatchUser = Boolean(permissionStatus?.hasPremiumAccess);
   const canUploadImages = Boolean(session?.user);
+  const selectedBatchPrice = formatBatchPackPrice(batchCount);
   const selectedBatchPurchases = availableBatchCounts[batchCount] || 0;
   const hasSelectedBatchPurchase = selectedBatchPurchases > 0;
   const batchPurchaseStatus = searchParams.get("batchPurchase");
@@ -1472,12 +1520,12 @@ function CreateCardContent() {
   const batchStatusMessage =
     batchPurchaseStatus === "success"
       ? isGuestReturn && !session?.user
-        ? `Sign in with the email you used before to access your ${batchCount}-card batch.`
+        ? `Payment received. Sign in with the email you used at checkout to access your ${batchCount}-card batch.`
         : hasSelectedBatchPurchase
-          ? `${batchCount}-card batch is ready to generate.`
-          : `Your ${batchCount}-card batch is ready to generate.`
+          ? `${batchCount}-card batch purchased. It is ready to generate.`
+          : `Payment received. If your ${batchCount}-card batch does not unlock within a few seconds, refresh this page.`
       : batchPurchaseStatus === "canceled"
-        ? "Batch generation canceled."
+        ? "Batch purchase canceled."
         : "";
   const availableBatchSummary = ([30, 100, 250, 500] as const)
     .filter((count) => (availableBatchCounts[count] || 0) > 0)
@@ -1487,12 +1535,20 @@ function CreateCardContent() {
     ? "Checking your plan..."
     : batchLoading
       ? `Generating ${batchCount} cards...`
-      : `Generate ${batchCount} Unique Cards`;
+      : batchCheckoutLoading
+        ? "Redirecting to checkout..."
+        : isPremiumBatchUser || hasSelectedBatchPurchase
+          ? `Generate ${batchCount} Unique Cards`
+          : `Buy ${batchCount}-Card Batch • ${selectedBatchPrice}`;
   const batchActionDisabled =
     showPreview ||
     batchLoading ||
-    (Boolean(session?.user) && checkingPermission);
-  const handleBatchPrimaryAction = handleBatchGenerate;
+    batchCheckoutLoading ||
+    (Boolean(session?.user) && checkingPermission) ||
+    (permissionStatus?.planType === "FREE" && loadingBatchPurchases);
+  const handleBatchPrimaryAction = isPremiumBatchUser || hasSelectedBatchPurchase
+    ? handleBatchGenerate
+    : handleBatchCheckout;
   const batchShareBatchId = batchResult?.cardIds[0] || "";
   const batchResultTitle = title.trim() || `${batchCount}-card bingo batch`;
 
@@ -1620,7 +1676,7 @@ function CreateCardContent() {
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to keep creating</h2>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Saving, exports, templates, images, AI, and printable batches are free. Paid share links and hosted bingo events are optional.
+                Saving, exports, templates, images, and AI are free. Printable batch packs, share links, and hosted bingo events are optional paid tools.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
@@ -2029,7 +2085,7 @@ function CreateCardContent() {
                 <div className="grid grid-cols-4 gap-1.5 mb-3">
                   {([30, 100, 250, 500] as const).map((n) => {
                     const isSelected = batchCount === n && batchMode;
-                    const hasReady = false;
+                    const hasReady = !isPremiumBatchUser && (availableBatchCounts[n] || 0) > 0;
                     return (
                       <button
                         key={n}
@@ -2037,7 +2093,7 @@ function CreateCardContent() {
                           setBatchMode(true); setBatchCount(n); setBatchResult(null);
                           trackClientActivity("batch_tier_selected", {
                             batch_count: n,
-                            price: "free",
+                            price: BATCH_PACKS[n].label,
                             plan_type: permissionStatus?.planType || "GUEST",
                             source: "create_page",
                           });
@@ -2050,7 +2106,14 @@ function CreateCardContent() {
                       >
                         <div className="text-sm font-bold text-gray-900">{n}</div>
                         <div className="text-[10px] font-medium text-gray-500">cards</div>
-                        <div className="mt-1 text-[10px] font-semibold text-emerald-600">Free</div>
+                        {!isPremiumBatchUser && (
+                          <div className="mt-1 text-xs font-bold text-blue-600">
+                            {BATCH_PACKS[n].label}
+                          </div>
+                        )}
+                        {isPremiumBatchUser && (
+                          <div className="mt-1 text-[10px] font-semibold text-emerald-600">Included</div>
+                        )}
                         {hasReady && (
                           <div className="absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
                             Ready
@@ -2078,15 +2141,15 @@ function CreateCardContent() {
                   </div>
                 )}
 
-                {batchMode && (
+                {isPremiumBatchUser && batchMode && (
                   <p className="text-xs text-gray-500 mb-3">
-                    Every card gets a unique shuffled arrangement. PDF downloads are included.
+                    Every card gets a unique shuffled arrangement. Included with Premium.
                   </p>
                 )}
 
                 {!isPremiumBatchUser && !session?.user && batchMode && (
                   <p className="text-xs text-gray-500 mb-3">
-                    Sign up to generate and save batches. Paid share links and hosted games are optional.
+                    Sign up to purchase batch packs, or upgrade to Premium for included batches.
                   </p>
                 )}
 
@@ -2200,7 +2263,7 @@ function CreateCardContent() {
                         action: "open_panel",
                         source: "create_page_select_batch_size",
                         batch_count: batchCount,
-                        price: "free",
+                        price: formatBatchPackPrice(batchCount),
                         plan_type: permissionStatus?.planType || "GUEST",
                         context: "create_page",
                       });
@@ -2534,7 +2597,7 @@ function CreateCardContent() {
               Sign in to save this card.
             </p>
             <p style={{ margin: "0 0 24px", fontSize: "13px", color: "#94a3b8" }}>
-              Free accounts can save unlimited cards, export PDFs/PNGs, use images, templates, AI, and printable batches. Paid share links and hosted bingo events are optional.
+              Free accounts can save unlimited cards, export PDFs/PNGs, and use images, templates, and AI. Printable batch packs, share links, and hosted bingo events are optional paid tools.
             </p>
 
             {!magicSent ? (

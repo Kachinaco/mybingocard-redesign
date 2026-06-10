@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { BATCH_PACKS } from "@/lib/batchPacks";
 import {
   CheckoutReturnBanner,
   PricingCheckoutButton,
@@ -13,15 +14,16 @@ const FREE_FEATURES = [
   "AI-powered card ideas",
   "Text and image bingo cells",
   "PDF and PNG exports",
-  "Up to 500 printable cards per batch",
+  "Optional printable batch packs",
   "Profile and saved-card access",
-  "Paid share links and hosted events are optional",
+  "Paid batches, share links, and hosted events are optional",
 ];
 
 const PREMIUM_FEATURES = [
   "Host live bingo event rooms",
   "Direct player links and email sharing",
   "Unique shuffled card per viewer",
+  "Printable batches up to 500 cards",
   "Cleaner saved and shared card experience",
   "Paid sharing workflow for groups",
   "Priority support",
@@ -36,7 +38,7 @@ const PLAN_ROWS = [
   ["PDF export", "Yes", "Yes", "Yes"],
   ["PNG export", "Yes", "Yes", "Yes"],
   ["Custom colors & fonts", "Yes", "Yes", "Yes"],
-  ["Batch generation", "Up to 500", "Up to 500", "Up to 500"],
+  ["Batch generation", "Paid packs", "Up to 500 included", "Up to 500 included"],
   ["Paid share links", "A la carte", "Included direct sharing", "Included direct sharing"],
   ["Live event hosting", "Paid add-on", "Included", "Included"],
   ["Billing", "$0", "3-day trial, then $7.99/mo", "One-time $29.99"],
@@ -46,12 +48,12 @@ const FAQ_ITEMS = [
   {
     question: "What can I do on the free plan?",
     answer:
-      "The free plan includes unlimited saved cards, all templates, AI ideas, image cells, PDF and PNG exports, and printable batches up to 500 cards. Paid share links and hosted bingo events are optional.",
+      "The free plan includes unlimited saved cards, all templates, AI ideas, image cells, and single-card PDF and PNG exports. Printable batch packs, share links, and hosted bingo events are optional paid tools.",
   },
   {
     question: "What is paid now?",
     answer:
-      "Paid features are sharing workflows and hosted bingo events. Group share links are sold a la carte, and Premium or Lifetime access covers live event hosting and direct sharing tools.",
+      "Paid features are printable batch packs, sharing workflows, and hosted bingo events. Batch packs are one-time purchases, group share links are sold a la carte, and Premium or Lifetime access covers included batches, live event hosting, and direct sharing tools.",
   },
   {
     question: "Can I pay once instead of subscribing?",
@@ -129,10 +131,10 @@ export default function PricingPage() {
             Creator Tools Are Free
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-            Pay only for sharing and hosted bingo events
+            Pay only for batches, sharing, and hosted bingo events
           </h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
-            Create, save, customize, use templates, generate batches, and export printable cards for free. Paid options are for sending player links and hosting live bingo events.
+            Create, save, customize, use templates, and export individual printable cards for free. Paid options are for printable batches, player links, and live bingo hosting.
           </p>
         </section>
 
@@ -181,7 +183,7 @@ export default function PricingPage() {
             </div>
             <div className="p-8 flex-grow">
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Lifetime</h2>
-              <p className="text-sm text-slate-500 mb-6">Permanent paid sharing and hosting access with no renewal.</p>
+              <p className="text-sm text-slate-500 mb-6">Permanent batch, sharing, and hosting access with no renewal.</p>
               <div className="flex items-baseline gap-1 mb-8">
                 <span className="text-5xl font-black text-slate-900 tracking-tight">$29.99</span>
                 <span className="text-slate-500 font-medium">once</span>
@@ -203,24 +205,20 @@ export default function PricingPage() {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 md:p-10">
             <div className="grid lg:grid-cols-[1fr_1.4fr] gap-8 items-start">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-indigo-600 mb-3">Paid Share Links</p>
-                <h2 className="text-3xl font-bold text-slate-900 mb-4">Need unique player links for a group?</h2>
+                <p className="text-xs font-bold uppercase tracking-wide text-indigo-600 mb-3">Paid Batch Packs and Share Links</p>
+                <h2 className="text-3xl font-bold text-slate-900 mb-4">Need a larger printable set?</h2>
                 <p className="text-slate-600 leading-relaxed">
-                  Generate the batch for free, then buy only the player links you need. Share links start at 5 links for $0.50 because of Stripe checkout minimums.
+                  Buy a one-time printable batch pack for saved or printable PDF sets. Share links are separate when players need online cards, and Premium includes batches, direct sharing, and hosted rooms.
                 </p>
               </div>
-              <div className="grid sm:grid-cols-3 gap-3">
-                {[
-                  ["5 links", "$0.50 minimum"],
-                  ["30 links", "$3.00"],
-                  ["500 links", "$50.00"],
-                ].map(([count, price]) => (
+              <div className="grid sm:grid-cols-4 gap-3">
+                {([30, 100, 250, 500] as const).map((count) => (
                   <div key={count} className="rounded-2xl border border-slate-200 bg-slate-50 p-5 flex flex-col">
-                    <div className="text-2xl font-black text-slate-900">{count}</div>
-                    <div className="text-sm text-slate-500 mb-4">unique player cards</div>
-                    <div className="text-lg font-bold text-indigo-600">{price}</div>
+                    <div className="text-2xl font-black text-slate-900">{count} cards</div>
+                    <div className="text-sm text-slate-500 mb-4">printable batch</div>
+                    <div className="text-lg font-bold text-indigo-600">{BATCH_PACKS[count].label}</div>
                     <Link
-                      href="/create?batchMode=1"
+                      href={`/create?batchMode=1&batchCount=${count}`}
                       className="mt-4 inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-slate-800"
                     >
                       Create batch

@@ -94,7 +94,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     eyebrow: "Bingo card maker",
     h1: "Bingo Card Maker and Generator for Printable Games",
     lead:
-      "Create custom bingo cards in minutes with a bingo card maker that also generates free printable cards and paid online cards.",
+      "Create custom bingo cards in minutes with a bingo card maker that exports individual printable cards for free and supports paid batch packs or online cards.",
     accent: "indigo",
     sampleLabel: "All-purpose game",
     primaryCta: "Make a Bingo Card",
@@ -154,14 +154,14 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       "Choose a blank card or start from a template.",
       "Add your own words, prompts, numbers, or images.",
       "Pick a 3x3, 4x4, or 5x5 grid and customize the style.",
-      "Export a PDF for free, then add paid share links or hosted play when needed.",
+      "Export an individual PDF for free, then add paid batch packs, share links, or hosted play when needed.",
     ],
     ideas: ["Custom event prompts", "Team member names", "Party moments", "Vocabulary terms", "Gift predictions", "Icebreaker questions"],
     faqs: [
       {
         question: "Is this bingo card maker free?",
         answer:
-          "Yes. You can create, save, customize, use templates, generate batches, and export PDFs for free. Paid sharing and hosted games are optional.",
+          "Yes. You can create, save, customize, use templates, and export individual PDFs for free. Printable batch packs, paid sharing, and hosted games are optional.",
       },
       {
         question: "Can I make multiple unique bingo cards?",

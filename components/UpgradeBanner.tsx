@@ -22,8 +22,8 @@ export default function UpgradeBanner() {
           </svg>
         </div>
         <div>
-          <p className="font-semibold text-slate-900">Upgrade for paid sharing and live hosting</p>
-          <p className="text-sm text-slate-500">Creator tools are free. Premium adds direct player links, email sharing, and hosted bingo rooms.</p>
+          <p className="font-semibold text-slate-900">Upgrade for batches, sharing, and live hosting</p>
+          <p className="text-sm text-slate-500">Creator tools are free. Premium adds printable batches, direct player links, email sharing, and hosted bingo rooms.</p>
         </div>
       </div>
       <button
