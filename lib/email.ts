@@ -319,10 +319,10 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<boolea
   const bodyHtml = `
     ${renderPanel(renderBulletList([
       "Draft themed bingo cards in minutes.",
-      "Start checkout when you are ready to save or share.",
-      "Use Premium for PDF export, live games, and larger batches."
+      "Save, customize, export, and generate printable batches for free.",
+      "Use paid sharing or Premium hosting when you need player links or live games."
     ]), "violet")}
-    <p style="margin:0;font-size:15px;color:#334155;">You are all set, ${escapeHtml(firstName)}. Start with your first draft, then choose a trial or lifetime access when you are ready to save.</p>
+    <p style="margin:0;font-size:15px;color:#334155;">You are all set, ${escapeHtml(firstName)}. Start with your first card, then add paid sharing or hosting only when you need it.</p>
   `;
 
   return sendEmail({
@@ -340,7 +340,7 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<boolea
       email: to,
       campaignId: "welcome",
     }),
-    text: `Welcome, ${firstName}!\n\nThanks for joining MyBingoCard.\n\nYou can now:\n- Draft themed bingo cards in minutes\n- Start checkout when you are ready to save or share\n- Use Premium for PDF export, live games, and larger batches\n\nStart here: ${appUrl}/create\n\nNeed help? Reply to this email.`,
+    text: `Welcome, ${firstName}!\n\nThanks for joining MyBingoCard.\n\nYou can now:\n- Draft themed bingo cards in minutes\n- Save, customize, export, and generate printable batches for free\n- Use paid sharing or Premium hosting when you need player links or live games\n\nStart here: ${appUrl}/create\n\nNeed help? Reply to this email.`,
     marketing: true,
   });
 }
@@ -410,12 +410,12 @@ export async function sendSubscriptionActivatedEmail(to: string, name: string, p
   const bodyHtml = `
     ${renderPanel(
       `<p style=\"margin:0 0 10px;font-size:14px;\"><strong>Plan:</strong> ${escapeHtml(planName)}</p>
-       <p style=\"margin:0;font-size:14px;\">Your premium features are now enabled across your account.</p>`,
+       <p style=\"margin:0;font-size:14px;\">Your paid sharing and hosting features are now enabled across your account.</p>`,
       "emerald"
     )}
     ${renderBulletList([
-      "Use AI generation, image bingo cards, and premium templates.",
-      "Export cleaner HD files and bigger game sets.",
+      "Host live bingo rooms and send direct player links.",
+      "Use paid sharing workflows for groups.",
       "Manage your billing anytime from settings."
     ])}
   `;
@@ -635,14 +635,14 @@ export async function sendAbandonedCheckoutEmail(
 
   const bulletItems = isSubscription
     ? [
-        "AI-powered card generation for faster setup.",
-        "Premium templates, larger batches, and custom styling.",
-        "PDF and PNG export after checkout for polished cards.",
-        "Cleaner saved and shared cards across your whole account.",
+        "Live bingo event hosting.",
+        "Direct player links and email sharing.",
+        "Unique shuffled cards per viewer.",
+        "Paid sharing workflow for groups.",
       ]
     : [
         `${batchCount ?? "Multiple"} unique shuffled cards from your item list.`,
-        "PDF export after checkout in seconds.",
+        "free PDF export in seconds.",
         "Perfect for parties, classrooms, and game nights.",
       ];
 
@@ -674,7 +674,7 @@ export async function sendAbandonedCheckoutEmail(
       campaignId: "abandoned-checkout",
     }),
     text: isSubscription
-      ? `Hi ${firstName},\n\nYou started upgrading to Premium but didn't finish.\n\nPremium includes:\n- AI-powered card generation\n- Premium templates, larger batches, and custom styling\n- PDF and PNG export after checkout\n- Cleaner saved and shared cards\n\nComplete your upgrade: ${appUrl}/pricing\n\nQuestions? Reply to this email.`
+      ? `Hi ${firstName},\n\nYou started upgrading to Premium but didn't finish.\n\nPremium includes:\n- Live bingo event hosting\n- Direct player links and email sharing\n- Unique shuffled cards per viewer\n- Paid sharing workflow for groups\n\nComplete your upgrade: ${appUrl}/pricing\n\nQuestions? Reply to this email.`
       : `Hi ${firstName},\n\nYou were close to generating ${batchCount ? `${batchCount} unique bingo cards` : "your card batch"}.\n\nHead back to finish: ${appUrl}/create\n\nQuestions? Reply to this email.`,
     marketing: true,
   });
@@ -693,7 +693,7 @@ export async function sendCardComebackEmail(
     ${renderPanel(renderBulletList([
       "Open the card and tap squares to play solo.",
       "Copy a share link for players.",
-      "Export a PDF after checkout if you want to print it.",
+      "Export a PDF for free if you want to print it.",
     ]), "emerald")}
     <p style="margin:0;font-size:15px;color:#334155;">Your saved card is still in your dashboard whenever you need it.</p>
   `;
@@ -904,16 +904,16 @@ export async function sendCardLimitEmail(to: string, name: string) {
     subject: `${firstName}, unlock Premium bingo features`,
     html: renderLayout({
       theme: "violet",
-      preheader: "Upgrade to Premium for AI, PDF and PNG export, and larger batches.",
+      preheader: "Upgrade to Premium for live hosting and direct player sharing.",
       headline: "Unlock Premium bingo features",
-      intro: `Hey ${firstName}, Premium gives you the faster and more customizable way to create, export, and share bingo cards.`,
+      intro: `Hey ${firstName}, Premium gives you paid sharing and hosting tools for player-ready bingo events.`,
       bodyHtml: `
         ${renderPanel(renderBulletList([
-          "AI-powered card generation",
-          "PDF and PNG exports",
-          "All premium templates",
-          "Batch generate up to 500 cards",
-          "Cleaner saved and shared cards",
+          "Live bingo event rooms",
+          "Direct player links and email sharing",
+          "Unique shuffled cards per viewer",
+          "Paid sharing workflow for groups",
+          "Priority support",
         ]), "violet")}
         <p style="margin:0;font-size:15px;color:#334155;">Upgrade takes 30 seconds and you can start creating right away.</p>`,
       ctaLabel: "Upgrade to Premium →",
@@ -922,7 +922,7 @@ export async function sendCardLimitEmail(to: string, name: string) {
       email: to,
       campaignId: "card-limit",
     }),
-    text: `Hey ${firstName},\n\nPremium gives you AI generation, PDF and PNG export, premium templates, custom styling, and bigger batch generation.\n\nUpgrade here: ${appUrl}/pricing\n\nQuestions? Reply to this email.`,
+    text: `Hey ${firstName},\n\nPremium gives you live bingo event hosting, direct player links, email sharing, unique shuffled cards per viewer, and paid sharing workflows for groups.\n\nUpgrade here: ${appUrl}/pricing\n\nQuestions? Reply to this email.`,
     marketing: true,
   });
 }

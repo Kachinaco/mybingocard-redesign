@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Welcome - Create Your Bingo Card | MyBingoCard",
-  description: "Draft custom bingo cards in seconds, then start checkout to save or export. Perfect for parties, classrooms, team building, and more.",
+  description: "Create custom bingo cards in seconds, then save and export for free. Paid sharing and hosted bingo are optional.",
   robots: {
     index: true,
     follow: true,
@@ -68,7 +68,7 @@ export default function WelcomePage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            Free to draft
+            Free creator tools
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
@@ -79,7 +79,7 @@ export default function WelcomePage() {
           </h1>
 
           <p className="text-xl text-slate-600 mb-8 max-w-xl mx-auto">
-            Add your own words, phrases, or images. Export or play online after checkout.
+            Add your own words, phrases, or images. Save and export for free, then add paid sharing or hosted play when needed.
           </p>
 
           {/* Main CTA */}
@@ -123,7 +123,7 @@ export default function WelcomePage() {
               </svg>
             </div>
             <h3 className="font-semibold text-slate-900 mb-2">PDF Export</h3>
-            <p className="text-sm text-slate-600">Export a PDF or play online after checkout</p>
+            <p className="text-sm text-slate-600">Export PDFs for free or add paid online play</p>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 text-center">
@@ -133,7 +133,7 @@ export default function WelcomePage() {
               </svg>
             </div>
             <h3 className="font-semibold text-slate-900 mb-2">Play Online</h3>
-            <p className="text-sm text-slate-600">Host live games after checkout</p>
+            <p className="text-sm text-slate-600">Host paid live games</p>
           </div>
         </div>
 

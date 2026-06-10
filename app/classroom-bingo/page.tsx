@@ -131,7 +131,7 @@ export default function ClassroomBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Transform any lesson into an engaging classroom bingo game! Our free bingo draft editor for teachers makes it simple to create educational bingo cards for vocabulary practice, math facts, spelling words, science terms, or any subject you teach. Each printable card is automatically randomized so every student gets a unique layout, eliminating copying. Perfect for end-of-unit reviews, brain breaks, holiday learning, or reward activities. Export PDF files or assign digital cards after checkout for the whole class or remote learning. With grade-level templates ranging from kindergarten to high school, you can customize card size, add images, and brand cards with your classroom theme. The bingo draft editor teachers trust — try it today and use it for a more interactive review activity.
+                    Transform any lesson into an engaging classroom bingo game! Our free bingo draft editor for teachers makes it simple to create educational bingo cards for vocabulary practice, math facts, spelling words, science terms, or any subject you teach. Each printable card is automatically randomized so every student gets a unique layout, eliminating copying. Perfect for end-of-unit reviews, brain breaks, holiday learning, or reward activities. Export PDF files for free or add paid digital cards for the whole class or remote learning. With grade-level templates ranging from kindergarten to high school, you can customize card size, add images, and brand cards with your classroom theme. The bingo draft editor teachers trust — try it today and use it for a more interactive review activity.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function ClassroomBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to draft · 3-day trial to save · PDF export after checkout</p>
+                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
                 </div>
 
                 <div className="relative">

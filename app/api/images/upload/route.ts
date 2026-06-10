@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
     if (!limits.canUpload) {
       return NextResponse.json(
-        { error: "Image uploads require a Premium plan.", upgradeRequired: true },
+        { error: "Image uploads are not available for this account.", upgradeRequired: true },
         { status: 403 }
       );
     }

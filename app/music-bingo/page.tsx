@@ -6,7 +6,7 @@ import SeoSupportBlock from "@/components/SeoSupportBlock";
 export const metadata: Metadata = {
   title: "Music Bingo Cards — Custom Song Bingo Generator | MyBingoCard",
   description:
-    "Create music bingo cards for your next party or event. Custom song bingo generator with custom playlists, name that tune bingo, and printable music bingo cards. PDF export after checkout.",
+    "Create music bingo cards for your next party or event. Custom song bingo generator with custom playlists, name that tune bingo, and printable music bingo cards. free PDF export.",
   alternates: {
     canonical: "https://mybingocard.com/music-bingo",
   },
@@ -26,7 +26,7 @@ const schema = {
   name: "Music Bingo Card Generator",
   url: "https://mybingocard.com/music-bingo",
   description:
-    "Custom music bingo card generator. Create printable song bingo cards for parties, events, and name that tune games — custom playlists, genre themes, and PDF export after checkout.",
+    "Custom music bingo card generator. Create printable song bingo cards for parties, events, and name that tune games — custom playlists, genre themes, and free PDF export.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -131,7 +131,7 @@ export default function MusicBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Turn any playlist into a thrilling music bingo night with our song bingo draft editor! Create custom music bingo cards featuring hit songs, classic rock anthems, 90s jams, country favorites, or any genre you love. Each card is uniquely shuffled so every player gets a different combination — perfect for house parties, bar trivia nights, team socials, and fundraiser events. Play name that tune style where the DJ spins tracks and players mark their cards, or use our built-in playlist mode for a fully automated music bingo experience. Export printable PDF cards or share digital links after checkout for in-person events and remote play. With genre-themed templates, custom word lists, and support for any music library, our music bingo generator makes it easy to host an unforgettable game night.
+                    Turn any playlist into a thrilling music bingo night with our song bingo draft editor! Create custom music bingo cards featuring hit songs, classic rock anthems, 90s jams, country favorites, or any genre you love. Each card is uniquely shuffled so every player gets a different combination — perfect for house parties, bar trivia nights, team socials, and fundraiser events. Play name that tune style where the DJ spins tracks and players mark their cards, or use our built-in playlist mode for a fully automated music bingo experience. Export printable PDF cards for free or add paid digital links for in-person events and remote play. With genre-themed templates, custom word lists, and support for any music library, our music bingo generator makes it easy to host an unforgettable game night.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function MusicBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to draft · Any genre · PDF export after checkout</p>
+                  <p className="text-sm text-slate-400">Free creator tools · Any genre · free PDF export</p>
                 </div>
 
                 <div className="relative">
@@ -171,7 +171,7 @@ export default function MusicBingoPage() {
                   { icon: "🎵", title: "Song Recognition", desc: "Play name that tune bingo — the DJ spins a track, players mark their cards. First to five in a row wins!" },
                   { icon: "🎧", title: "Custom Playlists", desc: "Build bingo cards from any playlist — Spotify favorites, decade hits, genre deep cuts, or your own song list." },
                   { icon: "🎉", title: "Party Mode", desc: "Host an epic music bingo night at bars, house parties, or corporate events with automated game flow." },
-                  { icon: "🖨️", title: "PDF Export or Digital Play", desc: "Export PDF cards or share digital links after checkout for in-person events and remote music bingo." },
+                  { icon: "🖨️", title: "PDF Export or Digital Play", desc: "Export PDF cards for free or add paid digital links for in-person events and remote music bingo." },
                   { icon: "🎸", title: "Genre Themes", desc: "Classic rock, 80s pop, country, hip-hop, jazz — themed templates for every musical taste." },
                   { icon: "👨‍👩‍👧", title: "Fun for All Ages", desc: "From kids' sing-alongs to adult trivia nights — music bingo brings every generation together." },
                 ].map((f) => (

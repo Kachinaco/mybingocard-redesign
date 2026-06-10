@@ -66,7 +66,7 @@ export function canExportHD(planType: PlanType): PermissionCheck {
   if (!plan.limits.canExportHD) {
     return {
       allowed: false,
-      reason: "PDF and PNG exports require Premium plan.",
+      reason: "PDF and PNG exports are not available for this account.",
       upgradeRequired: true,
     };
   }
@@ -83,7 +83,7 @@ export function canAccessAllTemplates(planType: PlanType): PermissionCheck {
   if (!plan.limits.canUseAdvancedTemplates) {
     return {
       allowed: false,
-      reason: "Premium templates require Premium plan.",
+      reason: "This template is not available for this account.",
       upgradeRequired: true,
     };
   }

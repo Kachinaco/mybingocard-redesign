@@ -10,40 +10,37 @@ describe("card PDF export guardrails", () => {
   const pricingPageSource = readFileSync(resolve(process.cwd(), "app/pricing/page.tsx"), "utf8");
   const stripeConfigSource = readFileSync(resolve(process.cwd(), "lib/stripe/config.ts"), "utf8");
 
-  test("free users are routed from single-card PDF export into batch PDF flow", () => {
-    expect(cardPageSource).toContain("const shouldUseBatchForPdf = status === \"authenticated\" && !isPremiumBatchUser;");
-    expect(cardPageSource).toContain("openBatchForPdf(\"single_pdf_export\")");
-    expect(cardPageSource).toContain("Paid PDF checkout");
-    expect(cardPageSource).toContain("Paid printable card download");
-    expect(cardPageSource).toContain("Pay ${selectedBatchPrice} & Generate Cards");
+  test("free users can use single-card PDF export and free batch PDFs", () => {
+    expect(cardPageSource).toContain("const shouldUseBatchForPdf = false;");
+    expect(cardPageSource).toContain("Free PDF packs");
+    expect(cardPageSource).toContain("Generate printable cards");
+    expect(cardPageSource).toContain("Generate ${batchCount} Cards");
+    expect(cardPageSource).not.toContain("Pay ${selectedBatchPrice} & Generate Cards");
   });
 
-  test("single-card PDF API denies free-plan PDF downloads", () => {
-    expect(pdfRouteSource).toContain("if (!hasPremiumAccess(user))");
-    expect(pdfRouteSource).toContain("trialRequired: true");
-    expect(pdfRouteSource).toContain("Start your 3-day trial or choose lifetime access to export PDF files.");
+  test("single-card PDF API allows authenticated free-plan PDF downloads", () => {
+    expect(pdfRouteSource).not.toContain("if (!hasPremiumAccess(user))");
+    expect(pdfRouteSource).not.toContain("trialRequired: true");
+    expect(pdfRouteSource).toContain('event: "export_pdf"');
   });
 
-  test("PNG export is not shown or allowed for free users", () => {
+  test("PNG export is allowed for free users by plan permissions", () => {
     expect(cardPageSource).toContain("canExportPNG: data.plan?.canExportPNG || false");
     expect(cardPageSource).not.toContain("Download PNG");
-    expect(pngRouteSource).toContain("if (!hasPremiumAccess(user))");
-    expect(pngRouteSource).toContain("Start your 3-day trial or choose lifetime access to export PNG files.");
-    expect(pngRouteSource).toContain("upgradeRequired: true");
+    expect(pngRouteSource).not.toContain("if (!hasPremiumAccess(user))");
+    expect(pngRouteSource).not.toContain("upgradeRequired: true");
+    expect(stripeConfigSource).toContain("canExportPNG: true");
   });
 
-  test("free users must have a purchased generated batch before batch PDF export", () => {
-    expect(batchPdfRouteSource).toContain("findGeneratedBatchPurchaseForCards(session.user.id, cardIds)");
-    expect(batchPdfRouteSource).toContain('reason: "purchased_batch_required"');
-    expect(batchPdfRouteSource).toContain('reason: "card_count_exceeds_purchased_batch"');
+  test("free users can export generated batch PDFs up to the free max batch size", () => {
+    expect(batchPdfRouteSource).toContain("hasPremiumBatchAccess");
+    expect(stripeConfigSource).toContain("maxBatchSize: 500");
     expect(batchPdfRouteSource).not.toContain("cardIds.length > 100");
   });
 
-  test("free-plan marketing copy does not promise free PDF export", () => {
-    expect(stripeConfigSource).not.toContain("Standard PDF export");
-    expect(pricingPageSource).not.toContain("Standard PDF export");
-    expect(pricingPageSource).not.toContain("standard PDF export");
-    expect(pricingPageSource).toContain("1 saved bingo card");
-    expect(pricingPageSource).toContain('["PDF export", "Browser print + paid batch PDF packs", "HD, no watermark", "HD, no watermark"]');
+  test("free-plan marketing copy promises free PDF export and keeps shares paid", () => {
+    expect(stripeConfigSource).toContain('"PDF and PNG export"');
+    expect(pricingPageSource).toContain('["PDF export", "Yes", "Yes", "Yes"]');
+    expect(pricingPageSource).toContain("Paid Share Links");
   });
 });

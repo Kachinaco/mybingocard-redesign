@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { BATCH_PACKS, VALID_BATCH_COUNTS } from "@/lib/batchPacks";
 import {
   CheckoutReturnBanner,
   PricingCheckoutButton,
@@ -8,51 +7,51 @@ import {
 } from "./PricingCheckoutActions";
 
 const FREE_FEATURES = [
-  "1 saved bingo card",
+  "Unlimited saved bingo cards",
   "3x3, 4x4, and 5x5 grids",
-  "5 starter templates",
+  "All templates",
+  "AI-powered card ideas",
   "Text and image bingo cells",
-  "Preview before checkout",
+  "PDF and PNG exports",
+  "Up to 500 printable cards per batch",
   "Profile and saved-card access",
-  "Optional lifetime upgrade",
+  "Paid share links and hosted events are optional",
 ];
 
 const PREMIUM_FEATURES = [
-  "AI-powered card ideas",
-  "All premium templates",
-  "PDF and PNG exports",
-  "Custom colors and fonts",
-  "Up to 500 cards per batch",
+  "Host live bingo event rooms",
+  "Direct player links and email sharing",
   "Unique shuffled card per viewer",
-  "Saved cards and share links",
+  "Cleaner saved and shared card experience",
+  "Paid sharing workflow for groups",
   "Priority support",
 ];
 
 const PLAN_ROWS = [
-  ["Bingo cards", "1 saved card", "Unlimited", "Unlimited"],
+  ["Bingo cards", "Unlimited", "Unlimited", "Unlimited"],
   ["Grid sizes", "3x3, 4x4, 5x5", "3x3, 4x4, 5x5", "3x3, 4x4, 5x5"],
-  ["Templates", "5 starter", "All premium", "All premium"],
-  ["AI generation", "-", "Yes", "Yes"],
+  ["Templates", "All", "All", "All"],
+  ["AI generation", "Yes", "Yes", "Yes"],
   ["Image bingo cells", "Yes", "Yes", "Yes"],
-  ["PDF export", "Browser print + paid batch PDF packs", "HD, no watermark", "HD, no watermark"],
-  ["PNG export", "-", "Yes", "Yes"],
-  ["Custom colors & fonts", "-", "Yes", "Yes"],
-  ["Batch generation", "-", "Up to 500", "Up to 500"],
-  ["Online play links", "Premium required", "Yes", "Yes"],
-  ["Saved card experience", "1 saved card", "Saved cards and share links", "Cleaner saved and shared cards"],
-  ["Billing", "-", "3-day trial, then $7.99/mo", "One-time $29.99"],
+  ["PDF export", "Yes", "Yes", "Yes"],
+  ["PNG export", "Yes", "Yes", "Yes"],
+  ["Custom colors & fonts", "Yes", "Yes", "Yes"],
+  ["Batch generation", "Up to 500", "Up to 500", "Up to 500"],
+  ["Paid share links", "A la carte", "Included direct sharing", "Included direct sharing"],
+  ["Live event hosting", "Paid add-on", "Included", "Included"],
+  ["Billing", "$0", "3-day trial, then $7.99/mo", "One-time $29.99"],
 ];
 
 const FAQ_ITEMS = [
   {
     question: "What can I do on the free plan?",
     answer:
-      "The free plan lets new users create a profile, save 1 bingo card, and preview cards. Start the 3-day Premium trial or choose lifetime access when you are ready for unlimited saves, exports, sharing, or publishing.",
+      "The free plan includes unlimited saved cards, all templates, AI ideas, image cells, PDF and PNG exports, and printable batches up to 500 cards. Paid share links and hosted bingo events are optional.",
   },
   {
-    question: "What is included in Premium?",
+    question: "What is paid now?",
     answer:
-      "Premium includes AI card ideas, all premium templates, PDF and PNG exports, custom styles, larger batches up to 500 cards, share links, and unique shuffled cards for online viewers.",
+      "Paid features are sharing workflows and hosted bingo events. Group share links are sold a la carte, and Premium or Lifetime access covers live event hosting and direct sharing tools.",
   },
   {
     question: "Can I pay once instead of subscribing?",
@@ -90,8 +89,6 @@ function PlanFeatureList({ features, tone = "indigo" }: { features: string[]; to
 }
 
 export default function PricingPage() {
-  const batchPacks = VALID_BATCH_COUNTS.map((count) => BATCH_PACKS[count]);
-
   return (
     <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
       <Suspense fallback={null}>
@@ -129,13 +126,13 @@ export default function PricingPage() {
 
         <section className="text-center mb-16">
           <div className="inline-block px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-bold uppercase tracking-wide mb-6">
-            Simple, Transparent Pricing
+            Creator Tools Are Free
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-            Draft first, then start Premium when you are ready to save
+            Pay only for sharing and hosted bingo events
           </h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
-            Start with a free text bingo draft. Upgrade when you need AI ideas, premium templates, PDF and PNG exports, larger batches, cleaner sharing, or a one-time pack for a single event.
+            Create, save, customize, use templates, generate batches, and export printable cards for free. Paid options are for sending player links and hosting live bingo events.
           </p>
         </section>
 
@@ -143,7 +140,7 @@ export default function PricingPage() {
           <div className="relative bg-white rounded-3xl border border-slate-200 shadow-xl hover:shadow-2xl hover:border-indigo-200 transition-all duration-300 flex flex-col">
             <div className="p-8 flex-grow">
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Free</h2>
-              <p className="text-sm text-slate-500 mb-6">Good for testing the editor or making a few cards.</p>
+              <p className="text-sm text-slate-500 mb-6">Full creator access for making and printing bingo cards.</p>
               <div className="flex items-baseline gap-1 mb-8">
                 <span className="text-5xl font-black text-slate-900 tracking-tight">$0</span>
                 <span className="text-slate-500 font-medium">forever</span>
@@ -152,7 +149,7 @@ export default function PricingPage() {
             </div>
             <div className="p-8 pt-0 mt-auto">
               <Link href="/signup" className="block w-full py-4 px-6 bg-slate-100 text-slate-700 rounded-xl font-bold text-center hover:bg-slate-200 transition-colors border border-slate-200">
-                Start a Drafting
+                Start Creating
               </Link>
             </div>
           </div>
@@ -160,7 +157,7 @@ export default function PricingPage() {
           <div className="relative bg-white rounded-3xl border border-slate-200 shadow-xl hover:shadow-2xl hover:border-indigo-200 transition-all duration-300 flex flex-col">
             <div className="p-8 flex-grow">
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Premium</h2>
-              <p className="text-sm text-slate-500 mb-6">Best for teachers, recurring events, HR teams, and planners.</p>
+              <p className="text-sm text-slate-500 mb-6">Best for people hosting live games or sharing cards with players online.</p>
               <div className="flex items-baseline gap-1 mb-8">
                 <span className="text-5xl font-black text-slate-900 tracking-tight">$7.99</span>
                 <span className="text-slate-500 font-medium">/month</span>
@@ -184,7 +181,7 @@ export default function PricingPage() {
             </div>
             <div className="p-8 flex-grow">
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Lifetime</h2>
-              <p className="text-sm text-slate-500 mb-6">Permanent Premium access with no renewal.</p>
+              <p className="text-sm text-slate-500 mb-6">Permanent paid sharing and hosting access with no renewal.</p>
               <div className="flex items-baseline gap-1 mb-8">
                 <span className="text-5xl font-black text-slate-900 tracking-tight">$29.99</span>
                 <span className="text-slate-500 font-medium">once</span>
@@ -206,23 +203,27 @@ export default function PricingPage() {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 md:p-10">
             <div className="grid lg:grid-cols-[1fr_1.4fr] gap-8 items-start">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-indigo-600 mb-3">One-Time Event Packs</p>
-                <h2 className="text-3xl font-bold text-slate-900 mb-4">Need a larger batch for one event?</h2>
+                <p className="text-xs font-bold uppercase tracking-wide text-indigo-600 mb-3">Paid Share Links</p>
+                <h2 className="text-3xl font-bold text-slate-900 mb-4">Need unique player links for a group?</h2>
                 <p className="text-slate-600 leading-relaxed">
-                  Buy a batch PDF pack without subscribing. This is usually the simplest option for weddings, baby showers, classrooms, fundraisers, senior centers, and party hosts who only need cards once.
+                  Generate the batch for free, then buy only the player links you need. Share links start at 5 links for $0.50 because of Stripe checkout minimums.
                 </p>
               </div>
-              <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-3">
-                {batchPacks.map((pack) => (
-                  <div key={pack.count} className="rounded-2xl border border-slate-200 bg-slate-50 p-5 flex flex-col">
-                    <div className="text-2xl font-black text-slate-900">{pack.count}</div>
-                    <div className="text-sm text-slate-500 mb-4">unique cards</div>
-                    <div className="text-lg font-bold text-indigo-600">{pack.label}</div>
+              <div className="grid sm:grid-cols-3 gap-3">
+                {[
+                  ["5 links", "$0.50 minimum"],
+                  ["30 links", "$3.00"],
+                  ["500 links", "$50.00"],
+                ].map(([count, price]) => (
+                  <div key={count} className="rounded-2xl border border-slate-200 bg-slate-50 p-5 flex flex-col">
+                    <div className="text-2xl font-black text-slate-900">{count}</div>
+                    <div className="text-sm text-slate-500 mb-4">unique player cards</div>
+                    <div className="text-lg font-bold text-indigo-600">{price}</div>
                     <Link
-                      href={`/create?batchCount=${pack.count}&batchMode=1`}
+                      href="/create?batchMode=1"
                       className="mt-4 inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-slate-800"
                     >
-                      Select pack
+                      Create batch
                     </Link>
                   </div>
                 ))}
@@ -294,7 +295,7 @@ export default function PricingPage() {
                 Make your first card now.
               </h2>
               <p className="text-indigo-200 text-lg mb-8 max-w-2xl mx-auto">
-                Start with the free editor, then upgrade only when you need Premium exports, AI help, or larger batches.
+                Start with the free editor, then pay only when you need player share links or hosted bingo events.
               </p>
               <Link href="/create" className="inline-block px-8 py-4 bg-white text-slate-900 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-colors shadow-lg shadow-white/10">
                 Start Your First Draft

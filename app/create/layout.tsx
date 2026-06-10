@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Create Bingo Cards Online | Free Bingo Draft Editor",
-  description: "Draft printable and online bingo cards in minutes. Build a free draft, customize every square, then start checkout when you are ready to save, share, or export.",
+  title: "Create Bingo Cards Online | Free Bingo Card Maker",
+  description: "Create printable and online-ready bingo cards in minutes. Save, customize, use templates, add images, generate ideas, and export PDFs or PNGs for free.",
   other: {
     google: "notranslate",
   },
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Create Bingo Cards Online | MyBingoCard",
-    description: "Build a printable or online bingo draft, then start checkout when you are ready to save, share, or export.",
+    description: "Build printable bingo cards for free, then add paid share links or live hosting when players need online access.",
     url: "https://mybingocard.com/create",
     siteName: "MyBingoCard",
     type: "website",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Create Bingo Cards Online | MyBingoCard",
-    description: "Build a printable or online bingo draft, then start checkout when you are ready to save, share, or export.",
+    description: "Build printable bingo cards for free, then add paid share links or live hosting when players need online access.",
   },
 };
 

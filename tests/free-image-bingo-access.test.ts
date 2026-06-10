@@ -12,11 +12,11 @@ const uploadRouteSource = readSource("app/api/images/upload/route.ts");
 const imageServeRouteSource = readSource("app/api/images/[imageId]/route.ts");
 
 describe("free image bingo access", () => {
-  test("allows free drafts to use image cells while new free uploads stay blocked", () => {
+  test("allows free image cells and signed-in free uploads", () => {
     expect(stripeConfigSource).toContain('"Image bingo cards"');
-    expect(stripeConfigSource).toContain("canUploadImages: false");
-    expect(stripeConfigSource).toContain("maxImageUploads: 0");
-    expect(imageDbSource).toContain("const MAX_UPLOADS_FREE = 0");
+    expect(stripeConfigSource).toContain("canUploadImages: true");
+    expect(stripeConfigSource).toContain("maxImageUploads: 500");
+    expect(imageDbSource).toContain("const MAX_UPLOADS_FREE = 500");
     expect(imageDbSource).toContain("const MAX_UPLOADS_LEGACY_FREE = 25");
     expect(imageDbSource).toContain("canUpload: maxUploads > 0");
   });
@@ -24,7 +24,7 @@ describe("free image bingo access", () => {
   test("uses entitlement-aware upload permission in the image picker", () => {
     expect(createPageSource).not.toContain('setUpgradeReason("image_picker")');
     expect(createPageSource).toContain("setImagePickerCellIndex(index)");
-    expect(createPageSource).toContain("const canUploadImages = Boolean(permissionStatus?.hasPremiumAccess || permissionStatus?.legacyFreeAccess)");
+    expect(createPageSource).toContain("const canUploadImages = Boolean(session?.user)");
     expect(createPageSource).toContain("canUploadImages={canUploadImages}");
   });
 

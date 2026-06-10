@@ -26,7 +26,7 @@ const schema = {
   name: "Icebreaker Bingo Card Generator",
   url: "https://mybingocard.com/icebreaker-bingo",
   description:
-    "Custom icebreaker bingo card generator. Create printable people bingo cards for team meetings, classrooms, onboarding, and networking events — get to know you bingo with custom questions and PDF export after checkout.",
+    "Custom icebreaker bingo card generator. Create printable people bingo cards for team meetings, classrooms, onboarding, and networking events — get to know you bingo with custom questions and free PDF export.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -131,7 +131,7 @@ export default function IcebreakerBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Break the ice and get people talking with custom icebreaker bingo cards — an easy get to know you activity for groups! Our people bingo draft editor makes it easy to create human bingo cards where players mingle, ask questions, and find someone who matches each square. Perfect for first-day-of-school activities, new employee onboarding, corporate team building, networking events, and conference mixers. Each card is uniquely shuffled so every participant gets a different layout, encouraging everyone to talk to as many people as possible. Export printable PDF cards or share digital links after checkout for in-person events and remote teams. With customizable questions, group-size flexibility, and templates for classrooms, offices, and social gatherings, our icebreaker bingo generator turns awkward introductions into genuine connections.
+                    Break the ice and get people talking with custom icebreaker bingo cards — an easy get to know you activity for groups! Our people bingo draft editor makes it easy to create human bingo cards where players mingle, ask questions, and find someone who matches each square. Perfect for first-day-of-school activities, new employee onboarding, corporate team building, networking events, and conference mixers. Each card is uniquely shuffled so every participant gets a different layout, encouraging everyone to talk to as many people as possible. Export printable PDF cards for free or add paid digital links for in-person events and remote teams. With customizable questions, group-size flexibility, and templates for classrooms, offices, and social gatherings, our icebreaker bingo generator turns awkward introductions into genuine connections.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function IcebreakerBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to draft · Any group size · PDF export after checkout</p>
+                  <p className="text-sm text-slate-400">Free creator tools · Any group size · free PDF export</p>
                 </div>
 
                 <div className="relative">
@@ -171,7 +171,7 @@ export default function IcebreakerBingoPage() {
                   { icon: "🤝", title: "Break the Ice Fast", desc: "Skip the awkward introductions. People bingo gets everyone mingling and discovering shared interests in minutes." },
                   { icon: "✏️", title: "Custom Questions", desc: "Add your own get-to-know-you prompts — hobbies, experiences, fun facts, or industry-specific icebreakers." },
                   { icon: "👥", title: "Works for Any Group Size", desc: "From small teams of 10 to conferences of 500 — icebreaker bingo scales effortlessly to any audience." },
-                  { icon: "🖨️", title: "Print or Digital", desc: "Export PDF cards or share digital links after checkout for remote and hybrid teams." },
+                  { icon: "🖨️", title: "Print or Digital", desc: "Export PDF cards for free or add paid digital links for remote and hybrid teams." },
                   { icon: "💼", title: "Perfect for Onboarding", desc: "New hire orientation, first day of class, or team kickoff — human bingo makes everyone feel welcome fast." },
                   { icon: "🎓", title: "Great for Classrooms", desc: "Teachers love people bingo for back-to-school activities. Students learn names and build friendships through play." },
                 ].map((f) => (

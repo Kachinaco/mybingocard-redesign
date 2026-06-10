@@ -35,9 +35,9 @@ const satisfy = Satisfy({
 export const metadata: Metadata = {
   metadataBase: new URL("https://mybingocard.com"),
   applicationName: "MyBingoCard",
-  title: "Free Bingo Draft Editor | Printable & Online Bingo Cards | MyBingoCard",
+  title: "Free Bingo Card Maker | Printable Cards & Paid Online Bingo | MyBingoCard",
   description:
-    "Draft printable and online bingo cards for classrooms, baby showers, weddings, team building, holidays, and parties. Free bingo draft editor with templates, AI help, PDF export, and live play.",
+    "Create printable bingo cards for classrooms, baby showers, weddings, team building, holidays, and parties. Save, customize, use templates, AI help, and PDF export for free; pay only for share links and live hosting.",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -59,8 +59,8 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Free Bingo Draft Editor | MyBingoCard",
-    description: "Draft printable and online bingo cards for classrooms, parties, baby showers, weddings, and team building.",
+    title: "Free Bingo Card Maker | MyBingoCard",
+    description: "Create printable bingo cards for free, with optional paid player share links and live bingo hosting.",
     url: "https://mybingocard.com",
     siteName: "MyBingoCard",
     type: "website",
@@ -155,7 +155,7 @@ export default function RootLayout({
                   "operatingSystem": "Web",
                   "browserRequirements": "Requires JavaScript and a modern web browser.",
                   "isAccessibleForFree": true,
-                  "description": "Draft printable and online bingo cards for classrooms, parties, baby showers, weddings, team building, holidays, and more.",
+                  "description": "Create printable bingo cards for classrooms, parties, baby showers, weddings, team building, holidays, and more. Creator tools are free; player links and live hosting are paid.",
                   "featureList": [
                     "Printable bingo card PDFs",
                     "Online bingo card sharing",
@@ -173,21 +173,21 @@ export default function RootLayout({
                       "price": "0",
                       "priceCurrency": "USD",
                       "name": "Free",
-                      "description": "Free bingo draft editor with starter templates, browser printing, and paid batch PDF packs",
+                      "description": "Free saved cards, templates, AI ideas, image cells, PDF and PNG exports, and printable batches up to 500 cards",
                     },
                     {
                       "@type": "Offer",
                       "price": "7.99",
                       "priceCurrency": "USD",
                       "name": "Premium Monthly",
-                      "description": "AI generation, image bingo cards, PDF and PNG exports, and premium templates",
+                      "description": "Monthly access for live bingo hosting, direct player links, and paid sharing tools",
                     },
                     {
                       "@type": "Offer",
                       "price": "29.99",
                       "priceCurrency": "USD",
                       "name": "Premium Lifetime",
-                      "description": "One-time payment for lifetime AI generation, PDF and PNG exports, and premium templates",
+                      "description": "One-time payment for lifetime live bingo hosting, direct player links, and paid sharing tools",
                     },
                   ],
                 },

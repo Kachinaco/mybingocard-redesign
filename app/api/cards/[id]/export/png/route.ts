@@ -3,7 +3,6 @@ import { auth } from "@/auth";
 import { getCardById } from "@/lib/db/cards";
 import { getUserByEmail, incrementUserCounter } from "@/lib/db/users";
 import { canExportHD, canRemoveBranding } from "@/lib/permissions";
-import { hasPremiumAccess } from "@/lib/subscription-status";
 import puppeteer from "puppeteer";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyCardExported } from "@/lib/discord";
@@ -55,17 +54,6 @@ export async function POST(
       return NextResponse.json(
         { error: "User not found" },
         { status: 404 }
-      );
-    }
-
-    if (!hasPremiumAccess(user)) {
-      return NextResponse.json(
-        {
-          error: "Start your 3-day trial or choose lifetime access to export PNG files.",
-          upgradeRequired: true,
-          trialRequired: true,
-        },
-        { status: 403 }
       );
     }
 

@@ -28,10 +28,10 @@ export interface Subscription {
 // Plan limits configuration
 export const PLAN_LIMITS = {
   free: {
-    maxCards: 1,
-    maxExports: 0,
-    canAccessPremiumTemplates: false,
-    canRemoveWatermark: false,
+    maxCards: -1,
+    maxExports: -1,
+    canAccessPremiumTemplates: true,
+    canRemoveWatermark: true,
   },
   starter: {
     maxCards: 25,

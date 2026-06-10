@@ -26,7 +26,7 @@ const schema = {
   name: "Birthday Bingo Cards Printable Generator",
   url: "https://mybingocard.com/birthday-bingo",
   description:
-    "Create custom printable birthday bingo cards for guests. Custom birthday bingo with PDF export after checkout and digital play options.",
+    "Create custom printable birthday bingo cards for guests. Custom birthday bingo with free PDF export and digital play options.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -118,7 +118,7 @@ export default function BirthdayBingoPage() {
                 Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500">Birthday Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                Make any birthday party unforgettable with custom bingo cards. Generate unique cards for every guest, export as PDF after checkout, and play in minutes.
+                Make any birthday party unforgettable with custom bingo cards. Generate unique cards for every guest, export as PDF for free, and play in minutes.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
@@ -147,7 +147,7 @@ export default function BirthdayBingoPage() {
             <div className="grid md:grid-cols-3 gap-8">
               {[
                 { icon: "🎈", title: "Keeps Guests Engaged", desc: "No more awkward silences. Bingo gets everyone involved from kids to grandparents." },
-                { icon: "🖨️", title: "PDF Export", desc: "Generate unique card drafts, then export a PDF after checkout." },
+                { icon: "🖨️", title: "PDF Export", desc: "Generate unique card drafts, then export a PDF for free." },
                 { icon: "✨", title: "Fully Customizable", desc: "Add inside jokes, personalized squares, and custom themes to match any party." },
               ].map((f) => (
                 <div key={f.title} className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 text-center">

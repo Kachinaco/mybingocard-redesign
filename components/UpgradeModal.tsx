@@ -118,29 +118,29 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
 
   const reasonContent = {
     card_limit: {
-      title: "Upgrade to Premium",
-      description: "Premium unlocks unlimited saves, sharing, exports, unlimited AI generation, premium templates, and the rest of the advanced bingo tools.",
-      features: ["Unlimited AI-powered card generation", "All premium templates", "PDF and PNG export after checkout", "Custom colors & fonts", "Up to 500 cards per batch", "Cleaner saved and shared cards"],
+      title: "Paid Sharing and Hosting",
+      description: "Creator tools are free. Premium is for direct player sharing and hosted live bingo events.",
+      features: ["Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer", "Cleaner shared card experience"],
     },
     premium_template: {
-      title: "Unlock This Template",
-      description: "This template is part of our Premium collection. Get access to all templates and more after checkout.",
-      features: ["All premium templates included", "PDF and PNG export after checkout", "Custom colors & fonts", "Unlimited AI-powered generation", "Up to 500 cards per batch", "Cleaner saved and shared cards"],
+      title: "Paid Sharing and Hosting",
+      description: "All templates are free. Premium is only needed for direct player sharing and hosted live bingo events.",
+      features: ["Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer", "Cleaner shared card experience"],
     },
     ai_generate: {
-      title: "Remove AI Limits",
-      description: "Let AI create your bingo card cells without the daily free limit. Describe your theme and get a polished draft in seconds.",
-      features: ["Unlimited AI-powered cell generation", "Describe any theme or topic", "PDF and PNG export after checkout", "All premium templates", "Custom colors & fonts", "Cleaner saved and shared cards"],
+      title: "Paid Sharing and Hosting",
+      description: "AI generation is included for signed-in users. Premium is for direct player sharing and hosted live bingo events.",
+      features: ["Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer", "Cleaner shared card experience"],
     },
     batch_generate: {
-      title: "Generate Cards in Bulk",
-      description: "Create up to 500 unique shuffled cards at once. Perfect for classrooms, events, and parties.",
-      features: ["Up to 500 unique cards per batch", "PDF export after checkout", "Every card uniquely shuffled", "Unlimited AI-powered generation", "Premium templates", "Cleaner saved and shared cards"],
+      title: "Paid Sharing and Hosting",
+      description: "Printable batches are free up to 500 cards. Premium is for direct player sharing and hosted live bingo events.",
+      features: ["Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer", "Cleaner shared card experience"],
     },
     modal: {
-      title: "Upgrade to Premium",
-      description: "Get the most out of MyBingoCard with unlimited saves, sharing, unlimited AI generation, premium templates, larger batches, and cleaner exports.",
-      features: ["Unlimited AI-powered card generation", "PDF and PNG export after checkout", "All premium templates", "Custom colors & fonts", "Up to 500 cards per batch", "Cleaner saved and shared cards"],
+      title: "Paid Sharing and Hosting",
+      description: "Creation, saving, exports, templates, images, AI, and printable batches are free. Premium is for direct sharing and hosted bingo events.",
+      features: ["Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer", "Cleaner shared card experience"],
     },
   }[reason];
 
@@ -332,7 +332,7 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
                 disabled={loading}
                 className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-indigo-200 transition-all disabled:opacity-70"
               >
-                {loading ? "Loading..." : reason === "ai_generate" ? "Upgrade for AI for $29.99 lifetime" : "Get Lifetime Access for $29.99"}
+                {loading ? "Loading..." : "Get Lifetime Hosting for $29.99"}
               </button>
               <button
                 onClick={handleUpgrade}

@@ -149,7 +149,7 @@ export async function POST(request: Request) {
     if (!hasPremiumBatchAccess && !claimedPurchase) {
       return NextResponse.json(
         {
-          error: `Buy the ${count}-card batch pack to generate this batch.`,
+          error: `This account cannot generate a ${count}-card batch right now.`,
           batchPurchaseRequired: true,
           batchCount: count,
         },

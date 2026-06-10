@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Bingo Card Templates - Custom Wedding, Baby Shower & Classroom Cards",
   description:
-    "Browse custom printable bingo card templates for weddings, baby showers, classrooms, holidays, parties, office events, and more. Customize and export after checkout.",
+    "Browse free printable bingo card templates for weddings, baby showers, classrooms, holidays, parties, office events, and more. Customize and export for free.",
   alternates: {
     canonical: "https://mybingocard.com/templates",
   },

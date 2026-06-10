@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Size must be 3, 4, or 5" }, { status: 400 });
     }
 
-    const unlimitedAi = isUnlimitedAiUser(user ? { ...user, email: sessionUserEmail } : null);
+    const unlimitedAi = Boolean(sessionUserId) || isUnlimitedAiUser(user ? { ...user, email: sessionUserEmail } : null);
     let freeGenerationsUsed = 0;
     if (!unlimitedAi) {
       freeGenerationsUsed = await getRecentAiGenerationCount({ userId: sessionUserId, anonymousQuotaKey });

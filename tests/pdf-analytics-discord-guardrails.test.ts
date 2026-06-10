@@ -37,12 +37,11 @@ describe("PDF analytics and Discord guardrails", () => {
     }
   });
 
-  test("server tracks PDF blocks and batch PDF exports", () => {
-    expect(singlePdfRouteSource).toContain('event: "export_pdf_blocked"');
-    expect(singlePdfRouteSource).toContain('reason: "trial_required"');
+  test("server tracks PDF exports and batch PDF exports", () => {
+    expect(singlePdfRouteSource).toContain('event: "export_pdf"');
+    expect(singlePdfRouteSource).not.toContain('event: "export_pdf_blocked"');
     expect(batchPdfRouteSource).toContain('event: "batch_pdf_exported"');
     expect(batchPdfRouteSource).toContain('event: "batch_pdf_export_blocked"');
-    expect(batchPdfRouteSource).toContain('reason: "purchased_batch_required"');
     expect(batchPdfRouteSource).toContain("hasPremiumBatchAccess");
   });
 

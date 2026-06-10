@@ -130,7 +130,7 @@ export default function WeddingBingoGuide() {
 
         <h2>Create Your Wedding Bingo Cards</h2>
         <p>
-          Ready to add wedding bingo to your reception? Our <Link href="/wedding-bingo">wedding bingo draft editor</Link> creates elegant cards you can export after checkout that match your wedding style. Each card is unique, and larger batches are available after checkout.
+          Ready to add wedding bingo to your reception? Our <Link href="/wedding-bingo">wedding bingo draft editor</Link> creates elegant cards you can export for free that match your wedding style. Each card is unique, and larger printable batches are free up to 500 cards.
         </p>
       </BlogLayout>
     </>

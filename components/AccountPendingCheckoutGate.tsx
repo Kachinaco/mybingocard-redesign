@@ -29,16 +29,16 @@ export default function AccountPendingCheckoutGate({ email }: { email: string })
             </div>
             <p className="text-xs font-bold uppercase tracking-wide text-indigo-600">Account pending checkout</p>
             <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-              Start your trial to unlock your dashboard
+              Paid checkout is only for sharing and hosting
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-600">
-              You are signed in{email ? ` as ${email}` : ""}. Your profile, saved cards, share links, downloads, and live games unlock after checkout starts.
+              You are signed in{email ? ` as ${email}` : ""}. Creator tools are free; paid checkout is only needed for share links or hosted live games.
             </p>
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
               <PremiumCheckoutButton
                 source="account_pending_checkout_gate"
                 successPath="/dashboard"
-                label="Start 3-Day Trial for $7.99/mo"
+                label="Start Hosting Trial for $7.99/mo"
                 className="inline-flex min-h-12 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:shadow-indigo-300"
               />
               <Link

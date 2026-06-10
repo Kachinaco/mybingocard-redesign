@@ -281,7 +281,7 @@ export default async function DashboardPage() {
                   {[
                     { title: "Choose", desc: "Start from a use-case template." },
                     { title: "Customize", desc: "Edit words, images, free space, and style." },
-                    { title: "Play", desc: "Share links or download paid batches." },
+                    { title: "Play", desc: "Download free batches or add paid player links." },
                   ].map((step, index) => (
                     <div key={step.title} className="rounded-xl border border-white/70 bg-white p-4">
                       <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 text-sm font-black text-indigo-700">

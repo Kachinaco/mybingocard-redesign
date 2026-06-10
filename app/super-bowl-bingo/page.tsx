@@ -26,7 +26,7 @@ const schema = {
   name: "Super Bowl Bingo Cards Printable Generator",
   url: "https://mybingocard.com/super-bowl-bingo",
   description:
-    "Create custom printable Super Bowl bingo cards for your watch party. Custom squares, PDF export after checkout.",
+    "Create custom printable Super Bowl bingo cards for your watch party. Custom squares, free PDF export.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },

@@ -5,7 +5,7 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 export const metadata: Metadata = {
   title: "Bridal Shower Bingo Cards Printable — Custom Bridal Shower Bingo Generator | MyBingoCard",
   description:
-    "Create custom printable bridal shower bingo cards for your guests. The best bridal shower bingo card generator — custom squares, PDF export after checkout for any bridal shower.",
+    "Create custom printable bridal shower bingo cards for your guests. The best bridal shower bingo card generator — custom squares, free PDF export for any bridal shower.",
   alternates: {
     canonical: "https://mybingocard.com/bridal-shower-bingo",
   },
@@ -25,7 +25,7 @@ const schema = {
   name: "Bridal Shower Bingo Cards Printable Generator",
   url: "https://mybingocard.com/bridal-shower-bingo",
   description:
-    "Create custom printable bridal shower bingo cards. Custom squares, PDF export after checkout, and digital play.",
+    "Create custom printable bridal shower bingo cards. Custom squares, free PDF export, and digital play.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
@@ -92,7 +92,7 @@ export default function BridalShowerBingoPage() {
                 Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500">Bridal Shower Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                Turn gift opening into a party game! Create unique bingo cards for every guest, export after checkout, and celebrate the bride-to-be in style.
+                Turn gift opening into a party game! Create unique bingo cards for every guest, export for free, and celebrate the bride-to-be in style.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/create" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl font-bold text-lg hover:opacity-90 shadow-lg shadow-pink-500/30">

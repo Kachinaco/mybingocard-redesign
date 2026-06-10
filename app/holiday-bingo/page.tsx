@@ -5,7 +5,7 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 export const metadata: Metadata = {
   title: "Christmas Holiday Bingo Card Maker — Custom Printable | MyBingoCard",
   description:
-    "Create custom Christmas and holiday bingo cards with our easy bingo card maker. Printable holiday bingo for classrooms, family gatherings, and office parties. PDF export after checkout.",
+    "Create custom Christmas and holiday bingo cards with our easy bingo card maker. Printable holiday bingo for classrooms, family gatherings, and office parties. free PDF export.",
   alternates: {
     canonical: "https://mybingocard.com/holiday-bingo",
   },
@@ -25,7 +25,7 @@ const schema = {
   name: "Christmas Holiday Bingo Card Maker",
   url: "https://mybingocard.com/holiday-bingo",
   description:
-    "Christmas and holiday bingo draft editor. Create printable holiday bingo cards for classrooms, family gatherings, and office parties — PDF export after checkout.",
+    "Christmas and holiday bingo draft editor. Create printable holiday bingo cards for classrooms, family gatherings, and office parties — free PDF export.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -130,7 +130,7 @@ export default function HolidayBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Spread holiday cheer with custom Christmas and holiday bingo cards made in minutes! Our holiday bingo card maker is the easiest way to create festive bingo cards for classroom Christmas parties, family gatherings, ugly sweater events, and office holiday parties. Choose from classic Christmas themes — Santa, reindeer, snowflakes, candy canes — or customize every square with your own holiday traditions and inside jokes. Each card is uniquely randomized so grandma and the kids aren&apos;t playing the same card. Export PDF files or share digital links after checkout for virtual holiday parties. Works for Christmas, Hanukkah, Kwanzaa, New Year&apos;s, and any winter celebration. Build a free holiday draft, then upgrade when you&apos;re ready for Premium features.
+                    Spread holiday cheer with custom Christmas and holiday bingo cards made in minutes! Our holiday bingo card maker is the easiest way to create festive bingo cards for classroom Christmas parties, family gatherings, ugly sweater events, and office holiday parties. Choose from classic Christmas themes — Santa, reindeer, snowflakes, candy canes — or customize every square with your own holiday traditions and inside jokes. Each card is uniquely randomized so grandma and the kids aren&apos;t playing the same card. Export PDF files for free or add paid digital links for virtual holiday parties. Works for Christmas, Hanukkah, Kwanzaa, New Year&apos;s, and any winter celebration. Build a free holiday draft, then upgrade when you&apos;re ready for Premium features.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -146,7 +146,7 @@ export default function HolidayBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to draft · Festive themes · PDF export after checkout</p>
+                  <p className="text-sm text-slate-400">Free creator tools · Festive themes · free PDF export</p>
                 </div>
 
                 <div className="relative">
@@ -170,7 +170,7 @@ export default function HolidayBingoPage() {
                   { icon: "🏫", title: "Classroom Christmas Party", desc: "Keep students engaged at the end-of-semester party with educational holiday bingo cards." },
                   { icon: "👨‍👩‍👧‍👦", title: "Family Gatherings", desc: "All ages love it — create one set of cards for the whole family holiday dinner table." },
                   { icon: "🎅", title: "Santa Visit Events", desc: "Keep kids entertained while waiting for Santa with festive Christmas bingo." },
-                  { icon: "💻", title: "Virtual Holiday Parties", desc: "Share digital bingo cards after checkout for remote family and work holiday celebrations." },
+                  { icon: "💻", title: "Virtual Holiday Parties", desc: "Share digital bingo cards with paid links for remote family and work holiday celebrations." },
                   { icon: "🧥", title: "Ugly Sweater Parties", desc: "Build a bingo card around sweater features — reindeer, snowflakes, blinking lights!" },
                   { icon: "🎬", title: "Holiday Movie Night", desc: "Create bingo cards with classic movie moments for a cozy holiday movie marathon." },
                 ].map((f) => (

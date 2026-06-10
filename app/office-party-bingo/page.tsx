@@ -131,7 +131,7 @@ export default function OfficePartyBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Liven up your next work party, holiday gathering, or team meeting with custom office bingo cards! Our office bingo draft editor creates hilarious, shareable cards full of relatable workplace moments — from jargon-heavy buzzwords to the infamous muted mic. Perfect for company holiday parties, virtual team events, remote happy hours, or just a fun Friday afternoon. Add your own inside jokes, company memes, or department-specific phrases to make every card uniquely yours. Each card is auto-randomized so no two employees have the same layout. Export PDF files or share digital links after checkout for in-person parties and remote teams. Whether you&apos;re planning a small team celebration or a company-wide event, our work party bingo generator makes engagement easy to plan!
+                    Liven up your next work party, holiday gathering, or team meeting with custom office bingo cards! Our office bingo draft editor creates hilarious, shareable cards full of relatable workplace moments — from jargon-heavy buzzwords to the infamous muted mic. Perfect for company holiday parties, virtual team events, remote happy hours, or just a fun Friday afternoon. Add your own inside jokes, company memes, or department-specific phrases to make every card uniquely yours. Each card is auto-randomized so no two employees have the same layout. Export PDF files for free or add paid digital links for in-person parties and remote teams. Whether you&apos;re planning a small team celebration or a company-wide event, our work party bingo generator makes engagement easy to plan!
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function OfficePartyBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to draft · 3-day trial to save · Works on any device</p>
+                  <p className="text-sm text-slate-400">Free creator tools · Save included · Works on any device</p>
                 </div>
 
                 <div className="relative">

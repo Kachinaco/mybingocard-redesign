@@ -121,7 +121,7 @@ export default function TriviaBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Add an extra layer of excitement to your trivia night with custom trivia bingo cards that keep every team engaged from the first question to the final answer. Our pub quiz bingo draft editor creates unique cards filled with those classic trivia night moments everyone knows and loves. Each card is randomly shuffled so every table gets a different layout, adding a fun side game to your regular trivia competition. Export crisp PDFs or share digital cards after checkout for bar, restaurant, and virtual trivia nights. Whether you&apos;re a trivia host looking to spice up your weekly event or planning a one-time game night, create your trivia bingo cards in minutes with zero design work.
+                    Add an extra layer of excitement to your trivia night with custom trivia bingo cards that keep every team engaged from the first question to the final answer. Our pub quiz bingo draft editor creates unique cards filled with those classic trivia night moments everyone knows and loves. Each card is randomly shuffled so every table gets a different layout, adding a fun side game to your regular trivia competition. Export crisp PDFs for free or add paid digital cards for bar, restaurant, and virtual trivia nights. Whether you&apos;re a trivia host looking to spice up your weekly event or planning a one-time game night, create your trivia bingo cards in minutes with zero design work.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -137,7 +137,7 @@ export default function TriviaBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to draft · 3-day trial to save · PDF export after checkout</p>
+                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
                 </div>
 
                 <div className="relative">
@@ -180,7 +180,7 @@ export default function TriviaBingoPage() {
                   {
                     icon: "📱",
                     title: "Virtual Game Night",
-                    desc: "Share a link after checkout for remote trivia nights. Players mark squares on their phones — perfect for Zoom game nights.",
+                    desc: "Share a link with paid links for remote trivia nights. Players mark squares on their phones — perfect for Zoom game nights.",
                   },
                   {
                     icon: "✏️",
@@ -190,7 +190,7 @@ export default function TriviaBingoPage() {
                   {
                     icon: "💸",
                     title: "Free for Hosts",
-                    desc: "Create trivia bingo cards as a free draft. Start without a budget, then choose Premium when you need saved cards, exports, or sharing.",
+                    desc: "Create trivia bingo cards for free. Save, export, and batch cards without a budget; pay only for player links or live hosting.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">

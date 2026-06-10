@@ -12,25 +12,26 @@ const stripeConfigSource = readFileSync(
 );
 
 describe("pricing page copy consistency", () => {
-  test("matches the free plan table row to the one-card free plan", () => {
-    expect(pricingPageSource).toContain('["Bingo cards", "1 saved card", "Unlimited", "Unlimited"]');
-    expect(stripeConfigSource).toContain('"1 saved bingo card"');
+  test("matches the free plan table row to unlimited free creator tools", () => {
+    expect(pricingPageSource).toContain('["Bingo cards", "Unlimited", "Unlimited", "Unlimited"]');
+    expect(stripeConfigSource).toContain('"Unlimited saved bingo cards"');
     expect(stripeConfigSource).toContain('"Profile and saved-card access"');
   });
 
-  test("matches premium batch-generation copy to the configured 500-card batch limit", () => {
+  test("keeps free batch generation aligned to the configured 500-card batch limit", () => {
     expect(stripeConfigSource).toContain("maxBatchSize: 500");
-    expect(pricingPageSource).toContain('"Up to 500 cards per batch"');
-    expect(pricingPageSource).toContain('["Batch generation", "-", "Up to 500", "Up to 500"]');
+    expect(pricingPageSource).toContain('"Up to 500 printable cards per batch"');
+    expect(pricingPageSource).toContain('["Batch generation", "Up to 500", "Up to 500", "Up to 500"]');
   });
 
-  test("links one-time event packs into the selected batch purchase flow", () => {
-    expect(pricingPageSource).toContain('href={`/create?batchCount=${pack.count}&batchMode=1`}');
-    expect(pricingPageSource).toContain("Select pack");
+  test("links paid share-link explanation into the free batch flow", () => {
+    expect(pricingPageSource).toContain("Paid Share Links");
+    expect(pricingPageSource).toContain('href="/create?batchMode=1"');
+    expect(pricingPageSource).toContain("Create batch");
   });
 
-  test("keeps image bingo cells available while requiring Premium for server uploads", () => {
-    expect(stripeConfigSource).toContain("maxImageUploads: 0");
+  test("keeps image bingo cells and uploads available on the free plan", () => {
+    expect(stripeConfigSource).toContain("maxImageUploads: 500");
     expect(pricingPageSource).toContain('["Image bingo cells", "Yes", "Yes", "Yes"]');
   });
 });

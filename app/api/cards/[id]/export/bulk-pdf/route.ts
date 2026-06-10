@@ -182,14 +182,6 @@ export async function POST(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Check plan — bulk PDF is Pro/Business only
-    if (user.planType === "FREE") {
-      return NextResponse.json(
-        { error: "Bulk PDF export requires Premium plan.", upgradeRequired: true },
-        { status: 403 }
-      );
-    }
-
     const { id } = await params;
     const body = await request.json();
     const count = Math.min(Math.max(parseInt(body.count) || 10, 1), 50);

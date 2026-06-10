@@ -122,7 +122,7 @@ export default function TeamBuildingBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Kick off your next corporate event with custom team building bingo cards that turn awkward icebreakers into genuinely fun group activities. Our workplace bingo draft editor creates unique cards filled with team bonding moments that encourage collaboration and laughter. Every card is randomly shuffled so each team member gets a different layout, sparking conversation and friendly competition across departments. Export clean PDFs or share digital cards after checkout for in-person offsites, retreats, and remote teams on video calls. Whether you&apos;re onboarding new hires, planning a company retreat, or running a weekly team meeting icebreaker, create your corporate bingo cards in minutes.
+                    Kick off your next corporate event with custom team building bingo cards that turn awkward icebreakers into genuinely fun group activities. Our workplace bingo draft editor creates unique cards filled with team bonding moments that encourage collaboration and laughter. Every card is randomly shuffled so each team member gets a different layout, sparking conversation and friendly competition across departments. Export clean PDFs for free or add paid digital cards for in-person offsites, retreats, and remote teams on video calls. Whether you&apos;re onboarding new hires, planning a company retreat, or running a weekly team meeting icebreaker, create your corporate bingo cards in minutes.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -138,7 +138,7 @@ export default function TeamBuildingBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to draft · 3-day trial to save · PDF export after checkout</p>
+                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
                 </div>
 
                 <div className="relative">
@@ -171,7 +171,7 @@ export default function TeamBuildingBingoPage() {
                   {
                     icon: "🖨️",
                     title: "PDF Exports",
-                    desc: "Export clean PDFs after checkout for conference rooms, offsite packets, or desk handouts.",
+                    desc: "Export clean PDFs for free for conference rooms, offsite packets, or desk handouts.",
                   },
                   {
                     icon: "🔀",
@@ -181,7 +181,7 @@ export default function TeamBuildingBingoPage() {
                   {
                     icon: "💻",
                     title: "Remote Team Ready",
-                    desc: "Share a link after checkout on Slack or Teams so remote employees can play along on video calls — no printing needed.",
+                    desc: "Add paid links on Slack or Teams so remote employees can play along on video calls — no printing needed.",
                   },
                   {
                     icon: "✏️",
@@ -191,7 +191,7 @@ export default function TeamBuildingBingoPage() {
                   {
                     icon: "💸",
                     title: "Free Drafts for Your Team",
-                    desc: "Create team building bingo cards as a free draft. Start without budget approval, then choose Premium when you need saved cards, exports, or sharing.",
+                    desc: "Create team building bingo cards for free. Save, export, and batch cards without budget approval; pay only for player links or live hosting.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">

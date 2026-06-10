@@ -702,7 +702,7 @@ export default function HowToPlayBingoPage() {
                               href="/create"
                               className="text-indigo-600 hover:text-indigo-700 font-medium underline underline-offset-2"
                             >
-                              Create a free draft, then export or use digital cards after checkout
+                              Create a free card, then export for free or add paid digital cards
                             </Link>{" "}
                             on phones and tablets
                           </span>
@@ -919,7 +919,7 @@ export default function HowToPlayBingoPage() {
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
                   The easiest way to create custom bingo cards for any occasion.
-                  Online bingo draft editor with templates, PDF export after checkout, and
+                  Online bingo draft editor with templates, free PDF export, and
                   live multiplayer games.
                 </p>
               </div>

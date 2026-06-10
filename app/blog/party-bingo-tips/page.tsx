@@ -144,7 +144,7 @@ export default function PartyBingoTips() {
 
         <h2>Create Your Party Bingo Cards</h2>
         <p>
-          Ready to host the best party bingo game? Use our <Link href="/party-bingo">party bingo draft editor</Link> to create beautiful, customized cards in minutes. Every card can be uniquely shuffled, with print export available after checkout.
+          Ready to host the best party bingo game? Use our <Link href="/party-bingo">party bingo draft editor</Link> to create beautiful, customized cards in minutes. Every card can be uniquely shuffled, with free print export available.
         </p>
       </BlogLayout>
     </>

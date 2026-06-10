@@ -25,9 +25,9 @@ describe("checkout funnel guardrails", () => {
     expect(checkoutModalSource).toContain("isOpeningRef.current = false;");
   });
 
-  it("uses normal Premium checkout instead of a separate legacy trial button on the create page", () => {
+  it("does not show creator-tool premium checkout on the create page", () => {
     const checkoutButtonMatches = createPageSource.match(/<PremiumCheckoutButton/g) ?? [];
-    expect(checkoutButtonMatches).toHaveLength(1);
+    expect(checkoutButtonMatches).toHaveLength(0);
     expect(createPageSource).not.toContain("StartTrialButton");
     expect(createPageSource).not.toContain("Start 7-Day Trial");
   });
@@ -74,7 +74,7 @@ describe("checkout funnel guardrails", () => {
     expect(createPageSource).toContain("{editorUnlocked && (");
     expect(createPageSource).toContain("continueAnonymousDraft");
     expect(createPageSource).toContain('signOut({ callbackUrl: "/create" })');
-    expect(createPageSource).toContain("Keep drafting without saving");
+    expect(createPageSource).toContain("Keep drafting");
     expect(createPageSource).not.toContain("Not now");
     expect(createPageSource).not.toContain("Back to Dashboard");
   });

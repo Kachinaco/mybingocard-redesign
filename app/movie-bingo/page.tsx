@@ -6,7 +6,7 @@ import SeoSupportBlock from "@/components/SeoSupportBlock";
 export const metadata: Metadata = {
   title: "Movie Bingo Cards — Custom Movie Night Bingo Generator | MyBingoCard",
   description:
-    "Create movie bingo cards for your next movie night or watch party. Custom film bingo generator with tropes, cliches, and custom squares. Printable movie night bingo cards with PDF export after checkout.",
+    "Create movie bingo cards for your next movie night or watch party. Custom film bingo generator with tropes, cliches, and custom squares. Printable movie night bingo cards with free PDF export.",
   alternates: {
     canonical: "https://mybingocard.com/movie-bingo",
   },
@@ -131,7 +131,7 @@ export default function MovieBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Make every movie night unforgettable with custom movie bingo cards! Our film bingo draft editor lets you create printable bingo cards packed with classic movie tropes, cliches, and moments — from plot twists and jump scares to villain monologues and post-credit scenes. Every card is uniquely shuffled so the whole watch party can play along without duplicates. Perfect for family movie nights, Oscar watch parties, horror marathons, or date night at home. Export printable PDF cards or share digital links after checkout so everyone can play on their phones. With genre-specific templates for action, comedy, romance, horror, and sci-fi, you can customize cards to match any film. A movie night bingo draft editor that is easy to customize for your watch party.
+                    Make every movie night unforgettable with custom movie bingo cards! Our film bingo draft editor lets you create printable bingo cards packed with classic movie tropes, cliches, and moments — from plot twists and jump scares to villain monologues and post-credit scenes. Every card is uniquely shuffled so the whole watch party can play along without duplicates. Perfect for family movie nights, Oscar watch parties, horror marathons, or date night at home. Export printable PDF cards for free or add paid digital links so everyone can play on their phones. With genre-specific templates for action, comedy, romance, horror, and sci-fi, you can customize cards to match any film. A movie night bingo draft editor that is easy to customize for your watch party.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function MovieBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to draft · Works with any film · PDF export after checkout</p>
+                  <p className="text-sm text-slate-400">Free creator tools · Works with any film · free PDF export</p>
                 </div>
 
                 <div className="relative">
@@ -171,7 +171,7 @@ export default function MovieBingoPage() {
                   { icon: "🎬", title: "Movie Tropes", desc: "Pre-loaded with the best film cliches — plot twists, jump scares, villain speeches, and dramatic rain scenes." },
                   { icon: "✏️", title: "Custom Word Lists", desc: "Add your own squares for specific movies, franchises, or directors. Make bingo cards for Marvel, Star Wars, or any series." },
                   { icon: "🎥", title: "Works with Any Film", desc: "Action, comedy, horror, romance, sci-fi — movie bingo cards work with every genre and any movie you watch." },
-                  { icon: "🖨️", title: "PDF Exports", desc: "Export clean PDF cards after checkout, sized for movie night and crisp printing." },
+                  { icon: "🖨️", title: "PDF Exports", desc: "Export clean PDF cards for free, sized for movie night and crisp printing." },
                   { icon: "🍿", title: "Great for Watch Parties", desc: "Oscar nights, horror marathons, franchise binges — movie bingo keeps the whole group engaged and laughing." },
                   { icon: "🎞️", title: "Fun for Movie Buffs", desc: "Film nerds and casual viewers alike love spotting tropes. The perfect game for cinephiles of all levels." },
                 ].map((f) => (

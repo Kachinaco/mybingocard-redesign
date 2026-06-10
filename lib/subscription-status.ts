@@ -3,9 +3,9 @@ import type { User } from "@/lib/db/users";
 
 export const ACTIVE_LIKE_SUBSCRIPTION_STATUSES = ["active", "trialing", "past_due", "unpaid"] as const;
 export const LEGACY_FREE_ACCESS_CUTOFF = new Date("2026-06-03T07:00:00.000Z");
-export const NEW_FREE_CARD_LIMIT = 1;
-export const LEGACY_FREE_CARD_LIMIT = 3;
-export const LEGACY_FREE_IMAGE_UPLOAD_LIMIT = 25;
+export const NEW_FREE_CARD_LIMIT = -1;
+export const LEGACY_FREE_CARD_LIMIT = -1;
+export const LEGACY_FREE_IMAGE_UPLOAD_LIMIT = 500;
 
 export function hasFutureTrialEnd(trialEndsAt?: Date | string | null): boolean {
   if (!trialEndsAt) return false;

@@ -3,12 +3,10 @@
 import { trackTemplateUsed } from "@/lib/analytics";
 import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
 import ThemedCardWrapper from "@/components/ThemedCardWrapper";
-import UpgradeModal from "@/components/UpgradeModal";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { redirectToCheckout } from "@/lib/upgrade";
 import { trackClientActivity } from "@/lib/activity-client";
 
 interface Template {
@@ -376,19 +374,6 @@ export default function TemplatesPage() {
       is_premium: template.isPremium,
     });
 
-    // Check if template is premium and user has access
-    if (template.isPremium) {
-      if (status !== "authenticated") {
-        setShowSignInModal(true);
-        return;
-      }
-      if (!userPlan?.canAccessAllTemplates) {
-        setUpgradeTemplateContext({ template_name: template.title, template_id: template._id, template_category: template.category });
-        setShowUpgradeModal(true);
-        return;
-      }
-    }
-
     try {
       // Track template usage
       await fetch("/api/templates", {
@@ -417,7 +402,7 @@ export default function TemplatesPage() {
   const renderTemplateCard = (template: Template) => {
     const gridSize = template.size;
     const displayCells = template.cells.slice(0, 9); // Show first 9 cells for preview
-    const isPremiumLocked = template.isPremium && (status !== "authenticated" || !userPlan?.canAccessAllTemplates);
+    const isPremiumLocked = false;
 
     return (
       <div
@@ -458,17 +443,7 @@ export default function TemplatesPage() {
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
-              PRO
-            </div>
-          )}
-          
-          {isPremiumLocked && (
-            <div className="absolute inset-0 bg-slate-900/10 backdrop-blur-[1px] flex items-center justify-center">
-              <div className="bg-white p-2 rounded-full shadow-lg">
-                <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              </div>
+              Included
             </div>
           )}
         </div>
@@ -501,24 +476,12 @@ export default function TemplatesPage() {
             </span>
           </div>
 
-          {isPremiumLocked ? (
-            <button
-              onClick={() => handleUseTemplate(template)}
-              className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors font-semibold text-sm flex items-center justify-center gap-2 group-hover:shadow-lg"
-            >
-              <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-              </svg>
-              Unlock Template
-            </button>
-          ) : (
-            <button
-              onClick={() => handleUseTemplate(template)}
-              className="w-full bg-white text-indigo-600 border border-indigo-200 px-4 py-2.5 rounded-xl hover:bg-indigo-50 hover:border-indigo-300 transition-all font-semibold text-sm shadow-sm"
-            >
-              Use Template
-            </button>
-          )}
+          <button
+            onClick={() => handleUseTemplate(template)}
+            className="w-full bg-white text-indigo-600 border border-indigo-200 px-4 py-2.5 rounded-xl hover:bg-indigo-50 hover:border-indigo-300 transition-all font-semibold text-sm shadow-sm"
+          >
+            Use Template
+          </button>
         </div>
       </div>
     );
@@ -660,7 +623,7 @@ export default function TemplatesPage() {
                 />
               </div>
 
-              {/* Premium Filter */}
+              {/* Premium-tag filter */}
               <div className="flex items-center">
                 <label className="flex items-center p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors w-full md:w-auto">
                   <input
@@ -669,7 +632,7 @@ export default function TemplatesPage() {
                     onChange={(e) => setShowPremiumOnly(e.target.checked)}
                     className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                   />
-                  <span className="ml-3 text-sm font-medium text-slate-700">Show premium templates only</span>
+                  <span className="ml-3 text-sm font-medium text-slate-700">Show premium-tagged templates only</span>
                 </label>
               </div>
             </div>
@@ -692,7 +655,7 @@ export default function TemplatesPage() {
             </div>
           </div>
 
-          {/* Upgrade prompt for free users */}
+          {/* Empty state */}
           {status !== "loading" && templates.length === 0 && (
             <div className="text-center py-16 bg-gradient-to-br from-violet-50 to-indigo-50 rounded-3xl border border-indigo-100 mb-12">
               <div className="w-16 h-16 bg-gradient-to-br from-violet-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-200">
@@ -700,16 +663,16 @@ export default function TemplatesPage() {
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-3">Templates are a Premium feature</h3>
+              <h3 className="text-2xl font-bold text-slate-900 mb-3">Templates are loading</h3>
               <p className="text-slate-600 max-w-md mx-auto mb-6">
-                Unlock 24 professionally designed templates for weddings, parties, classrooms, and more.
+                All templates are included for free. Start from a blank card while the gallery refreshes.
               </p>
-              <button
-                onClick={redirectToCheckout}
+              <Link
+                href="/create"
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-indigo-500/20 hover:-translate-y-0.5 transition-all"
               >
-                Upgrade to Premium
-              </button>
+                Start from blank
+              </Link>
             </div>
           )}
 
@@ -749,45 +712,6 @@ export default function TemplatesPage() {
           ) : null}
         </div>
       </main>
-      <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} reason="premium_template" triggerContext={upgradeTemplateContext} />
-
-      {/* Sign-in modal for unauthenticated users */}
-      {showSignInModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowSignInModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-fade-in-up" onClick={e => e.stopPropagation()}>
-            <button onClick={() => setShowSignInModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-[#007AFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold text-slate-900">Sign in to continue</h2>
-              <p className="text-slate-500 mt-2">This is a premium template. Sign in, then start a trial or choose lifetime access to use it.</p>
-            </div>
-
-            <div className="space-y-3">
-              <Link
-                href="/signup?callbackUrl=/templates"
-                className="block w-full py-3.5 bg-[#007AFF] text-white rounded-xl font-bold text-center hover:bg-blue-600 transition-colors"
-              >
-                Sign In or Create Account
-              </Link>
-              <Link
-                href="/login?callbackUrl=/templates"
-                className="block w-full py-3.5 bg-slate-100 text-slate-700 rounded-xl font-semibold text-center hover:bg-slate-200 transition-colors"
-              >
-                I already have an account
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

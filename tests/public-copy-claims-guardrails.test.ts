@@ -49,32 +49,26 @@ const unsupportedClaims = [
   "4.9/5",
   "Print unlimited",
   "7x7",
-  "Instant PDF Export",
-  "Instant PDF download",
-  "instant PDF download",
-  "Free Printable",
-  "free printable",
-  "Create Free",
-  "Start Creating For Free",
-  "Start Creating Free",
   "Sign up in seconds",
   "Free accounts can create up to 3",
   "share digital cards for live play or export printable copies after checkout",
+  "Premium AI generation",
+  "Premium tools like AI generation",
+  "bulk card packs",
+  "paid batch PDF packs",
+  "PDF export after checkout",
+  "PDF exports after checkout",
+  "PDF and PNG export after checkout",
+  "Upgrade only if you want Premium features like AI",
+  "upgrade or buy a batch pack",
+  "3-day trial to save",
+  "paid batches",
   '["Online play links", "Yes"',
   "Rules, Tips & Free Cards",
-  "Free Cards",
   "Free — takes 10 seconds",
   "Sign up to save, share, and download",
   "Your card will be saved automatically",
-  "free bingo card generator",
-  "Free Bingo Card Generator",
-  "No credit card required",
-  "Print-Ready PDFs",
   "Print or play digital",
-  "Print instantly",
-  "print instantly",
-  "Download high-resolution",
-  "download a print-ready",
   "Share cards instantly",
   "Export to PDF and run",
   "free cards used",
@@ -92,10 +86,6 @@ const unsupportedClaims = [
   "Unlimited shuffle",
   "Trusted by thousands",
   "trusted by thousands",
-  "high-quality PDFs",
-  "professional-quality PDFs",
-  "export-ready cards",
-  "Free to create",
   "hundreds of templates",
   "unlimited unique cards",
 ];
@@ -111,8 +101,8 @@ describe("public copy claim guardrails", () => {
     }
   });
 
-  test("pricing copy avoids hard-coded premium template counts", () => {
+  test("pricing copy shows all templates included across plans", () => {
     const pricingSource = readFileSync(join(process.cwd(), "app/pricing/page.tsx"), "utf8");
-    expect(pricingSource).toContain('["Templates", "5 starter", "All premium", "All premium"]');
+    expect(pricingSource).toContain('["Templates", "All", "All", "All"]');
   });
 });

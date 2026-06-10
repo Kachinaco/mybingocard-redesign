@@ -6,7 +6,7 @@ import SeoSupportBlock from "@/components/SeoSupportBlock";
 export const metadata: Metadata = {
   title: "Fundraiser Bingo Cards — Custom Charity Bingo Night Generator | MyBingoCard",
   description:
-    "Create fundraiser bingo cards for charity events and bingo nights. Bingo fundraiser draft editor with custom squares, bulk printing, and PDF export after checkout. Raise more funds with bingo.",
+    "Create fundraiser bingo cards for charity events and bingo nights. Bingo fundraiser draft editor with custom squares, bulk printing, and free PDF export. Raise more funds with bingo.",
   alternates: {
     canonical: "https://mybingocard.com/fundraiser-bingo",
   },
@@ -26,7 +26,7 @@ const schema = {
   name: "Fundraiser Bingo Card Generator",
   url: "https://mybingocard.com/fundraiser-bingo",
   description:
-    "Custom fundraiser bingo card generator. Create printable bingo cards for charity events, bingo fundraiser nights, and nonprofit galas — bulk printing, custom squares, and PDF export after checkout.",
+    "Custom fundraiser bingo card generator. Create printable bingo cards for charity events, bingo fundraiser nights, and nonprofit galas — bulk printing, custom squares, and free PDF export.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -147,7 +147,7 @@ export default function FundraiserBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free to draft · PDF export after checkout · Works for any cause</p>
+                  <p className="text-sm text-slate-400">Free creator tools · free PDF export · Works for any cause</p>
                 </div>
 
                 <div className="relative">
@@ -169,9 +169,9 @@ export default function FundraiserBingoPage() {
               <div className="grid md:grid-cols-3 gap-8">
                 {[
                   { icon: "💰", title: "Raise More Funds", desc: "Bingo keeps guests engaged longer, which means more bids, more donations, and a higher grand total for your cause." },
-                  { icon: "📋", title: "Easy to Organize", desc: "Create larger card batches after checkout. No special equipment needed beyond cards and a caller." },
+                  { icon: "📋", title: "Easy to Organize", desc: "Create larger card batches for free up to 500 cards. No special equipment needed beyond cards and a caller." },
                   { icon: "🏆", title: "Custom Prize Squares", desc: "Add prize squares, sponsor logos, and branded messaging to make every card a marketing piece for your organization." },
-                  { icon: "🖨️", title: "Bulk PDF Exports", desc: "Export PDF files after checkout optimized for bulk printing. Sized for place settings, programs, or handouts." },
+                  { icon: "🖨️", title: "Bulk PDF Exports", desc: "Export PDF files for free optimized for bulk printing. Sized for place settings, programs, or handouts." },
                   { icon: "❤️", title: "Works for Any Cause", desc: "Schools, churches, nonprofits, hospitals, animal shelters — fundraiser bingo works for every organization and mission." },
                   { icon: "👨‍👩‍👧", title: "Engages All Ages", desc: "From kids to grandparents, bingo is the one game every attendee already knows and loves. Zero learning curve." },
                 ].map((f) => (

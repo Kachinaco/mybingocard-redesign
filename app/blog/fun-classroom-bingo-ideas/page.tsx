@@ -140,7 +140,7 @@ export default function FunClassroomBingoIdeas() {
 
         <h2>Create Your Classroom Bingo Cards</h2>
         <p>
-          Ready to gamify your next lesson? Use our <Link href="/classroom-bingo">classroom bingo draft editor</Link> to create custom educational bingo cards in minutes. Each card is automatically shuffled, and you can export a full class set after checkout.
+          Ready to gamify your next lesson? Use our <Link href="/classroom-bingo">classroom bingo draft editor</Link> to create custom educational bingo cards in minutes. Each card is automatically shuffled, and you can export a full class set for free.
         </p>
       </BlogLayout>
     </>

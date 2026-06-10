@@ -26,7 +26,7 @@ const schema = {
   name: "Halloween Bingo Cards Printable Generator",
   url: "https://mybingocard.com/halloween-bingo",
   description:
-    "Create custom printable Halloween bingo cards. Spooky squares, PDF export after checkout for kids, classrooms, and parties.",
+    "Create custom printable Halloween bingo cards. Spooky squares, free PDF export for kids, classrooms, and parties.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
@@ -93,7 +93,7 @@ export default function HalloweenBingoPage() {
                 Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-purple-600">Halloween Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                The perfect spooky party game! Create unique Halloween bingo cards for kids, classrooms, and adult parties. Export after checkout or play digitally.
+                The perfect spooky party game! Create unique Halloween bingo cards for kids, classrooms, and adult parties. Export for free or play digitally.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/create" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-500 to-purple-600 text-white rounded-xl font-bold text-lg hover:opacity-90 shadow-lg">
@@ -122,7 +122,7 @@ export default function HalloweenBingoPage() {
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-orange-500 to-purple-600 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">BOO! Ready to Play? 👻</h2>
-            <p className="text-orange-100 text-lg mb-8">Create spooky bingo cards in minutes. Start with a free draft, then upgrade for PDF and PNG export, premium templates, and image bingo cards.</p>
+            <p className="text-orange-100 text-lg mb-8">Create spooky bingo cards in minutes. Save, export, use templates, and add image cells for free; pay only for player links or live hosting.</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-orange-600 rounded-xl font-bold text-lg hover:bg-orange-50 transition-colors shadow-lg">Create Halloween Bingo</Link>
           </div>
 

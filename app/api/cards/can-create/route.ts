@@ -62,8 +62,8 @@ export async function GET() {
     const reason = allowed
       ? undefined
       : legacyFree
-        ? `You've reached the legacy free plan limit of ${maxCards} saved cards. Existing cards can still be edited.`
-        : `You've used your ${maxCards} free saved card. Upgrade for unlimited cards, exports, sharing, and publishing.`;
+        ? "This legacy account cannot create more saved cards right now. Existing cards can still be edited."
+        : "This account cannot create more saved cards right now.";
 
     return NextResponse.json({
       allowed,

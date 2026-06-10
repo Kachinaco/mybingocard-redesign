@@ -116,7 +116,7 @@ export default function BestBingoGamesBabyShowers() {
 
         <h2>Create Your Baby Shower Bingo Cards</h2>
         <p>
-          Ready to create the perfect baby shower bingo game? Use our <Link href="/baby-shower-bingo">baby shower bingo draft editor</Link> to make beautiful, customized cards in minutes. Every card is uniquely shuffled, and you can export PDF files after checkout.
+          Ready to create the perfect baby shower bingo game? Use our <Link href="/baby-shower-bingo">baby shower bingo draft editor</Link> to make beautiful, customized cards in minutes. Every card is uniquely shuffled, and you can export PDF files for free.
         </p>
       </BlogLayout>
     </>
