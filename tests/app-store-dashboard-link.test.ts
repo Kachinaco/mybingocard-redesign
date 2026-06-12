@@ -12,7 +12,7 @@ describe("App Store dashboard link", () => {
 
   test("keeps the iOS App Store URL configurable", () => {
     expect(socialLinksSource).toContain("NEXT_PUBLIC_IOS_APP_STORE_URL");
-    expect(socialLinksSource).toContain("https://apps.apple.com/us/app/my-bingo-card/id6736476714");
+    expect(socialLinksSource).toContain("https://apps.apple.com/us/app/mybingocard-maker/id6767310336");
   });
 
   test("surfaces the official App Store badge on the user dashboard", () => {
