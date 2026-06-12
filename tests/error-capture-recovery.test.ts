@@ -16,6 +16,8 @@ describe("client error capture recovery", () => {
   test("does not report analytics CDN misses as application errors", () => {
     expect(source).toContain("www\\.googletagmanager\\.com");
     expect(source).toContain("pagead2\\.googlesyndication\\.com");
+    expect(source).toContain("connect\\.facebook\\.net");
+    expect(source).toContain("www\\.facebook\\.com\\/tr");
     expect(source).toContain("isThirdPartyNoiseResource(src)");
   });
 

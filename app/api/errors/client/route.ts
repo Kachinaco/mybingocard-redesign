@@ -12,6 +12,8 @@ const CAPTURE_ALERT_COOLDOWN_MS = 15 * 60_000;
 const THIRD_PARTY_TRACKING_RESOURCE_PATTERNS = [
   /^https:\/\/s\.pinimg\.com\//i,
   /^https:\/\/ct\.pinterest\.com\//i,
+  /^https:\/\/connect\.facebook\.net\//i,
+  /^https:\/\/www\.facebook\.com\/tr(?:\/|\?|$)/i,
 ];
 
 // ---------------------------------------------------------------------------

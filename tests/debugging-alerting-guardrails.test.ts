@@ -41,7 +41,11 @@ describe("debugging and alerting guardrails", () => {
     expect(errorCaptureSource).toContain("THIRD_PARTY_RESOURCE_PATTERNS");
     expect(errorCaptureSource).toContain("s\\.pinimg\\.com");
     expect(errorCaptureSource).toContain("ct\\.pinterest\\.com");
+    expect(errorCaptureSource).toContain("connect\\.facebook\\.net");
+    expect(errorCaptureSource).toContain("www\\.facebook\\.com\\/tr");
     expect(errorRouteSource).toContain("THIRD_PARTY_TRACKING_RESOURCE_PATTERNS");
+    expect(errorRouteSource).toContain("connect\\.facebook\\.net");
+    expect(errorRouteSource).toContain("www\\.facebook\\.com\\/tr");
     expect(errorRouteSource).toContain("third_party_tracking_failure");
     expect(errorRouteSource).toContain("marketing_tracking_failures");
     expect(errorRouteSource).toContain("alertSuppressed");

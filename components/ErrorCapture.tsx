@@ -213,6 +213,8 @@ const THIRD_PARTY_RESOURCE_PATTERNS = [
   /^https:\/\/analytics\.ahrefs\.com\//i,
   /^https:\/\/s\.pinimg\.com\//i,
   /^https:\/\/ct\.pinterest\.com\//i,
+  /^https:\/\/connect\.facebook\.net\//i,
+  /^https:\/\/www\.facebook\.com\/tr(?:\/|\?|$)/i,
   /^https:\/\/www\.google\.com\//i,
   /^https:\/\/www\.gstatic\.com\//i,
 ];
