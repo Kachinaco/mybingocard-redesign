@@ -10,6 +10,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const https = require("node:https");
+const { spawnSync } = require("node:child_process");
 
 const APP_DIR = process.env.MYBINGOCARD_APP_DIR || "/var/www/mybingocard.com";
 const APP_URL = (process.env.MYBINGOCARD_APP_URL || "https://mybingocard.com").replace(/\/$/, "");
@@ -260,6 +261,48 @@ function postBot(content) {
   });
 }
 
+function postAgentTask(item) {
+  if (/^(0|false|no)$/i.test(process.env.MYBINGOCARD_AGENT_TASKS || "")) return false;
+  const notifier = process.env.MYBINGOCARD_AGENT_NOTIFIER || "/root/townranker-discord/scripts/mybingocard-task-notify.mjs";
+  if (!fs.existsSync(notifier)) return false;
+  const day = new Date().toISOString().slice(0, 10);
+  const task = {
+    taskKey: `mybingocard:ops-regression:${item.key}:${day}`,
+    source: "ops-regression-monitor",
+    type: "diagnostic",
+    severity: item.key === "live-home" ? "urgent" : "act_now",
+    safeActionClass: "read_only",
+    title: item.title,
+    summary: item.detail,
+    payload: {
+      appUrl: APP_URL,
+      issue: item,
+      windowMinutes: WINDOW_MINUTES,
+      suggestedCommands: ["npm run prod:verify", "npm run traffic:truth -- --days 3"],
+    },
+    allowedActions: ["read_logs", "db_read", "tracker_read", "run_smoke_read_only", "report"],
+    blockedActions: [
+      "send customer/support email",
+      "post social content",
+      "change Stripe/billing",
+      "delete or mutate production data",
+      "deploy production changes",
+      "restart production services without explicit approval",
+    ],
+  };
+  const result = spawnSync(process.execPath, [notifier], {
+    input: JSON.stringify(task),
+    encoding: "utf8",
+    timeout: 15000,
+    maxBuffer: 1024 * 1024,
+  });
+  if (result.error || result.status !== 0) {
+    console.error("Agent task notify failed:", result.error?.message || result.stderr || result.status);
+    return false;
+  }
+  return true;
+}
+
 function filterCooldown(issues) {
   const state = readState();
   const now = Date.now();
@@ -298,6 +341,7 @@ async function main() {
   ].join("\n");
 
   console.log(message);
+  for (const item of alertable) postAgentTask(item);
   if (alertable.length > 0 && process.argv.includes("--discord")) {
     const ok = await postWebhook(message) || await postBot(message);
     console.log(`Discord posted: ${ok ? "yes" : "no"}`);

@@ -4,7 +4,7 @@
  * nginx access logs, first-party app activity_events, central analytics, and GSC.
  */
 
-const { execFileSync } = require("node:child_process");
+const { execFileSync, spawnSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 const { MongoClient } = require("mongodb");
@@ -556,6 +556,47 @@ function writeReport(markdown, range) {
   }
 }
 
+function postAgentTask(flags, range, outPath) {
+  if (!flags.length) return false;
+  if (/^(0|false|no)$/i.test(process.env.MYBINGOCARD_AGENT_TASKS || "")) return false;
+  const notifier = process.env.MYBINGOCARD_AGENT_NOTIFIER || "/root/townranker-discord/scripts/mybingocard-task-notify.mjs";
+  if (!fs.existsSync(notifier)) return false;
+  const task = {
+    taskKey: `mybingocard:traffic-truth:${range.today}:${flags.join("|").slice(0, 120)}`,
+    source: "traffic-truth-report",
+    type: "diagnostic",
+    severity: flags.some((flag) => /5xx|tracker|chunk|auth|only/i.test(flag)) ? "act_now" : "watch",
+    safeActionClass: "read_only",
+    title: "MyBingoCard traffic truth flags",
+    summary: flags.join("; "),
+    payload: {
+      range: { startDay: range.startDay, today: range.today, days: range.days.length },
+      reportPath: outPath || null,
+      flags,
+    },
+    allowedActions: ["read_logs", "db_read", "tracker_read", "report"],
+    blockedActions: [
+      "send customer/support email",
+      "post social content",
+      "change Stripe/billing",
+      "delete or mutate production data",
+      "deploy production changes",
+      "restart production services without explicit approval",
+    ],
+  };
+  const result = spawnSync(process.execPath, [notifier], {
+    input: JSON.stringify(task),
+    encoding: "utf8",
+    timeout: 15000,
+    maxBuffer: 1024 * 1024,
+  });
+  if (result.error || result.status !== 0) {
+    console.error("Agent task notify failed:", result.error?.message || result.stderr || result.status);
+    return false;
+  }
+  return true;
+}
+
 async function postDiscord(markdown) {
   const url = process.env.MYBINGOCARD_EVENTS_WEBHOOK_URL || process.env.MYBINGOCARD_ERRORS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL;
   if (!url) return false;
@@ -587,6 +628,8 @@ async function main() {
 
   const markdown = buildMarkdown(range, access, firstParty, central, gsc);
   const outPath = hasArg("--no-write") ? "" : writeReport(markdown, range);
+  const flags = buildFlags(range, access, firstParty, central);
+  postAgentTask(flags, range, outPath);
   console.log(markdown);
   if (outPath) console.log(`Report written: ${outPath}`);
   if (hasArg("--discord")) {
