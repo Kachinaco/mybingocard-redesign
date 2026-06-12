@@ -18,6 +18,7 @@ declare global {
     };
     townrankerTrack?: (name: string, metadata?: Record<string, unknown>) => void;
     trackerLite?: {
+      track?: (event: string, metadata?: Record<string, unknown>) => void;
       identify?: (idOrMeta: string | Record<string, unknown>, maybeMeta?: Record<string, unknown>) => void;
       setVisitorId?: (idOrMeta: string | Record<string, unknown>, maybeMeta?: Record<string, unknown>) => void;
     };

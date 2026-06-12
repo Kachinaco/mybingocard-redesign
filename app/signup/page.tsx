@@ -107,7 +107,7 @@ function SignupForm() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!name.trim()) {
-      const msg = "Name is required";
+      const msg = "Enter your name first.";
       setError(msg);
       trackClientActivity("validation_error", {
         form: "signup",
@@ -120,7 +120,7 @@ function SignupForm() {
     }
 
     if (!email.trim()) {
-      const msg = "Email is required";
+      const msg = "Enter your email first.";
       setError(msg);
       trackClientActivity("validation_error", {
         form: "signup",
@@ -133,7 +133,7 @@ function SignupForm() {
     }
 
     if (!emailRegex.test(email)) {
-      const msg = "Please enter a valid email address";
+      const msg = "Enter a valid email address.";
       setError(msg);
       trackClientActivity("validation_error", {
         form: "signup",
@@ -146,7 +146,7 @@ function SignupForm() {
     }
 
     if (!password) {
-      const msg = "Password is required";
+      const msg = "Create a password first.";
       setError(msg);
       trackClientActivity("validation_error", {
         form: "signup",
@@ -159,7 +159,7 @@ function SignupForm() {
     }
 
     if (password.length < 8) {
-      const msg = "Password must be at least 8 characters";
+      const msg = "Use at least 8 characters for your password.";
       setError(msg);
       trackClientActivity("validation_error", {
         form: "signup",
@@ -172,7 +172,7 @@ function SignupForm() {
     }
 
     if (password !== confirmPassword) {
-      const msg = "Passwords do not match";
+      const msg = "Make sure both password fields match.";
       setError(msg);
       trackClientActivity("validation_error", {
         form: "signup",
@@ -186,6 +186,10 @@ function SignupForm() {
 
     try {
       const storedAttribution = readStoredAttribution();
+      trackClientActivity("signup_email_submitted", {
+        callbackUrl: sanitizeAuthCallbackUrl(searchParams.get("callbackUrl")),
+        has_name: Boolean(name.trim()),
+      });
       trackClientActivity("signup_attempted", {
         method: "credentials",
         callbackUrl: sanitizeAuthCallbackUrl(searchParams.get("callbackUrl")),
@@ -230,6 +234,14 @@ function SignupForm() {
           rule = "too_short";
         }
 
+        trackClientActivity("auth_error_shown", {
+          form: "signup",
+          method: "credentials",
+          field,
+          rule,
+          message: serverError,
+        });
+
         trackClientActivity("validation_error", {
           form: "signup",
           field,
@@ -255,6 +267,12 @@ function SignupForm() {
     } catch (error) {
       const msg = "An error occurred. Please try again.";
       setError(msg);
+      trackClientActivity("auth_error_shown", {
+        form: "signup",
+        method: "credentials",
+        rule: "unexpected_error",
+        message: msg,
+      });
       trackClientActivity("validation_error", {
         form: "signup",
         field: "general",
@@ -272,6 +290,12 @@ function SignupForm() {
 
   const handleGoogleSignup = () => {
     const callbackUrl = sanitizeAuthCallbackUrl(searchParams.get("callbackUrl"));
+    trackClientActivity("signup_google_clicked", {
+      provider: "google",
+      callbackUrl,
+      surface: "signup_page",
+      intent: "create_account",
+    });
     trackClientActivity("oauth_signup_started", {
       provider: "google",
       callbackUrl,

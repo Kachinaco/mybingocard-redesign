@@ -3,6 +3,7 @@ import Link from "next/link";
 import MobileNav from "@/components/MobileNav";
 import AdUnit from "@/components/AdUnit";
 import { EmailCaptureInline } from "@/components/EmailCapture";
+import HomeStartDraftLink from "@/components/HomeStartDraftLink";
 import { seoLandingPages, type SeoLandingPageData } from "@/lib/seo-landing-pages";
 import { FACEBOOK_PAGE_URL, IOS_APP_STORE_URL, REDDIT_COMMUNITY_URL } from "@/lib/social-links";
 
@@ -200,10 +201,10 @@ export default function Home() {
 
                 {/* Primary CTA - prominent above the fold */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  <Link href="/create" className="group bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3">
+                  <HomeStartDraftLink href="/create" trackingSurface="hero" className="group bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-10 py-5 rounded-2xl font-bold text-lg shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3">
                     Start a Free Draft
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                  </Link>
+                  </HomeStartDraftLink>
                   <Link href="/templates" className="bg-white text-indigo-600 border-2 border-indigo-200 px-8 py-5 rounded-2xl font-bold text-lg hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-300 flex items-center justify-center gap-2">
                     Browse Templates
                   </Link>
@@ -458,12 +459,13 @@ export default function Home() {
                Save, customize, use templates, AI, images, and exports for free. Pay only when you need player links or live hosting.
              </p>
              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
+                <HomeStartDraftLink
                   href="/create"
+                  trackingSurface="bottom_cta"
                   className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-indigo-50 transition-all duration-300 shadow-xl"
                 >
                   Start a Draft
-                </Link>
+                </HomeStartDraftLink>
                 <Link
                   href="/pricing"
                   className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300"

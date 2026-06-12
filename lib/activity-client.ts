@@ -14,6 +14,17 @@ declare global {
       message: string;
       data?: Record<string, unknown>;
     }) => void;
+    trackerLite?: {
+      track?: (event: string, metadata?: Record<string, unknown>) => void;
+      identify?: (
+        idOrMeta: string | Record<string, unknown>,
+        maybeMeta?: Record<string, unknown>
+      ) => void;
+      setVisitorId?: (
+        idOrMeta: string | Record<string, unknown>,
+        maybeMeta?: Record<string, unknown>
+      ) => void;
+    };
   }
 }
 
@@ -36,6 +47,18 @@ const SESSION_KEY = "tr_session_id";
 const ANON_KEY = "tr_anonymous_id";
 let memorySessionId: string | null = null;
 let memoryAnonymousId: string | null = null;
+
+const TRACKER_LITE_EVENT_MAP: Record<string, string> = {
+  home_start_draft_clicked: "click",
+  builder_save_clicked: "click",
+  builder_continue_without_saving_clicked: "click",
+  signup_google_clicked: "click",
+  signup_apple_clicked: "click",
+  signup_email_submitted: "signup",
+  auth_error_shown: "form_error",
+  password_reset_requested: "form_submit",
+  auth_magic_link_requested: "form_submit",
+};
 
 function makeClientId(prefix: "sess" | "anon"): string {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
@@ -264,6 +287,20 @@ export function trackClientActivity(
     trackMappedMetaPixelEvent(event, builtPayload);
   } catch {
     // Marketing pixel forwarding must never block product flows.
+  }
+
+  const trackerLiteEvent = TRACKER_LITE_EVENT_MAP[event];
+  if (trackerLiteEvent) {
+    try {
+      window.trackerLite?.track?.(trackerLiteEvent, {
+        ...(metadata || {}),
+        productEventName: event,
+        legacyEventName: event,
+        activityPathname: builtPayload.pathname,
+      });
+    } catch {
+      // Same-origin product analytics must never block product flows.
+    }
   }
 
   let payload: string;

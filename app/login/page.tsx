@@ -87,7 +87,7 @@ function LoginContent() {
     const trimmedPassword = password.trim();
 
     if (!trimmedEmail) {
-      const msg = "Email address is required.";
+      const msg = "Enter your email first.";
       setError(msg);
       trackClientActivity("validation_error", {
         form: "login",
@@ -100,7 +100,7 @@ function LoginContent() {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
-      const msg = "Please enter a valid email address.";
+      const msg = "Enter a valid email address.";
       setError(msg);
       trackClientActivity("validation_error", {
         form: "login",
@@ -112,7 +112,7 @@ function LoginContent() {
     }
 
     if (!trimmedPassword) {
-      const msg = "Password is required.";
+      const msg = "Enter your password first.";
       setError(msg);
       trackClientActivity("validation_error", {
         form: "login",
@@ -150,6 +150,12 @@ function LoginContent() {
         }
 
         setError(errorMsg);
+        trackClientActivity("auth_error_shown", {
+          form: "login",
+          method: "credentials",
+          reason: rule,
+          message: errorMsg,
+        });
         trackClientActivity("validation_error", {
           form: "login",
           field: "general",
@@ -167,6 +173,12 @@ function LoginContent() {
     } catch (error) {
       const errorMsg = "An error occurred. Please try again.";
       setError(errorMsg);
+      trackClientActivity("auth_error_shown", {
+        form: "login",
+        method: "credentials",
+        reason: "unexpected_error",
+        message: errorMsg,
+      });
       trackClientActivity("validation_error", {
         form: "login",
         field: "general",
@@ -184,6 +196,12 @@ function LoginContent() {
   };
 
   const handleGoogleLogin = () => {
+    trackClientActivity("signup_google_clicked", {
+      provider: "google",
+      callbackUrl,
+      surface: "login_page",
+      intent: "sign_in_or_create",
+    });
     trackClientActivity("oauth_login_started", {
       provider: "google",
       callbackUrl,
@@ -210,7 +228,7 @@ function LoginContent() {
     const trimmedMagicEmail = magicLinkEmail.trim();
 
     if (!trimmedMagicEmail) {
-      const msg = "Email address is required.";
+      const msg = "Enter your email first.";
       setError(msg);
       trackClientActivity("validation_error", {
         form: "login",
@@ -223,7 +241,7 @@ function LoginContent() {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedMagicEmail)) {
-      const msg = "Please enter a valid email address.";
+      const msg = "Enter a valid email address.";
       setError(msg);
       trackClientActivity("validation_error", {
         form: "login",
@@ -250,6 +268,11 @@ function LoginContent() {
     } catch (error) {
       const errorMsg = "Failed to send magic link. Please try again.";
       setError(errorMsg);
+      trackClientActivity("auth_error_shown", {
+        form: "login",
+        method: "magic_link",
+        message: errorMsg,
+      });
       trackClientActivity("validation_error", {
         form: "login",
         field: "general",

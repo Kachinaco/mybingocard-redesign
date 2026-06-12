@@ -1121,6 +1121,15 @@ function CreateCardContent() {
   const redirectToSignupForCreation = (options?: { autoCheckoutAfterAuth?: boolean }) => {
     persistDraft();
     const shouldAutoCheckout = Boolean(options?.autoCheckoutAfterAuth);
+    trackClientActivity("builder_save_clicked", {
+      authenticated: false,
+      intent: shouldAutoCheckout ? "save_then_checkout" : "save_draft",
+      title_present: Boolean(title.trim()),
+      cells_filled: cells.filter((c) => c.trim()).length,
+      size,
+      rows,
+      columns,
+    });
     setAuthModalIntent(shouldAutoCheckout ? "save_checkout" : "draft_only");
     if (shouldAutoCheckout) {
       setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1");
@@ -1131,6 +1140,11 @@ function CreateCardContent() {
   };
 
   const closeAuthModal = () => {
+    trackClientActivity("builder_continue_without_saving_clicked", {
+      surface: "save_auth_modal",
+      title_present: Boolean(title.trim()),
+      cells_filled: cells.filter((c) => c.trim()).length,
+    });
     setShowAuthModal(false);
     setAuthModalIntent("draft_only");
     removeBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey);
@@ -1144,6 +1158,11 @@ function CreateCardContent() {
       if (authModalIntent === "save_checkout") {
         setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1");
       }
+      trackClientActivity("auth_magic_link_requested", {
+        surface: "create_save_modal",
+        method: "magic_link",
+        callbackUrl,
+      });
       track("magic_link_requested", { callbackUrl, context: "create_page" });
       const response = await fetch("/api/auth/magic-link/request", {
         method: "POST",
@@ -1162,6 +1181,15 @@ function CreateCardContent() {
   const handleSave = async () => {
     setLoading(true);
     setError("");
+    trackClientActivity("builder_save_clicked", {
+      authenticated: Boolean(session?.user),
+      intent: session?.user ? "save_card" : "save_draft",
+      title_present: Boolean(title.trim()),
+      cells_filled: cells.filter((c) => c.trim()).length,
+      size,
+      rows,
+      columns,
+    });
     track("card_save_attempted", { title, size, cells_filled: cells.filter((c) => c.trim()).length });
 
     try {
@@ -2500,7 +2528,7 @@ function CreateCardContent() {
                       }
                       className="w-full max-w-md bg-[#007AFF] text-white px-6 py-3 rounded-xl hover:bg-[#0066DD] hover:shadow-lg hover:shadow-blue-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-base shadow-md"
                     >
-                      {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save_dashboard") : session?.user ? "Save Card" : "Join to Save Your Card"}
+                      {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save_dashboard") : session?.user ? "Save Card" : "Save This Card Free"}
                     </button>
                     )}
                   </div>
@@ -2543,7 +2571,7 @@ function CreateCardContent() {
                   disabled={loading || showPreview || isLoadingCard}
                   className="w-full bg-[#007AFF] text-white px-4 py-3.5 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed font-bold text-base shadow-md"
                 >
-                  {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save") : session?.user ? "Save Card" : "Join to Save Your Card"}
+                  {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save") : session?.user ? "Save Card" : "Save This Card Free"}
                 </button>
                 )}
             </div>
@@ -2586,7 +2614,7 @@ function CreateCardContent() {
             <div style={{ fontSize: "40px", marginBottom: "12px" }}>🎯</div>
 
             <h2 style={{ margin: "0 0 6px", fontSize: "22px", fontWeight: 800, color: "#1e293b", letterSpacing: "-0.5px" }}>
-              Your card is ready!
+              Save this card free
             </h2>
             {title && (
               <p style={{ margin: "0 0 4px", fontSize: "14px", color: "#7c3aed", fontWeight: 600 }}>
@@ -2594,10 +2622,10 @@ function CreateCardContent() {
               </p>
             )}
             <p style={{ margin: "0 0 6px", fontSize: "14px", color: "#64748b" }}>
-              Sign in to save this card.
+              Create a free account so your card does not disappear.
             </p>
             <p style={{ margin: "0 0 24px", fontSize: "13px", color: "#94a3b8" }}>
-              Free accounts can save unlimited cards, export PDFs/PNGs, and use images, templates, and AI. Printable batch packs, share links, and hosted bingo events are optional paid tools.
+              Your draft is preserved. After sign in, you will come right back here to keep editing, export a PDF/PNG, or save it to your dashboard.
             </p>
 
             {!magicSent ? (
@@ -2610,6 +2638,12 @@ function CreateCardContent() {
                     if (authModalIntent === "save_checkout") {
                       setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1");
                     }
+                    trackClientActivity("signup_google_clicked", {
+                      provider: "google",
+                      callbackUrl,
+                      surface: "create_save_modal",
+                      intent: authModalIntent,
+                    });
                     trackClientActivity("oauth_signup_started", { provider: "google", callbackUrl });
                     if (startNativeOAuth("google", callbackUrl)) return;
                     signIn("google", { callbackUrl });
@@ -2640,6 +2674,12 @@ function CreateCardContent() {
                       if (authModalIntent === "save_checkout") {
                         setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1");
                       }
+                      trackClientActivity("signup_apple_clicked", {
+                        provider: "apple",
+                        callbackUrl,
+                        surface: "create_save_modal",
+                        intent: authModalIntent,
+                      });
                       trackClientActivity("oauth_signup_started", { provider: "apple", callbackUrl });
                       if (startNativeOAuth("apple", callbackUrl)) return;
                       signIn("apple", { callbackUrl });

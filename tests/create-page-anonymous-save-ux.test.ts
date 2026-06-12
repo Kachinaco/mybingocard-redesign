@@ -11,8 +11,8 @@ describe("create page anonymous save UX", () => {
     expect(source).not.toContain("Sign up to save, share, and download your card.");
     expect(source).not.toContain('t("btn.signup_to_save")');
     expect(source).not.toContain('t("btn.signup_to_save_full")');
-    expect(source).toContain('session?.user ? "Save Card" : "Join to Save Your Card"');
-    expect(source).toContain("Sign in to save this card.");
+    expect(source).toContain('session?.user ? "Save Card" : "Save This Card Free"');
+    expect(source).toContain("Create a free account so your card does not disappear.");
   });
 
   test("redirects anonymous saves before posting oversized local-image drafts", () => {
