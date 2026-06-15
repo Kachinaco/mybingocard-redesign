@@ -34,7 +34,7 @@ describe("create page anonymous save UX", () => {
     expect(source).toContain('const saveCheckoutCallbackUrl = "/create?checkout=save";');
     expect(source).toContain('setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1")');
     expect(source).toContain('searchParams.get("checkout") === "save"');
-    expect(source).toContain('trackClientActivity("checkout_auto_started_after_auth"');
+    expect(source).toContain('trackClientActivity("free_access_started_after_auth"');
     expect(source).toContain('next_step: "auth_then_free_save"');
     expect(source).toContain('router.push("/dashboard")');
     expect(source).toContain('removeBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey)');

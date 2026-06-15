@@ -58,7 +58,7 @@ export default function Image() {
             Free Bingo Draft Editor
           </div>
           <div style={{ marginTop: 26, fontSize: 30, lineHeight: 1.35, color: "#475569" }}>
-            Create custom bingo cards for free, then add paid sharing or live hosting.
+            Create custom bingo cards for free, then add free sharing or live hosting.
           </div>
           <div
             style={{

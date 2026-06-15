@@ -122,7 +122,7 @@ export default function BabyShowerBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Make your baby shower unforgettable with custom printable bingo cards! Our baby shower bingo draft editor lets you create unique, personalized cards in minutes — no design skills needed. Simply enter your gift list or let our suggestions fill the squares automatically. Each card is randomized so every guest gets a different layout, keeping the excitement alive during gift opening. Export clean PDF files for free, add paid digital cards, or project on a screen. With adorable themes, pastel color palettes, and customizable free spaces, you'll have the perfect baby shower game ready before the guests arrive. Try the baby shower bingo draft editor today!
+                    Make your baby shower unforgettable with custom printable bingo cards! Our baby shower bingo draft editor lets you create unique, personalized cards in minutes — no design skills needed. Simply enter your gift list or let our suggestions fill the squares automatically. Each card is randomized so every guest gets a different layout, keeping the excitement alive during gift opening. Export clean PDF files for free, add free digital cards, or project on a screen. With adorable themes, pastel color palettes, and customizable free spaces, you'll have the perfect baby shower game ready before the guests arrive. Try the baby shower bingo draft editor today!
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -135,7 +135,7 @@ export default function BabyShowerBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      View Pricing
+                      See Free Access
                     </Link>
                   </div>
                   <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
@@ -159,7 +159,7 @@ export default function BabyShowerBingoPage() {
                 Why use our baby shower bingo maker?
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                Everything you need for the perfect baby shower bingo game — from PDF exports to Premium virtual play.
+                Everything you need for the perfect baby shower bingo game — from PDF exports to free virtual play.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
@@ -181,7 +181,7 @@ export default function BabyShowerBingoPage() {
                   {
                     icon: "📱",
                     title: "Play Online",
-                    desc: "Share a link with paid links for virtual baby showers. Guests mark squares on their phones — no printing needed.",
+                    desc: "Share a link with free links for virtual baby showers. Guests mark squares on their phones — no printing needed.",
                   },
                   {
                     icon: "✏️",
@@ -191,7 +191,7 @@ export default function BabyShowerBingoPage() {
                   {
                     icon: "💸",
                     title: "Free to Draft",
-                    desc: "Build baby shower bingo cards for free. Save, export, use templates, AI, images, and batches; pay only for player links or live hosting.",
+                    desc: "Build baby shower bingo cards for free. Save, export, use templates, AI, images, and batches; player links and live hosting are free right now.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -214,14 +214,14 @@ export default function BabyShowerBingoPage() {
                 Ready to wow the mom-to-be?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft your baby shower bingo cards in under 2 minutes, then start a trial when you are ready to save.
+                Draft your baby shower bingo cards in under 2 minutes, then save, export, and share when you are ready.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-pink-50 transition-all duration-300 shadow-xl">
                   Create Baby Shower Bingo Cards
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Pricing Plans
+                  See Free Access
                 </Link>
               </div>
             </div>

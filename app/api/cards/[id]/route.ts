@@ -98,7 +98,7 @@ export async function PUT(
         ipAddress: requestContext.ipAddress,
         userAgent: requestContext.userAgent,
         metadata: {
-          reason: "trial_required_for_update",
+          reason: "free_access_required_for_update",
           cardId: id,
           planType: cardOwner?.planType || "FREE",
           subscriptionStatus: cardOwner?.subscriptionStatus || "inactive",
@@ -106,9 +106,9 @@ export async function PUT(
       });
       return NextResponse.json(
         {
-          error: "Start your 3-day trial or choose lifetime access to save changes.",
+          error: "Sign in to use free saving for bingo cards.",
           upgradeRequired: true,
-          trialRequired: true,
+          trialRequired: false,
         },
         { status: 403 }
       );

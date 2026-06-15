@@ -9,11 +9,11 @@ export const SHARE_EMAIL_PACKS: Record<
     label: string;
   }
 > = {
-  10: { size: 10, amount: 199, currency: "usd", label: "$1.99" },
-  30: { size: 30, amount: 499, currency: "usd", label: "$4.99" },
-  100: { size: 100, amount: 999, currency: "usd", label: "$9.99" },
-  250: { size: 250, amount: 1999, currency: "usd", label: "$19.99" },
-  500: { size: 500, amount: 2999, currency: "usd", label: "$29.99" },
+  10: { size: 10, amount: 0, currency: "usd", label: "Free" },
+  30: { size: 30, amount: 0, currency: "usd", label: "Free" },
+  100: { size: 100, amount: 0, currency: "usd", label: "Free" },
+  250: { size: 250, amount: 0, currency: "usd", label: "Free" },
+  500: { size: 500, amount: 0, currency: "usd", label: "Free" },
 };
 
 export function getShareEmailPack(recipientCount: number) {

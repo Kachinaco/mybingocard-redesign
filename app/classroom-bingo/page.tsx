@@ -131,7 +131,7 @@ export default function ClassroomBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Transform any lesson into an engaging classroom bingo game! Our free bingo draft editor for teachers makes it simple to create educational bingo cards for vocabulary practice, math facts, spelling words, science terms, or any subject you teach. Each printable card is automatically randomized so every student gets a unique layout, eliminating copying. Perfect for end-of-unit reviews, brain breaks, holiday learning, or reward activities. Export PDF files for free or add paid digital cards for the whole class or remote learning. With grade-level templates ranging from kindergarten to high school, you can customize card size, add images, and brand cards with your classroom theme. The bingo draft editor teachers trust — try it today and use it for a more interactive review activity.
+                    Transform any lesson into an engaging classroom bingo game! Our free bingo draft editor for teachers makes it simple to create educational bingo cards for vocabulary practice, math facts, spelling words, science terms, or any subject you teach. Each printable card is automatically randomized so every student gets a unique layout, eliminating copying. Perfect for end-of-unit reviews, brain breaks, holiday learning, or reward activities. Export PDF files for free or add free digital cards for the whole class or remote learning. With grade-level templates ranging from kindergarten to high school, you can customize card size, add images, and brand cards with your classroom theme. The bingo draft editor teachers trust — try it today and use it for a more interactive review activity.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -144,7 +144,7 @@ export default function ClassroomBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      View Pricing
+                      See Free Access
                     </Link>
                   </div>
                   <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
@@ -195,14 +195,14 @@ export default function ClassroomBingoPage() {
                 Make learning a game your students love
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft classroom bingo cards in under 2 minutes, then start a trial when you are ready to save.
+                Draft classroom bingo cards in under 2 minutes, then save, export, and share when you are ready.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-blue-50 transition-all duration-300 shadow-xl">
                   Start a Free Classroom Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Pricing Plans
+                  See Free Access
                 </Link>
               </div>
             </div>

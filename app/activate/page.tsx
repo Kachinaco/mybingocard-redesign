@@ -7,7 +7,7 @@ import { hasPremiumAccess } from "@/lib/subscription-status";
 
 export const metadata: Metadata = {
   title: "Activate Account",
-  description: "Start your MyBingoCard trial to unlock your account.",
+  description: "Activate your MyBingoCard account to use free access.",
   robots: {
     index: false,
     follow: false,

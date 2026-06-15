@@ -39,6 +39,7 @@ const CARD_COUNT_OPTIONS = [30, 100, 250, 500] as const;
 
 function formatPerCard(count: BatchCount) {
   const cents = BATCH_PACKS[count].amount / count;
+  if (cents === 0) return "Free";
   return `${Math.ceil(cents)}¢/card`;
 }
 
@@ -246,7 +247,7 @@ export default function CardViewPage() {
           hasPremiumAccess: Boolean(data.hasPremiumAccess),
           legacyFreeAccess: Boolean(data.legacyFreeAccess),
           canExportHD: data.plan?.canExportHD || false,
-          canExportPNG: data.plan?.canExportPNG || false,
+          canExportPNG: data.plan?.canExportPNG || true,
           canRemoveBranding: data.plan?.canRemoveBranding || false,
         });
       }
@@ -414,11 +415,6 @@ export default function CardViewPage() {
   };
 
   const handleExportPDF = async () => {
-    if (shouldUseBatchForPdf) {
-      openBatchForPdf("single_pdf_export");
-      return;
-    }
-
     try {
       trackExportButtonClicked("single_pdf_export", "single_pdf");
       setExporting("pdf");
@@ -494,7 +490,7 @@ export default function CardViewPage() {
         context: "owner_card",
       });
       await redirectToCheckout({
-        label: "Premium trial, then $7.99/mo",
+        label: "Free sharing access",
         successPath: `/cards/${cardId}?next=share`,
       });
       return false;
@@ -815,7 +811,7 @@ export default function CardViewPage() {
   const shareUrl = card.shareLink ? `${typeof window !== "undefined" ? window.location.origin : ""}/share/${card.shareLink}` : "";
   const qrCodeUrl = shareUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(shareUrl)}` : "";
 
-  const isPremiumBatchUser = Boolean(userPlan?.hasPremiumAccess);
+  const isPremiumBatchUser = true;
   const shouldUseBatchForPdf = false;
   const selectedBatchPrice = formatBatchPackPrice(batchCount);
   const selectedPack = BATCH_PACKS[batchCount];
@@ -823,13 +819,9 @@ export default function CardViewPage() {
   const batchActionLabel = batchLoading
     ? `Generating ${batchCount} cards...`
     : batchCheckoutLoading
-      ? "Redirecting to checkout..."
-      : isPremiumBatchUser || hasSelectedBatchPurchase
-        ? `Generate ${batchCount} Cards`
-        : `Pay ${selectedBatchPrice} & Generate Cards`;
-  const handleBatchPrimaryAction = isPremiumBatchUser || hasSelectedBatchPurchase
-    ? handleBatchGenerate
-    : handleBatchCheckout;
+      ? "Opening free tools..."
+      : `Generate ${batchCount} Cards`;
+  const handleBatchPrimaryAction = handleBatchGenerate;
   const sharePanel = card.isPublic && card.shareLink ? (
     <SocialShare
       url={shareUrl}
@@ -1047,7 +1039,7 @@ export default function CardViewPage() {
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <p className="text-xs font-black uppercase tracking-wide text-amber-700">
-                              {isPremiumBatchUser ? "Premium PDF packs" : "Paid PDF packs"}
+                              {isPremiumBatchUser ? "Free PDF packs" : "Free PDF packs"}
                             </p>
                             <h3 className="mt-1 text-lg font-black text-slate-950">
                               Generate printable cards
@@ -1059,7 +1051,7 @@ export default function CardViewPage() {
                           {!isPremiumBatchUser && (
                             <div className="shrink-0 rounded-xl bg-white px-3 py-2 text-right shadow-sm ring-1 ring-amber-200">
                               <p className="text-[11px] font-black uppercase text-slate-500">
-                                {hasSelectedBatchPurchase ? "Paid" : "Due today"}
+                                {hasSelectedBatchPurchase ? "Free" : "Free"}
                               </p>
                               <p className="text-2xl font-black text-slate-950">
                                 {hasSelectedBatchPurchase ? "$0" : selectedBatchPrice}
@@ -1117,14 +1109,14 @@ export default function CardViewPage() {
                                       <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black uppercase text-amber-700">Best value</span>
                                     )}
                                     {isReady && (
-                                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">Already paid</span>
+                                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">Included</span>
                                     )}
                                     {isPaidDue && (
-                                      <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-black uppercase text-white">Paid</span>
+                                      <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-black uppercase text-white">Free</span>
                                     )}
                                   </span>
                                   <span className="mt-0.5 block text-xs font-semibold text-slate-500">
-                                    {isPremiumBatchUser ? "Included with Premium" : isReady ? "Ready to generate" : `${formatPerCard(n)} one-time`}
+                                    {isPremiumBatchUser ? "Included free" : isReady ? "Ready to generate" : `${formatPerCard(n)} included`}
                                   </span>
                                 </span>
                                 <span className="text-right">
@@ -1189,7 +1181,7 @@ export default function CardViewPage() {
                             <div className="mb-3 flex items-center justify-between gap-3">
                               <div>
                                 <p className="text-xs font-black uppercase tracking-wide text-slate-500">
-                                  {isPremiumBatchUser || hasSelectedBatchPurchase ? "Ready to generate" : "Paid batch pack"}
+                                  {isPremiumBatchUser || hasSelectedBatchPurchase ? "Ready to generate" : "Free batch pack"}
                                 </p>
                                 <p className="mt-0.5 text-base font-black text-slate-950">{batchCount} cards</p>
                                 <p className="text-xs text-slate-600">
@@ -1199,7 +1191,7 @@ export default function CardViewPage() {
                               {!isPremiumBatchUser && (
                                 <div className="text-right">
                                   <p className="text-[11px] font-black uppercase text-slate-500">
-                                    {hasSelectedBatchPurchase ? "Paid" : "Due today"}
+                                    {hasSelectedBatchPurchase ? "Free" : "Free"}
                                   </p>
                                   <p className="text-3xl font-black text-slate-950">
                                     {hasSelectedBatchPurchase ? "$0" : selectedBatchPrice}
@@ -1405,15 +1397,15 @@ export default function CardViewPage() {
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="text-[11px] font-black uppercase tracking-wide text-amber-700">
-                            {isPremiumBatchUser ? "Premium PDF packs" : "Paid PDF packs"}
+                            {isPremiumBatchUser ? "Free PDF packs" : "Free PDF packs"}
                           </p>
                           <p className="mt-0.5 text-xs text-slate-700">
-                            {isPremiumBatchUser ? "Included with Premium." : `Selected: ${selectedBatchPrice}`}
+                            {isPremiumBatchUser ? "Included free." : `Selected: ${selectedBatchPrice}`}
                           </p>
                         </div>
                         {!isPremiumBatchUser && (
                           <div className="rounded-xl bg-white px-3 py-2 text-right text-slate-950 shadow-sm ring-1 ring-amber-200">
-                            <p className="text-[11px] font-black uppercase">{hasSelectedBatchPurchase ? "Paid" : "Due today"}</p>
+                            <p className="text-[11px] font-black uppercase">{hasSelectedBatchPurchase ? "Free" : "Free"}</p>
                             <p className="text-xl font-black">{hasSelectedBatchPurchase ? "$0" : selectedBatchPrice}</p>
                           </div>
                         )}
@@ -1453,8 +1445,8 @@ export default function CardViewPage() {
                                 {isPremiumBatchUser
                                   ? "Included"
                                   : (availableBatchCounts[n] || 0) > 0
-                                    ? "Already paid"
-                                    : `${formatPerCard(n)} one-time`}
+                                    ? "Included"
+                                    : `${formatPerCard(n)} included`}
                               </p>
                               {n === 500 && !isPremiumBatchUser && (
                                 <p className="mt-0.5 text-[10px] font-black uppercase text-amber-700">Best value</p>
@@ -1466,7 +1458,7 @@ export default function CardViewPage() {
                                   {(availableBatchCounts[n] || 0) > 0 ? "$0" : BATCH_PACKS[n].label}
                                 </p>
                                 <p className="text-[10px] text-slate-500">
-                                  {batchCount === n ? "Selected" : (availableBatchCounts[n] || 0) > 0 ? "Paid" : "Paid"}
+                                  {batchCount === n ? "Selected" : (availableBatchCounts[n] || 0) > 0 ? "Free" : "Free"}
                                 </p>
                               </div>
                             )}
@@ -1501,7 +1493,7 @@ export default function CardViewPage() {
                       <>
                       {!isPremiumBatchUser && !hasSelectedBatchPurchase && (
                         <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900">
-                          Selected paid download: {selectedBatchPrice} due at checkout for {batchCount} printable cards.
+                          Selected free download: {batchCount} printable cards.
                         </p>
                       )}
                       <button

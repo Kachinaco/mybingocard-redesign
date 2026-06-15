@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Create Bingo Cards Online | MyBingoCard",
-    description: "Build printable bingo cards for free, then add paid share links or live hosting when players need online access.",
+    description: "Build printable bingo cards for free, then add free share links or live hosting when players need online access.",
     url: "https://mybingocard.com/create",
     siteName: "MyBingoCard",
     type: "website",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Create Bingo Cards Online | MyBingoCard",
-    description: "Build printable bingo cards for free, then add paid share links or live hosting when players need online access.",
+    description: "Build printable bingo cards for free, then add free share links or live hosting when players need online access.",
   },
 };
 

@@ -12,7 +12,7 @@ interface ShareBatchModalProps {
 
 type RecipientMode = "email" | "self";
 
-const PRICE_PER_LINK_CENTS = 10;
+const PRICE_PER_LINK_CENTS = 0;
 const MIN_SHARE_LINKS = 5;
 
 function formatPrice(cents: number): string {
@@ -38,9 +38,9 @@ function clampCountValue(value: number, cardCount: number): number {
 
 function describePackage(count: number): string {
   if (count <= MIN_SHARE_LINKS) {
-    return `${formatPrice(PRICE_PER_LINK_CENTS * MIN_SHARE_LINKS)} for up to ${MIN_SHARE_LINKS} links`;
+    return `Free for up to ${MIN_SHARE_LINKS} links`;
   }
-  return `${formatPrice(PRICE_PER_LINK_CENTS * MIN_SHARE_LINKS)} for the first ${MIN_SHARE_LINKS}, then ${formatPrice(PRICE_PER_LINK_CENTS)} per extra link`;
+  return "Free for every link";
 }
 
 export default function ShareBatchModal({
@@ -178,7 +178,7 @@ export default function ShareBatchModal({
       payload.recipientEmails = validEmails.slice(0, clampedCount);
     }
 
-    trackClientActivity("share_links_checkout_started", {
+    trackClientActivity("share_links_free_started", {
       batchId,
       count: clampedCount,
       price_cents: totalCents,
@@ -199,15 +199,15 @@ export default function ShareBatchModal({
       }
 
       const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data?.checkoutUrl) {
-        setError(data?.error || "Failed to start checkout. Please try again.");
+      if (!res.ok || !(data?.redirectUrl || data?.checkoutUrl)) {
+        setError(data?.error || "Failed to generate links. Please try again.");
         setSubmitting(false);
         return;
       }
 
-      window.location.href = data.checkoutUrl as string;
+      window.location.href = (data.redirectUrl || data.checkoutUrl) as string;
     } catch {
-      setError("Failed to start checkout. Please try again.");
+      setError("Failed to generate links. Please try again.");
       setSubmitting(false);
     }
   }, [submitting, clampedCount, mode, validEmails, parsedEmails.length, batchId, totalCents]);
@@ -257,11 +257,8 @@ export default function ShareBatchModal({
                 <label className="block text-sm font-semibold text-slate-900 mb-2">
                   How many people are you sending to?
                 </label>
-                <p className="text-xs text-slate-500 mb-3">
-                  Starts at $0.50 for up to 5 links, then $0.10 per extra link.
-                </p>
                 <p className="text-xs text-slate-500 mb-4">
-                  Minimum 5 links ($0.50) due to Stripe checkout minimum.
+                  Share links are free right now. Create up to {cardCount} links from this batch.
                 </p>
 
                 <div className="flex items-center gap-4 mb-4">
@@ -371,7 +368,7 @@ export default function ShareBatchModal({
                 ) : (
                   <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
                     <p className="text-sm text-indigo-900 font-medium mb-1">
-                      After checkout, copy one group invite from your Share Links dashboard.
+                      After creating links, copy one group invite from your Share Links dashboard.
                     </p>
                     <p className="text-xs text-indigo-700">
                       Paste it in a text thread, Discord, classroom app, or email. Every player gets the next unused card.
@@ -397,7 +394,7 @@ export default function ShareBatchModal({
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">What happens next</p>
                 {mode === "self" ? (
                   <ul className="text-sm text-slate-700 space-y-2">
-                    <li>We&rsquo;ll create {clampedCount} unique player links after checkout.</li>
+                    <li>We&rsquo;ll create {clampedCount} unique player links.</li>
                     <li>You&rsquo;ll copy one group invite that hands out those cards automatically.</li>
                   </ul>
                 ) : (
@@ -430,16 +427,16 @@ export default function ShareBatchModal({
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      Sending you to checkout...
+                      Creating links...
                     </>
                   ) : (
-                    <>Continue to Stripe · {formatPrice(totalCents)}</>
+                    <>Create Links · Free</>
                   )}
                 </button>
               </div>
 
               <p className="text-center text-xs text-slate-400">
-                Secure payment via Stripe. Your links will be ready right after checkout.
+                Your links will be ready right away.
               </p>
             </div>
           </div>

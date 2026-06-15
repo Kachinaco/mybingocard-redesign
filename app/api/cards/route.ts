@@ -80,16 +80,16 @@ export async function POST(request: Request) {
         ipAddress: requestContext.ipAddress,
         userAgent: requestContext.userAgent,
         metadata: {
-          reason: "trial_required",
+          reason: "free_access_required",
           planType: user?.planType || "FREE",
           subscriptionStatus: user?.subscriptionStatus || "inactive",
         },
       });
       return NextResponse.json(
         {
-          error: "Start your 3-day trial or choose lifetime access to save bingo cards.",
+          error: "Sign in to use free saving for bingo cards.",
           upgradeRequired: true,
-          trialRequired: true,
+          trialRequired: false,
         },
         { status: 403 }
       );
@@ -319,7 +319,7 @@ export async function PUT(request: Request) {
         ipAddress: requestContext.ipAddress,
         userAgent: requestContext.userAgent,
         metadata: {
-          reason: "trial_required_for_update",
+          reason: "free_access_required_for_update",
           cardId: data.cardId,
           planType: user?.planType || "FREE",
           subscriptionStatus: user?.subscriptionStatus || "inactive",
@@ -327,9 +327,9 @@ export async function PUT(request: Request) {
       });
       return NextResponse.json(
         {
-          error: "Start your 3-day trial or choose lifetime access to save changes.",
+          error: "Sign in to use free saving for bingo cards.",
           upgradeRequired: true,
-          trialRequired: true,
+          trialRequired: false,
         },
         { status: 403 }
       );

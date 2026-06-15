@@ -33,9 +33,9 @@ export async function POST(request: Request) {
     if (!hasPremiumAccess(user)) {
       return NextResponse.json(
         {
-          error: "Start your 3-day trial or choose lifetime access to host live games.",
+          error: "Sign in to use free live game hosting.",
           upgradeRequired: true,
-          trialRequired: true,
+          trialRequired: false,
         },
         { status: 403 }
       );

@@ -3,16 +3,16 @@ import type { Metadata } from "next";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Bingo Card Maker Features - Free PDFs, AI, Templates & Paid Hosting",
+  title: "Bingo Card Maker Features - Free PDFs, AI, Templates & Hosting",
   description:
-    "Explore MyBingoCard features: free custom bingo card editor, PDF and PNG export, AI-generated squares, image bingo cards, templates, batch card creation, paid online sharing, and live bingo games.",
+    "Explore MyBingoCard features: free custom bingo card editor, free PDF and PNG export, AI-generated squares, image bingo cards, templates, batch card creation, free online sharing, and live bingo games.",
   alternates: {
     canonical: "https://mybingocard.com/features",
   },
   openGraph: {
     title: "Bingo Card Maker Features | MyBingoCard",
     description:
-      "Create custom bingo cards with free PDF export, AI help, image squares, templates, batches, paid online sharing, and live play.",
+      "Create custom bingo cards with free PDF export, AI help, image squares, templates, batches, free online sharing, and live play.",
     url: "https://mybingocard.com/features",
     siteName: "MyBingoCard",
     type: "website",
@@ -47,8 +47,8 @@ const features = [
       </svg>
     ),
     title: "Print and Batch PDFs",
-    description: "Export PDF/PNG files for free and use paid printable batch packs for larger sets.",
-    highlights: ["Browser printing", "Free PDF and PNG exports", "Paid printable batches", "3x3, 4x4, and 5x5 grids"],
+    description: "Export free PDF/PNG files and use free printable batch packs for larger sets.",
+    highlights: ["Browser printing", "Free PDF and PNG exports", "Free printable batches", "3x3, 4x4, and 5x5 grids"],
   },
   {
     icon: (
@@ -57,8 +57,8 @@ const features = [
       </svg>
     ),
     title: "Virtual Play",
-    description: "Paid share links and hosted rooms let players mark cards on their phones or laptops, no app required.",
-    highlights: ["Paid play links", "Mobile-friendly cards", "Players mark online", "No app required"],
+    description: "Free share links and hosted rooms let players mark cards on their phones or laptops, no app required.",
+    highlights: ["Free play links", "Mobile-friendly cards", "Players mark online", "No app required"],
   },
   {
     icon: (
@@ -141,7 +141,7 @@ export default function FeaturesPage() {
               href="/pricing"
               className="inline-flex items-center gap-2 bg-white text-slate-700 font-semibold px-8 py-4 rounded-2xl border border-slate-200 hover:border-indigo-200 hover:shadow-md transition-all duration-200"
             >
-              View Pricing
+              See Free Access
             </Link>
           </div>
         </div>
@@ -154,7 +154,7 @@ export default function FeaturesPage() {
             { value: "Free", label: "Creator Tools" },
             { value: "3x3-5x5", label: "Grid Sizes" },
             { value: "PDF", label: "Print Exports" },
-            { value: "Paid", label: "Online Play" },
+            { value: "Free", label: "Online Play" },
           ].map((stat) => (
             <div key={stat.label}>
               <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">{stat.value}</div>
@@ -203,7 +203,7 @@ export default function FeaturesPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-black text-slate-900 mb-4">Built for every occasion</h2>
-            <p className="text-slate-500 text-lg">Create, save, batch, and export for free. Pay only for player share links or hosted live games.</p>
+            <p className="text-slate-500 text-lg">Create, save, batch, and export with free access. Player share links and hosted live games are free right now.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {useCases.map((uc) => (
@@ -222,7 +222,7 @@ export default function FeaturesPage() {
         <div className="max-w-2xl mx-auto text-center">
           <div className="bg-gradient-to-br from-violet-600 to-indigo-600 rounded-3xl p-12 text-white shadow-2xl shadow-indigo-500/25">
             <h2 className="text-3xl font-black mb-4">Ready to create your first card?</h2>
-            <p className="text-indigo-100 mb-8 text-lg">Create, save, and export for free. Add paid batches, sharing, or hosting when your game needs it.</p>
+            <p className="text-indigo-100 mb-8 text-lg">Create, save, and export with free access. Add free batches, sharing, or hosting when your game needs it.</p>
             <Link
               href="/create"
               className="inline-flex items-center gap-2 bg-white text-indigo-700 font-bold px-8 py-4 rounded-2xl hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"

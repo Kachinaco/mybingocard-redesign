@@ -15,7 +15,7 @@ export default function PremiumCheckoutButton({
   className,
   successPath,
   source,
-  label = "Upgrade",
+  label = "Continue Free",
 }: PremiumCheckoutButtonProps) {
   const [loading, setLoading] = useState(false);
 
@@ -25,12 +25,12 @@ export default function PremiumCheckoutButton({
     try {
       trackClientActivity("plan_selected", {
         plan: "premium",
-        price: 7.99,
+        price: 0,
         source,
       });
 
       await redirectToCheckout({
-        label: "Premium trial, then $7.99/mo",
+        label: "All tools are free right now",
         successPath,
       });
     } finally {

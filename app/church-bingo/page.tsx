@@ -122,7 +122,7 @@ export default function ChurchBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Bring your congregation together with custom church bingo cards perfect for fundraisers, fellowship nights, and Sunday school activities. Our church bingo draft editor makes it easy to create faith-themed cards with familiar church moments everyone will recognize. Each card is uniquely shuffled so every member gets a different layout, keeping the game exciting for all ages. Export clean PDFs for free or add paid digital cards for in-person events and virtual gatherings. Whether you&apos;re planning a youth group activity, a potluck icebreaker, or a church fundraiser bingo night, create your religious bingo cards in minutes with no design skills needed.
+                    Bring your congregation together with custom church bingo cards perfect for fundraisers, fellowship nights, and Sunday school activities. Our church bingo draft editor makes it easy to create faith-themed cards with familiar church moments everyone will recognize. Each card is uniquely shuffled so every member gets a different layout, keeping the game exciting for all ages. Export clean PDFs for free or add free digital cards for in-person events and virtual gatherings. Whether you&apos;re planning a youth group activity, a potluck icebreaker, or a church fundraiser bingo night, create your religious bingo cards in minutes with no design skills needed.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -181,7 +181,7 @@ export default function ChurchBingoPage() {
                   {
                     icon: "📱",
                     title: "Digital & In-Person",
-                    desc: "Share a link with paid links for virtual fellowship events or export cards for in-person gatherings — works both ways.",
+                    desc: "Share a link with free links for virtual fellowship events or export cards for in-person gatherings — works both ways.",
                   },
                   {
                     icon: "✏️",
@@ -191,7 +191,7 @@ export default function ChurchBingoPage() {
                   {
                     icon: "💸",
                     title: "Free for Fundraisers",
-                    desc: "Create church bingo cards for free. Save, export, and batch cards without a budget; pay only for player links or live hosting.",
+                    desc: "Create church bingo cards for free. Save, export, and batch cards without a budget; player links and live hosting are free right now.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -214,7 +214,7 @@ export default function ChurchBingoPage() {
                 Ready to liven up fellowship night?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft your church bingo cards in under 2 minutes, then start checkout to save or export — perfect for fundraisers, youth groups, and potlucks.
+                Draft your church bingo cards in under 2 minutes, then start creating to save or export — perfect for fundraisers, youth groups, and potlucks.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-amber-50 transition-all duration-300 shadow-xl">

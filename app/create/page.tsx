@@ -731,12 +731,12 @@ function CreateCardContent() {
     if (session?.user && permissionStatus && !permissionStatus.allowed) {
       persistDraft();
       trackClientActivity("card_save_blocked", {
-        reason: "trial_required",
+        reason: "free_access_required",
         title: payload.title,
         size: payload.size,
         cells_filled: cellsFilledCount,
         status: 403,
-        server_error: "client_trial_required",
+        server_error: "client_free_access_required",
         is_update: Boolean(currentCardIdRef.current),
       });
       setAutoSaveState("error");
@@ -1201,7 +1201,7 @@ function CreateCardContent() {
 
   const handleBatchCheckout = async () => {
     trackClientActivity("batch_primary_clicked", {
-      action: "buy",
+      action: "generate_free_batch",
       source: "create_page",
       batch_count: batchCount,
       price: formatBatchPackPrice(batchCount),
@@ -1221,7 +1221,7 @@ function CreateCardContent() {
         });
         const data = await res.json();
         if (!res.ok || !data.url) {
-          setError(data.error || "Failed to start checkout");
+          setError(data.error || "Failed to start creating");
           return;
         }
         window.location.href = data.url;
@@ -1235,8 +1235,8 @@ function CreateCardContent() {
         successPath: `/create?batchPurchase=success&batchCount=${batchCount}`,
       });
     } catch (checkoutError) {
-      console.error("Batch checkout error:", checkoutError);
-      setError("Failed to start batch checkout");
+      console.error("Free batch setup error:", checkoutError);
+      setError("Failed to start free batch setup");
     } finally {
       setBatchCheckoutLoading(false);
     }
@@ -1506,7 +1506,7 @@ function CreateCardContent() {
       window.history.replaceState(null, "", nextUrl.pathname + nextUrl.search + nextUrl.hash);
     }
 
-    trackClientActivity("checkout_auto_started_after_auth", {
+    trackClientActivity("free_access_started_after_auth", {
       source: "save_card",
       plan: "free",
       cards_created: permissionStatus.cardsCreated ?? null,
@@ -1548,12 +1548,12 @@ function CreateCardContent() {
   const batchStatusMessage =
     batchPurchaseStatus === "success"
       ? isGuestReturn && !session?.user
-        ? `Payment received. Sign in with the email you used at checkout to access your ${batchCount}-card batch.`
+        ? `Free batch ready. Sign in to access your ${batchCount}-card batch.`
         : hasSelectedBatchPurchase
-          ? `${batchCount}-card batch purchased. It is ready to generate.`
-          : `Payment received. If your ${batchCount}-card batch does not unlock within a few seconds, refresh this page.`
+          ? `${batchCount}-card batch is ready to generate.`
+          : `Free batch ready. If your ${batchCount}-card batch does not unlock within a few seconds, refresh this page.`
       : batchPurchaseStatus === "canceled"
-        ? "Batch purchase canceled."
+        ? "Batch setup canceled."
         : "";
   const availableBatchSummary = ([30, 100, 250, 500] as const)
     .filter((count) => (availableBatchCounts[count] || 0) > 0)
@@ -1564,10 +1564,10 @@ function CreateCardContent() {
     : batchLoading
       ? `Generating ${batchCount} cards...`
       : batchCheckoutLoading
-        ? "Redirecting to checkout..."
+        ? "Opening free tools..."
         : isPremiumBatchUser || hasSelectedBatchPurchase
           ? `Generate ${batchCount} Unique Cards`
-          : `Buy ${batchCount}-Card Batch • ${selectedBatchPrice}`;
+          : `Generate ${batchCount}-Card Batch Free`;
   const batchActionDisabled =
     showPreview ||
     batchLoading ||
@@ -1704,7 +1704,7 @@ function CreateCardContent() {
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to keep creating</h2>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Saving, exports, templates, images, and AI are free. Printable batch packs, share links, and hosted bingo events are optional paid tools.
+                Saving, exports, templates, images, and AI are free. Printable batch packs, share links, and hosted bingo events are optional free tools.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
@@ -2171,13 +2171,13 @@ function CreateCardContent() {
 
                 {isPremiumBatchUser && batchMode && (
                   <p className="text-xs text-gray-500 mb-3">
-                    Every card gets a unique shuffled arrangement. Included with Premium.
+                    Every card gets a unique shuffled arrangement. Included free.
                   </p>
                 )}
 
                 {!isPremiumBatchUser && !session?.user && batchMode && (
                   <p className="text-xs text-gray-500 mb-3">
-                    Sign up to purchase batch packs, or upgrade to Premium for included batches.
+                    Sign up to generate free batch packs.
                   </p>
                 )}
 
@@ -2779,10 +2779,10 @@ export default function CreateCardPage() {
         <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center px-6 py-16">
           <p className="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#007AFF]">MyBingoCard Editor</p>
           <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">Create Bingo Cards Online</h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Build bingo cards for classrooms, baby showers, weddings, parties, and team events. Customize every square, export printable files for free, then add paid share links or hosted bingo events when needed.</p>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Build bingo cards for classrooms, baby showers, weddings, parties, and team events. Customize every square, export printable files for free, then add free share links or hosted bingo events when needed.</p>
           <div className="mt-8 flex flex-wrap gap-3 text-sm font-semibold">
             <Link href="/templates" className="rounded-md bg-[#007AFF] px-4 py-2 text-white">Browse Templates</Link>
-            <Link href="/pricing" className="rounded-md border border-slate-300 px-4 py-2 text-slate-700">See Paid Add-ons</Link>
+            <Link href="/pricing" className="rounded-md border border-slate-300 px-4 py-2 text-slate-700">See free tools</Link>
           </div>
         </main>
       </div>

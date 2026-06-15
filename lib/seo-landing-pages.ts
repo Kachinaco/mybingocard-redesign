@@ -51,7 +51,7 @@ function makeLongTailPage(input: LongTailPageInput): SeoLandingPageData {
       {
         title: "Printable or online",
         description:
-          "Use the same card idea for free PDF exports, paid online share links, or hosted live games.",
+          "Use the same card idea for free PDF exports, free online share links, or hosted live games.",
       },
       {
         title: "Unique shuffled cards",
@@ -63,7 +63,7 @@ function makeLongTailPage(input: LongTailPageInput): SeoLandingPageData {
       "Review the sample square ideas on this page.",
       "Use the list to open the bingo card editor with the card prefilled.",
       "Replace any square that does not fit your group.",
-      "Export for free, then add paid share links or hosted play when needed.",
+      "Export for free, then add free share links or hosted play when needed.",
     ],
     faqs: [
       {
@@ -79,7 +79,7 @@ function makeLongTailPage(input: LongTailPageInput): SeoLandingPageData {
       {
         question: "Can I play this bingo game online?",
         answer:
-          "Yes. You can export cards for in-person play for free, then add paid online cards that players mark from a phone, tablet, or laptop browser.",
+          "Yes. You can export cards for in-person play for free, then add free online cards that players mark from a phone, tablet, or laptop browser.",
       },
     ],
   };
@@ -90,17 +90,17 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "bingo-card-maker",
     metaTitle: "Bingo Card Maker and Generator - Create Printable Cards",
     metaDescription:
-      "Use MyBingoCard as a free bingo card editor and generator for PDF exports, custom words, images, templates, unique shuffled cards, and paid online play.",
+      "Use MyBingoCard as a free bingo card editor and generator for PDF exports, custom words, images, templates, unique shuffled cards, and free online play.",
     eyebrow: "Bingo card maker",
     h1: "Bingo Card Maker and Generator for Printable Games",
     lead:
-      "Create custom bingo cards in minutes with a bingo card maker that exports individual printable cards for free and supports paid batch packs or online cards.",
+      "Create custom bingo cards in minutes with a bingo card maker that exports individual printable cards for free and supports free batch packs or online cards.",
     accent: "indigo",
     sampleLabel: "All-purpose game",
     primaryCta: "Make a Bingo Card",
     audience: "hosts, teachers, event planners, and team leaders",
     intro:
-      "MyBingoCard gives you a fast bingo card maker that handles the full workflow: add your own words or images, choose a grid size, export clean PDFs for free, then add paid online sharing or hosted games without complicated setup.",
+      "MyBingoCard gives you a fast bingo card maker that handles the full workflow: add your own words or images, choose a grid size, export clean PDFs for free, then add free online sharing or hosted games without complicated setup.",
     sampleSquares: [
       "Welcome",
       "Prize",
@@ -137,7 +137,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       {
         title: "Printable and online",
         description:
-          "Export a PDF or add paid online card sharing when players are using phones, tablets, or laptops.",
+          "Export a PDF or add free online card sharing when players are using phones, tablets, or laptops.",
       },
       {
         title: "Flexible card content",
@@ -154,14 +154,14 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       "Choose a blank card or start from a template.",
       "Add your own words, prompts, numbers, or images.",
       "Pick a 3x3, 4x4, or 5x5 grid and customize the style.",
-      "Export an individual PDF for free, then add paid batch packs, share links, or hosted play when needed.",
+      "Export an individual PDF for free, then add free batch packs, share links, or hosted play when needed.",
     ],
     ideas: ["Custom event prompts", "Team member names", "Party moments", "Vocabulary terms", "Gift predictions", "Icebreaker questions"],
     faqs: [
       {
         question: "Is this bingo card maker free?",
         answer:
-          "Yes. You can create, save, customize, use templates, and export individual PDFs for free. Printable batch packs, paid sharing, and hosted games are optional.",
+          "Yes. You can create, save, customize, use templates, and export individual PDFs for free. Printable batch packs, free sharing, and hosted games are optional.",
       },
       {
         question: "Can I make multiple unique bingo cards?",
@@ -171,7 +171,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       {
         question: "Can players use the cards online?",
         answer:
-          "Yes. Paid share links and hosted live games let players mark cards on their devices for remote or in-person play.",
+          "Yes. free share links and hosted live games let players mark cards on their devices for remote or in-person play.",
       },
     ],
     related: ["printable-bingo-cards", "online-bingo-card-generator", "custom-bingo-card-maker", "ai-bingo-card-generator"],
@@ -184,13 +184,13 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     eyebrow: "Bingo board generator",
     h1: "Bingo Board Generator for Printable and Online Games",
     lead:
-      "Make a bingo board online, customize every square, export cards as PDFs for free, or add paid play links for your group.",
+      "Make a bingo board online, customize every square, export cards as PDFs for free, or add free play links for your group.",
     accent: "blue",
     sampleLabel: "Printable board",
     primaryCta: "Make a Bingo Board",
     audience: "teachers, hosts, parents, event planners, and group leaders",
     intro:
-      "A bingo board generator is useful when you need a clean 3x3, 4x4, or 5x5 board without designing it from scratch. MyBingoCard lets you add your own words or images, choose the grid size, shuffle unique cards, export PDFs for free, and add paid online bingo from the same card.",
+      "A bingo board generator is useful when you need a clean 3x3, 4x4, or 5x5 board without designing it from scratch. MyBingoCard lets you add your own words or images, choose the grid size, shuffle unique cards, export PDFs for free, and add free online bingo from the same card.",
     sampleSquares: [
       "Welcome",
       "Prize",
@@ -227,7 +227,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       {
         title: "Export or share the same board",
         description:
-          "Use the same content for free PDF exports, paid online cards, or paid live games.",
+          "Use the same content for free PDF exports, free online cards, or free live games.",
       },
       {
         title: "Shuffle unique player cards",
@@ -244,7 +244,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       "Choose a blank board or start from a template.",
       "Add words, prompts, numbers, or images to the squares.",
       "Pick a 3x3, 4x4, or 5x5 board layout.",
-      "Export the PDF for free, or add paid online sharing and live hosting.",
+      "Export the PDF for free, or add free online sharing and live hosting.",
     ],
     ideas: ["Classroom review board", "Party bingo board", "Team meeting board", "Holiday board", "Baby shower board", "Wedding reception board"],
     faqs: [
@@ -261,7 +261,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       {
         question: "Can I use a bingo board online instead of printing?",
         answer:
-          "Yes. After checkout, you can share online cards or host a live game so players mark their boards from a phone, tablet, or laptop.",
+          "Yes. after creating, you can share online cards or host a live game so players mark their boards from a phone, tablet, or laptop.",
       },
     ],
     related: ["bingo-card-maker", "printable-bingo-cards", "online-bingo-card-generator", "custom-bingo-card-maker"],
@@ -270,7 +270,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "printable-bingo-cards",
     metaTitle: "Printable Bingo Cards - Custom PDF Generator",
     metaDescription:
-      "Create printable bingo cards as PDFs for classrooms, parties, showers, holidays, team events, and fundraisers. Customize and export for free.",
+      "Create printable bingo cards as PDFs for classrooms, parties, showers, holidays, team events, and fundraisers. Customize and export with free access.",
     eyebrow: "Printable bingo cards",
     h1: "Printable Bingo Cards You Can Customize and Export",
     lead:
@@ -348,7 +348,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "online-bingo-card-generator",
     metaTitle: "Online Bingo Card Generator - Share and Play Digital Bingo",
     metaDescription:
-      "Create bingo cards players can open on phones, tablets, or laptops with paid share links or hosted live games. Free exports are included.",
+      "Create bingo cards players can open on phones, tablets, or laptops with free share links or hosted live games. Free exports are included.",
     eyebrow: "Online bingo generator",
     h1: "Online Bingo Card Generator for Digital Games",
     lead:
@@ -358,7 +358,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     primaryCta: "Create Online Bingo",
     audience: "remote teams, teachers, virtual hosts, trainers, and party planners",
     intro:
-      "An online bingo card generator is ideal when printing is inconvenient or players are joining from phones and laptops. MyBingoCard lets you build the card once, export printable copies for free, then add paid digital cards for live play.",
+      "An online bingo card generator is ideal when printing is inconvenient or players are joining from phones and laptops. MyBingoCard lets you build the card once, export printable copies for free, then add free digital cards for live play.",
     sampleSquares: [
       "Join Link",
       "Phone",
@@ -387,8 +387,8 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       "Bingo",
     ],
     benefits: [
-      { title: "No paper required", description: "Players can mark paid online cards from their own devices during virtual or in-person games." },
-      { title: "Fast sharing", description: "Buy player links instead of emailing attachments or managing printed packets." },
+      { title: "No paper required", description: "Players can mark free online cards from their own devices during virtual or in-person games." },
+      { title: "Fast sharing", description: "Create player links instead of emailing attachments or managing printed packets." },
       { title: "Hybrid friendly", description: "Use online cards and free PDF exports for remote players and people in the room." },
     ],
     useCases: [
@@ -399,20 +399,20 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     steps: [
       "Create the card topic and square content.",
       "Customize the look and grid size.",
-      "Buy share links or start a paid live game setup.",
-      "Send paid links to players and start calling squares.",
+      "Create share links or start a free live game setup.",
+      "Send free links to players and start calling squares.",
     ],
     ideas: ["Remote meeting bingo", "Virtual baby shower bingo", "Online classroom review", "Family video call bingo", "Training session bingo", "Remote holiday party bingo"],
     faqs: [
       {
         question: "Can players mark bingo cards online?",
         answer:
-          "Yes. Paid shared cards can be opened and marked from a phone, tablet, or laptop browser.",
+          "Yes. free shared cards can be opened and marked from a phone, tablet, or laptop browser.",
       },
       {
         question: "Do players need to install an app?",
         answer:
-          "No. Premium play links run in the browser, so players can join from a normal link.",
+          "No. Free play links run in the browser, so players can join from a normal link.",
       },
       {
         question: "Can I also print online bingo cards?",
@@ -573,7 +573,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       {
         question: "Can I print AI-generated bingo cards?",
         answer:
-          "Yes. After reviewing the card, you can export it as a printable PDF for free or add paid online sharing.",
+          "Yes. After reviewing the card, you can export it as a printable PDF for free or add free online sharing.",
       },
     ],
     related: ["custom-bingo-card-maker", "word-bingo-generator", "vocabulary-bingo-generator", "bingo-card-maker"],
@@ -634,7 +634,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       "Choose a card size and title.",
       "Add pictures, icons, or image-based prompts.",
       "Mix in text labels if helpful.",
-      "Export for free or add paid online sharing.",
+      "Export for free or add free online sharing.",
     ],
     ideas: ["Animal pictures", "Classroom objects", "Holiday symbols", "Wedding photo prompts", "Brand icons", "Vocabulary images"],
     faqs: [
@@ -660,7 +660,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "word-bingo-generator",
     metaTitle: "Word Bingo Generator - Make Custom Word Bingo Cards",
     metaDescription:
-      "Create word bingo cards for vocabulary, spelling, ESL, classrooms, parties, and custom events. Add your own words, then export for free or add paid online play.",
+      "Create word bingo cards for vocabulary, spelling, ESL, classrooms, parties, and custom events. Add your own words, then export with free access or add free online play.",
     eyebrow: "Word bingo generator",
     h1: "Word Bingo Generator for Custom Word Lists",
     lead:
@@ -701,7 +701,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     benefits: [
       { title: "Use any word list", description: "Paste in vocabulary, spelling words, names, terms, or custom prompts." },
       { title: "Good for review", description: "Repetition feels less tedious when players are scanning for words in a game." },
-      { title: "Works online or printed", description: "Use PDF cards for free or add paid digital cards for remote learners." },
+      { title: "Works online or printed", description: "Use PDF cards for free or add free digital cards for remote learners." },
     ],
     useCases: [
       { title: "Vocabulary bingo", description: "Review unit terms, definitions, or language-learning words." },
@@ -712,7 +712,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       "Collect the words you want to use.",
       "Paste them into the card editor.",
       "Shuffle and customize the card design.",
-      "Export for free or add paid sharing the cards with players.",
+      "Export for free or add free sharing the cards with players.",
     ],
     ideas: ["Spelling lists", "Vocabulary terms", "Company words", "Party phrases", "Book club terms", "Foreign language words"],
     faqs: [
@@ -738,7 +738,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "number-bingo-card-generator",
     metaTitle: "Number Bingo Card Generator - Printable Number Bingo Cards",
     metaDescription:
-      "Create number bingo cards for math practice, classroom games, parties, seniors, and traditional bingo nights. Export PDFs for free or add paid online play.",
+      "Create number bingo cards for math practice, classroom games, parties, seniors, and traditional bingo nights. Export PDFs for free or add free online play.",
     eyebrow: "Number bingo cards",
     h1: "Number Bingo Card Generator for Printable Games",
     lead:
@@ -790,7 +790,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       "Choose the number range or enter your own numbers.",
       "Pick the card size and free space option.",
       "Generate shuffled cards for your players.",
-      "Export for free or add paid sharing the cards for game time.",
+      "Export for free or add free sharing the cards for game time.",
     ],
     ideas: ["1 to 75 bingo", "Multiplication answers", "Addition facts", "Number recognition", "Senior activity games", "Family game night"],
     faqs: [
@@ -868,7 +868,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       "Paste in the vocabulary terms.",
       "Decide whether to call words, definitions, or clues.",
       "Generate cards for students.",
-      "Export for free or add paid sharing cards before review time.",
+      "Export for free or add free sharing cards before review time.",
     ],
     ideas: ["Unit vocabulary", "Definition clues", "Test prep terms", "Science words", "Reading terms", "ESL word lists"],
     faqs: [
@@ -885,7 +885,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
       {
         question: "Can students play vocabulary bingo online?",
         answer:
-          "Yes. You can add paid online card sharing when students are using devices.",
+          "Yes. You can add free online card sharing when students are using devices.",
       },
     ],
     related: ["word-bingo-generator", "esl-bingo-generator", "sight-word-bingo-generator", "classroom-bingo"],
@@ -972,7 +972,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "sight-word-bingo-generator",
     metaTitle: "Sight Word Bingo Generator - Printable Reading Practice Cards",
     metaDescription:
-      "Create sight word bingo cards for kindergarten, first grade, reading groups, intervention, and homeschool practice. Export for free or add paid online play.",
+      "Create sight word bingo cards for kindergarten, first grade, reading groups, intervention, and homeschool practice. Export for free or add free online play.",
     eyebrow: "Sight word bingo",
     h1: "Sight Word Bingo Generator for Reading Practice",
     lead:
@@ -1023,7 +1023,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     steps: [
       "Add the sight words your students are practicing.",
       "Choose a grid size that matches the group.",
-      "Export for free or add paid sharing unique cards.",
+      "Export for free or add free sharing unique cards.",
       "Call words and have students mark what they recognize.",
     ],
     ideas: ["Dolch words", "Fry words", "Kindergarten words", "First grade words", "Small group review", "Homeschool reading practice"],
@@ -1050,7 +1050,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "esl-bingo-generator",
     metaTitle: "ESL Bingo Generator - Printable English Vocabulary Cards",
     metaDescription:
-      "Create ESL bingo cards for English vocabulary, speaking practice, listening games, picture bingo, and classroom review. Export for free or add paid online play.",
+      "Create ESL bingo cards for English vocabulary, speaking practice, listening games, picture bingo, and classroom review. Export for free or add free online play.",
     eyebrow: "ESL bingo",
     h1: "ESL Bingo Generator for English Vocabulary Practice",
     lead:
@@ -1128,7 +1128,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "multiplication-bingo-cards",
     metaTitle: "Multiplication Bingo Cards - Printable Math Facts Game",
     metaDescription:
-      "Create multiplication bingo cards for classroom math facts practice. Use ready products, then export PDFs for free or add paid online play with unique cards.",
+      "Create multiplication bingo cards for classroom math facts practice. Use ready products, then export PDFs for free or add free online play with unique cards.",
     eyebrow: "Multiplication bingo",
     h1: "Multiplication Bingo Cards for Math Facts Practice",
     lead:
@@ -1176,7 +1176,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "state-capitals-bingo",
     metaTitle: "State Capitals Bingo - Printable Social Studies Review",
     metaDescription:
-      "Create state capitals bingo cards for geography and social studies review. Use ready capital names, then export cards for free or add paid online play.",
+      "Create state capitals bingo cards for geography and social studies review. Use ready capital names, then export cards for free or add free online play.",
     eyebrow: "State capitals bingo",
     h1: "State Capitals Bingo for Geography Review",
     lead:
@@ -1200,7 +1200,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "back-to-school-bingo",
     metaTitle: "Back-to-School Bingo - Printable First Day Icebreaker",
     metaDescription:
-      "Create back-to-school bingo cards for first-day introductions, classroom routines, and student icebreakers. Export for free or add paid online play.",
+      "Create back-to-school bingo cards for first-day introductions, classroom routines, and student icebreakers. Export for free or add free online play.",
     eyebrow: "Back-to-school bingo",
     h1: "Back-to-School Bingo for First Day Icebreakers",
     lead:
@@ -1224,7 +1224,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "end-of-year-bingo",
     metaTitle: "End-of-Year Bingo - Printable Classroom Memory Game",
     metaDescription:
-      "Create end-of-year bingo cards for classroom memories, awards days, field days, and last-week activities. Export for free or add paid online play.",
+      "Create end-of-year bingo cards for classroom memories, awards days, field days, and last-week activities. Export for free or add free online play.",
     eyebrow: "End-of-year bingo",
     h1: "End-of-Year Bingo for Classroom Celebrations",
     lead:
@@ -1248,7 +1248,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "wedding-reception-bingo",
     metaTitle: "Wedding Reception Bingo - Printable Guest Game Cards",
     metaDescription:
-      "Create wedding reception bingo cards with guest-friendly moments for cocktail hour, speeches, dancing, and dinner. Export for free or add paid online sharing.",
+      "Create wedding reception bingo cards with guest-friendly moments for cocktail hour, speeches, dancing, and dinner. Export for free or add free online sharing.",
     eyebrow: "Wedding reception bingo",
     h1: "Wedding Reception Bingo Cards for Guests",
     lead:
@@ -1258,7 +1258,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     primaryCta: "Use Reception List",
     audience: "couples, wedding planners, DJs, coordinators, and shower hosts",
     intro:
-      "Wedding reception bingo works because guests already notice the moments on the card. Place exported cards at seats, show a QR code with paid links for online play, or use the game as a quiet icebreaker between events.",
+      "Wedding reception bingo works because guests already notice the moments on the card. Place exported cards at seats, show a QR code with free links for online play, or use the game as a quiet icebreaker between events.",
     sampleSquares: ["First dance", "Best man toast", "Happy tears", "Bouquet toss", "FREE", "Photo booth", "Cake cutting", "DJ shoutout", "Table cheers", "Kids dancing", "Bride laughs", "Groom smiles", "Guest selfie", "Clinking glasses", "Signature drink", "Dance circle", "Parent dance", "Late-night snack", "Shoe change", "Group photo", "Song request", "Sparkler sendoff", "Guestbook signed", "Dessert table", "Last dance"],
     ideas: ["Cocktail hour", "Dinner speeches", "Reception photos", "Dance floor", "Guestbook", "Sendoff moment"],
     useCases: [
@@ -1272,7 +1272,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "bridal-shower-gift-bingo",
     metaTitle: "Bridal Shower Gift Bingo - Printable Shower Game Cards",
     metaDescription:
-      "Make bridal shower gift bingo cards for registry gifts, guest predictions, and present opening. Export unique cards for free or add paid online play.",
+      "Make bridal shower gift bingo cards for registry gifts, guest predictions, and present opening. Export unique cards for free or add free online play.",
     eyebrow: "Bridal shower gift bingo",
     h1: "Bridal Shower Gift Bingo Cards",
     lead:
@@ -1296,7 +1296,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "baby-shower-gift-bingo",
     metaTitle: "Baby Shower Gift Bingo - Printable Gift Opening Cards",
     metaDescription:
-      "Create baby shower gift bingo cards with common registry gifts and baby items. Export unique cards for free or add paid online sharing for guests.",
+      "Create baby shower gift bingo cards with common registry gifts and baby items. Export unique cards for free or add free online sharing for guests.",
     eyebrow: "Baby shower gift bingo",
     h1: "Baby Shower Gift Bingo Cards",
     lead:
@@ -1312,7 +1312,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     useCases: [
       { title: "Gift-opening bingo", description: "Guests mark squares as matching gifts are opened." },
       { title: "Registry shower", description: "Use registry categories to make the cards more accurate." },
-      { title: "Hybrid shower", description: "Export cards or add paid online card sharing for in-person and remote guests." },
+      { title: "Hybrid shower", description: "Export cards or add free online card sharing for in-person and remote guests." },
     ],
     related: ["baby-prediction-bingo", "bridal-shower-gift-bingo", "custom-bingo-card-maker", "printable-bingo-cards"],
   }),
@@ -1320,7 +1320,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "baby-prediction-bingo",
     metaTitle: "Baby Prediction Bingo - Printable Shower Prediction Game",
     metaDescription:
-      "Create baby prediction bingo cards for due date, name, traits, milestones, and parent guesses. Export for free or add paid online sharing.",
+      "Create baby prediction bingo cards for due date, name, traits, milestones, and parent guesses. Export for free or add free online sharing.",
     eyebrow: "Baby prediction bingo",
     h1: "Baby Prediction Bingo Cards",
     lead:
@@ -1344,7 +1344,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "office-meeting-bingo",
     metaTitle: "Office Meeting Bingo - Work Meeting Bingo Card Generator",
     metaDescription:
-      "Create office meeting bingo cards for team calls, all-hands, standups, and remote meetings. Export for free or add paid browser links.",
+      "Create office meeting bingo cards for team calls, all-hands, standups, and remote meetings. Export for free or add free browser links.",
     eyebrow: "Office meeting bingo",
     h1: "Office Meeting Bingo Cards for Work Calls",
     lead:
@@ -1358,7 +1358,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     sampleSquares: ["You're on mute", "Action item", "Quick sync", "Can you see my screen", "FREE", "Follow up", "Circle back", "Parking lot", "Great question", "Next slide", "Bandwidth", "Timeline", "Stakeholder", "Roadmap", "Metrics", "Deep dive", "Wins shared", "Blocker named", "Camera off", "Chat reaction", "Deadline moved", "Budget mention", "New priority", "Decision made", "Meeting ends early"],
     ideas: ["All-hands", "Standup", "Remote call", "Leadership update", "Project kickoff", "Weekly sync"],
     useCases: [
-      { title: "Remote meeting game", description: "Share online cards with paid links so teammates can play during a video call." },
+      { title: "Remote meeting game", description: "Share online cards with free links so teammates can play during a video call." },
       { title: "All-hands engagement", description: "Use company-safe squares that keep attention without disrupting the meeting." },
       { title: "Team-building break", description: "Run a short round before or after the main agenda." },
     ],
@@ -1368,7 +1368,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "onboarding-bingo",
     metaTitle: "Onboarding Bingo - New Hire Icebreaker Card Generator",
     metaDescription:
-      "Create onboarding bingo cards for new hires, orientation, HR training, and team introductions. Export for free or add paid online sharing.",
+      "Create onboarding bingo cards for new hires, orientation, HR training, and team introductions. Export for free or add free online sharing.",
     eyebrow: "Onboarding bingo",
     h1: "Onboarding Bingo for New Hire Icebreakers",
     lead:
@@ -1392,7 +1392,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "training-bingo",
     metaTitle: "Training Bingo - Workshop and Employee Training Cards",
     metaDescription:
-      "Create training bingo cards for workshops, employee training, safety sessions, and classroom review. Export for free or add paid online play.",
+      "Create training bingo cards for workshops, employee training, safety sessions, and classroom review. Export for free or add free online play.",
     eyebrow: "Training bingo",
     h1: "Training Bingo Cards for Workshops and Lessons",
     lead:
@@ -1416,7 +1416,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "conference-bingo",
     metaTitle: "Conference Bingo - Printable Networking and Event Cards",
     metaDescription:
-      "Create conference bingo cards for networking, sessions, trade shows, and attendee engagement. Export for free or add paid QR play.",
+      "Create conference bingo cards for networking, sessions, trade shows, and attendee engagement. Export for free or add free QR play.",
     eyebrow: "Conference bingo",
     h1: "Conference Bingo Cards for Networking and Sessions",
     lead:
@@ -1426,7 +1426,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     primaryCta: "Use Conference List",
     audience: "event planners, conference organizers, sponsors, HR teams, and facilitators",
     intro:
-      "Conference bingo helps attendees notice sessions, meet people, visit booths, and stay engaged between agenda items. Use printable cards for free or paid online play with a QR code.",
+      "Conference bingo helps attendees notice sessions, meet people, visit booths, and stay engaged between agenda items. Use printable cards for free or free online play with a QR code.",
     sampleSquares: ["Keynote quote", "Sponsor booth", "New connection", "Panel question", "FREE", "Coffee line", "Badge scan", "Breakout session", "Swag item", "Business card", "LinkedIn add", "Workshop note", "Product demo", "Industry buzzword", "Q&A moment", "Photo wall", "Lunch table", "Session app", "Hallway chat", "Exhibitor map", "Prize drawing", "Speaker selfie", "Roundtable", "Closing remarks", "Follow-up email"],
     ideas: ["Networking", "Trade show", "Sponsor booths", "Session notes", "Attendee challenge", "Event app"],
     useCases: [
@@ -1440,7 +1440,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "remote-meeting-bingo",
     metaTitle: "Remote Meeting Bingo - Online Work Call Bingo Cards",
     metaDescription:
-      "Create remote meeting bingo cards for Zoom, Teams, Google Meet, and distributed teams. Add paid online card sharing with no app required.",
+      "Create remote meeting bingo cards for Zoom, Teams, Google Meet, and distributed teams. Add free online card sharing with no app required.",
     eyebrow: "Remote meeting bingo",
     h1: "Remote Meeting Bingo for Online Work Calls",
     lead:
@@ -1450,13 +1450,13 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     primaryCta: "Use Remote Meeting List",
     audience: "remote teams, managers, HR teams, trainers, and facilitators",
     intro:
-      "Remote meeting bingo is easiest when players can join from a link. MyBingoCard lets you build the card, then share it online with paid links so players can mark squares from their own browser.",
+      "Remote meeting bingo is easiest when players can join from a link. MyBingoCard lets you build the card, then share it online with free links so players can mark squares from their own browser.",
     sampleSquares: ["Muted mic", "Camera off", "Pet appears", "Screen share", "FREE", "Can you hear me", "Lag moment", "Chat emoji", "Virtual background", "Calendar conflict", "Hard stop", "Link dropped", "Quick poll", "Reaction button", "Side conversation", "Keyboard noise", "Doorbell rings", "Someone waves", "Next slide", "Follow-up doc", "Action item", "Time zone mention", "Breakout room", "Recording starts", "Meeting ends early"],
     ideas: ["Zoom bingo", "Teams call", "Virtual training", "Distributed team", "Online icebreaker", "No app required"],
     useCases: [
       { title: "Virtual team building", description: "Share a card link before a team call or social hour." },
       { title: "Remote training", description: "Keep participants engaged during longer online sessions." },
-      { title: "Hybrid events", description: "Use online cards with paid links for remote players and exported cards for people in the room." },
+      { title: "Hybrid events", description: "Use online cards with free links for remote players and exported cards for people in the room." },
     ],
     related: ["online-bingo-card-generator", "office-meeting-bingo", "team-building-bingo", "icebreaker-bingo"],
   }),
@@ -1464,7 +1464,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     slug: "christmas-party-bingo",
     metaTitle: "Christmas Party Bingo - Printable Holiday Party Cards",
     metaDescription:
-      "Create Christmas party bingo cards for family gatherings, office parties, classrooms, and holiday events. Export for free or add paid online play.",
+      "Create Christmas party bingo cards for family gatherings, office parties, classrooms, and holiday events. Export for free or add free online play.",
     eyebrow: "Christmas party bingo",
     h1: "Christmas Party Bingo Cards for Holiday Events",
     lead:
@@ -1474,7 +1474,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
     primaryCta: "Use Christmas List",
     audience: "party hosts, teachers, HR teams, families, and activity directors",
     intro:
-      "Christmas party bingo works for classrooms, family gatherings, office parties, senior centers, and community events. Export cards or add paid online card sharing for tables and remote guests.",
+      "Christmas party bingo works for classrooms, family gatherings, office parties, senior centers, and community events. Export cards or add free online card sharing for tables and remote guests.",
     sampleSquares: ["Ugly sweater", "Hot cocoa", "Candy cane", "Gift exchange", "FREE", "Christmas music", "Cookie tray", "Santa hat", "Snowflake decor", "Holiday movie", "Secret Santa", "Ornament", "Jingle bells", "Reindeer", "Photo booth", "Tree lights", "Wrapping paper", "Gingerbread", "Festive socks", "Carol singing", "Mistletoe", "Holiday toast", "Red ribbon", "Family photo", "Stocking"],
     ideas: ["Office holiday party", "Classroom party", "Family gathering", "Cookie exchange", "Secret Santa", "Christmas movie night"],
     useCases: [

@@ -88,9 +88,9 @@ export async function POST(
     if (!hasPremiumAccess(user)) {
       return NextResponse.json(
         {
-          error: "Start your 3-day trial or choose lifetime access to email share links.",
-          checkoutRequired: true,
-          trialRequired: true,
+          error: "Sign in to use free email sharing.",
+          checkoutRequired: false,
+          trialRequired: false,
           recipientCount: emails.length,
         },
         { status: 402 }

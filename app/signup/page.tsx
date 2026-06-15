@@ -384,7 +384,7 @@ function SignupForm() {
              </Link>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">Create your account</h1>
             <p className="mt-2 text-gray-600">
-              Sign in first to save your first card. Premium unlocks unlimited cards, exports, and sharing.
+              Sign in first to save your first card. Free access unlocks unlimited cards, exports, and sharing.
             </p>
           </div>
 

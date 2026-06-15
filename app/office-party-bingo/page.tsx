@@ -131,7 +131,7 @@ export default function OfficePartyBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Liven up your next work party, holiday gathering, or team meeting with custom office bingo cards! Our office bingo draft editor creates hilarious, shareable cards full of relatable workplace moments — from jargon-heavy buzzwords to the infamous muted mic. Perfect for company holiday parties, virtual team events, remote happy hours, or just a fun Friday afternoon. Add your own inside jokes, company memes, or department-specific phrases to make every card uniquely yours. Each card is auto-randomized so no two employees have the same layout. Export PDF files for free or add paid digital links for in-person parties and remote teams. Whether you&apos;re planning a small team celebration or a company-wide event, our work party bingo generator makes engagement easy to plan!
+                    Liven up your next work party, holiday gathering, or team meeting with custom office bingo cards! Our office bingo draft editor creates hilarious, shareable cards full of relatable workplace moments — from jargon-heavy buzzwords to the infamous muted mic. Perfect for company holiday parties, virtual team events, remote happy hours, or just a fun Friday afternoon. Add your own inside jokes, company memes, or department-specific phrases to make every card uniquely yours. Each card is auto-randomized so no two employees have the same layout. Export PDF files for free or add free digital links for in-person parties and remote teams. Whether you&apos;re planning a small team celebration or a company-wide event, our work party bingo generator makes engagement easy to plan!
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -195,7 +195,7 @@ export default function OfficePartyBingoPage() {
                 Make the office party one they&apos;ll talk about Monday
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft your office bingo cards in under 2 minutes, then start checkout to save or export.
+                Draft your office bingo cards in under 2 minutes, then start creating, saving, exporting, and sharing.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-amber-50 transition-all duration-300 shadow-xl">

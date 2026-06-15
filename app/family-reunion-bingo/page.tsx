@@ -122,7 +122,7 @@ export default function FamilyReunionBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Turn your family reunion into an unforgettable event with custom family gathering bingo cards that get everyone laughing and mingling. Our family reunion bingo draft editor creates unique icebreaker cards filled with those classic reunion moments everyone recognizes. Each card is randomly shuffled so cousins, grandparents, and long-lost relatives all get a different layout to play. Export printable PDFs for free or add paid digital cards for the picnic table or far-flung family members joining virtually. Whether it&apos;s an annual cookout, a milestone anniversary, or a first-time reunion, these family bingo cards break the ice and bring generations together.
+                    Turn your family reunion into an unforgettable event with custom family gathering bingo cards that get everyone laughing and mingling. Our family reunion bingo draft editor creates unique icebreaker cards filled with those classic reunion moments everyone recognizes. Each card is randomly shuffled so cousins, grandparents, and long-lost relatives all get a different layout to play. Export printable PDFs for free or add free digital cards for the picnic table or far-flung family members joining virtually. Whether it&apos;s an annual cookout, a milestone anniversary, or a first-time reunion, these family bingo cards break the ice and bring generations together.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -135,7 +135,7 @@ export default function FamilyReunionBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      View Pricing
+                      See Free Access
                     </Link>
                   </div>
                   <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
@@ -181,7 +181,7 @@ export default function FamilyReunionBingoPage() {
                   {
                     icon: "📱",
                     title: "Virtual Reunion Ready",
-                    desc: "Add paid links so family members who couldn&apos;t make the trip can still play along from anywhere in the world.",
+                    desc: "Add free links so family members who couldn&apos;t make the trip can still play along from anywhere in the world.",
                   },
                   {
                     icon: "✏️",
@@ -191,7 +191,7 @@ export default function FamilyReunionBingoPage() {
                   {
                     icon: "💸",
                     title: "Free for Everyone",
-                    desc: "Create family reunion bingo cards for free. Save, export, and batch cards without a budget; pay only for player links or live hosting.",
+                    desc: "Create family reunion bingo cards for free. Save, export, and batch cards without a budget; player links and live hosting are free right now.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -214,14 +214,14 @@ export default function FamilyReunionBingoPage() {
                 Ready to bring the family together?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft your family reunion bingo cards in under 2 minutes, then start checkout to save or export — the perfect icebreaker for any gathering.
+                Draft your family reunion bingo cards in under 2 minutes, then start creating, saving, exporting, and sharing — the perfect icebreaker for any gathering.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-emerald-50 transition-all duration-300 shadow-xl">
                   Create Family Reunion Bingo Cards
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Pricing Plans
+                  See Free Access
                 </Link>
               </div>
             </div>

@@ -162,7 +162,7 @@ export default function BirthdayBingoPage() {
           {/* CTA Banner */}
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-yellow-500 to-orange-500 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">Ready to Party? 🎉</h2>
-            <p className="text-yellow-100 text-lg mb-8">Draft your custom birthday bingo cards in under 2 minutes, then start checkout to save.</p>
+            <p className="text-yellow-100 text-lg mb-8">Draft your custom birthday bingo cards in under 2 minutes, then start creating and saving.</p>
             <Link
               href="/create"
               className="inline-block px-8 py-4 bg-white text-orange-600 rounded-xl font-bold text-lg hover:bg-yellow-50 transition-colors shadow-lg"

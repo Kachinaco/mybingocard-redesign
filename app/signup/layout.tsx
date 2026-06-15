@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Sign Up",
-  description: "Create a MyBingoCard account, save your first card, and upgrade when you need unlimited cards, exports, sharing, and Premium tools.",
+  description: "Create a MyBingoCard account, save your first card, and use unlimited cards, exports, sharing, and free tools.",
   alternates: {
     canonical: "https://mybingocard.com/signup",
   },

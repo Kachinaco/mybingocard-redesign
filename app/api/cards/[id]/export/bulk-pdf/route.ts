@@ -186,8 +186,8 @@ export async function POST(
     if (!hasPremiumAccess(user)) {
       return NextResponse.json(
         {
-          error: "Printable batch export requires a batch pack or Premium.",
-          batchPurchaseRequired: true,
+          error: "Sign in to use free printable batch exports.",
+          batchPurchaseRequired: false,
         },
         { status: 403 }
       );

@@ -14,9 +14,9 @@ const FREE_FEATURES = [
   "AI-powered card ideas",
   "Text and image bingo cells",
   "PDF and PNG exports",
-  "Optional printable batch packs",
+  "Printable batches up to 500 cards",
   "Profile and saved-card access",
-  "Paid batches, share links, and hosted events are optional",
+  "Share links, email sharing, and hosted events",
 ];
 
 const PREMIUM_FEATURES = [
@@ -25,7 +25,7 @@ const PREMIUM_FEATURES = [
   "Unique shuffled card per viewer",
   "Printable batches up to 500 cards",
   "Cleaner saved and shared card experience",
-  "Paid sharing workflow for groups",
+  "Sharing workflow for groups",
   "Priority support",
 ];
 
@@ -38,32 +38,32 @@ const PLAN_ROWS = [
   ["PDF export", "Yes", "Yes", "Yes"],
   ["PNG export", "Yes", "Yes", "Yes"],
   ["Custom colors & fonts", "Yes", "Yes", "Yes"],
-  ["Batch generation", "Paid packs", "Up to 500 included", "Up to 500 included"],
-  ["Paid share links", "A la carte", "Included direct sharing", "Included direct sharing"],
-  ["Live event hosting", "Paid add-on", "Included", "Included"],
-  ["Billing", "$0", "3-day trial, then $7.99/mo", "One-time $29.99"],
+  ["Batch generation", "Up to 500", "Up to 500", "Up to 500"],
+  ["Share links", "Included", "Included", "Included"],
+  ["Live event hosting", "Included", "Included", "Included"],
+  ["Billing", "$0", "$0", "$0"],
 ];
 
 const FAQ_ITEMS = [
   {
     question: "What can I do on the free plan?",
     answer:
-      "The free plan includes unlimited saved cards, all templates, AI ideas, image cells, and single-card PDF and PNG exports. Printable batch packs, share links, and hosted bingo events are optional paid tools.",
+      "Right now, the free plan includes unlimited saved cards, all templates, AI ideas, image cells, PDF and PNG exports, printable batches, share links, and hosted bingo events.",
   },
   {
     question: "What is paid now?",
     answer:
-      "Paid features are printable batch packs, sharing workflows, and hosted bingo events. Batch packs are one-time purchases, group share links are sold a la carte, and Premium or Lifetime access covers included batches, live event hosting, and direct sharing tools.",
+      "Nothing is paid right now. Checkout is disabled while all MyBingoCard features are free for users.",
   },
   {
     question: "Can I pay once instead of subscribing?",
     answer:
-      "Yes. The Lifetime plan is a one-time payment of $29.99 for permanent Premium access.",
+      "Not right now. Lifetime checkout is disabled because the paid features are temporarily free.",
   },
   {
     question: "Can I cancel monthly Premium?",
     answer:
-      "Yes. Monthly Premium starts with a 3-day trial, then bills through Stripe at $7.99/month. You can cancel anytime from your account settings.",
+      "Monthly Premium checkout is disabled right now, so new users will not be charged for Premium features.",
   },
 ];
 
@@ -128,13 +128,13 @@ export default function PricingPage() {
 
         <section className="text-center mb-16">
           <div className="inline-block px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-bold uppercase tracking-wide mb-6">
-            Creator Tools Are Free
+            Everything Is Free Right Now
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-            Pay only for batches, sharing, and hosted bingo events
+            Create, export, share, and host for free
           </h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
-            Create, save, customize, use templates, and export individual printable cards for free. Paid options are for printable batches, player links, and live bingo hosting.
+            MyBingoCard checkout is turned off for now. Saved cards, exports, batches, player links, email sharing, and live bingo hosting are available at no charge.
           </p>
         </section>
 
@@ -142,7 +142,7 @@ export default function PricingPage() {
           <div className="relative bg-white rounded-3xl border border-slate-200 shadow-xl hover:shadow-2xl hover:border-indigo-200 transition-all duration-300 flex flex-col">
             <div className="p-8 flex-grow">
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Free</h2>
-              <p className="text-sm text-slate-500 mb-6">Full creator access for making and printing bingo cards.</p>
+              <p className="text-sm text-slate-500 mb-6">Free access for making, saving, exporting, sharing, and hosting bingo cards.</p>
               <div className="flex items-baseline gap-1 mb-8">
                 <span className="text-5xl font-black text-slate-900 tracking-tight">$0</span>
                 <span className="text-slate-500 font-medium">forever</span>
@@ -159,12 +159,12 @@ export default function PricingPage() {
           <div className="relative bg-white rounded-3xl border border-slate-200 shadow-xl hover:shadow-2xl hover:border-indigo-200 transition-all duration-300 flex flex-col">
             <div className="p-8 flex-grow">
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Premium</h2>
-              <p className="text-sm text-slate-500 mb-6">Best for people hosting live games or sharing cards with players online.</p>
+              <p className="text-sm text-slate-500 mb-6">Premium tools are included for everyone while checkout is disabled.</p>
               <div className="flex items-baseline gap-1 mb-8">
-                <span className="text-5xl font-black text-slate-900 tracking-tight">$7.99</span>
-                <span className="text-slate-500 font-medium">/month</span>
+                <span className="text-5xl font-black text-slate-900 tracking-tight">$0</span>
+                <span className="text-slate-500 font-medium">right now</span>
               </div>
-              <p className="-mt-5 mb-6 text-sm font-semibold text-indigo-600">3-day trial first</p>
+              <p className="-mt-5 mb-6 text-sm font-semibold text-indigo-600">No checkout required</p>
               <PlanFeatureList features={PREMIUM_FEATURES} />
             </div>
             <div className="p-8 pt-0 mt-auto">
@@ -172,21 +172,21 @@ export default function PricingPage() {
                 purchaseType="monthly"
                 className="w-full py-4 px-6 rounded-xl font-bold transition-all duration-200 bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-indigo-500/30"
               >
-                Start 3-Day Trial
+                Use Premium Tools Free
               </PricingCheckoutButton>
             </div>
           </div>
 
           <div className="relative bg-white rounded-3xl ring-2 ring-indigo-600 shadow-2xl shadow-indigo-500/20 transition-all duration-300 flex flex-col">
             <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg">
-              Pay Once
+              Included
             </div>
             <div className="p-8 flex-grow">
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Lifetime</h2>
-              <p className="text-sm text-slate-500 mb-6">Permanent batch, sharing, and hosting access with no renewal.</p>
+              <p className="text-sm text-slate-500 mb-6">Lifetime checkout is paused while every feature is free.</p>
               <div className="flex items-baseline gap-1 mb-8">
-                <span className="text-5xl font-black text-slate-900 tracking-tight">$29.99</span>
-                <span className="text-slate-500 font-medium">once</span>
+                <span className="text-5xl font-black text-slate-900 tracking-tight">$0</span>
+                <span className="text-slate-500 font-medium">right now</span>
               </div>
               <PlanFeatureList features={[...PREMIUM_FEATURES, "Lifetime access, never pay again"]} />
             </div>
@@ -195,7 +195,7 @@ export default function PricingPage() {
                 purchaseType="lifetime"
                 className="w-full py-4 px-6 rounded-xl font-bold transition-all duration-200 bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-indigo-500/30"
               >
-                Get Lifetime Access
+                Start Creating Free
               </PricingCheckoutButton>
             </div>
           </div>
@@ -205,10 +205,10 @@ export default function PricingPage() {
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 md:p-10">
             <div className="grid lg:grid-cols-[1fr_1.4fr] gap-8 items-start">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-indigo-600 mb-3">Paid Batch Packs and Share Links</p>
+                <p className="text-xs font-bold uppercase tracking-wide text-indigo-600 mb-3">Free Batch Packs and Share Links</p>
                 <h2 className="text-3xl font-bold text-slate-900 mb-4">Need a larger printable set?</h2>
                 <p className="text-slate-600 leading-relaxed">
-                  Buy a one-time printable batch pack for saved or printable PDF sets. Share links are separate when players need online cards, and Premium includes batches, direct sharing, and hosted rooms.
+                  Generate printable batch sets and share links without payment. These tools are included for all users while checkout is disabled.
                 </p>
               </div>
               <div className="grid sm:grid-cols-4 gap-3">
@@ -293,7 +293,7 @@ export default function PricingPage() {
                 Make your first card now.
               </h2>
               <p className="text-indigo-200 text-lg mb-8 max-w-2xl mx-auto">
-                Start with the free editor, then pay only when you need player share links or hosted bingo events.
+                Start with the free editor, then use player share links and hosted bingo events at no charge.
               </p>
               <Link href="/create" className="inline-block px-8 py-4 bg-white text-slate-900 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-colors shadow-lg shadow-white/10">
                 Start Your First Draft

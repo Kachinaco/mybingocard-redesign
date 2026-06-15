@@ -702,7 +702,7 @@ export default function HowToPlayBingoPage() {
                               href="/create"
                               className="text-indigo-600 hover:text-indigo-700 font-medium underline underline-offset-2"
                             >
-                              Create a free card, then export for free or add paid digital cards
+                              Create a free card, then export with free access or add free digital cards
                             </Link>{" "}
                             on phones and tablets
                           </span>
@@ -870,7 +870,7 @@ export default function HowToPlayBingoPage() {
                   </h2>
                   <p className="text-slate-300 mb-8 text-lg max-w-xl mx-auto leading-relaxed">
                     Create custom bingo cards for your next game night, party,
-                    or classroom activity. Start with a draft, then choose Premium when you need to save or export.
+                    or classroom activity. Start with a draft, then use free access when you need to save or export.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Link

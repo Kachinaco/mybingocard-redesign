@@ -144,8 +144,8 @@ export function trackMappedMetaPixelEvent(event: string, payload: ClientActivity
       return;
 
     case "checkout_loaded":
-    case "share_links_checkout_started":
-    case "email_share_checkout_started":
+    case "share_links_free_started":
+    case "email_share_free_started":
       trackMetaPixelEvent("InitiateCheckout", {
         content_name: stringFromMetadata(metadata, "plan") || stringFromMetadata(metadata, "purchaseType") || "premium",
         content_category: "checkout",

@@ -6,6 +6,7 @@ export const LEGACY_FREE_ACCESS_CUTOFF = new Date("2026-06-03T07:00:00.000Z");
 export const NEW_FREE_CARD_LIMIT = -1;
 export const LEGACY_FREE_CARD_LIMIT = -1;
 export const LEGACY_FREE_IMAGE_UPLOAD_LIMIT = 500;
+export const FREE_FOR_ALL_USERS = true;
 
 export function hasFutureTrialEnd(trialEndsAt?: Date | string | null): boolean {
   if (!trialEndsAt) return false;
@@ -34,6 +35,7 @@ export function isUserOnTrial(user?: Pick<User, "planType" | "subscriptionStatus
 
 export function hasPremiumAccess(user?: Pick<User, "planType" | "subscriptionStatus" | "trialEndsAt"> | null): boolean {
   if (!user) return false;
+  if (FREE_FOR_ALL_USERS) return true;
   if (user.subscriptionStatus === "lifetime") return true;
   if (user.planType !== "PREMIUM") return false;
   return isActiveLikeSubscriptionStatus(user.subscriptionStatus) || isUserOnTrial(user);
@@ -64,6 +66,7 @@ export function getEffectiveCardLimit(
   user?: Pick<User, "createdAt" | "planType" | "subscriptionStatus" | "trialEndsAt"> | null
 ): number {
   if (!user) return 0;
+  if (FREE_FOR_ALL_USERS) return -1;
   if (hasPremiumAccess(user)) return -1;
   if (isLegacyFreeUser(user)) return LEGACY_FREE_CARD_LIMIT;
   return NEW_FREE_CARD_LIMIT;

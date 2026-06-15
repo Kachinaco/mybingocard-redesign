@@ -54,7 +54,7 @@ export default function ContactPage() {
               <div>
                 <h2 className="text-xl font-bold text-slate-900 mb-3">Common Questions</h2>
                 <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-slate-600">How do I upgrade to Premium? — Visit your Settings page or the Pricing page</li>
+                  <li className="text-slate-600">How do I use free access? — Create an account and start from the Create page</li>
                   <li className="text-slate-600">How do I cancel my subscription? — Go to Settings and click Manage Subscription</li>
                   <li className="text-slate-600">Can I get a refund? — Email us and we'll work something out</li>
                   <li className="text-slate-600">How do I export my cards? — Open any card and click the Export tab</li>

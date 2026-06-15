@@ -131,7 +131,7 @@ export default function MusicBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Turn any playlist into a thrilling music bingo night with our song bingo draft editor! Create custom music bingo cards featuring hit songs, classic rock anthems, 90s jams, country favorites, or any genre you love. Each card is uniquely shuffled so every player gets a different combination — perfect for house parties, bar trivia nights, team socials, and fundraiser events. Play name that tune style where the DJ spins tracks and players mark their cards, or use our built-in playlist mode for a fully automated music bingo experience. Export printable PDF cards for free or add paid digital links for in-person events and remote play. With genre-themed templates, custom word lists, and support for any music library, our music bingo generator makes it easy to host an unforgettable game night.
+                    Turn any playlist into a thrilling music bingo night with our song bingo draft editor! Create custom music bingo cards featuring hit songs, classic rock anthems, 90s jams, country favorites, or any genre you love. Each card is uniquely shuffled so every player gets a different combination — perfect for house parties, bar trivia nights, team socials, and fundraiser events. Play name that tune style where the DJ spins tracks and players mark their cards, or use our built-in playlist mode for a fully automated music bingo experience. Export printable PDF cards for free or add free digital links for in-person events and remote play. With genre-themed templates, custom word lists, and support for any music library, our music bingo generator makes it easy to host an unforgettable game night.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -144,7 +144,7 @@ export default function MusicBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      View Pricing
+                      See Free Access
                     </Link>
                   </div>
                   <p className="text-sm text-slate-400">Free creator tools · Any genre · free PDF export</p>
@@ -171,7 +171,7 @@ export default function MusicBingoPage() {
                   { icon: "🎵", title: "Song Recognition", desc: "Play name that tune bingo — the DJ spins a track, players mark their cards. First to five in a row wins!" },
                   { icon: "🎧", title: "Custom Playlists", desc: "Build bingo cards from any playlist — Spotify favorites, decade hits, genre deep cuts, or your own song list." },
                   { icon: "🎉", title: "Party Mode", desc: "Host an epic music bingo night at bars, house parties, or corporate events with automated game flow." },
-                  { icon: "🖨️", title: "PDF Export or Digital Play", desc: "Export PDF cards for free or add paid digital links for in-person events and remote music bingo." },
+                  { icon: "🖨️", title: "PDF Export or Digital Play", desc: "Export PDF cards for free or add free digital links for in-person events and remote music bingo." },
                   { icon: "🎸", title: "Genre Themes", desc: "Classic rock, 80s pop, country, hip-hop, jazz — themed templates for every musical taste." },
                   { icon: "👨‍👩‍👧", title: "Fun for All Ages", desc: "From kids' sing-alongs to adult trivia nights — music bingo brings every generation together." },
                 ].map((f) => (
@@ -195,14 +195,14 @@ export default function MusicBingoPage() {
                 Hit play on the best party game ever
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft music bingo cards in under 2 minutes, then start checkout to save or export.
+                Draft music bingo cards in under 2 minutes, then start creating, saving, exporting, and sharing.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-rose-50 transition-all duration-300 shadow-xl">
                   Start a Free Music Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Pricing Plans
+                  See Free Access
                 </Link>
               </div>
             </div>

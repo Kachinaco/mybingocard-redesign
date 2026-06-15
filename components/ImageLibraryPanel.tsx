@@ -36,7 +36,7 @@ export default function ImageLibraryPanel({
   disabled = false,
   onSelectImage,
   selectedCellIndex,
-  isPremium = false,
+  isPremium = true,
 }: ImageLibraryPanelProps) {
   const [tab, setTab] = useState<"my" | "library">("my");
   const [myImages, setMyImages] = useState<UploadedImage[]>([]);
@@ -198,9 +198,6 @@ export default function ImageLibraryPanel({
           </svg>
         </span>
         Image Library
-        {!isPremium && (
-          <span className="ml-auto text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">PREMIUM</span>
-        )}
       </h2>
 
       {!isPremium ? (
@@ -210,7 +207,7 @@ export default function ImageLibraryPanel({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h3 className="text-sm font-bold text-gray-900 mb-1">Picture Bingo is Premium</h3>
+          <h3 className="text-sm font-bold text-gray-900 mb-1">Picture Bingo is Free</h3>
           <p className="text-xs text-gray-500 mb-4 max-w-[220px] mx-auto">
             Add images to your bingo cells, Loteria-style. Upload your own or use our clip-art library.
           </p>
@@ -218,9 +215,9 @@ export default function ImageLibraryPanel({
             href="/pricing"
             className="inline-block px-5 py-2.5 bg-[#007AFF] text-white text-sm font-bold rounded-xl hover:shadow-md transition-all"
           >
-            Start 3-Day Trial for $7.99/mo
+            Start Creating Free
           </a>
-          <p className="mt-2 text-[10px] text-gray-400">Cancel anytime</p>
+          <p className="mt-2 text-[10px] text-gray-400">No checkout required</p>
         </div>
       ) : selectedCellIndex !== null ? (
         <p className="text-xs text-[#007AFF] font-medium mb-3">
@@ -300,13 +297,13 @@ export default function ImageLibraryPanel({
           ) : (
             <div className="border border-amber-200 bg-amber-50 rounded-xl p-3 text-center">
               <p className="text-xs text-amber-700 font-medium">
-                Custom image uploads are not available on this plan
+                Custom image uploads are free right now
               </p>
               <a
                 href="/pricing"
                 className="text-[10px] text-[#007AFF] font-semibold underline mt-1 inline-block"
               >
-                See plan options
+                Open image tools
               </a>
             </div>
           )}

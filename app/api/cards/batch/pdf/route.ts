@@ -411,7 +411,7 @@ export async function POST(request: Request) {
           ipAddress: requestContext.ipAddress,
           userAgent: requestContext.userAgent,
           metadata: {
-            reason: "purchased_batch_required",
+            reason: "free_batch_access_required",
             cardCount: cardIds.length,
             cardsPerPage,
             grayscale,
@@ -420,7 +420,7 @@ export async function POST(request: Request) {
           },
         });
         return NextResponse.json(
-          { error: "Batch PDF download requires a purchased batch for these cards." },
+          { error: "Sign in to download free batch PDFs for these cards." },
           { status: 403 }
         );
       }
@@ -447,7 +447,7 @@ export async function POST(request: Request) {
         });
         return NextResponse.json(
           {
-            error: `This PDF has ${cardIds.length} cards, but the purchased pack includes ${purchasedBatch.batchCount}.`,
+            error: `This PDF has ${cardIds.length} cards, but this generated batch includes ${purchasedBatch.batchCount}.`,
           },
           { status: 403 }
         );

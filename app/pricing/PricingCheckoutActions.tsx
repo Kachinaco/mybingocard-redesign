@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 type PurchaseType = "monthly" | "lifetime";
 
 function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Failed to start checkout";
+  return error instanceof Error ? error.message : "Failed to start free access";
 }
 
 export function PricingPageTracker() {
@@ -65,8 +65,8 @@ export function CheckoutReturnBanner() {
             </svg>
           </div>
           <div>
-            <h3 className="font-bold text-emerald-900">Payment successful</h3>
-            <p className="text-emerald-700 text-sm">Your Premium features are now active.</p>
+            <h3 className="font-bold text-emerald-900">Free access active</h3>
+            <p className="text-emerald-700 text-sm">Premium features are available at no charge right now.</p>
           </div>
         </div>
       </div>
@@ -82,8 +82,8 @@ export function CheckoutReturnBanner() {
           </svg>
         </div>
         <div>
-          <h3 className="font-bold text-amber-900">Checkout canceled</h3>
-          <p className="text-amber-700 text-sm">No payment was made. You can upgrade anytime.</p>
+          <h3 className="font-bold text-amber-900">Checkout disabled</h3>
+          <p className="text-amber-700 text-sm">No payment is needed while all features are free.</p>
         </div>
       </div>
     </div>
@@ -130,7 +130,7 @@ export function PricingCheckoutButton({
     setLoading(true);
 
     try {
-      const price = purchaseType === "monthly" ? 7.99 : 29.99;
+      const price = 0;
       const plan = purchaseType === "monthly" ? "premium" : "lifetime";
 
       if (purchaseType === "monthly") {
@@ -143,12 +143,7 @@ export function PricingCheckoutButton({
         source: "pricing_page",
       });
 
-      const { redirectToCheckout } = await import("@/lib/upgrade");
-      if (purchaseType === "lifetime") {
-        await redirectToCheckout({ purchaseType: "lifetime" });
-      } else {
-        await redirectToCheckout();
-      }
+      router.push("/create?free=1");
     } catch (error) {
       console.error("Upgrade error:", error);
       alert(errorMessage(error));
@@ -167,7 +162,7 @@ export function PricingCheckoutButton({
 
   return (
     <button onClick={handleCheckout} disabled={loading} className={`${className} ${loading ? "opacity-70 cursor-wait" : ""}`}>
-      {loading ? "Processing..." : children}
+      {loading ? "Opening..." : children}
     </button>
   );
 }

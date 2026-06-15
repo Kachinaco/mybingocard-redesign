@@ -130,7 +130,7 @@ export default function HolidayBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Spread holiday cheer with custom Christmas and holiday bingo cards made in minutes! Our holiday bingo card maker is the easiest way to create festive bingo cards for classroom Christmas parties, family gatherings, ugly sweater events, and office holiday parties. Choose from classic Christmas themes — Santa, reindeer, snowflakes, candy canes — or customize every square with your own holiday traditions and inside jokes. Each card is uniquely randomized so grandma and the kids aren&apos;t playing the same card. Export PDF files for free or add paid digital links for virtual holiday parties. Works for Christmas, Hanukkah, Kwanzaa, New Year&apos;s, and any winter celebration. Build a free holiday draft, then upgrade when you&apos;re ready for Premium features.
+                    Spread holiday cheer with custom Christmas and holiday bingo cards made in minutes! Our holiday bingo card maker is the easiest way to create festive bingo cards for classroom Christmas parties, family gatherings, ugly sweater events, and office holiday parties. Choose from classic Christmas themes — Santa, reindeer, snowflakes, candy canes — or customize every square with your own holiday traditions and inside jokes. Each card is uniquely randomized so grandma and the kids aren&apos;t playing the same card. Export PDF files for free or add free digital links for virtual holiday parties. Works for Christmas, Hanukkah, Kwanzaa, New Year&apos;s, and any winter celebration. Build a free holiday draft, then upgrade when you&apos;re ready for free features.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -143,7 +143,7 @@ export default function HolidayBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      View Pricing
+                      See Free Access
                     </Link>
                   </div>
                   <p className="text-sm text-slate-400">Free creator tools · Festive themes · free PDF export</p>
@@ -170,7 +170,7 @@ export default function HolidayBingoPage() {
                   { icon: "🏫", title: "Classroom Christmas Party", desc: "Keep students engaged at the end-of-semester party with educational holiday bingo cards." },
                   { icon: "👨‍👩‍👧‍👦", title: "Family Gatherings", desc: "All ages love it — create one set of cards for the whole family holiday dinner table." },
                   { icon: "🎅", title: "Santa Visit Events", desc: "Keep kids entertained while waiting for Santa with festive Christmas bingo." },
-                  { icon: "💻", title: "Virtual Holiday Parties", desc: "Share digital bingo cards with paid links for remote family and work holiday celebrations." },
+                  { icon: "💻", title: "Virtual Holiday Parties", desc: "Share digital bingo cards with free links for remote family and work holiday celebrations." },
                   { icon: "🧥", title: "Ugly Sweater Parties", desc: "Build a bingo card around sweater features — reindeer, snowflakes, blinking lights!" },
                   { icon: "🎬", title: "Holiday Movie Night", desc: "Create bingo cards with classic movie moments for a cozy holiday movie marathon." },
                 ].map((f) => (
@@ -194,14 +194,14 @@ export default function HolidayBingoPage() {
                 Make this holiday season the most fun ever
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft festive holiday bingo cards in under 2 minutes, then start a trial when you are ready to save.
+                Draft festive holiday bingo cards in under 2 minutes, then save, export, and share when you are ready.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-green-50 transition-all duration-300 shadow-xl">
                   Start a Free Holiday Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Pricing Plans
+                  See Free Access
                 </Link>
               </div>
             </div>

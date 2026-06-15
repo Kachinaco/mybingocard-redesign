@@ -49,7 +49,7 @@ export default function AboutPage() {
                   <li className="text-slate-600">A simple card editor that anyone can use in minutes</li>
                   <li className="text-slate-600">Included templates for common bingo occasions</li>
                   <li className="text-slate-600">Live multiplayer bingo rooms for real-time games</li>
-                  <li className="text-slate-600">PDF and PNG exports for printing or sharing digitally</li>
+                  <li className="text-slate-600">free PDF and PNG exports for printing or sharing digitally</li>
                   <li className="text-slate-600">Batch generation for creating up to 100 unique cards at once</li>
                 </ul>
               </div>

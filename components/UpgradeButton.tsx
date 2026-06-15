@@ -23,7 +23,7 @@ export default function UpgradeButton({ className, children }: { className?: str
       disabled={loading}
       className={className || "inline-flex items-center justify-center px-6 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg hover:shadow-indigo-200 transition-all font-semibold text-sm"}
     >
-      {loading ? "Redirecting..." : (children || "Upgrade Now")}
+      {loading ? "Opening..." : (children || "Use Free Access")}
     </button>
   );
 }

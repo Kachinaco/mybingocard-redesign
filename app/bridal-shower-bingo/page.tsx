@@ -92,7 +92,7 @@ export default function BridalShowerBingoPage() {
                 Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500">Bridal Shower Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                Turn gift opening into a party game! Create unique bingo cards for every guest, export for free, and celebrate the bride-to-be in style.
+                Turn gift opening into a party game! Create unique bingo cards for every guest, export with free access, and celebrate the bride-to-be in style.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/create" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl font-bold text-lg hover:opacity-90 shadow-lg shadow-pink-500/30">

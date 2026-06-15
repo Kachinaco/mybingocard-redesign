@@ -46,9 +46,9 @@ export async function POST(
     if (!hasShareSettingsAccess(user)) {
       return NextResponse.json(
         {
-          error: "Start your 3-day trial or choose lifetime access to share bingo cards.",
+          error: "Sign in to use free sharing for bingo cards.",
           upgradeRequired: true,
-          trialRequired: true,
+          trialRequired: false,
         },
         { status: 403 }
       );
@@ -125,9 +125,9 @@ export async function PUT(
     if (!hasShareSettingsAccess(user)) {
       return NextResponse.json(
         {
-          error: "Start your 3-day trial or choose lifetime access to update share settings.",
+          error: "Sign in to use free sharing settings.",
           upgradeRequired: true,
-          trialRequired: true,
+          trialRequired: false,
         },
         { status: 403 }
       );

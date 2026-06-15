@@ -28,7 +28,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     label: "MyBingoCard",
     audience: "people who need quick custom bingo cards without spreadsheet formatting or design software",
     setting: "classrooms, showers, weddings, work events, holidays, fundraisers, and family gatherings",
-    examples: ["included templates", "custom text squares", "image cards", "paid online sharing"],
+    examples: ["included templates", "custom text squares", "image cards", "free online sharing"],
     tip: "The product is designed around a simple workflow: choose an idea, customize the squares, then print or share the finished card.",
     related: "the template library, card creator, pricing page, and bingo idea guides",
   },
@@ -192,10 +192,10 @@ export default function SeoSupportBlock({ slug }: { slug: string }) {
           </h2>
           <div className="mt-5 space-y-4 text-sm leading-7 text-slate-600 md:text-base">
             <p>
-              A useful bingo page should do more than offer a blank grid. It should help {content.audience} decide what belongs on the card, how the game will be played, and whether the final version should be exported for free, shared online with paid links, or used during paid live play. This page is built for {content.setting}, so the square ideas and calls to action should support a real event instead of a generic worksheet.
+              A useful bingo page should do more than offer a blank grid. It should help {content.audience} decide what belongs on the card, how the game will be played, and whether the final version should be exported for free, shared online with free links, or used during free live play. This page is built for {content.setting}, so the square ideas and calls to action should support a real event instead of a generic worksheet.
             </p>
             <p>
-              The strongest cards combine recognizable moments with a few details that feel specific to the group. For {content.label}, that usually means starting with familiar prompts like {content.examples.join(", ")}, then editing the wording so it matches the host, class, guests, or team. MyBingoCard keeps that workflow flexible: you can start from a template, paste your own list, shuffle unique cards, and decide later whether to export PDFs or add paid browser links.
+              The strongest cards combine recognizable moments with a few details that feel specific to the group. For {content.label}, that usually means starting with familiar prompts like {content.examples.join(", ")}, then editing the wording so it matches the host, class, guests, or team. MyBingoCard keeps that workflow flexible: you can start from a template, paste your own list, shuffle unique cards, and decide later whether to export PDFs or add free browser links.
             </p>
           </div>
         </div>

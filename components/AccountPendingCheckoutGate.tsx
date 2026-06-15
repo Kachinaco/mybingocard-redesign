@@ -27,18 +27,18 @@ export default function AccountPendingCheckoutGate({ email }: { email: string })
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <p className="text-xs font-bold uppercase tracking-wide text-indigo-600">Account pending checkout</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-indigo-600">Checkout disabled</p>
             <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-              Paid checkout is only for batches, sharing, and hosting
+              Your account has free access
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-600">
-              You are signed in{email ? ` as ${email}` : ""}. Creator tools are free; paid checkout is only needed for printable batches, share links, or hosted live games.
+              You are signed in{email ? ` as ${email}` : ""}. Printable batches, share links, email sharing, and hosted live games are free right now.
             </p>
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
               <PremiumCheckoutButton
                 source="account_pending_checkout_gate"
                 successPath="/dashboard"
-                label="Start Hosting Trial for $7.99/mo"
+                label="Continue Free"
                 className="inline-flex min-h-12 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:shadow-indigo-300"
               />
               <Link
@@ -49,7 +49,7 @@ export default function AccountPendingCheckoutGate({ email }: { email: string })
               </Link>
             </div>
             <p className="mt-4 text-xs text-slate-500">
-              3-day trial, then $7.99/month. Cancel anytime. Lifetime access is available on the pricing page.
+              No trial, card, or payment is needed while checkout is disabled.
             </p>
           </section>
         </main>

@@ -148,7 +148,7 @@ export default function PartyBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Turn any party into an unforgettable event with custom bingo cards! Whether you&apos;re hosting a birthday bash, game night, dinner party, housewarming, or backyard BBQ, our party bingo draft editor creates stunning cards that keep guests entertained all night. Fill squares with party moments like &quot;dance-off,&quot; &quot;cake time,&quot; &quot;surprise guest,&quot; and &quot;group selfie&quot; — or write your own custom squares with inside jokes and personal touches. Every card is uniquely shuffled so each guest plays a different layout, and you can generate as many as you need. Export PDF files for free, add paid digital links, or project on a TV. From intimate dinner parties to blowout birthday celebrations, party bingo is the easiest way to break the ice and create memories. Start drafting your party bingo cards today!
+                    Turn any party into an unforgettable event with custom bingo cards! Whether you&apos;re hosting a birthday bash, game night, dinner party, housewarming, or backyard BBQ, our party bingo draft editor creates stunning cards that keep guests entertained all night. Fill squares with party moments like &quot;dance-off,&quot; &quot;cake time,&quot; &quot;surprise guest,&quot; and &quot;group selfie&quot; — or write your own custom squares with inside jokes and personal touches. Every card is uniquely shuffled so each guest plays a different layout, and you can generate as many as you need. Export PDF files for free, add free digital links, or project on a TV. From intimate dinner parties to blowout birthday celebrations, party bingo is the easiest way to break the ice and create memories. Start drafting your party bingo cards today!
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -212,7 +212,7 @@ export default function PartyBingoPage() {
                 {[
                   { step: "1", title: "Add Your Squares", desc: "Type your party moments, inside jokes, or choose from our suggestion library. Need 25 items for a standard card." },
                   { step: "2", title: "Customize the Design", desc: "Pick colors, fonts, and a theme that matches your party vibe. Preview your card in real-time." },
-                  { step: "3", title: "Print or Share", desc: "Export a PDF or share a digital link with paid links for phone play." },
+                  { step: "3", title: "Print or Share", desc: "Export a PDF or share a digital link with free links for phone play." },
                 ].map((s) => (
                   <div key={s.step} className="text-center">
                     <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6 shadow-lg shadow-emerald-200">
@@ -236,7 +236,7 @@ export default function PartyBingoPage() {
                 Make your next party the one everyone remembers
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft custom party bingo cards in under 2 minutes, then start checkout to save or export.
+                Draft custom party bingo cards in under 2 minutes, then start creating to save or export.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-emerald-50 transition-all duration-300 shadow-xl">

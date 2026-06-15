@@ -149,8 +149,8 @@ export async function POST(request: Request) {
     if (!hasPremiumBatchAccess && !claimedPurchase) {
       return NextResponse.json(
         {
-          error: `Buy the ${count}-card batch pack to generate this batch.`,
-          batchPurchaseRequired: true,
+          error: `Sign in to generate the free ${count}-card batch.`,
+          batchPurchaseRequired: false,
           batchCount: count,
         },
         { status: 403 }

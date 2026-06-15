@@ -122,7 +122,7 @@ export default function SuperBowlBingoPage() {
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-green-600 to-emerald-600 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">Touchdown! Time to Play 🏈</h2>
-            <p className="text-green-100 text-lg mb-8">Draft a unique card for every guest at your Super Bowl party, then start checkout to save.</p>
+            <p className="text-green-100 text-lg mb-8">Draft a unique card for every guest at your Super Bowl party, then start creating and saving.</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-green-700 rounded-xl font-bold text-lg hover:bg-green-50 transition-colors shadow-lg">Create Super Bowl Bingo</Link>
           </div>
 

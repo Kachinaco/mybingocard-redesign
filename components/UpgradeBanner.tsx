@@ -4,10 +4,10 @@ import { trackClientActivity } from "@/lib/activity-client";
 
 export default function UpgradeBanner() {
   const handleClick = () => {
-    trackClientActivity("banner_upgrade_clicked", { source: "banner" });
+    trackClientActivity("free_access_banner_clicked", { source: "banner" });
     trackClientActivity("plan_selected", {
       plan: "premium",
-      price: 7.99,
+      price: 0,
       source: "banner",
     });
     redirectToCheckout();
@@ -22,15 +22,15 @@ export default function UpgradeBanner() {
           </svg>
         </div>
         <div>
-          <p className="font-semibold text-slate-900">Upgrade for batches, sharing, and live hosting</p>
-          <p className="text-sm text-slate-500">Creator tools are free. Premium adds printable batches, direct player links, email sharing, and hosted bingo rooms.</p>
+          <p className="font-semibold text-slate-900">Batches, sharing, and live hosting are free</p>
+          <p className="text-sm text-slate-500">All tools are included for users while checkout is disabled.</p>
         </div>
       </div>
       <button
         onClick={handleClick}
         className="whitespace-nowrap px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all"
       >
-        Upgrade to Premium &mdash; $7.99/mo
+        Use Free Tools
       </button>
     </div>
   );

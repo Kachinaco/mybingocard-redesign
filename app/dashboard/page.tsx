@@ -120,7 +120,7 @@ export default async function DashboardPage() {
               <PremiumCheckoutButton
                 source="dashboard_header"
                 className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-semibold hover:shadow-lg transition-all"
-                label="Upgrade"
+                label="Free tools"
               />
             )}
             <div className="hidden md:block">
@@ -155,7 +155,7 @@ export default async function DashboardPage() {
                 <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
                   {isNewUser
                     ? "Start with a template, customize the card, then play, share, or download a printable batch."
-                    : "Create cards, manage paid downloads, share player links, and pick up where you left off."}
+                    : "Create cards, manage downloads, share player links, and pick up where you left off."}
                 </p>
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <Link
@@ -194,7 +194,7 @@ export default async function DashboardPage() {
                     <p className="mt-2 text-2xl font-black">{usageLabel}</p>
                   </div>
                   {!isSubscribed ? (
-                    <UpgradeButton>Upgrade</UpgradeButton>
+                    <UpgradeButton>Use free tools</UpgradeButton>
                   ) : (
                     <div className="[&_button]:border-white/30 [&_button]:text-white [&_button]:hover:bg-white/10">
                       <ManageSubscriptionButton />
@@ -212,7 +212,7 @@ export default async function DashboardPage() {
                     </div>
                     <div className="rounded-xl border border-white/20 bg-white/10 p-3">
                       <p className="text-[11px] font-bold uppercase tracking-wide text-indigo-100">Downloads</p>
-                      <p className="mt-1 text-sm font-bold">{isSubscribed ? "Included" : "Paid batches"}</p>
+                      <p className="mt-1 text-sm font-bold">Included</p>
                     </div>
                   </div>
                   {subscriptionEndsOn && (
@@ -281,7 +281,7 @@ export default async function DashboardPage() {
                   {[
                     { title: "Choose", desc: "Start from a use-case template." },
                     { title: "Customize", desc: "Edit words, images, free space, and style." },
-                    { title: "Play", desc: "Export a card, buy batch packs, or add paid player links." },
+                    { title: "Play", desc: "Export a card, generate batch packs, or add player links." },
                   ].map((step, index) => (
                     <div key={step.title} className="rounded-xl border border-white/70 bg-white p-4">
                       <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100 text-sm font-black text-indigo-700">

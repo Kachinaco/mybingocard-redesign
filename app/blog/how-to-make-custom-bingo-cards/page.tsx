@@ -91,16 +91,16 @@ export default function HowToMakeCustomBingoCards() {
           This is the magic of digital bingo card makers. When you hit &quot;generate,&quot; each card is automatically shuffled so every guest receives a unique layout. This means no two players have the same card, which prevents simultaneous winners and keeps the game competitive.
         </p>
         <p>
-          With MyBingoCard, you can export individual cards for free and buy printable batch packs when you need up to 500 unique cards from a single word list. Pay only when you need larger printable sets, player share links, or hosted live bingo.
+          With MyBingoCard, you can export individual cards for free and use free printable batch packs when you need up to 500 unique cards from a single word list. Player share links and hosted live bingo are free right now too.
         </p>
 
-        <h2>Step 5: Export for Free or Add Paid Sharing</h2>
+        <h2>Step 5: Export for Free or Add Free Sharing</h2>
         <p>
           You have two options for distributing your bingo cards:
         </p>
         <ul>
-          <li><strong>PDF export</strong> — Export a clean PDF for free, sized for standard paper and print shops.</li>
-          <li><strong>Digital share link</strong> — Buy player links when you want guests to play on their phone, tablet, or computer with no printing needed.</li>
+          <li><strong>PDF export</strong> — Export a clean free PDF, sized for standard paper and print shops.</li>
+          <li><strong>Digital share link</strong> — Create player links when you want guests to play on their phone, tablet, or computer with no printing needed.</li>
         </ul>
 
         <h2>Tips for a Great Bingo Game</h2>
@@ -113,7 +113,7 @@ export default function HowToMakeCustomBingoCards() {
 
         <h2>Start Creating Your Bingo Cards Now</h2>
         <p>
-          Ready to make your own custom bingo cards? Head to our <Link href="/create">bingo card creator</Link>, build your card in under 5 minutes, and save, customize, generate, and export for free. Pay only if you want player share links or hosted live bingo.
+          Ready to make your own custom bingo cards? Head to our <Link href="/create">bingo card creator</Link>, build your card in under 5 minutes, and save, customize, generate, and export with free access. Player share links and hosted live bingo are free right now.
         </p>
       </BlogLayout>
     </>
