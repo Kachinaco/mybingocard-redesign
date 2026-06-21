@@ -1,4 +1,7 @@
 import clientPromise from "@/lib/mongodb";
+import { getProductMetrics } from "@/lib/db/product-metrics.cjs";
+
+type ProductMetrics = Awaited<ReturnType<typeof getProductMetrics>>;
 
 export interface AdminStats {
   totalUsers: number;
@@ -32,6 +35,7 @@ export interface AdminStats {
     lastSeenAt: Date | null;
     popularity: "popular" | "very_popular";
   }[];
+  productMetrics: ProductMetrics;
 }
 
 export async function getAdminStats(): Promise<AdminStats> {
@@ -126,6 +130,7 @@ export async function getAdminStats(): Promise<AdminStats> {
     recentSignupsTrendData,
     netRevenueData,
     deadClickHotspotsData,
+    productMetrics,
   ] = await Promise.all([
     db
       .collection("users")
@@ -233,6 +238,7 @@ export async function getAdminStats(): Promise<AdminStats> {
         { $limit: 8 },
       ])
       .toArray(),
+    getProductMetrics(db, { now, windowDays: 30 }),
   ]);
 
   const mrr = paidUsers * 7.99;
@@ -322,5 +328,6 @@ export async function getAdminStats(): Promise<AdminStats> {
     signupsLast30Days,
     recentSignupsTrend,
     deadClickHotspots,
+    productMetrics,
   };
 }
