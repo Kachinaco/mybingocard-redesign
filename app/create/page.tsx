@@ -54,6 +54,84 @@ type AutoSaveState = "idle" | "saving" | "saved" | "error";
 type BatchPdfOption = "pdf-1" | "pdf-2" | "pdf-4" | "pdf-gray" | null;
 type AvailableBatchCounts = Partial<Record<BatchCount, number>>;
 
+const createPageGeneratorLinks = [
+  {
+    href: "/bingo-card-maker",
+    label: "Bingo Card Maker",
+    copy: "Plan custom printable and online cards before opening the editor.",
+  },
+  {
+    href: "/online-bingo-card-generator",
+    label: "Online Bingo Card Generator",
+    copy: "Use browser player links and hosted games when players are remote.",
+  },
+  {
+    href: "/printable-bingo-cards",
+    label: "Printable Bingo Cards",
+    copy: "Prepare PDF card sets, print layouts, and unique shuffled cards.",
+  },
+  {
+    href: "/bingo-board-generator",
+    label: "Bingo Board Generator",
+    copy: "Choose 3x3, 4x4, or 5x5 boards for classrooms and events.",
+  },
+  {
+    href: "/ai-bingo-card-generator",
+    label: "AI Bingo Card Generator",
+    copy: "Generate square ideas from a theme, audience, or event prompt.",
+  },
+  {
+    href: "/word-bingo-generator",
+    label: "Word Bingo Generator",
+    copy: "Turn vocabulary, names, clues, and prompts into bingo cards.",
+  },
+];
+
+function CreatePageGeneratorLinkSection({ className = "" }: { className?: string }) {
+  return (
+    <section
+      className={[
+        "mx-auto max-w-6xl rounded-3xl border border-slate-200 bg-white px-5 py-8 shadow-sm md:px-8",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-[#007AFF]">
+            Bingo generator starting points
+          </p>
+          <h2 className="mt-3 text-2xl font-black text-slate-900 md:text-3xl">
+            Choose the right card maker path before you build.
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-slate-600 md:text-base">
+            The editor works best after the card format is clear. Use these
+            generator pages when you need printable card packs, online bingo
+            links, AI square ideas, word lists, or a specific board size.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {createPageGeneratorLinks.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="rounded-2xl border border-slate-100 bg-slate-50 p-4 transition hover:border-indigo-200 hover:bg-white hover:shadow-sm"
+            >
+              <h3 className="text-base font-bold text-slate-900">
+                {item.label}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {item.copy}
+              </p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 type CardPayload = {
   title: string;
   description: string;
@@ -1236,7 +1314,7 @@ function CreateCardContent() {
       });
     } catch (checkoutError) {
       console.error("Free batch setup error:", checkoutError);
-      setError("Failed to start free batch setup");
+      setError("Failed to start batch setup");
     } finally {
       setBatchCheckoutLoading(false);
     }
@@ -1541,6 +1619,8 @@ function CreateCardContent() {
   const isPremiumBatchUser = Boolean(permissionStatus?.hasPremiumAccess);
   const canUploadImages = Boolean(session?.user);
   const selectedBatchPrice = formatBatchPackPrice(batchCount);
+  const getBatchDisplayLabel = (count: BatchCount) =>
+    BATCH_PACKS[count].label === "Free" ? "Included" : BATCH_PACKS[count].label;
   const selectedBatchPurchases = availableBatchCounts[batchCount] || 0;
   const hasSelectedBatchPurchase = selectedBatchPurchases > 0;
   const batchPurchaseStatus = searchParams.get("batchPurchase");
@@ -1548,10 +1628,10 @@ function CreateCardContent() {
   const batchStatusMessage =
     batchPurchaseStatus === "success"
       ? isGuestReturn && !session?.user
-        ? `Free batch ready. Sign in to access your ${batchCount}-card batch.`
+        ? `Batch ready. Sign in to access your ${batchCount}-card batch.`
         : hasSelectedBatchPurchase
           ? `${batchCount}-card batch is ready to generate.`
-          : `Free batch ready. If your ${batchCount}-card batch does not unlock within a few seconds, refresh this page.`
+          : `Batch ready. If your ${batchCount}-card batch does not unlock within a few seconds, refresh this page.`
       : batchPurchaseStatus === "canceled"
         ? "Batch setup canceled."
         : "";
@@ -1561,10 +1641,10 @@ function CreateCardContent() {
     .join(", ");
   const batchActionLabel = checkingPermission && session?.user
     ? "Checking your plan..."
-    : batchLoading
-      ? `Generating ${batchCount} cards...`
+      : batchLoading
+        ? `Generating ${batchCount} cards...`
       : batchCheckoutLoading
-        ? "Opening free tools..."
+        ? "Opening activation tools..."
         : isPremiumBatchUser || hasSelectedBatchPurchase
           ? `Generate ${batchCount} Unique Cards`
           : `Generate ${batchCount}-Card Batch Free`;
@@ -1704,7 +1784,7 @@ function CreateCardContent() {
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to keep creating</h2>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Saving, exports, templates, images, and AI are free. Printable batch packs, share links, and hosted bingo events are optional free tools.
+                Saving, exports, templates, images, and AI are included while checkout is paused. Printable batch packs, share links, and hosted bingo events are activation tools when your game is ready.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
@@ -2136,7 +2216,7 @@ function CreateCardContent() {
                         <div className="text-[10px] font-medium text-gray-500">cards</div>
                         {!isPremiumBatchUser && (
                           <div className="mt-1 text-xs font-bold text-blue-600">
-                            {BATCH_PACKS[n].label}
+                            {getBatchDisplayLabel(n)}
                           </div>
                         )}
                         {isPremiumBatchUser && (
@@ -2171,13 +2251,13 @@ function CreateCardContent() {
 
                 {isPremiumBatchUser && batchMode && (
                   <p className="text-xs text-gray-500 mb-3">
-                    Every card gets a unique shuffled arrangement. Included free.
+                    Every card gets a unique shuffled arrangement. Included with your access.
                   </p>
                 )}
 
                 {!isPremiumBatchUser && !session?.user && batchMode && (
                   <p className="text-xs text-gray-500 mb-3">
-                    Sign up to generate free batch packs.
+                    Sign up to continue with printable batch packs.
                   </p>
                 )}
 
@@ -2578,6 +2658,7 @@ function CreateCardContent() {
           </div>
         </div>
         )}
+        <CreatePageGeneratorLinkSection className="mt-14" />
       </main>
 
 
@@ -2614,7 +2695,7 @@ function CreateCardContent() {
             <div style={{ fontSize: "40px", marginBottom: "12px" }}>🎯</div>
 
             <h2 style={{ margin: "0 0 6px", fontSize: "22px", fontWeight: 800, color: "#1e293b", letterSpacing: "-0.5px" }}>
-              Save this card free
+              Save this card
             </h2>
             {title && (
               <p style={{ margin: "0 0 4px", fontSize: "14px", color: "#7c3aed", fontWeight: 600 }}>
@@ -2776,14 +2857,17 @@ export default function CreateCardPage() {
   return (
     <Suspense fallback={(
       <div className="notranslate min-h-screen bg-[#f2f2f7] text-slate-900" translate="no">
-        <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col justify-center px-6 py-16">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#007AFF]">MyBingoCard Editor</p>
-          <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">Create Bingo Cards Online</h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Build bingo cards for classrooms, baby showers, weddings, parties, and team events. Customize every square, export printable files for free, then add free share links or hosted bingo events when needed.</p>
-          <div className="mt-8 flex flex-wrap gap-3 text-sm font-semibold">
-            <Link href="/templates" className="rounded-md bg-[#007AFF] px-4 py-2 text-white">Browse Templates</Link>
-            <Link href="/pricing" className="rounded-md border border-slate-300 px-4 py-2 text-slate-700">See free tools</Link>
+        <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-6 py-16">
+          <div className="max-w-5xl">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#007AFF]">MyBingoCard Editor</p>
+            <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">Create Bingo Cards Online</h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Build bingo cards for classrooms, baby showers, weddings, parties, and team events. Customize every square, then unlock printable files, share links, or hosted bingo events when needed.</p>
+            <div className="mt-8 flex flex-wrap gap-3 text-sm font-semibold">
+              <Link href="/templates" className="rounded-md bg-[#007AFF] px-4 py-2 text-white">Browse Templates</Link>
+              <Link href="/pricing" className="rounded-md border border-slate-300 px-4 py-2 text-slate-700">See activation</Link>
+            </div>
           </div>
+          <CreatePageGeneratorLinkSection className="mt-12" />
         </main>
       </div>
     )}>

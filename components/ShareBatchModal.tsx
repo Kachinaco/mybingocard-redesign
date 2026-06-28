@@ -258,7 +258,7 @@ export default function ShareBatchModal({
                   How many people are you sending to?
                 </label>
                 <p className="text-xs text-slate-500 mb-4">
-                  Share links are free right now. Create up to {cardCount} links from this batch.
+                  Create up to {cardCount} invite links from this batch.
                 </p>
 
                 <div className="flex items-center gap-4 mb-4">

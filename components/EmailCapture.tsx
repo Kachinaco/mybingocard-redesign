@@ -193,7 +193,7 @@ export function EmailCaptureInline() {
     return (
       <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
         <div className="text-green-600 font-bold mb-1">You&apos;re subscribed!</div>
-        <p className="text-green-600/70 text-sm">Check your inbox for your free templates.</p>
+        <p className="text-green-600/70 text-sm">Check your inbox for your template links.</p>
       </div>
     );
   }
@@ -235,7 +235,7 @@ export function EmailCaptureInline() {
           disabled={status === "loading"}
           className="px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-bold text-sm hover:shadow-lg transition-all disabled:opacity-60 whitespace-nowrap"
         >
-          {status === "loading" ? "..." : "Get Free Templates"}
+          {status === "loading" ? "..." : "Get Template Links"}
         </button>
       </form>
       {status === "error" && (

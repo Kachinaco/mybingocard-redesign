@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms of Service — MyBingoCard",
-  description: "MyBingoCard terms of service. Read our terms and conditions for using the bingo card generator.",
+  title: "Terms of Service | MyBingoCard",
+  description: "Read the MyBingoCard terms for accounts, bingo card content, printable exports, player links, hosted games, acceptable use, and billing.",
   alternates: {
     canonical: "https://mybingocard.com/terms",
   },
@@ -36,7 +36,7 @@ export default function TermsPage() {
       <main className="container mx-auto px-4 py-12 max-w-3xl">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 md:p-12">
           <h1 className="text-3xl font-black text-slate-900 mb-2">Terms of Service</h1>
-            <p className="text-sm text-slate-400">Last updated: March 8, 2026</p>
+            <p className="text-sm text-slate-400">Last updated: June 18, 2026</p>
 
           <div className="mt-8 space-y-8">
 
@@ -60,10 +60,10 @@ export default function TermsPage() {
               </div>
 
               <div>
-                <h2 className="text-xl font-bold text-slate-900 mb-3">Free Access</h2>
+                <h2 className="text-xl font-bold text-slate-900 mb-3">Account Access</h2>
                 <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-slate-600">Creation, saving, exporting, sharing, dashboard access, batches, and live games are free right now</li>
-                  <li className="text-slate-600">Checkout is disabled while free access is active</li>
+                  <li className="text-slate-600">Creation, saving, exporting, sharing, dashboard access, batches, and live games may require an account</li>
+                  <li className="text-slate-600">Some tools may be included while checkout is paused; if checkout is re-enabled later, paid access terms will be shown before purchase</li>
                   <li className="text-slate-600">Existing subscribers can manage or cancel their subscription from Settings</li>
                   <li className="text-slate-600">If paid plans return later, pricing and terms will be shown before any purchase</li>
                 </ul>
@@ -84,6 +84,7 @@ export default function TermsPage() {
                 <ul className="space-y-2 list-disc list-inside">
                   <li className="text-slate-600">Do not use MyBingoCard for illegal activities</li>
                   <li className="text-slate-600">Do not create cards with hateful, abusive, or harmful content</li>
+                  <li className="text-slate-600">Do not use MyBingoCard to run gambling, illegal lotteries, or prize games that violate local rules</li>
                   <li className="text-slate-600">Do not attempt to disrupt or overload our services</li>
                   <li className="text-slate-600">Do not scrape, crawl, or automated-access our platform without permission</li>
                 </ul>

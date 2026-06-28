@@ -467,6 +467,28 @@ export async function notifyGameStarted(
   }]);
 }
 
+export async function notifyLiveGamePlayerJoined(
+  playerName: string,
+  gameTitle: string,
+  roomCode: string,
+  playerCount: number,
+  status: string
+) {
+  await sendDiscordNotification("", [{
+    title: "🎟️ Player Joined Live Game",
+    color: 0x14b8a6,
+    fields: [
+      { name: "Player", value: truncateDiscordField(playerName, 120), inline: true },
+      { name: "Game", value: truncateDiscordField(gameTitle || "Untitled", 200), inline: true },
+      { name: "Room Code", value: `\`${roomCode}\``, inline: true },
+      { name: "Players", value: String(playerCount), inline: true },
+      { name: "Status", value: status || "unknown", inline: true },
+    ],
+    footer: { text: "MyBingoCard • Live Game" },
+    timestamp: new Date().toISOString(),
+  }], "events");
+}
+
 export async function notifyCheckoutCompleted(
   email: string,
   mode: string,

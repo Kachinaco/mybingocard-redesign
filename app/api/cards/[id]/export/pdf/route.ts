@@ -234,7 +234,7 @@ function generateCardHTML(
           })
           .join("")}
       </div>
-      ${!removeBranding ? `<div class="card-footer" style="font-size: ${isMulti ? '7px' : '12px'};">Created with MyBingoCard.com</div>` : ""}
+      ${!removeBranding ? `<div class="card-footer" style="font-size: ${isMulti ? '7px' : '12px'};">Created with https://mybingocard.com</div>` : ""}
     </div>
   `;
 
@@ -341,6 +341,7 @@ function generateCardHTML(
             overflow-wrap: break-word;
             overflow: hidden;
             line-height: 1.2;
+            position: relative;
           }
           .cell img { display: block; }
 

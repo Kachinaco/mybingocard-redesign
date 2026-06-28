@@ -100,7 +100,7 @@ export default function BlogLayout({ children, title, date, readTime, category, 
                 <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
               </Link>
               <p className="text-slate-500 max-w-sm leading-relaxed">
-                Free bingo draft editor for printable and online games, from classrooms to parties and weddings.
+                Bingo card maker for printable and online games, from classrooms to parties and weddings.
               </p>
             </div>
             <div>

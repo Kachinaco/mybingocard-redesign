@@ -80,7 +80,7 @@ function generateBatchHTML(
             })
             .join("")}
         </div>
-        ${!removeBranding ? '<div class="card-footer">MyBingoCard.com</div>' : ''}
+        ${!removeBranding ? '<div class="card-footer">https://mybingocard.com</div>' : ''}
       </div>
     `;
   });
@@ -252,6 +252,7 @@ function generateBatchHTML(
             overflow-wrap: break-word;
             overflow: hidden;
             line-height: 1.2;
+            position: relative;
           }
           .cell img { display: block; }
 
@@ -420,7 +421,7 @@ export async function POST(request: Request) {
           },
         });
         return NextResponse.json(
-          { error: "Sign in to download free batch PDFs for these cards." },
+          { error: "Sign in and activate your account to download batch PDFs for these cards." },
           { status: 403 }
         );
       }

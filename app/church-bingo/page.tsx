@@ -4,36 +4,118 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Church Bingo Cards Generator — MyBingoCard",
+  title: "Church Bingo Cards Printable: Sunday School Game",
   description:
-    "Create custom church bingo cards for fundraisers, Sunday school, and religious events. Printable church bingo card generator with custom squares for youth groups, potlucks, and fellowship gatherings.",
+    "Create printable church bingo cards for Sunday school, youth groups, Bible study, fundraisers, potlucks, and fellowship events.",
   alternates: {
     canonical: "https://mybingocard.com/church-bingo",
   },
 };
 
 const churchSquares = [
-  "Hymn Sung", "Amen!", "Potluck Dish", "Sunday Best", "FREE",
-  "Prayer Circle", "Choir Solo", "Church Bell", "Bible Verse", "Offering Plate",
-  "Youth Group", "Organ Music", "Fellowship Hall", "Pastor's Joke", "Communion",
-  "Stained Glass", "Welcome Visitor", "Bake Sale", "Bulletin Board", "Parking Lot Chat",
-  "Wednesday Night", "Mission Trip", "Altar Flowers", "Church Van", "Hallelujah",
+  "Bible Verse", "Prayer Request", "Hymn Sung", "Sunday School", "FREE",
+  "Youth Group", "Choir Song", "Fellowship Hall", "Potluck Dish", "Welcome Visitor",
+  "Bible Story", "Memory Verse", "Mission Trip", "Offering Plate", "Small Group",
+  "Pastor Greeting", "Church Van", "Bake Sale", "Volunteer Sign Up", "Communion",
+  "Camp Story", "Prayer Circle", "Bulletin Board", "Fundraiser Prize", "Hallelujah",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Church Bingo Cards Generator",
-  url: "https://mybingocard.com/church-bingo",
-  description:
-    "Custom church bingo draft generator. Create, customize, and print bingo cards for church fundraisers, Sunday school, and religious events in minutes.",
-  applicationCategory: "GameApplication",
-  operatingSystem: "All",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://mybingocard.com/church-bingo#webpage",
+      url: "https://mybingocard.com/church-bingo",
+      name: "Church Bingo Cards Printable: Sunday School Game",
+      description:
+        "Create printable church bingo cards for Sunday school, youth groups, Bible study, fundraisers, potlucks, and fellowship events.",
+      isPartOf: {
+        "@type": "WebSite",
+        name: "MyBingoCard",
+        url: "https://mybingocard.com",
+      },
+      about: [
+        { "@type": "Thing", name: "church bingo" },
+        { "@type": "Thing", name: "Bible bingo" },
+        { "@type": "Thing", name: "Sunday school games" },
+        { "@type": "Thing", name: "church fundraiser games" },
+      ],
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://mybingocard.com/church-bingo#app",
+      name: "Church Bingo Cards Generator",
+      url: "https://mybingocard.com/church-bingo",
+      description:
+        "Custom church bingo card generator for Sunday school, Bible study, youth group games, church fundraisers, fellowship nights, potlucks, and camps.",
+      applicationCategory: "GameApplication",
+      operatingSystem: "All",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://mybingocard.com/church-bingo#faq",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What can church bingo cards be used for?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Church bingo cards can be used for Sunday school, Bible study, youth group nights, fellowship meals, church camps, fundraisers, retreats, and volunteer appreciation events.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "What should I put on church bingo cards?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Use Bible stories, books of the Bible, memory verses, prayer prompts, church activities, volunteer roles, fellowship moments, fundraiser prizes, or youth group icebreaker prompts.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can every player get a unique church bingo card?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. MyBingoCard can shuffle your church or Bible themed square list into unique card layouts for each player.",
+          },
+        },
+      ],
+    },
+    {
+      "@type": "HowTo",
+      "@id": "https://mybingocard.com/church-bingo#howto",
+      name: "How to make church bingo cards",
+      description: "Create printable or online church bingo cards for fellowship, Sunday school, and fundraisers.",
+      step: [
+        {
+          "@type": "HowToStep",
+          name: "Choose the church event",
+          text: "Pick Sunday school, Bible study, youth group, fundraiser, potluck, fellowship night, camp, or retreat.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Add Bible or fellowship prompts",
+          text: "Enter Bible stories, memory verses, church activities, volunteer roles, or mixer prompts.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Shuffle unique cards",
+          text: "Generate different layouts for children, youth groups, adults, tables, or teams.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Print or share",
+          text: "Export printable PDFs or share online cards for virtual Bible study and hybrid church gatherings.",
+        },
+      ],
+    },
+  ],
 };
 
 function BingoGrid({ squares, label, gradient }: { squares: string[]; label: string; gradient: string }) {
@@ -122,7 +204,7 @@ export default function ChurchBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Bring your congregation together with custom church bingo cards perfect for fundraisers, fellowship nights, and Sunday school activities. Our church bingo draft editor makes it easy to create faith-themed cards with familiar church moments everyone will recognize. Each card is uniquely shuffled so every member gets a different layout, keeping the game exciting for all ages. Export clean PDFs for free or add free digital cards for in-person events and virtual gatherings. Whether you&apos;re planning a youth group activity, a potluck icebreaker, or a church fundraiser bingo night, create your religious bingo cards in minutes with no design skills needed.
+                    Create printable church bingo cards for Sunday school, Bible study, youth group nights, fellowship meals, fundraisers, camps, retreats, potlucks, and volunteer appreciation events. Add Bible stories, books of the Bible, memory verses, prayer prompts, church activities, youth group icebreakers, and fundraiser prize squares, then shuffle unique cards for every player. Export PDFs for tables and classrooms or share online cards for virtual Bible study and hybrid gatherings.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -138,7 +220,7 @@ export default function ChurchBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
+                  <p className="text-sm text-slate-400">Draft tools · Premium saves and exports</p>
                 </div>
 
                 <div className="relative">
@@ -156,42 +238,42 @@ export default function ChurchBingoPage() {
           <section className="py-20 bg-white">
             <div className="container mx-auto px-4 lg:px-8">
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
-                Why use our church bingo card maker?
+                Church bingo for Sunday school, fellowship, youth groups, and fundraisers
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                Everything you need for the perfect church bingo night — from printable cards to digital play.
+                Use one card maker for Bible lessons, church game nights, retreats, camps, potlucks, and outreach events.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
                   {
                     icon: "⛪",
-                    title: "Faith-Themed Squares",
-                    desc: "Pre-loaded with familiar church moments like hymns, potlucks, and fellowship — or add your own custom squares.",
+                    title: "Bible and Fellowship Prompts",
+                    desc: "Add Bible stories, books, memory verses, prayer prompts, church roles, and fellowship moments.",
                   },
                   {
                     icon: "🖨️",
-                    title: "PDF Exports",
-                    desc: "free PDF export sized for church bulletins, tables, or take-home handouts.",
+                    title: "Printable PDFs",
+                    desc: "Export cards for classrooms, fellowship hall tables, fundraiser packets, youth rooms, and take home activities.",
                   },
                   {
                     icon: "🔀",
-                    title: "Unique Every Card",
-                    desc: "Every member gets a randomly shuffled card so the whole congregation can play without duplicate winners.",
+                    title: "Unique Player Cards",
+                    desc: "Shuffle layouts so children, youth groups, adults, teams, and tables do not all receive the same card.",
                   },
                   {
                     icon: "📱",
-                    title: "Digital & In-Person",
-                    desc: "Share a link with free links for virtual fellowship events or export cards for in-person gatherings — works both ways.",
+                    title: "Online or In Person",
+                    desc: "Print cards for church events or share online cards for virtual Bible study and hybrid gatherings.",
                   },
                   {
                     icon: "✏️",
-                    title: "Custom Word Lists",
-                    desc: "Add your own church-specific moments, inside jokes, or sermon topics. Make it personal to your congregation.",
+                    title: "Custom Church Themes",
+                    desc: "Use sermon series, camp themes, outreach topics, seasonal services, or church traditions.",
                   },
                   {
                     icon: "💸",
-                    title: "Free for Fundraisers",
-                    desc: "Create church bingo cards for free. Save, export, and batch cards without a budget; player links and live hosting are free right now.",
+                    title: "Simple Game Rules",
+                    desc: "Choose one row, four corners, blackout, team play, prize drawings, or a timed mixer format.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -211,10 +293,10 @@ export default function ChurchBingoPage() {
             </div>
             <div className="container mx-auto px-4 relative z-10 text-center">
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-                Ready to liven up fellowship night?
+                Ready for a better church game night?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft your church bingo cards in under 2 minutes, then start creating to save or export — perfect for fundraisers, youth groups, and potlucks.
+                Draft church bingo cards for Sunday school, youth groups, fellowship, fundraisers, and Bible study, then print or share when you are ready.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-amber-50 transition-all duration-300 shadow-xl">

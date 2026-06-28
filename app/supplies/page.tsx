@@ -135,10 +135,101 @@ const supplies = [
   },
 ];
 
+const setupChecklist = [
+  "One card per player plus extras for late arrivals",
+  "Markers, daubers, chips, stickers, or wrapped candy",
+  "Caller list, cage, ball set, or online caller",
+  "Prizes for line, corners, blackout, or bonus rounds",
+  "Clear rules for what counts as a winning pattern",
+];
+
+const suppliesFaqItems = [
+  {
+    question: "What supplies do I need for bingo night?",
+    answer:
+      "Most bingo nights need one card per player, daubers or markers, a caller list or number selector, clear winning patterns, and prizes for each round.",
+  },
+  {
+    question: "Do I need a bingo cage and balls?",
+    answer:
+      "A cage and ball set is useful for traditional number bingo, but printable custom cards can also use a caller list, online caller, or hosted digital game instead.",
+  },
+  {
+    question: "What can I use instead of bingo daubers?",
+    answer:
+      "Reusable cards can use chips, buttons, wrapped candy, stickers, or dry-erase markers. Paper cards often work best with daubers, pens, or stickers.",
+  },
+  {
+    question: "What are good bingo prize ideas?",
+    answer:
+      "Good bingo prizes match the audience. Gift cards, candy packs, small trophies, classroom rewards, fundraiser raffle items, and themed baskets are common choices.",
+  },
+];
+
+const suppliesSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://mybingocard.com/supplies#webpage",
+      name: "Bingo Supplies Checklist",
+      url: "https://mybingocard.com/supplies",
+      description:
+        "Plan a bingo night with daubers, markers, bingo chips, cages, balls, card holders, caller tools, prizes, and printable or online bingo card options.",
+      isPartOf: { "@id": "https://mybingocard.com/#website" },
+      mainEntity: { "@id": "https://mybingocard.com/supplies#checklist" },
+    },
+    {
+      "@type": "ItemList",
+      "@id": "https://mybingocard.com/supplies#checklist",
+      name: "Bingo supplies checklist",
+      itemListElement: setupChecklist.map((item, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: item,
+      })),
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://mybingocard.com/supplies#faq",
+      mainEntity: suppliesFaqItems.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
+        },
+      })),
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://mybingocard.com/supplies#breadcrumb",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: "https://mybingocard.com/",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Bingo Supplies",
+          item: "https://mybingocard.com/supplies",
+        },
+      ],
+    },
+  ],
+};
+
 export default function SuppliesPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <SuppliesTracker />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(suppliesSchema) }}
+      />
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
         <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
@@ -171,10 +262,25 @@ export default function SuppliesPage() {
             Bingo <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Supplies</span>
           </h1>
           <p className="text-xl text-slate-600 leading-relaxed">
-            Level up your bingo game with quality daubers, cages, chips, and prizes.
-            We&apos;ve curated the best supplies from Amazon.
+            Plan a smoother bingo night with daubers, cages, chips, card holders, caller tools, and prizes.
+            Use this checklist with printable cards or hosted online play.
           </p>
         </div>
+
+        <section className="max-w-4xl mx-auto mb-16 bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+          <h2 className="text-2xl font-bold text-slate-900 mb-4">Bingo night supply checklist</h2>
+          <p className="text-slate-600 mb-6">
+            Before buying supplies, decide whether your game is paper-only, online-only, or hybrid. Paper games need markers and a caller setup. Online games still need prizes and clear winning rules.
+          </p>
+          <ul className="grid sm:grid-cols-2 gap-3">
+            {setupChecklist.map((item) => (
+              <li key={item} className="flex items-start gap-3 text-slate-600">
+                <span className="mt-1 h-2 w-2 rounded-full bg-indigo-500 flex-shrink-0" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         {/* Supplies Grid */}
         <div className="max-w-7xl mx-auto space-y-16">

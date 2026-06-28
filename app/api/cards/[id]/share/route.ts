@@ -46,7 +46,7 @@ export async function POST(
     if (!hasShareSettingsAccess(user)) {
       return NextResponse.json(
         {
-          error: "Sign in to use free sharing for bingo cards.",
+          error: "Sign in and activate your account to use sharing for bingo cards.",
           upgradeRequired: true,
           trialRequired: false,
         },
@@ -125,7 +125,7 @@ export async function PUT(
     if (!hasShareSettingsAccess(user)) {
       return NextResponse.json(
         {
-          error: "Sign in to use free sharing settings.",
+          error: "Sign in and activate your account to use sharing settings.",
           upgradeRequired: true,
           trialRequired: false,
         },

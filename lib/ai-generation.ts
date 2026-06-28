@@ -21,7 +21,7 @@ const OPENAI_API_URL = (process.env.OPENAI_BASE_URL || "https://api.openai.com/v
 const OPENAI_PRIMARY_MODEL = process.env.OPENAI_PRIMARY_MODEL || "gpt-4.1-mini";
 const OPENAI_FALLBACK_MODEL = process.env.OPENAI_FALLBACK_MODEL || "gpt-4.1-nano";
 const ANTHROPIC_API_URL = process.env.ANTHROPIC_API_URL || "https://api.anthropic.com/v1/messages";
-const ANTHROPIC_FALLBACK_MODEL = process.env.ANTHROPIC_FALLBACK_MODEL || "claude-3-5-haiku-latest";
+const ANTHROPIC_FALLBACK_MODEL = process.env.ANTHROPIC_FALLBACK_MODEL || "claude-haiku-4-5-20251001";
 const MAX_RESPONSE_TOKENS = 400;
 const ENABLE_API_FALLBACK = process.env.AI_API_FALLBACK_ENABLED !== "0";
 const ENABLE_PAID_API_FALLBACK = process.env.AI_PAID_API_FALLBACK_ENABLED === "1";

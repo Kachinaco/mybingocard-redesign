@@ -207,7 +207,7 @@ export default function ImageLibraryPanel({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
           </div>
-          <h3 className="text-sm font-bold text-gray-900 mb-1">Picture Bingo is Free</h3>
+          <h3 className="text-sm font-bold text-gray-900 mb-1">Picture Bingo Unlocks with Activation</h3>
           <p className="text-xs text-gray-500 mb-4 max-w-[220px] mx-auto">
             Add images to your bingo cells, Loteria-style. Upload your own or use our clip-art library.
           </p>
@@ -215,9 +215,9 @@ export default function ImageLibraryPanel({
             href="/pricing"
             className="inline-block px-5 py-2.5 bg-[#007AFF] text-white text-sm font-bold rounded-xl hover:shadow-md transition-all"
           >
-            Start Creating Free
+            Start Creating
           </a>
-          <p className="mt-2 text-[10px] text-gray-400">No checkout required</p>
+          <p className="mt-2 text-[10px] text-gray-400">Activation required for saved image tools</p>
         </div>
       ) : selectedCellIndex !== null ? (
         <p className="text-xs text-[#007AFF] font-medium mb-3">
@@ -297,7 +297,7 @@ export default function ImageLibraryPanel({
           ) : (
             <div className="border border-amber-200 bg-amber-50 rounded-xl p-3 text-center">
               <p className="text-xs text-amber-700 font-medium">
-                Custom image uploads are free right now
+                Custom image uploads unlock with activation
               </p>
               <a
                 href="/pricing"

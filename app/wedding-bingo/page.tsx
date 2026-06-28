@@ -4,9 +4,9 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Wedding Bingo Cards Printable — Custom Wedding Bingo Generator | MyBingoCard",
+  title: "Wedding Bingo Cards Printable: Reception Game Generator",
   description:
-    "Create custom printable wedding bingo cards for guests. The best wedding bingo cards printable generator — custom squares, PDF export, and digital play for any wedding.",
+    "Create printable wedding bingo cards for receptions, speeches, photos, guest icebreakers, and table games. Customize, shuffle, and export PDFs.",
   alternates: {
     canonical: "https://mybingocard.com/wedding-bingo",
   },
@@ -14,26 +14,78 @@ export const metadata: Metadata = {
 
 const weddingSquares = [
   "First Kiss", "Bouquet Toss", "Slow Dance", "Funny Speech", "FREE",
-  "Happy Tears", "Ring Exchange", "Champagne", "Bouquet Catch", "Dad Joke",
+  "Happy Tears", "Ring Exchange", "Champagne Toast", "Guest Selfie", "Dad Joke",
   "First Dance", "Flower Girl", "Ring Bearer", "Best Man Toast", "Photo Booth",
-  "Group Photo", "Late Guest", "Confetti", "Live Band", "Cake Cutting",
-  "Garter Toss", "DJ Request", "Fireworks", "Vow Stumble", "Standing O",
+  "Group Photo", "Table Cheers", "Confetti", "Live Band", "Cake Cutting",
+  "Garter Toss", "DJ Request", "Dance Floor", "Vow Moment", "Standing Ovation",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Wedding Bingo Cards Printable Generator",
-  url: "https://mybingocard.com/wedding-bingo",
-  description:
-    "Create custom printable wedding bingo cards for guests. Custom wedding bingo with free PDF export and digital play options.",
-  applicationCategory: "GameApplication",
-  operatingSystem: "All",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://mybingocard.com/wedding-bingo#webpage",
+      name: "Wedding Bingo Cards Printable: Reception Game Generator",
+      url: "https://mybingocard.com/wedding-bingo",
+      description:
+        "Create printable wedding bingo cards for receptions, speeches, photos, guest icebreakers, and table games.",
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://mybingocard.com/wedding-bingo#app",
+      name: "Wedding Bingo Cards Printable Generator",
+      url: "https://mybingocard.com/wedding-bingo",
+      description:
+        "Create custom wedding bingo cards with reception moments, guest prompts, photo challenge squares, PDF export, unique shuffled cards, and online play options.",
+      applicationCategory: "GameApplication",
+      operatingSystem: "All",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "How do you play wedding bingo?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Give guests a card before the ceremony, cocktail hour, or reception. Players mark squares when they notice matching moments such as a toast, first dance, photo booth visit, bouquet toss, or table cheer. The first player to complete the chosen pattern wins.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can wedding bingo work as a reception icebreaker?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Add prompts that encourage guests to notice moments, take photos, talk to tablemates, or find other guests who match a square.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can every wedding guest get a different card?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. MyBingoCard can shuffle the same wedding square list into unique cards for tables, families, or the full guest list.",
+          },
+        },
+      ],
+    },
+    {
+      "@type": "HowTo",
+      name: "How to make wedding bingo cards",
+      step: [
+        { "@type": "HowToStep", position: 1, text: "Choose reception moments, ceremony moments, guest icebreaker prompts, or photo challenge squares." },
+        { "@type": "HowToStep", position: 2, text: "Customize the square list with couple details, venue moments, speeches, music, and table friendly prompts." },
+        { "@type": "HowToStep", position: 3, text: "Shuffle unique cards for guests and decide whether one row, four corners, or blackout wins." },
+        { "@type": "HowToStep", position: 4, text: "Export printable PDFs or share online cards for guests who will play on phones." },
+      ],
+    },
+  ],
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -131,7 +183,7 @@ export default function WeddingBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Add a fun, interactive twist to your wedding reception with custom printable wedding bingo cards! Our wedding bingo draft editor lets couples and wedding planners create beautiful, personalized bingo cards that guests play throughout the ceremony and reception. Fill squares with classic wedding moments — first kiss, bouquet toss, happy tears, dad jokes during the speech — or add your own personalized touches. Every card is uniquely shuffled so dozens of guests can play simultaneously without identical cards. Export PDF files for free or add free digital links so guests can play on paper or phones. With elegant design themes, custom color palettes to match your wedding colors, and a free space you can personalize, you can create polished wedding bingo cards that fit the style of your event. Start for free, then player links and live hosting are free right now.
+                    Add a simple reception game guests can play during speeches, photos, dancing, dinner, and table conversations. Fill cards with wedding moments like first dance, toast, bouquet toss, photo booth, guest selfie, and cake cutting, then shuffle unique cards for every table. Export PDF files for printed place cards or share online cards for guests who want to play on phones.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +199,7 @@ export default function WeddingBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Elegant themes · free PDF export</p>
+                  <p className="text-sm text-slate-400">Draft tools · Elegant themes · Premium export</p>
                 </div>
 
                 <div className="relative">
@@ -161,19 +213,19 @@ export default function WeddingBingoPage() {
           <section className="py-20 bg-white">
             <div className="container mx-auto px-4 lg:px-8">
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
-                The perfect wedding reception game
+                Wedding bingo for reception tables and guest icebreakers
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                Wedding bingo keeps guests entertained, breaks the ice, and creates unforgettable moments.
+                Use wedding bingo as a table game, photo challenge, speech watcher, or light reception activity.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
-                  { icon: "💌", title: "Elegant Designs", desc: "Beautiful wedding-themed templates with floral motifs, gold accents, and classic typography." },
-                  { icon: "🎨", title: "Match Your Colors", desc: "Customize card colors to perfectly match your wedding palette — blush, navy, sage, or any shade." },
-                  { icon: "🖨️", title: "PDF Exports", desc: "Export for free with sizing for place cards, table inserts, or full sheets." },
-                  { icon: "📱", title: "Digital Cards", desc: "Skip printing with free links — share a link and guests play on their phones. Great for outdoor venues." },
-                  { icon: "👨‍👩‍👧", title: "All-Age Fun", desc: "Wedding bingo is easy to explain for mixed-age tables, from kids to grandparents." },
-                  { icon: "🎁", title: "Winner Prizes", desc: "Add a prize square — first to yell BINGO wins a centerpiece, wine bottle, or gift card!" },
+                  { icon: "💌", title: "Reception moments", desc: "Use first dance, toast, cake cutting, bouquet toss, photo booth, and dance floor moments as easy squares." },
+                  { icon: "🎨", title: "Guest icebreakers", desc: "Add prompts that help tablemates talk, take photos, or notice details from the couple and venue." },
+                  { icon: "🖨️", title: "Printable PDFs", desc: "Export cards for place settings, welcome tables, programs, or full page handouts." },
+                  { icon: "📱", title: "Online guest cards", desc: "Share cards for outdoor venues, destination weddings, or guests who prefer phone play." },
+                  { icon: "👨‍👩‍👧", title: "Simple mixed age rules", desc: "Wedding bingo is easy to explain for kids, grandparents, friends, and coworkers at the same table." },
+                  { icon: "🎁", title: "Flexible prizes", desc: "Use one row, four corners, or blackout, then choose small prizes such as a centerpiece, wine bottle, or gift card." },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
                     <div className="text-4xl mb-4">{f.icon}</div>
@@ -195,7 +247,7 @@ export default function WeddingBingoPage() {
                 Give your guests something to cheer about
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft beautiful printable wedding bingo cards in under 2 minutes, then start creating to save or export.
+                Draft wedding bingo cards for the ceremony, cocktail hour, reception tables, or dance floor, then print or share when you are ready.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-violet-50 transition-all duration-300 shadow-xl">

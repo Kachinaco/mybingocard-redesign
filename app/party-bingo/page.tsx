@@ -4,16 +4,15 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Party Bingo Cards — Free Bingo Draft Editor for Any Party",
+  title: "Party Bingo Cards Printable: Any Celebration Generator",
   description:
-    "Create custom printable party bingo cards for birthdays, game nights, dinner parties, and celebrations. The best party bingo card generator with free PDF export and digital play.",
+    "Create printable party bingo cards for birthdays, game nights, dinner parties, housewarmings, and celebrations. Customize, shuffle, and export PDFs.",
   keywords: [
     "party bingo cards",
     "birthday bingo",
     "game night bingo",
     "dinner party bingo",
     "bingo card generator",
-    "free bingo cards",
     "printable bingo cards",
     "custom party games",
   ],
@@ -21,36 +20,88 @@ export const metadata: Metadata = {
     canonical: "https://mybingocard.com/party-bingo",
   },
   openGraph: {
-    title: "Party Bingo Cards — Free Bingo Draft Editor for Any Party",
+    title: "Party Bingo Cards Printable for Any Celebration",
     description:
-      "Create custom bingo card drafts for birthdays, game nights, dinner parties, and any celebration. PDF export & digital play.",
+      "Create custom bingo card drafts for birthdays, game nights, dinner parties, and any celebration. PDF export and digital play.",
     url: "https://mybingocard.com/party-bingo",
     type: "website",
   },
 };
 
 const partySquares = [
-  "Dance Off", "Photo Bomb", "Cake Time", "Toast!", "FREE",
-  "Karaoke", "Late Arrival", "Gift Pile", "Group Selfie", "DJ Request",
-  "Funny Story", "Pizza!", "Dance Circle", "Confetti", "Bad Joke",
-  "Surprise Guest", "Balloon Pop", "Slow Song", "Dessert Bar", "Sing-Along",
-  "Sparklers", "Best Dressed", "Card Games", "Belly Laugh", "Last Dance",
+  "Dance Break", "Photo Bomb", "Cake Time", "Toast", "FREE",
+  "Karaoke", "Late Arrival", "Gift Table", "Group Selfie", "DJ Request",
+  "Funny Story", "Pizza Slice", "Dance Circle", "Confetti", "Party Joke",
+  "Surprise Guest", "Balloon Pop", "Slow Song", "Dessert Bar", "Sing Along",
+  "Best Dressed", "Card Game", "Belly Laugh", "Prize Winner", "Last Dance",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Party Bingo Card Generator",
-  url: "https://mybingocard.com/party-bingo",
-  description:
-    "Custom party bingo card generator. Create custom printable bingo cards for birthdays, game nights, dinner parties, and any celebration.",
-  applicationCategory: "GameApplication",
-  operatingSystem: "All",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://mybingocard.com/party-bingo#webpage",
+      name: "Party Bingo Cards Printable: Any Celebration Generator",
+      url: "https://mybingocard.com/party-bingo",
+      description:
+        "Create printable party bingo cards for birthdays, game nights, dinner parties, housewarmings, and celebrations.",
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://mybingocard.com/party-bingo#app",
+      name: "Party Bingo Card Generator",
+      url: "https://mybingocard.com/party-bingo",
+      description:
+        "Create custom party bingo cards with celebration prompts, printable PDF export, unique shuffled cards, online play options, and custom square lists.",
+      applicationCategory: "GameApplication",
+      operatingSystem: "All",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "How do you play party bingo?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Give each guest a party bingo card before the game starts. Players mark squares when matching moments happen, when a host calls a prompt, or when guests complete a simple challenge. The first player to complete the chosen pattern wins.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "What party events work with bingo cards?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Party bingo works for birthdays, game nights, dinner parties, housewarmings, backyard gatherings, karaoke nights, family reunions, and casual celebrations.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can every party guest get a different card?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. MyBingoCard can shuffle the same party square list into unique card layouts so guests have different cards.",
+          },
+        },
+      ],
+    },
+    {
+      "@type": "HowTo",
+      name: "How to make party bingo cards",
+      step: [
+        { "@type": "HowToStep", position: 1, text: "Choose party moments, guest prompts, conversation starters, or custom celebration squares." },
+        { "@type": "HowToStep", position: 2, text: "Customize the card title, square list, and free space for the event theme." },
+        { "@type": "HowToStep", position: 3, text: "Shuffle unique cards for guests and choose a winning pattern before play starts." },
+        { "@type": "HowToStep", position: 4, text: "Export printable PDFs or share online cards for guests who will play on phones." },
+      ],
+    },
+  ],
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -148,7 +199,7 @@ export default function PartyBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Turn any party into an unforgettable event with custom bingo cards! Whether you&apos;re hosting a birthday bash, game night, dinner party, housewarming, or backyard BBQ, our party bingo draft editor creates stunning cards that keep guests entertained all night. Fill squares with party moments like &quot;dance-off,&quot; &quot;cake time,&quot; &quot;surprise guest,&quot; and &quot;group selfie&quot; — or write your own custom squares with inside jokes and personal touches. Every card is uniquely shuffled so each guest plays a different layout, and you can generate as many as you need. Export PDF files for free, add free digital links, or project on a TV. From intimate dinner parties to blowout birthday celebrations, party bingo is the easiest way to break the ice and create memories. Start drafting your party bingo cards today!
+                    Make a party game guests can understand fast and play all night. Build printable party bingo cards for birthdays, game nights, dinner parties, housewarmings, karaoke nights, backyard gatherings, and family celebrations. Add party moments, guest prompts, conversation starters, inside jokes, or prize squares, then shuffle unique cards for each player. Export PDFs for printed cards or share online cards for phone play.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -164,7 +215,7 @@ export default function PartyBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
+                  <p className="text-sm text-slate-400">Draft tools · Premium saves and exports</p>
                 </div>
 
                 <div className="relative">
@@ -178,19 +229,19 @@ export default function PartyBingoPage() {
           <section className="py-20 bg-white">
             <div className="container mx-auto px-4 lg:px-8">
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
-                Party bingo for every occasion
+                Party bingo for every kind of celebration
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                Custom bingo cards make every celebration more interactive, memorable, and fun.
+                Use one card maker for party icebreakers, table games, guest challenges, and casual prize rounds.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
-                  { icon: "🎂", title: "Birthday Parties", desc: "Create birthday bingo cards with party moments, gift predictions, and silly challenges for all ages." },
-                  { icon: "🃏", title: "Game Night", desc: "Add a bingo round to your game night rotation with custom cards themed to your group." },
-                  { icon: "🍽️", title: "Dinner Parties", desc: "Elegant conversation bingo keeps dinner party guests engaged and laughing all evening." },
-                  { icon: "🏠", title: "Housewarming", desc: "Fun icebreaker bingo for housewarming parties — perfect when not everyone knows each other." },
-                  { icon: "🎤", title: "Karaoke Night", desc: "Song-themed bingo cards that guests mark off as different tunes are performed." },
-                  { icon: "🏖️", title: "Backyard BBQ", desc: "Outdoor fun bingo with squares like &quot;someone asks for seconds&quot; and &quot;dog steals food.&quot;" },
+                  { icon: "🎂", title: "Birthday parties", desc: "Create birthday bingo cards with party moments, gift predictions, cake prompts, and silly challenges for all ages." },
+                  { icon: "🃏", title: "Game night", desc: "Add a quick bingo round to board game night, trivia night, or a casual friends gathering." },
+                  { icon: "🍽️", title: "Dinner parties", desc: "Use conversation prompts and table moments to keep guests engaged between courses." },
+                  { icon: "🏠", title: "Housewarming", desc: "Give guests an easy icebreaker when not everyone knows each other yet." },
+                  { icon: "🎤", title: "Karaoke night", desc: "Use song moments, applause, requests, and performer prompts as squares guests can mark." },
+                  { icon: "🏖️", title: "Backyard gatherings", desc: "Make casual outdoor parties easier with food, music, yard game, and guest moment squares." },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
                     <div className="text-4xl mb-4">{f.icon}</div>
@@ -210,9 +261,9 @@ export default function PartyBingoPage() {
               </h2>
               <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
                 {[
-                  { step: "1", title: "Add Your Squares", desc: "Type your party moments, inside jokes, or choose from our suggestion library. Need 25 items for a standard card." },
-                  { step: "2", title: "Customize the Design", desc: "Pick colors, fonts, and a theme that matches your party vibe. Preview your card in real-time." },
-                  { step: "3", title: "Print or Share", desc: "Export a PDF or share a digital link with free links for phone play." },
+                  { step: "1", title: "Add your squares", desc: "Type party moments, guest prompts, inside jokes, prize squares, or conversation starters for a standard card." },
+                  { step: "2", title: "Shuffle guest cards", desc: "Use the same square list to create different layouts so the whole room does not win at once." },
+                  { step: "3", title: "Print or share", desc: "Export a PDF for printed cards or share online cards when guests want to play on phones." },
                 ].map((s) => (
                   <div key={s.step} className="text-center">
                     <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6 shadow-lg shadow-emerald-200">
@@ -236,7 +287,7 @@ export default function PartyBingoPage() {
                 Make your next party the one everyone remembers
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft custom party bingo cards in under 2 minutes, then start creating to save or export.
+                Draft custom party bingo cards in minutes, then print cards for the room or share online cards with guests.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-emerald-50 transition-all duration-300 shadow-xl">

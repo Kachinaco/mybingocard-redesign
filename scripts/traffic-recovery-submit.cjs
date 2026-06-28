@@ -106,9 +106,7 @@ function selectUrls(sitemapRows) {
     if (url) byUrl.set(url, { url, priority: 1, source: "priority" });
   }
   for (const row of sitemapRows) {
-    if (row.priority >= 0.8 || hasArg("--all")) {
-      byUrl.set(row.url, { ...row, source: byUrl.get(row.url)?.source || "sitemap" });
-    }
+    byUrl.set(row.url, { ...row, source: byUrl.get(row.url)?.source || "sitemap" });
   }
   return [...byUrl.values()]
     .sort((a, b) => (b.priority || 0) - (a.priority || 0) || a.url.localeCompare(b.url))

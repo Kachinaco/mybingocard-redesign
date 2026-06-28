@@ -31,6 +31,29 @@ function getForwardedFor(req: NextRequest): string | null {
   return first || null;
 }
 
+function stringLooksLikeGamePath(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith("/game/")) return true;
+
+  try {
+    return new URL(trimmed).pathname.startsWith("/game/");
+  } catch {
+    return false;
+  }
+}
+
+function isGamePageVisitorPayload(payload: Record<string, unknown>): boolean {
+  return (
+    stringLooksLikeGamePath(payload.page) ||
+    stringLooksLikeGamePath(payload.path) ||
+    stringLooksLikeGamePath(payload.pathname) ||
+    stringLooksLikeGamePath(payload.url) ||
+    stringLooksLikeGamePath(payload.href)
+  );
+}
+
 export async function POST(req: NextRequest) {
   let payload: Record<string, unknown>;
 
@@ -42,6 +65,10 @@ export async function POST(req: NextRequest) {
 
   if (!payload.domain) {
     payload.domain = getDomainFromHeaders(req);
+  }
+
+  if (isGamePageVisitorPayload(payload)) {
+    return NextResponse.json({ success: true, suppressed: true });
   }
 
   const upstreamHeaders: Record<string, string> = {

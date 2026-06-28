@@ -17,7 +17,8 @@
     "traffic:truth": "node scripts/traffic-truth-report.cjs",
     "traffic:recover": "node scripts/traffic-recovery-submit.cjs",
     "abandoned-checkout-reminders": "node scripts/abandoned-checkout-reminders.cjs",
-    "card-comeback-reminders": "node scripts/card-comeback-reminders.cjs"
+    "card-comeback-reminders": "node scripts/card-comeback-reminders.cjs",
+    "game-rooms:cleanup": "node scripts/cleanup-stale-game-rooms.cjs"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",

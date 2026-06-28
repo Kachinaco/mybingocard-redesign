@@ -44,10 +44,10 @@ export async function POST(request: Request) {
     return NextResponse.json({
       free: true,
       url: `${appUrl}/create?batchMode=1&batchCount=${batchCount}&free=1`,
-      message: "Batch generation is free right now. Sign in to save and generate your batch.",
+      message: "Sign in to save and generate your batch.",
     });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Failed to create free batch link";
+    const message = error instanceof Error ? error.message : "Failed to create batch link";
     console.error("Guest batch checkout disabled error:", error);
     return NextResponse.json({ error: message }, { status: 500 });
   }

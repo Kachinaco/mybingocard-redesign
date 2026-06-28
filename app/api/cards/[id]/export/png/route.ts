@@ -333,7 +333,7 @@ function generateCardHTML(card: any, removeBranding: boolean, isHD: boolean): st
               .join("")}
           </div>
 
-          ${!removeBranding ? `<div class="footer">Created with MyBingoCard.com</div>` : ""}
+          ${!removeBranding ? `<div class="footer">Created with https://mybingocard.com</div>` : ""}
         </div>
       </body>
     </html>

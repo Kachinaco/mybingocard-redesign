@@ -202,10 +202,19 @@ export async function checkUserLimit(userId: string, limitType: keyof Subscripti
 export async function getUserCardCount(userId: string): Promise<number> {
   const client = await clientPromise;
   const db = client.db("mybingocard");
+  let objectId: ObjectId | null = null;
 
-  const count = await db.collection("cards").countDocuments({
-    userId: userId,
-  });
+  try {
+    objectId = new ObjectId(userId);
+  } catch {
+    // Cards for non-ObjectId users are stored with a string userId only.
+  }
+
+  const query = objectId
+    ? { $or: [{ userId }, { userId: objectId }] }
+    : { userId };
+
+  const count = await db.collection("cards").countDocuments(query);
 
   return count;
 }

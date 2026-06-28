@@ -120,7 +120,7 @@ export default async function DashboardPage() {
               <PremiumCheckoutButton
                 source="dashboard_header"
                 className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-semibold hover:shadow-lg transition-all"
-                label="Free tools"
+                label="Included tools"
               />
             )}
             <div className="hidden md:block">
@@ -194,7 +194,7 @@ export default async function DashboardPage() {
                     <p className="mt-2 text-2xl font-black">{usageLabel}</p>
                   </div>
                   {!isSubscribed ? (
-                    <UpgradeButton>Use free tools</UpgradeButton>
+                    <UpgradeButton>Use included tools</UpgradeButton>
                   ) : (
                     <div className="[&_button]:border-white/30 [&_button]:text-white [&_button]:hover:bg-white/10">
                       <ManageSubscriptionButton />

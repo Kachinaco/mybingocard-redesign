@@ -8,15 +8,12 @@ import {
 } from "./PricingCheckoutActions";
 
 const FREE_FEATURES = [
-  "Unlimited saved bingo cards",
+  "Custom bingo card drafts",
   "3x3, 4x4, and 5x5 grids",
-  "All templates",
-  "AI-powered card ideas",
   "Text and image bingo cells",
-  "PDF and PNG exports",
-  "Printable batches up to 500 cards",
-  "Profile and saved-card access",
-  "Share links, email sharing, and hosted events",
+  "Templates for popular occasions",
+  "AI-powered square ideas",
+  "Preview before saving or exporting",
 ];
 
 const PREMIUM_FEATURES = [
@@ -39,31 +36,31 @@ const PLAN_ROWS = [
   ["PNG export", "Yes", "Yes", "Yes"],
   ["Custom colors & fonts", "Yes", "Yes", "Yes"],
   ["Batch generation", "Up to 500", "Up to 500", "Up to 500"],
-  ["Share links", "Included", "Included", "Included"],
-  ["Live event hosting", "Included", "Included", "Included"],
-  ["Billing", "$0", "$0", "$0"],
+  ["Share links", "Yes", "Yes", "Yes"],
+  ["Live event hosting", "Yes", "Yes", "Yes"],
+  ["Billing", "$0 while checkout is paused", "$7.99/mo when checkout is active", "$29.99 when checkout is active"],
 ];
 
 const FAQ_ITEMS = [
   {
     question: "What can I do on the free plan?",
     answer:
-      "Right now, the free plan includes unlimited saved cards, all templates, AI ideas, image cells, PDF and PNG exports, printable batches, share links, and hosted bingo events.",
+      "You can draft custom bingo cards with text or image cells, use templates, choose 3x3, 4x4, or 5x5 grids, and try AI-powered square ideas. Checkout is currently paused, so advanced tools may be included during this period.",
   },
   {
     question: "What is paid now?",
     answer:
-      "Nothing is paid right now. Checkout is disabled while all MyBingoCard features are free for users.",
+      "Checkout is currently paused. If paid checkout is active later, Premium covers printable batches, player share links, email sharing, and hosted live bingo rooms.",
   },
   {
     question: "Can I pay once instead of subscribing?",
     answer:
-      "Not right now. Lifetime checkout is disabled because the paid features are temporarily free.",
+      "The lifetime option is currently paused with checkout. When active, lifetime access is intended for hosts who want one-time access instead of a monthly plan.",
   },
   {
     question: "Can I cancel monthly Premium?",
     answer:
-      "Monthly Premium checkout is disabled right now, so new users will not be charged for Premium features.",
+      "When monthly Premium checkout is active, subscribers can manage or cancel from account settings. Checkout is currently paused, so new users are not charged through this page.",
   },
 ];
 
@@ -128,21 +125,21 @@ export default function PricingPage() {
 
         <section className="text-center mb-16">
           <div className="inline-block px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-bold uppercase tracking-wide mb-6">
-            Everything Is Free Right Now
+            Draft First, Activate When Ready
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-            Create, export, share, and host for free
+            Compare bingo card creation, print, and hosting access
           </h1>
           <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
-            MyBingoCard checkout is turned off for now. Saved cards, exports, batches, player links, email sharing, and live bingo hosting are available at no charge.
+            Start with custom bingo card creation, then use PDF exports, printable batches, player links, email sharing, and hosted live bingo tools as your event grows.
           </p>
         </section>
 
         <section className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-6 px-4">
           <div className="relative bg-white rounded-3xl border border-slate-200 shadow-xl hover:shadow-2xl hover:border-indigo-200 transition-all duration-300 flex flex-col">
             <div className="p-8 flex-grow">
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Free</h2>
-              <p className="text-sm text-slate-500 mb-6">Free access for making, saving, exporting, sharing, and hosting bingo cards.</p>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">Draft Tools</h2>
+              <p className="text-sm text-slate-500 mb-6">Best for building and previewing a custom bingo card before you need group tools.</p>
               <div className="flex items-baseline gap-1 mb-8">
                 <span className="text-5xl font-black text-slate-900 tracking-tight">$0</span>
                 <span className="text-slate-500 font-medium">forever</span>
@@ -158,13 +155,13 @@ export default function PricingPage() {
 
           <div className="relative bg-white rounded-3xl border border-slate-200 shadow-xl hover:shadow-2xl hover:border-indigo-200 transition-all duration-300 flex flex-col">
             <div className="p-8 flex-grow">
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Premium</h2>
-              <p className="text-sm text-slate-500 mb-6">Premium tools are included for everyone while checkout is disabled.</p>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">Premium Tools</h2>
+              <p className="text-sm text-slate-500 mb-6">Built for printable sets, player links, email sharing, and hosted live bingo rooms.</p>
               <div className="flex items-baseline gap-1 mb-8">
                 <span className="text-5xl font-black text-slate-900 tracking-tight">$0</span>
                 <span className="text-slate-500 font-medium">right now</span>
               </div>
-              <p className="-mt-5 mb-6 text-sm font-semibold text-indigo-600">No checkout required</p>
+              <p className="-mt-5 mb-6 text-sm font-semibold text-indigo-600">Included while checkout is paused</p>
               <PlanFeatureList features={PREMIUM_FEATURES} />
             </div>
             <div className="p-8 pt-0 mt-auto">
@@ -172,7 +169,7 @@ export default function PricingPage() {
                 purchaseType="monthly"
                 className="w-full py-4 px-6 rounded-xl font-bold transition-all duration-200 bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-indigo-500/30"
               >
-                Use Premium Tools Free
+                Activate Premium Tools
               </PricingCheckoutButton>
             </div>
           </div>
@@ -182,20 +179,20 @@ export default function PricingPage() {
               Included
             </div>
             <div className="p-8 flex-grow">
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Lifetime</h2>
-              <p className="text-sm text-slate-500 mb-6">Lifetime checkout is paused while every feature is free.</p>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">Lifetime Access</h2>
+              <p className="text-sm text-slate-500 mb-6">A one-time access option for repeat hosts when checkout is active.</p>
               <div className="flex items-baseline gap-1 mb-8">
                 <span className="text-5xl font-black text-slate-900 tracking-tight">$0</span>
                 <span className="text-slate-500 font-medium">right now</span>
               </div>
-              <PlanFeatureList features={[...PREMIUM_FEATURES, "Lifetime access, never pay again"]} />
+              <PlanFeatureList features={[...PREMIUM_FEATURES, "One-time access when checkout is active"]} />
             </div>
             <div className="p-8 pt-0 mt-auto">
               <PricingCheckoutButton
                 purchaseType="lifetime"
                 className="w-full py-4 px-6 rounded-xl font-bold transition-all duration-200 bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-indigo-500/30"
               >
-                Start Creating Free
+                Start Creating
               </PricingCheckoutButton>
             </div>
           </div>
@@ -208,7 +205,7 @@ export default function PricingPage() {
                 <p className="text-xs font-bold uppercase tracking-wide text-indigo-600 mb-3">Free Batch Packs and Share Links</p>
                 <h2 className="text-3xl font-bold text-slate-900 mb-4">Need a larger printable set?</h2>
                 <p className="text-slate-600 leading-relaxed">
-                  Generate printable batch sets and share links without payment. These tools are included for all users while checkout is disabled.
+                  Generate free printable batch sets and share links for classroom groups, parties, fundraisers, and remote events.
                 </p>
               </div>
               <div className="grid sm:grid-cols-4 gap-3">
@@ -237,7 +234,7 @@ export default function PricingPage() {
               <thead>
                 <tr className="border-b border-slate-100">
                   <th className="text-left p-4 text-sm font-semibold text-slate-700">Feature</th>
-                  <th className="text-center p-4 text-sm font-semibold text-slate-700">Free</th>
+                  <th className="text-center p-4 text-sm font-semibold text-slate-700">Draft</th>
                   <th className="text-center p-4 text-sm font-semibold text-slate-700">Premium</th>
                   <th className="text-center p-4 text-sm font-semibold text-indigo-600">Lifetime</th>
                 </tr>
@@ -293,7 +290,7 @@ export default function PricingPage() {
                 Make your first card now.
               </h2>
               <p className="text-indigo-200 text-lg mb-8 max-w-2xl mx-auto">
-                Start with the free editor, then use player share links and hosted bingo events at no charge.
+                Start with the editor, then unlock player share links and hosted bingo events when your game is ready.
               </p>
               <Link href="/create" className="inline-block px-8 py-4 bg-white text-slate-900 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-colors shadow-lg shadow-white/10">
                 Start Your First Draft

@@ -22,7 +22,7 @@ export default function UpgradeBanner() {
           </svg>
         </div>
         <div>
-          <p className="font-semibold text-slate-900">Batches, sharing, and live hosting are free</p>
+          <p className="font-semibold text-slate-900">Batches, sharing, and live hosting are included right now</p>
           <p className="text-sm text-slate-500">All tools are included for users while checkout is disabled.</p>
         </div>
       </div>
@@ -30,7 +30,7 @@ export default function UpgradeBanner() {
         onClick={handleClick}
         className="whitespace-nowrap px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all"
       >
-        Use Free Tools
+        Use Included Tools
       </button>
     </div>
   );

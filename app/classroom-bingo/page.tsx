@@ -4,36 +4,118 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Bingo Cards for Teachers — Custom Classroom Bingo Generator | MyBingoCard",
+  title: "Classroom Bingo Cards Printable: Teacher Game",
   description:
-    "Create printable classroom bingo cards for teachers in minutes. Build vocabulary bingo, math fact bingo, spelling bingo, and review games for any subject.",
+    "Create printable classroom bingo cards for teachers. Build vocabulary, math, spelling, science, and review games with PDFs or online play.",
   alternates: {
     canonical: "https://mybingocard.com/classroom-bingo",
   },
 };
 
 const classroomSquares = [
-  "Raise Hand", "Good Job!", "Homework", "Pop Quiz", "FREE",
-  "Group Work", "Read Aloud", "Math Facts", "Spelling Bee", "Show & Tell",
-  "Science Lab", "Art Project", "PE Day", "Library Visit", "Class Vote",
-  "Brain Break", "Vocabulary", "Whiteboard", "Seat Work", "Partner Up",
-  "Exit Ticket", "Field Trip", "Guest Speaker", "Movie Day", "Award Time",
+  "Vocabulary Word", "Math Fact", "Spelling Word", "Science Term", "FREE",
+  "Read Aloud", "Exit Ticket", "Review Question", "Partner Work", "Brain Break",
+  "History Date", "Map Skill", "Book Character", "Fraction Match", "Class Rule",
+  "Sight Word", "Lab Safety", "Writing Prompt", "Word Problem", "Quiz Review",
+  "Small Group", "Homework Check", "Test Prep", "Teacher Choice", "Class Win",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Classroom Bingo Cards for Teachers",
-  url: "https://mybingocard.com/classroom-bingo",
-  description:
-    "Custom classroom bingo card generator for teachers. Create printable bingo cards for vocabulary, math facts, spelling, and more — perfect for K-12 classrooms.",
-  applicationCategory: "EducationApplication",
-  operatingSystem: "All",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://mybingocard.com/classroom-bingo#webpage",
+      url: "https://mybingocard.com/classroom-bingo",
+      name: "Classroom Bingo Cards Printable: Teacher Game",
+      description:
+        "Create printable classroom bingo cards for teachers. Build vocabulary, math, spelling, science, and review games with PDFs or online play.",
+      isPartOf: {
+        "@type": "WebSite",
+        name: "MyBingoCard",
+        url: "https://mybingocard.com",
+      },
+      about: [
+        { "@type": "Thing", name: "classroom bingo" },
+        { "@type": "Thing", name: "teacher bingo cards" },
+        { "@type": "Thing", name: "vocabulary bingo" },
+        { "@type": "Thing", name: "math review games" },
+      ],
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://mybingocard.com/classroom-bingo#app",
+      name: "Classroom Bingo Cards for Teachers",
+      url: "https://mybingocard.com/classroom-bingo",
+      description:
+        "Custom classroom bingo card generator for vocabulary, math facts, spelling words, science terms, test review, and student engagement games.",
+      applicationCategory: "EducationApplication",
+      operatingSystem: "All",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://mybingocard.com/classroom-bingo#faq",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What can teachers use classroom bingo for?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Teachers can use classroom bingo for vocabulary review, math facts, spelling words, science terms, history dates, sight words, test prep, station work, and brain breaks.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can every student get a different bingo card?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. MyBingoCard can shuffle the same classroom word list into unique card layouts so students do not all mark the same squares.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can classroom bingo work online?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Teachers can export PDFs for printed lessons or share online cards for remote learning, computer labs, tablets, and hybrid classrooms.",
+          },
+        },
+      ],
+    },
+    {
+      "@type": "HowTo",
+      "@id": "https://mybingocard.com/classroom-bingo#howto",
+      name: "How to make classroom bingo cards",
+      description: "Create printable or online classroom bingo cards for teachers.",
+      step: [
+        {
+          "@type": "HowToStep",
+          name: "Choose the lesson goal",
+          text: "Pick vocabulary, math facts, spelling words, science terms, review questions, or classroom routines.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Add student friendly squares",
+          text: "Enter words, prompts, numbers, images, or answers that match the grade level and subject.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Shuffle unique cards",
+          text: "Generate different card layouts for students, groups, stations, or teams.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Print or share",
+          text: "Export printable PDFs for class or share online cards for remote and hybrid lessons.",
+        },
+      ],
+    },
+  ],
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -131,7 +213,7 @@ export default function ClassroomBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Transform any lesson into an engaging classroom bingo game! Our free bingo draft editor for teachers makes it simple to create educational bingo cards for vocabulary practice, math facts, spelling words, science terms, or any subject you teach. Each printable card is automatically randomized so every student gets a unique layout, eliminating copying. Perfect for end-of-unit reviews, brain breaks, holiday learning, or reward activities. Export PDF files for free or add free digital cards for the whole class or remote learning. With grade-level templates ranging from kindergarten to high school, you can customize card size, add images, and brand cards with your classroom theme. The bingo draft editor teachers trust — try it today and use it for a more interactive review activity.
+                    Create printable classroom bingo cards for vocabulary practice, math facts, spelling words, sight words, science terms, history dates, test review, centers, and brain breaks. Add your lesson words or prompts, choose a grid, and shuffle unique cards so each student has a different layout. Export PDFs for desks, stations, and substitute plans or share online cards for remote learning, tablets, and hybrid classrooms.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -144,10 +226,10 @@ export default function ClassroomBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      See Free Access
+                      See Activation
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
+                  <p className="text-sm text-slate-400">Draft tools · Premium saves and exports</p>
                 </div>
 
                 <div className="relative">
@@ -161,19 +243,19 @@ export default function ClassroomBingoPage() {
           <section className="py-20 bg-white">
             <div className="container mx-auto px-4 lg:px-8">
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
-                Classroom bingo for every subject
+                Classroom bingo for every subject and grade level
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                Teachers use our bingo card generator to gamify learning across every grade and subject area.
+                Turn word lists, review questions, math facts, and unit terms into printable or online games students can play quickly.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
-                  { icon: "📖", title: "Vocabulary Bingo", desc: "Turn word lists into interactive games. Great for ELA, ESL, and foreign language classes." },
-                  { icon: "🔢", title: "Math Facts Bingo", desc: "Reinforce multiplication tables, fractions, or algebra concepts with math bingo." },
-                  { icon: "🔬", title: "Science Term Bingo", desc: "Review biology, chemistry, or physics vocabulary in a way students actually enjoy." },
-                  { icon: "🗺️", title: "History & Geography", desc: "Dates, people, places — make social studies review sessions fly by with bingo." },
-                  { icon: "🎨", title: "Art & Music Bingo", desc: "Explore art terms, music notes, or composer names through creative game play." },
-                  { icon: "🎉", title: "Holiday Classroom Fun", desc: "Seasonal bingo cards keep students engaged right up to every school break." },
+                  { icon: "📖", title: "Vocabulary Bingo", desc: "Turn ELA, ESL, reading, and foreign language word lists into review games with student friendly prompts." },
+                  { icon: "🔢", title: "Math Facts Bingo", desc: "Practice multiplication, addition, fractions, decimals, geometry terms, and word problem answers." },
+                  { icon: "🔬", title: "Science Term Bingo", desc: "Review lab safety, biology, chemistry, Earth science, and physics vocabulary before quizzes." },
+                  { icon: "🗺️", title: "History and Geography", desc: "Use people, places, dates, map skills, landmarks, and unit terms for social studies review." },
+                  { icon: "🎨", title: "Art and Music Bingo", desc: "Explore art vocabulary, music notes, instruments, composers, and creative classroom routines." },
+                  { icon: "🎉", title: "Sub Plans and Brain Breaks", desc: "Keep a quick printable game ready for substitute folders, early finishers, reward days, and holidays." },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
                     <div className="text-4xl mb-4">{f.icon}</div>
@@ -192,17 +274,17 @@ export default function ClassroomBingoPage() {
             </div>
             <div className="container mx-auto px-4 relative z-10 text-center">
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-                Make learning a game your students love
+                Make review feel like a game
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft classroom bingo cards in under 2 minutes, then save, export, and share when you are ready.
+                Draft classroom bingo cards for vocabulary, math, spelling, science, and test prep, then print or share when you are ready.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-blue-50 transition-all duration-300 shadow-xl">
                   Start a Free Classroom Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Free Access
+                  See Activation
                 </Link>
               </div>
             </div>
@@ -224,7 +306,7 @@ export default function ClassroomBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  A bingo draft editor for teachers, tutors, homeschool families, and classroom activity planners.
+                  A bingo card maker for teachers, tutors, homeschool families, and classroom activity planners.
                 </p>
               </div>
               <div>

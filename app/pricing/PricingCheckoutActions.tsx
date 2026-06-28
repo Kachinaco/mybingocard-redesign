@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 type PurchaseType = "monthly" | "lifetime";
 
 function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : "Failed to start free access";
+  return error instanceof Error ? error.message : "Failed to start checkout";
 }
 
 export function PricingPageTracker() {
@@ -65,8 +65,8 @@ export function CheckoutReturnBanner() {
             </svg>
           </div>
           <div>
-            <h3 className="font-bold text-emerald-900">Free access active</h3>
-            <p className="text-emerald-700 text-sm">Premium features are available at no charge right now.</p>
+            <h3 className="font-bold text-emerald-900">Access active</h3>
+            <p className="text-emerald-700 text-sm">Premium features are available for this account.</p>
           </div>
         </div>
       </div>
@@ -83,7 +83,7 @@ export function CheckoutReturnBanner() {
         </div>
         <div>
           <h3 className="font-bold text-amber-900">Checkout disabled</h3>
-          <p className="text-amber-700 text-sm">No payment is needed while all features are free.</p>
+          <p className="text-amber-700 text-sm">Checkout is paused, so included tools open during this period.</p>
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ describe("PDF analytics and Discord guardrails", () => {
   const batchPdfRouteSource = readFileSync(resolve(process.cwd(), "app/api/cards/batch/pdf/route.ts"), "utf8");
   const discordSource = readFileSync(resolve(process.cwd(), "lib/discord.ts"), "utf8");
   const activityRouteSource = readFileSync(resolve(process.cwd(), "app/api/activity/route.ts"), "utf8");
+  const joinGameRouteSource = readFileSync(resolve(process.cwd(), "app/api/game/[roomCode]/join/route.ts"), "utf8");
   const adminUserSource = readFileSync(resolve(process.cwd(), "app/admin/users/[id]/page.tsx"), "utf8");
 
   test("export and batch button intent is tracked before completion", () => {
@@ -78,6 +79,13 @@ describe("PDF analytics and Discord guardrails", () => {
     expect(activityRouteSource).toContain('event === "checkout_loaded"');
     expect(activityRouteSource).toContain('event === "checkout_cancel_clicked"');
     expect(activityRouteSource).toContain('event === "premium_gate_keep_drafting_clicked"');
+  });
+
+  test("live game player joins send a focused Discord notification", () => {
+    expect(discordSource).toContain("export async function notifyLiveGamePlayerJoined");
+    expect(discordSource).toContain("Player Joined Live Game");
+    expect(joinGameRouteSource).toContain("notifyLiveGamePlayerJoined");
+    expect(joinGameRouteSource).toContain('event: "game_player_joined"');
   });
 
   test("admin activity labels include PDF analytics events", () => {

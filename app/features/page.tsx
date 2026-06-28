@@ -3,20 +3,138 @@ import type { Metadata } from "next";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Bingo Card Maker Features - Free PDFs, AI, Templates & Hosting",
+  title: "Bingo Card Maker Features: Print, Online, AI and Images",
   description:
-    "Explore MyBingoCard features: free custom bingo card editor, free PDF and PNG export, AI-generated squares, image bingo cards, templates, batch card creation, free online sharing, and live bingo games.",
+    "Explore MyBingoCard features for text and image cells, AI ideas, templates, PDF and PNG exports, batches, player links, and live games.",
   alternates: {
     canonical: "https://mybingocard.com/features",
   },
   openGraph: {
     title: "Bingo Card Maker Features | MyBingoCard",
     description:
-      "Create custom bingo cards with free PDF export, AI help, image squares, templates, batches, free online sharing, and live play.",
+      "Create custom bingo cards with PDF export, AI help, image squares, templates, batch packs, player links, and hosted live play.",
     url: "https://mybingocard.com/features",
     siteName: "MyBingoCard",
     type: "website",
   },
+};
+
+const featureFaqItems = [
+  {
+    question: "What features does MyBingoCard include?",
+    answer:
+      "MyBingoCard includes a custom bingo card editor, templates, text and image cells, grid-size controls, AI idea generation, PDF and PNG export, randomized batch cards, player links, and hosted live-game tools.",
+  },
+  {
+    question: "Can I make bingo cards with images and text?",
+    answer:
+      "Yes. You can use text prompts, numbers, images, templates, colors, headers, and footers to build bingo cards for classrooms, parties, work events, holidays, and fundraisers.",
+  },
+  {
+    question: "Can MyBingoCard make unique cards for a group?",
+    answer:
+      "Yes. Batch generation can create unique shuffled card layouts so players do not all receive the same board.",
+  },
+  {
+    question: "Can I use MyBingoCard for printable and online bingo?",
+    answer:
+      "Yes. The workflow supports printable PDF or PNG output, player share links, and hosted online bingo rooms depending on what the event needs.",
+  },
+];
+
+const featuresPageSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://mybingocard.com/features#webpage",
+      name: "Bingo Card Maker Features",
+      url: "https://mybingocard.com/features",
+      description:
+        "Explore MyBingoCard features for custom bingo cards, including text and image cells, templates, AI ideas, PDF and PNG exports, randomized batch cards, player links, and hosted live games.",
+      isPartOf: { "@id": "https://mybingocard.com/#website" },
+      mainEntity: { "@id": "https://mybingocard.com/features#features" },
+    },
+    {
+      "@type": "ItemList",
+      "@id": "https://mybingocard.com/features#features",
+      name: "MyBingoCard features",
+      itemListElement: [
+        "Smart editor",
+        "Theme library",
+        "Print and batch PDFs",
+        "Virtual play",
+        "Magic shuffle",
+        "Privacy first",
+        "Advanced analytics",
+        "Team collaboration",
+      ].map((name, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        item: {
+          "@type": "SoftwareApplication",
+          name,
+          applicationCategory: "GameApplication",
+          url: "https://mybingocard.com/features",
+        },
+      })),
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://mybingocard.com/features#app",
+      name: "MyBingoCard",
+      applicationCategory: "GameApplication",
+      operatingSystem: "Web",
+      url: "https://mybingocard.com/features",
+      featureList: [
+        "Custom text and image bingo card editor",
+        "Included bingo card templates",
+        "AI idea generation for bingo squares",
+        "3x3, 4x4, and 5x5 grid sizes",
+        "PDF and PNG exports",
+        "Randomized batch card generation",
+        "Player links and hosted online bingo rooms",
+        "Creator analytics and team collaboration",
+      ],
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+        description:
+          "Creator tools are included while checkout is paused; activation tools are available for print, sharing, and hosted games when needed.",
+      },
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://mybingocard.com/features#faq",
+      mainEntity: featureFaqItems.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
+        },
+      })),
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://mybingocard.com/features#breadcrumb",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: "https://mybingocard.com/",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Features",
+          item: "https://mybingocard.com/features",
+        },
+      ],
+    },
+  ],
 };
 
 const features = [
@@ -38,7 +156,7 @@ const features = [
     ),
     title: "Theme Library",
     description: "Choose from templates for weddings, birthdays, baby showers, holidays, classrooms, team events, and more.",
-    highlights: ["Free templates", "Holiday & seasonal themes", "Classroom & education", "Custom occasion themes"],
+    highlights: ["Included templates", "Holiday and seasonal themes", "Classroom and education", "Custom occasion themes"],
   },
   {
     icon: (
@@ -47,8 +165,8 @@ const features = [
       </svg>
     ),
     title: "Print and Batch PDFs",
-    description: "Export free PDF/PNG files and use free printable batch packs for larger sets.",
-    highlights: ["Browser printing", "Free PDF and PNG exports", "Free printable batches", "3x3, 4x4, and 5x5 grids"],
+    description: "Export PDF and PNG files, then generate printable batch sets when one card is not enough.",
+    highlights: ["Browser printing", "PDF and PNG exports", "Printable batches up to 500", "3x3, 4x4, and 5x5 grids"],
   },
   {
     icon: (
@@ -57,8 +175,8 @@ const features = [
       </svg>
     ),
     title: "Virtual Play",
-    description: "Free share links and hosted rooms let players mark cards on their phones or laptops, no app required.",
-    highlights: ["Free play links", "Mobile-friendly cards", "Players mark online", "No app required"],
+    description: "Share links and hosted rooms let players mark cards on phones or laptops, no app install required.",
+    highlights: ["Player links", "Mobile-friendly cards", "Hosted live rooms", "No app required"],
   },
   {
     icon: (
@@ -87,8 +205,8 @@ const features = [
       </svg>
     ),
     title: "Advanced Analytics",
-    description: "Track how your cards perform. See how many people viewed, played, and shared your bingo games.",
-    highlights: ["View & play counts", "Share tracking", "Export data"],
+    description: "Track how your cards perform. See views, play activity, and sharing signals for the bingo games you create.",
+    highlights: ["View and play counts", "Share tracking", "Export data"],
   },
   {
     icon: (
@@ -111,7 +229,12 @@ const useCases = [
 
 export default function FeaturesPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(featuresPageSchema) }}
+      />
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       {/* Hero */}
       <section className="pt-20 pb-16 px-4 text-center">
         <div className="max-w-3xl mx-auto">
@@ -128,7 +251,7 @@ export default function FeaturesPage() {
             </span>
           </h1>
           <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed">
-            From smart editing to virtual play, MyBingoCard has everything you need to create, share, and run amazing bingo games — in minutes.
+            From smart editing to virtual play, MyBingoCard has the tools to create printable bingo cards, share player links, and run hosted bingo games in minutes.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link
@@ -141,7 +264,7 @@ export default function FeaturesPage() {
               href="/pricing"
               className="inline-flex items-center gap-2 bg-white text-slate-700 font-semibold px-8 py-4 rounded-2xl border border-slate-200 hover:border-indigo-200 hover:shadow-md transition-all duration-200"
             >
-              See Free Access
+              See Activation
             </Link>
           </div>
         </div>
@@ -151,10 +274,10 @@ export default function FeaturesPage() {
       <section className="py-12 px-4 border-y border-slate-100 bg-white">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
-            { value: "Free", label: "Creator Tools" },
+            { value: "Included", label: "Creator Tools" },
             { value: "3x3-5x5", label: "Grid Sizes" },
-            { value: "PDF", label: "Print Exports" },
-            { value: "Free", label: "Online Play" },
+            { value: "PDF/PNG", label: "Print Exports" },
+            { value: "Live", label: "Online Play" },
           ].map((stat) => (
             <div key={stat.label}>
               <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">{stat.value}</div>
@@ -169,7 +292,7 @@ export default function FeaturesPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-black text-slate-900 mb-4">All features, in one place</h2>
-            <p className="text-slate-500 text-lg max-w-xl mx-auto">No complicated setup. Everything works out of the box.</p>
+            <p className="text-slate-500 text-lg max-w-xl mx-auto">Words, images, templates, shuffled cards, PDF exports, batch packs, player links, and hosted rooms in one workflow.</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature) => (
@@ -203,7 +326,7 @@ export default function FeaturesPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-black text-slate-900 mb-4">Built for every occasion</h2>
-            <p className="text-slate-500 text-lg">Create, save, batch, and export with free access. Player share links and hosted live games are free right now.</p>
+            <p className="text-slate-500 text-lg">Build cards for classrooms, parties, work events, holidays, and fundraisers without switching tools.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {useCases.map((uc) => (
@@ -222,7 +345,7 @@ export default function FeaturesPage() {
         <div className="max-w-2xl mx-auto text-center">
           <div className="bg-gradient-to-br from-violet-600 to-indigo-600 rounded-3xl p-12 text-white shadow-2xl shadow-indigo-500/25">
             <h2 className="text-3xl font-black mb-4">Ready to create your first card?</h2>
-            <p className="text-indigo-100 mb-8 text-lg">Create, save, and export with free access. Add free batches, sharing, or hosting when your game needs it.</p>
+            <p className="text-indigo-100 mb-8 text-lg">Create a card, choose a grid size, add words or images, then use print, batch, sharing, or hosting tools when your game needs them.</p>
             <Link
               href="/create"
               className="inline-flex items-center gap-2 bg-white text-indigo-700 font-bold px-8 py-4 rounded-2xl hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"
@@ -233,6 +356,7 @@ export default function FeaturesPage() {
         </div>
       </section>      <SeoSupportBlock slug="features" />
 
-    </div>
+      </div>
+    </>
   );
 }

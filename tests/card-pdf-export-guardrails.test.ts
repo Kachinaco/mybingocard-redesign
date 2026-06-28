@@ -10,6 +10,10 @@ describe("card PDF export guardrails", () => {
   const pricingPageSource = readFileSync(resolve(process.cwd(), "app/pricing/page.tsx"), "utf8");
   const stripeConfigSource = readFileSync(resolve(process.cwd(), "lib/stripe/config.ts"), "utf8");
 
+  function pdfCellRule(source: string): string {
+    return source.match(/\.cell \{[\s\S]*?\n\s*\}/)?.[0] || "";
+  }
+
   test("card page keeps single-card PDF export free", () => {
     expect(cardPageSource).toContain("const isPremiumBatchUser = true;");
     expect(cardPageSource).toContain("const shouldUseBatchForPdf = false;");
@@ -39,11 +43,18 @@ describe("card PDF export guardrails", () => {
     expect(batchPdfRouteSource).not.toContain("purchased_batch_required");
   });
 
+  test("PDF image cells constrain cover images inside bingo squares", () => {
+    expect(pdfRouteSource).toContain("position:absolute;inset:0;width:100%;height:100%;object-fit:cover");
+    expect(batchPdfRouteSource).toContain("position:absolute;inset:0;width:100%;height:100%;object-fit:cover");
+    expect(pdfCellRule(pdfRouteSource)).toContain("position: relative;");
+    expect(pdfCellRule(batchPdfRouteSource)).toContain("position: relative;");
+  });
+
   test("pricing and plan copy keep exports and batches free", () => {
     expect(stripeConfigSource).toContain('"PDF and PNG export"');
     expect(pricingPageSource).toContain('["PDF export", "Yes", "Yes", "Yes"]');
     expect(pricingPageSource).toContain('["PNG export", "Yes", "Yes", "Yes"]');
-    expect(pricingPageSource).toContain("Free Batch Packs and Share Links");
+    expect(pricingPageSource).toContain("Batch Packs and Share Links");
     expect(pricingPageSource).toContain('["Batch generation", "Up to 500", "Up to 500", "Up to 500"]');
   });
 });

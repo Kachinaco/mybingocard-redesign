@@ -4,32 +4,93 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Thanksgiving Bingo Cards Printable — Custom Thanksgiving Bingo Generator | MyBingoCard",
+  title: "Thanksgiving Bingo Cards Printable: Family Game",
   description:
-    "Create custom printable Thanksgiving bingo cards for your family dinner or party. The best Thanksgiving bingo generator — custom squares, PDF export for any Thanksgiving celebration.",
+    "Create printable Thanksgiving bingo cards for kids, family dinners, Friendsgiving, classrooms, calling cards, and holiday party games.",
   alternates: {
     canonical: "https://mybingocard.com/thanksgiving-bingo",
   },
 };
 
 const thanksgivingSquares = [
-  "Turkey Carving", "Pumpkin Pie", "Stuffing", "Gravy Spill", "FREE",
-  "Cranberry Sauce", "Someone's Late", "Mashed Potatoes", "Football Game", "Food Coma",
-  "Family Drama", "Third Plate", "Nap Time", "Green Bean Casserole", "Rolls",
-  "Leftovers Chat", "Kid's Table", "Thankful Toast", "Cornucopia", "Black Friday Plans",
-  "Sweet Potato", "Apple Cider", "Burnt Dish", "Doggy Bag", "Dessert First",
+  "Turkey", "Pumpkin Pie", "Stuffing", "Gravy Boat", "FREE",
+  "Cranberry Sauce", "Someone Late", "Mashed Potatoes", "Football Game", "Food Coma",
+  "Family Photo", "Third Plate", "Nap Time", "Green Bean Dish", "Dinner Rolls",
+  "Leftovers", "Kids Table", "Thankful Toast", "Cornucopia", "Black Friday",
+  "Sweet Potato", "Apple Cider", "Calling Card", "Gratitude Note", "Dessert First",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Thanksgiving Bingo Cards Printable Generator",
-  url: "https://mybingocard.com/thanksgiving-bingo",
-  description:
-    "Create custom printable Thanksgiving bingo cards. Custom squares, PDF export for any Thanksgiving dinner or party.",
-  applicationCategory: "GameApplication",
-  operatingSystem: "All",
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  "@graph": [
+    {
+      "@type": "WebPage",
+      name: "Thanksgiving Bingo Cards Printable",
+      url: "https://mybingocard.com/thanksgiving-bingo",
+      description:
+        "Create printable Thanksgiving bingo cards for kids, family dinners, Friendsgiving, classrooms, calling cards, and holiday party games.",
+    },
+    {
+      "@type": "WebApplication",
+      name: "Thanksgiving Bingo Cards Printable Generator",
+      url: "https://mybingocard.com/thanksgiving-bingo",
+      description:
+        "Create custom printable Thanksgiving bingo cards with family dinner prompts, kids table activities, calling cards, Friendsgiving ideas, and holiday PDFs.",
+      applicationCategory: "GameApplication",
+      operatingSystem: "All",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What should I put on Thanksgiving bingo cards?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Use Thanksgiving food, family dinner moments, gratitude prompts, football, leftovers, kids table activities, fall icons, and simple picture friendly words.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I print Thanksgiving bingo cards for kids?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Add Thanksgiving words or pictures, generate shuffled cards, and export printable PDFs for kids, classrooms, family dinners, or Friendsgiving parties.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How do you play Thanksgiving bingo?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Print cards and calling cards, give each player markers, call Thanksgiving words or dinner moments, and award prizes for a line, four corners, or a full card.",
+          },
+        },
+      ],
+    },
+    {
+      "@type": "HowTo",
+      name: "How to make Thanksgiving bingo cards",
+      step: [
+        {
+          "@type": "HowToStep",
+          name: "Choose Thanksgiving prompts",
+          text: "Add turkey, pie, fall icons, gratitude prompts, family traditions, food table moments, and kids table activities.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Generate unique cards",
+          text: "Create shuffled boards so kids, adults, classroom groups, and dinner guests each get a different layout.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Print and play",
+          text: "Export PDFs, use calling cards, and play before dinner, while the turkey cooks, or after dessert.",
+        },
+      ],
+    },
+  ],
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -93,7 +154,7 @@ export default function ThanksgivingBingoPage() {
                 Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500">Thanksgiving Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                Keep the whole family entertained before and after the feast! Create unique Thanksgiving bingo cards for kids and adults and make memories at the dinner table.
+                Create printable Thanksgiving bingo cards for kids, family dinners, Friendsgiving parties, classroom activities, gratitude games, and holiday table fun. Add turkey, pumpkin pie, fall icons, food prompts, family traditions, calling card words, thankful notes, and leftovers moments, then generate unique shuffled cards for every chair at the table.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/create" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold text-lg hover:opacity-90 shadow-lg">
@@ -108,7 +169,7 @@ export default function ThanksgivingBingoPage() {
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">Give Thanks & Play Bingo! 🦃</h2>
-            <p className="text-amber-100 text-lg mb-8">A bingo card for every chair at the table. Free to draft, easy to play, free to love.</p>
+            <p className="text-amber-100 text-lg mb-8">Draft Thanksgiving bingo cards for kids, classrooms, Friendsgiving, family dinner, and after dessert games, then print or share when you are ready.</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-orange-600 rounded-xl font-bold text-lg hover:bg-amber-50 transition-colors shadow-lg">Create Thanksgiving Bingo</Link>
           </div>
 

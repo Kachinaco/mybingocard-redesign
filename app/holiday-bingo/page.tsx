@@ -3,36 +3,140 @@ import Link from "next/link";
 import LandingPageTracker from "@/components/LandingPageTracker";
 
 export const metadata: Metadata = {
-  title: "Christmas Holiday Bingo Card Maker — Custom Printable | MyBingoCard",
+  title: "Holiday Bingo Cards Printable: Seasonal Game",
   description:
-    "Create custom Christmas and holiday bingo cards with our easy bingo card maker. Printable holiday bingo for classrooms, family gatherings, and office parties. free PDF export.",
+    "Create printable holiday bingo cards for Christmas, Thanksgiving, Halloween, classrooms, offices, 30 card sets, calling cards, and online play.",
   alternates: {
     canonical: "https://mybingocard.com/holiday-bingo",
   },
 };
 
 const holidaySquares = [
-  "Santa Claus", "Snowflake", "Reindeer", "Hot Cocoa", "FREE",
-  "Ugly Sweater", "Christmas Tree", "Candy Cane", "Mistletoe", "Jingle Bells",
-  "Gift Wrap", "Stockings", "Elf on Shelf", "Snowman", "Star on Top",
-  "Carolers", "Eggnog", "Nativity", "Ornaments", "White Elephant",
-  "Rudolph", "Frosty", "Holiday Movie", "Cookie Baking", "New Year",
+  "Santa Claus", "Thanksgiving", "Halloween", "Hot Cocoa", "FREE",
+  "Ugly Sweater", "Christmas Tree", "Candy Cane", "Gift Wrap", "Jingle Bells",
+  "Stocking", "Holiday Lights", "Calling Card", "Snowman", "Star On Top",
+  "Carolers", "Cookie Tray", "Ornaments", "White Elephant", "Prize Table",
+  "Class Party", "Office Party", "Holiday Movie", "30 Cards", "New Year",
+];
+
+const holidayPlanningTips = [
+  {
+    title: "Pick the right grid for the group",
+    desc: "Use a short 3x3 game for young kids, a quick 4x4 game for party stations, or a full 5x5 board for older students, coworkers, and family game night.",
+  },
+  {
+    title: "Match squares to the event",
+    desc: "Build one set for classroom Christmas parties, another for office gift exchanges, and another for family traditions so the prompts feel specific instead of generic.",
+  },
+  {
+    title: "Prepare calling cards and markers",
+    desc: "Print a caller list, cut the prompts into slips, or show picture clues. Coins, wrapped candy, stickers, and mini marshmallows all work as easy table markers.",
+  },
+  {
+    title: "Make enough unique cards",
+    desc: "Create one card per guest plus a few extras. Use 24 to 30 unique cards for most classrooms and 50 or more for office, church, school, or community events.",
+  },
+  {
+    title: "Choose a winning pattern before play",
+    desc: "Announce one row, four corners, diagonal, postage stamp, or blackout before the first call so classrooms, office parties, and family groups all follow the same rules.",
+  },
+  {
+    title: "Reuse cards for more than one party",
+    desc: "For classroom centers or annual holiday events, sleeve or laminate the printed cards and keep the same prompt list with the decorations and prize supplies.",
+  },
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Christmas Holiday Bingo Card Maker",
-  url: "https://mybingocard.com/holiday-bingo",
-  description:
-    "Christmas and holiday bingo draft editor. Create printable holiday bingo cards for classrooms, family gatherings, and office parties — free PDF export.",
-  applicationCategory: "GameApplication",
-  operatingSystem: "All",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
+  "@graph": [
+    {
+      "@type": "WebPage",
+      name: "Holiday Bingo Cards Printable",
+      url: "https://mybingocard.com/holiday-bingo",
+      description:
+        "Create printable holiday bingo cards for Christmas, Thanksgiving, Halloween, classrooms, office events, winter games, calling cards, and online play.",
+    },
+    {
+      "@type": "WebApplication",
+      name: "Christmas Holiday Bingo Card Maker",
+      url: "https://mybingocard.com/holiday-bingo",
+      description:
+        "Christmas, Thanksgiving, Halloween, and holiday bingo card maker for printable cards, classroom parties, office events, family games, calling cards, and online play.",
+      applicationCategory: "GameApplication",
+      operatingSystem: "All",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What should I put on holiday bingo cards?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Use holiday pictures, Christmas words, Thanksgiving foods, Halloween costumes, winter activities, classroom party prompts, office party moments, family traditions, gift exchange clues, and simple calling card terms.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I make printable Christmas bingo cards for a classroom?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Add holiday prompts, generate shuffled boards, and export printable PDFs so each student has a different card for the class party.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How do you play holiday bingo?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Print cards, hand out markers, read holiday calling cards or show picture prompts, and let players win with five in a row, four corners, or a full card.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How many holiday bingo cards should I make?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Make one shuffled card for each guest, student, coworker, or family member. Small family games may need 8 to 12 cards, classrooms often need 24 to 30 cards, and large office or church events may need 50 or more cards.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I make Thanksgiving or Halloween bingo cards?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Use Thanksgiving squares such as turkey, pumpkin pie, parade, gratitude, and football, or Halloween squares such as costume, pumpkin, bat, ghost, candy, and trick or treat.",
+          },
+        },
+      ],
+    },
+    {
+      "@type": "HowTo",
+      name: "How to make holiday bingo cards",
+      step: [
+        {
+          "@type": "HowToStep",
+          name: "Choose holiday prompts",
+          text: "Add Christmas, Thanksgiving, Halloween, winter, family, office party, classroom, and gift exchange words or pictures.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Generate unique cards",
+          text: "Create randomized boards so students, coworkers, relatives, or party guests each get a different layout.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Print or share",
+          text: "Export PDFs for the party table or share online cards for remote holiday gatherings.",
+        },
+      ],
+    },
+  ],
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -85,7 +189,7 @@ export default function HolidayBingoPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />
-      <div className="min-h-screen bg-slate-50 selection:bg-green-100 selection:text-green-900">
+      <div className="min-h-screen overflow-x-hidden bg-slate-50 selection:bg-green-100 selection:text-green-900">
         {/* Navbar */}
         <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
           <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
@@ -130,7 +234,7 @@ export default function HolidayBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Spread holiday cheer with custom Christmas and holiday bingo cards made in minutes! Our holiday bingo card maker is the easiest way to create festive bingo cards for classroom Christmas parties, family gatherings, ugly sweater events, and office holiday parties. Choose from classic Christmas themes — Santa, reindeer, snowflakes, candy canes — or customize every square with your own holiday traditions and inside jokes. Each card is uniquely randomized so grandma and the kids aren&apos;t playing the same card. Export PDF files for free or add free digital links for virtual holiday parties. Works for Christmas, Hanukkah, Kwanzaa, New Year&apos;s, and any winter celebration. Build a free holiday draft, then upgrade when you&apos;re ready for free features.
+                    Create printable holiday bingo cards for classroom Christmas parties, Thanksgiving gatherings, Halloween activities, office events, ugly sweater parties, winter break activities, white elephant exchanges, and virtual holiday calls. Add Santa, turkey, pumpkins, snowflakes, gift wrap, holiday lights, cookie trays, calling card words, family traditions, and party prizes. Generate 24, 30, 50, or more shuffled cards so kids, coworkers, and relatives do not all play the same board, then export PDFs or share online cards.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -143,10 +247,10 @@ export default function HolidayBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      See Free Access
+                      See Activation
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Festive themes · free PDF export</p>
+                  <p className="text-sm text-slate-400">Draft tools · Festive themes · Premium export</p>
                 </div>
 
                 <div className="relative">
@@ -163,21 +267,41 @@ export default function HolidayBingoPage() {
                 Holiday bingo for every festive occasion
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                From classroom parties to family reunions — holiday bingo brings the joy of the season to everyone.
+                Build printable cards and simple calling prompts for Christmas parties, Thanksgiving dinners, Halloween classrooms, winter games, office celebrations, and family holiday nights.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
-                  { icon: "🏫", title: "Classroom Christmas Party", desc: "Keep students engaged at the end-of-semester party with educational holiday bingo cards." },
-                  { icon: "👨‍👩‍👧‍👦", title: "Family Gatherings", desc: "All ages love it — create one set of cards for the whole family holiday dinner table." },
-                  { icon: "🎅", title: "Santa Visit Events", desc: "Keep kids entertained while waiting for Santa with festive Christmas bingo." },
-                  { icon: "💻", title: "Virtual Holiday Parties", desc: "Share digital bingo cards with free links for remote family and work holiday celebrations." },
-                  { icon: "🧥", title: "Ugly Sweater Parties", desc: "Build a bingo card around sweater features — reindeer, snowflakes, blinking lights!" },
-                  { icon: "🎬", title: "Holiday Movie Night", desc: "Create bingo cards with classic movie moments for a cozy holiday movie marathon." },
+                  { icon: "🏫", title: "Classroom Holiday Party", desc: "Print shuffled cards for Christmas parties, Halloween centers, Thanksgiving week, winter break, and quiet holiday stations." },
+                  { icon: "👨‍👩‍👧‍👦", title: "Family Gatherings", desc: "Make one game work for kids, parents, grandparents, cousins, Thanksgiving guests, and holiday dinner tables." },
+                  { icon: "🎅", title: "Santa Visit Events", desc: "Use picture friendly prompts and simple calling cards while kids wait for Santa or prize drawings." },
+                  { icon: "💻", title: "Virtual Holiday Parties", desc: "Share online bingo cards for remote family calls, distributed teams, and hybrid office celebrations." },
+                  { icon: "🧥", title: "Ugly Sweater Parties", desc: "Build cards around sweater features, blinking lights, reindeer, snowflakes, and party prizes." },
+                  { icon: "🎬", title: "Holiday Movie Night", desc: "Create cards with classic movie moments, cookie trays, cocoa, gift wrap, and winter traditions." },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
                     <div className="text-4xl mb-4">{f.icon}</div>
                     <h3 className="text-xl font-bold text-slate-900 mb-2">{f.title}</h3>
                     <p className="text-slate-600 text-sm leading-relaxed">{f.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* Planning Guide */}
+          <section className="py-20 bg-slate-50">
+            <div className="container mx-auto px-4 lg:px-8">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
+                How to plan a better holiday bingo game
+              </h2>
+              <p className="text-slate-600 text-center max-w-3xl mx-auto mb-14">
+                The best holiday bingo pages answer the host&apos;s next question: which card size to use, how to call squares, how many unique cards to print, and how to keep Christmas, Thanksgiving, Halloween, classroom, office, and family games fair for a full room.
+              </p>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {holidayPlanningTips.map((tip) => (
+                  <div key={tip.title} className="bg-white rounded-2xl p-7 border border-slate-100 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 mb-3">{tip.title}</h3>
+                    <p className="text-slate-600 text-sm leading-relaxed">{tip.desc}</p>
                   </div>
                 ))}
               </div>
@@ -194,14 +318,14 @@ export default function HolidayBingoPage() {
                 Make this holiday season the most fun ever
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft festive holiday bingo cards in under 2 minutes, then save, export, and share when you are ready.
+                Draft holiday bingo cards for Christmas parties, Thanksgiving gatherings, Halloween classrooms, office events, and family nights, then print or share when you are ready.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-green-50 transition-all duration-300 shadow-xl">
                   Start a Free Holiday Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Free Access
+                  See Activation
                 </Link>
               </div>
             </div>
@@ -222,7 +346,7 @@ export default function HolidayBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  Festive holiday bingo cards for every occasion — Christmas, Hanukkah, New Year&apos;s, and beyond.
+                  Festive holiday bingo cards for every occasion, including Christmas, Thanksgiving, Halloween, Hanukkah, New Year&apos;s, winter classrooms, and office parties.
                 </p>
               </div>
               <div>

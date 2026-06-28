@@ -46,6 +46,7 @@ export interface User {
   // Behavior counters
   totalCardsCreated?: number;
   lastCardCreatedAt?: Date;
+  firstCardCreatedAt?: Date;
   totalExports?: number;
   lastExportAt?: Date;
   featuresUsed?: string[];
@@ -412,4 +413,53 @@ export async function incrementCardStats(userId: string): Promise<void> {
       $set: { lastCardCreatedAt: new Date(), updatedAt: new Date() },
     }
   );
+}
+
+export async function hasPriorCardCreationActivity(
+  userId: string,
+  email?: string | null
+): Promise<boolean> {
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  const identities: Record<string, unknown>[] = [{ userId }];
+
+  if (email) {
+    identities.push({ email });
+  }
+
+  try {
+    identities.push({ userId: new ObjectId(userId) });
+  } catch {
+    // Legacy or non-ObjectId user IDs are stored as strings only.
+  }
+
+  const event = await db.collection("activity_events").findOne(
+    {
+      event: { $in: ["first_card_created", "card_created", "batch_cards_created"] },
+      $or: identities,
+    },
+    { projection: { _id: 1 } }
+  );
+
+  return Boolean(event);
+}
+
+export async function claimFirstCardMilestone(userId: string): Promise<boolean> {
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  const now = new Date();
+  const result = await db.collection<User>("users").updateOne(
+    {
+      _id: new ObjectId(userId),
+      firstCardCreatedAt: { $exists: false },
+    },
+    {
+      $set: {
+        firstCardCreatedAt: now,
+        updatedAt: now,
+      },
+    }
+  );
+
+  return result.modifiedCount === 1;
 }

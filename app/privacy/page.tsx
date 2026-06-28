@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — MyBingoCard",
-  description: "MyBingoCard privacy policy. Learn how we collect, use, and protect your personal information.",
+  title: "Privacy Policy | MyBingoCard",
+  description: "Read how MyBingoCard handles account data, bingo card content, analytics, advertising cookies, email preferences, and deletion requests.",
   alternates: {
     canonical: "https://mybingocard.com/privacy",
   },
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
       <main className="container mx-auto px-4 py-12 max-w-3xl">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 md:p-12">
           <h1 className="text-3xl font-black text-slate-900 mb-2">Privacy Policy</h1>
-            <p className="text-sm text-slate-400">Last updated: March 9, 2026</p>
+            <p className="text-sm text-slate-400">Last updated: June 18, 2026</p>
 
           <div className="mt-8 space-y-8">
 
@@ -48,6 +48,7 @@ export default function PrivacyPage() {
                   <li className="text-slate-600">Usage data such as pages visited and features used</li>
                   <li className="text-slate-600">Payment information only if paid plans are re-enabled later, processed securely through Stripe (we never store card numbers)</li>
                   <li className="text-slate-600">Device and browser information for analytics</li>
+                  <li className="text-slate-600">Advertising and consent signals if ads are shown through Google AdSense or related Google advertising services</li>
                   <li className="text-slate-600">Session activity data including pages visited, scroll depth, features used, and last-seen timestamps to help us understand how you use the product and improve your experience</li>
                 </ul>
               </div>
@@ -60,6 +61,7 @@ export default function PrivacyPage() {
                   <li className="text-slate-600">To send transactional emails (welcome, password reset, receipts)</li>
                   <li className="text-slate-600">To send product update emails (you can unsubscribe anytime)</li>
                   <li className="text-slate-600">To analyze usage patterns and improve the product</li>
+                  <li className="text-slate-600">To show and measure ads if advertising is enabled on the site</li>
                   <li className="text-slate-600">To track session activity (e.g., last active time) while you are logged in, using periodic background pings — this data is used only for product analytics and is never sold or shared</li>
                 </ul>
               </div>
@@ -70,6 +72,7 @@ export default function PrivacyPage() {
                   <li className="text-slate-600">We do not sell your personal information to third parties</li>
                   <li className="text-slate-600">We share data with Stripe only if you manage an existing subscription or paid plans are re-enabled later</li>
                   <li className="text-slate-600">We use Google Analytics for anonymous usage tracking</li>
+                  <li className="text-slate-600">We may use Google AdSense and Google's consent tools to serve ads, measure ad performance, and honor regional consent choices</li>
                   <li className="text-slate-600">We may share data if required by law</li>
                 </ul>
               </div>
@@ -98,7 +101,8 @@ export default function PrivacyPage() {
                 <ul className="space-y-2 list-disc list-inside">
                   <li className="text-slate-600">We use essential cookies for authentication and session management</li>
                   <li className="text-slate-600">We use Google Analytics cookies for anonymous usage tracking</li>
-                  <li className="text-slate-600">You can disable cookies in your browser settings</li>
+                  <li className="text-slate-600">If ads are enabled, Google and its partners may use cookies or similar technologies for ad delivery, measurement, fraud prevention, and consent management</li>
+                  <li className="text-slate-600">You can manage consent choices where offered and can disable cookies in your browser settings</li>
                 </ul>
               </div>
 

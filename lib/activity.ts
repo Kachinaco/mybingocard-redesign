@@ -16,6 +16,69 @@ export interface ActivityInput {
   metadata?: Record<string, unknown> | null;
 }
 
+const NOISY_GAME_EVENTS = new Set([
+  "game_cell_marked",
+  "game_player_cell_marked",
+  "game_stream_disconnected",
+  "button_clicked",
+  "page_engagement",
+  "tab_returned",
+  "session_summary",
+]);
+
+function isNoisyPerformanceEvent(event: string): boolean {
+  return event.startsWith("performance_") || event.startsWith("scroll_depth_");
+}
+
+function stringLooksLikeGamePath(value: string): boolean {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith("/game/")) return true;
+
+  try {
+    const url = new URL(trimmed);
+    return url.pathname.startsWith("/game/");
+  } catch {
+    return false;
+  }
+}
+
+function metadataString(metadata: Record<string, unknown> | null | undefined, key: string): string | null {
+  const value = metadata?.[key];
+  return typeof value === "string" ? value : null;
+}
+
+function metadataClientPath(metadata: Record<string, unknown> | null | undefined): string | null {
+  const clientContext = metadata?.client_context;
+  if (!clientContext || typeof clientContext !== "object") return null;
+
+  const context = clientContext as Record<string, unknown>;
+  const path = typeof context.path === "string" ? context.path : null;
+  const href = typeof context.href === "string" ? context.href : null;
+  return path || href;
+}
+
+export function shouldSuppressNoisyGameActivity(input: Pick<ActivityInput, "event" | "pathname" | "metadata">): boolean {
+  const event = input.event || "";
+  if (!NOISY_GAME_EVENTS.has(event) && !isNoisyPerformanceEvent(event)) {
+    return false;
+  }
+
+  const metadata = input.metadata || {};
+  const pathCandidates = [
+    input.pathname,
+    metadataString(metadata, "pathname"),
+    metadataString(metadata, "path"),
+    metadataString(metadata, "href"),
+    metadataString(metadata, "pageUrl"),
+    metadataString(metadata, "currentUrl"),
+    metadataString(metadata, "currentPathname"),
+    metadataClientPath(metadata),
+  ].filter((value): value is string => typeof value === "string");
+
+  return pathCandidates.some(stringLooksLikeGamePath) || typeof metadata.roomCode === "string";
+}
+
 const SENSITIVE_METADATA_KEY_PATTERN =
   /(password|passcode|secret|token|authorization|cookie|session|csrf|card[_-]?number|cvc|cvv|ssn)/i;
 
@@ -94,6 +157,10 @@ export function getRequestActivityContext(request: Request) {
 
 export async function trackActivity(input: ActivityInput): Promise<void> {
   if (!input.event) {
+    return;
+  }
+
+  if (shouldSuppressNoisyGameActivity(input)) {
     return;
   }
 

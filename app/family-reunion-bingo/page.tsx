@@ -4,36 +4,113 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Family Reunion Bingo Cards Generator — MyBingoCard",
+  title: "Family Reunion Bingo Cards: Printable Mingle Game",
   description:
-    "Create custom family reunion bingo cards for your next family gathering. Printable family reunion icebreaker bingo card generator with custom squares for reunions, cookouts, and family events.",
+    "Create printable family reunion bingo cards for find someone who games, BBQs, potlucks, family tree prompts, name tags, 30 cards, and online play.",
   alternates: {
     canonical: "https://mybingocard.com/family-reunion-bingo",
   },
 };
 
 const reunionSquares = [
-  "Group Photo", "Who's That?", "Potluck Hero", "Baby Holder", "FREE",
-  "Old Stories", "Name Mix-Up", "Lawn Games", "BBQ Master", "Dessert Table",
-  "Matching Shirts", "Travel Tales", "New Baby", "Family Recipe", "Awkward Hug",
-  "Photo Album", "Kids Running", "Surprise Guest", "Family Prayer", "Leftovers Packed",
-  "Talent Show", "Memory Lane", "Cousin Reunion", "Family Tree", "See You Next Year",
+  "Find a Cousin", "Same Birthday", "Family Recipe", "Group Photo", "FREE",
+  "Family Tree", "Find an Uncle", "Name Tag", "Potluck Dish", "BBQ Table",
+  "Traveled Far", "New Baby", "Grandparent Story", "Favorite Aunt", "Photo Booth",
+  "Oldest Relative", "Youngest Cousin", "Family History", "Adult Table", "First Reunion",
+  "Memory Lane", "Recipe Swap", "Talent Show", "Picnic Blanket", "Call Sheet",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Family Reunion Bingo Cards Generator",
-  url: "https://mybingocard.com/family-reunion-bingo",
-  description:
-    "Custom family reunion bingo draft generator. Create, customize, and print bingo cards for family gatherings, reunions, and cookouts in minutes.",
-  applicationCategory: "GameApplication",
-  operatingSystem: "All",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
+  "@graph": [
+    {
+      "@type": "WebPage",
+      name: "Family Reunion Bingo Cards Printable",
+      url: "https://mybingocard.com/family-reunion-bingo",
+      description:
+        "Create printable family reunion bingo cards for find someone who games, BBQs, potlucks, family tree prompts, name tags, 30 cards, and online play.",
+    },
+    {
+      "@type": "WebApplication",
+      name: "Family Reunion Bingo Cards Generator",
+      url: "https://mybingocard.com/family-reunion-bingo",
+      description:
+        "Custom family reunion bingo generator for printable and online reunion games, 24, 30, 50, or 100 card sets, call sheets, family tree prompts, name tag prompts, BBQ prompts, potluck prompts, and find someone who icebreakers.",
+      applicationCategory: "GameApplication",
+      operatingSystem: "All",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What should I put on family reunion bingo cards?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Use a mix of family tree clues, find someone who prompts, uncle and aunt prompts, cousin facts, name tag clues, BBQ moments, potluck dishes, photo booth prompts, reunion traditions, travel facts, old stories, and simple all ages activities.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I print different cards for every family member?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Add your family reunion prompts once, generate shuffled cards, then export printable PDFs so each player has a different board. Print 24 cards for small groups, 30 cards for most reunions, or 50 to 100 cards for larger branches.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can family reunion bingo be a find someone who game?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Use it as mingle bingo by asking relatives to find someone who matches each square, write a name, or mark the space with a pen, sticker, chip, or counter.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Do I need calling cards for family reunion bingo?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Calling cards are optional for mingle play, but a call sheet helps hosts run prize rounds, check winners, call photo prompts, and keep the activity moving at the welcome table.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How do you play family reunion bingo?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Hand out cards with name tags at check in, during lunch, near the BBQ table, or before group photos. Players find relatives or moments that match the squares, mark their cards, and win with five in a row or a full card.",
+          },
+        },
+      ],
+    },
+    {
+      "@type": "HowTo",
+      name: "How to make family reunion bingo cards",
+      step: [
+        {
+          "@type": "HowToStep",
+          name: "Choose reunion prompts",
+          text: "Add family tree clues, potluck dishes, BBQ moments, photo booth prompts, name tag clues, find someone who prompts, and traditions from your reunion schedule.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Pick the card count",
+          text: "Make 24 cards for a small reunion, 30 cards for most family tables, or 50 to 100 cards for large branches, then create shuffled cards so cousins, grandparents, adults, kids, and guests receive different layouts.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Print cards and host sheets",
+          text: "Export PDFs for the picnic table, add a call sheet for host led rounds, set out pens, stickers, chips, or counters, and share online cards for relatives joining from home.",
+        },
+      ],
+    },
+  ],
 };
 
 function BingoGrid({ squares, label, gradient }: { squares: string[]; label: string; gradient: string }) {
@@ -122,7 +199,7 @@ export default function FamilyReunionBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Turn your family reunion into an unforgettable event with custom family gathering bingo cards that get everyone laughing and mingling. Our family reunion bingo draft editor creates unique icebreaker cards filled with those classic reunion moments everyone recognizes. Each card is randomly shuffled so cousins, grandparents, and long-lost relatives all get a different layout to play. Export printable PDFs for free or add free digital cards for the picnic table or far-flung family members joining virtually. Whether it&apos;s an annual cookout, a milestone anniversary, or a first-time reunion, these family bingo cards break the ice and bring generations together.
+                    Turn the reunion into a real mingling game with printable family reunion bingo cards for BBQs, cookouts, picnics, family tree activities, and all ages icebreakers. Add find someone who prompts, name tag clues, uncle and aunt prompts, recipe clues, group photo moments, travel facts, cousin trivia, grandparent stories, and reunion traditions. Generate 24, 30, 50, or 100 shuffled cards so relatives do not all share the same board, then export PDFs, call sheets, and online cards for the welcome table.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -135,10 +212,10 @@ export default function FamilyReunionBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      See Free Access
+                      See Activation
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
+                  <p className="text-sm text-slate-400">Draft tools · Premium saves and exports</p>
                 </div>
 
                 <div className="relative">
@@ -159,39 +236,39 @@ export default function FamilyReunionBingoPage() {
                 Why use our family reunion bingo maker?
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                Everything you need for the perfect family reunion icebreaker — from printable cards to digital play.
+                Build printable cards, online boards, call sheets, and simple rules for family tree games, picnic tables, BBQs, cousin mixers, name tag tables, and reunion welcome packets.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
                   {
                     icon: "👨‍👩‍👧‍👦",
-                    title: "Family-Themed Squares",
-                    desc: "Pre-loaded with classic reunion moments like potluck heroes, awkward hugs, and photo albums — or customize your own.",
+                    title: "Family Prompt Squares",
+                    desc: "Start with family tree clues, uncle and aunt prompts, name tag clues, BBQ tables, potluck dishes, photo moments, travel facts, old stories, and find someone who prompts.",
                   },
                   {
                     icon: "🖨️",
                     title: "PDF Exports",
-                    desc: "Clean PDFs for picnic tables, reunion packets, or take-home keepsakes for the whole family.",
+                    desc: "Clean PDFs for 24, 30, 50, or 100 card sets, welcome packets, check in folders, picnic tables, or keepsakes for the whole family.",
                   },
                   {
                     icon: "🔀",
                     title: "Unique Every Card",
-                    desc: "Every family member gets a different shuffled card, so the whole reunion can play without duplicate winners.",
+                    desc: "Every family member gets a different shuffled card for mingle bingo, find someone who play, prize rounds, and full card winner checks.",
                   },
                   {
                     icon: "📱",
                     title: "Virtual Reunion Ready",
-                    desc: "Add free links so family members who couldn&apos;t make the trip can still play along from anywhere in the world.",
+                    desc: "Add player links so family members who could not make the trip can still play along from anywhere in the world.",
                   },
                   {
                     icon: "✏️",
                     title: "Custom Family Moments",
-                    desc: "Add your own family inside jokes, traditions, or memorable moments. Make it uniquely yours.",
+                    desc: "Add your own reunion traditions, recipes, nicknames, inside jokes, favorite photos, family history notes, and branch of the family prompts.",
                   },
                   {
                     icon: "💸",
-                    title: "Free for Everyone",
-                    desc: "Create family reunion bingo cards for free. Save, export, and batch cards without a budget; player links and live hosting are free right now.",
+                    title: "Built for Everyone",
+                    desc: "Draft family reunion bingo cards for kids, adults, and grandparents first, then activate saves, exports, batches, call sheets, player links, markers, counters, and live hosting when you are ready.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -214,14 +291,14 @@ export default function FamilyReunionBingoPage() {
                 Ready to bring the family together?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft your family reunion bingo cards in under 2 minutes, then start creating, saving, exporting, and sharing — the perfect icebreaker for any gathering.
+                Draft family reunion bingo cards for BBQs, cookouts, picnics, name tag tables, family tree games, and all ages icebreakers, then print cards, calling cards, call sheets, and online boards when you are ready.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-emerald-50 transition-all duration-300 shadow-xl">
                   Create Family Reunion Bingo Cards
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Free Access
+                  See Activation
                 </Link>
               </div>
             </div>

@@ -96,6 +96,10 @@ export interface GameRoom {
   updatedAt: Date;
 }
 
+export const GAME_ROOM_INACTIVITY_CLOSEOUT_DAYS = 2;
+export const GAME_ROOM_INACTIVITY_CLOSEOUT_MS =
+  GAME_ROOM_INACTIVITY_CLOSEOUT_DAYS * 24 * 60 * 60 * 1000;
+
 function generateRoomCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
@@ -195,12 +199,13 @@ export async function getGameRoom(roomCode: string): Promise<GameRoom | null> {
   // Auto-expire stale rooms on read
   if (room && room.status !== "finished") {
     const ageMs = Date.now() - new Date(room.updatedAt).getTime();
-    if (ageMs > 24 * 60 * 60 * 1000) {
+    if (ageMs > GAME_ROOM_INACTIVITY_CLOSEOUT_MS) {
+      const now = new Date();
       await db.collection<GameRoom>("game_rooms").updateOne(
         { _id: room._id },
-        { $set: { status: "finished", updatedAt: new Date() } }
+        { $set: { status: "finished", endedAt: now, updatedAt: now } }
       );
-      return { ...room, status: "finished" };
+      return { ...room, status: "finished", endedAt: now, updatedAt: now };
     }
   }
 
@@ -210,7 +215,7 @@ export async function getGameRoom(roomCode: string): Promise<GameRoom | null> {
 export async function cleanupStaleRooms(): Promise<number> {
   const client = await clientPromise;
   const db = client.db("mybingocard");
-  const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const cutoff = new Date(Date.now() - GAME_ROOM_INACTIVITY_CLOSEOUT_MS);
 
   // Fetch stale rooms before updating so we can track each one
   const staleRooms = await db.collection<GameRoom>("game_rooms")
@@ -219,9 +224,10 @@ export async function cleanupStaleRooms(): Promise<number> {
 
   if (staleRooms.length === 0) return 0;
 
+  const now = new Date();
   const result = await db.collection<GameRoom>("game_rooms").updateMany(
     { status: { $in: ["waiting", "active"] }, updatedAt: { $lt: cutoff } },
-    { $set: { status: "finished", updatedAt: new Date() } }
+    { $set: { status: "finished", endedAt: now, updatedAt: now } }
   );
 
   // Track each auto-ended room

@@ -6,7 +6,7 @@ import BlogPostTracker from "../BlogPostTracker";
 export const metadata: Metadata = {
   title: "The Ultimate Wedding Bingo Guide for 2026",
   description:
-    "Everything you need to know about wedding reception bingo — 50+ square ideas, printable tips, prize suggestions, and how to make wedding bingo a hit with your guests.",
+    "Wedding reception bingo guide with 50+ square ideas, printable tips, prize suggestions, and ways to make wedding bingo work for guests.",
   keywords: ["wedding bingo", "wedding bingo cards", "wedding reception games", "wedding games for guests", "printable wedding bingo", "wedding entertainment"],
   alternates: { canonical: "https://mybingocard.com/blog/wedding-bingo-guide" },
   openGraph: {
@@ -95,14 +95,24 @@ export default function WeddingBingoGuide() {
         </ul>
 
         <h2>How to Set Up Wedding Bingo</h2>
+        <h3>Guest Count</h3>
+        <p>
+          Plan one card per seated guest, not one per invitation. Add 10 to 15 extras for plus-ones, damaged cards, and guests who want to play a second board. For larger receptions, use a bigger square pool so the cards are not too similar across tables.
+        </p>
+
         <h3>Cards</h3>
         <p>
-          Print one card per guest. Place them at each seat with a small pen or marker. Use our <Link href="/wedding-bingo">wedding bingo draft editor</Link> to create beautiful cards that match your wedding colors. Each card is uniquely shuffled automatically.
+          Print one card per guest. Place them at each seat with a small pen or marker. Use our <Link href="/wedding-bingo">wedding bingo card maker</Link> to create beautiful cards that match your wedding colors. Each card is uniquely shuffled automatically.
         </p>
 
         <h3>Timing</h3>
         <p>
           Place cards out before guests arrive. The game runs passively throughout the entire reception — during cocktail hour, dinner, speeches, and dancing. Announce a deadline (like &quot;before the last dance&quot;) for winners to claim prizes.
+        </p>
+
+        <h3>Winner Rules</h3>
+        <p>
+          A single line is easiest for the first prize. Four corners works well as a second prize because guests can keep playing after one person wins. Blackout is best only if the card has enough likely moments to finish before the reception ends.
         </p>
 
         <h3>Prizes</h3>
@@ -130,7 +140,7 @@ export default function WeddingBingoGuide() {
 
         <h2>Create Your Wedding Bingo Cards</h2>
         <p>
-          Ready to add wedding bingo to your reception? Our <Link href="/wedding-bingo">wedding bingo draft editor</Link> creates elegant cards you can export individually for free that match your wedding style. Larger printable batches use one-time batch packs up to 500 cards.
+          Ready to add wedding bingo to your reception? Our <Link href="/wedding-bingo">wedding bingo card maker</Link> creates elegant cards that match your wedding style. Larger printable batches use one-time batch packs up to 500 cards.
         </p>
       </BlogLayout>
     </>

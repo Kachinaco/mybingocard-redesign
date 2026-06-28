@@ -3,32 +3,153 @@ import Link from "next/link";
 import LandingPageTracker from "@/components/LandingPageTracker";
 
 export const metadata: Metadata = {
-  title: "Bridal Shower Bingo Cards Printable — Custom Bridal Shower Bingo Generator | MyBingoCard",
+  title: "Bridal Shower Bingo Cards Printable: Gift Game Rules",
   description:
-    "Create custom printable bridal shower bingo cards for your guests. The best bridal shower bingo card generator — custom squares, free PDF export for any bridal shower.",
+    "Create printable bridal shower bingo cards for gift opening. Get rules, blank vs prefilled card tips, prize ideas, markers, and PDF cards.",
   alternates: {
     canonical: "https://mybingocard.com/bridal-shower-bingo",
   },
 };
 
 const bridalSquares = [
-  "Engagement Ring", "Bridal Veil", "Something Blue", "Champagne Toast", "FREE",
-  "Flower Crown", "Maid of Honor", "Gift Unwrapped", "Happy Tears", "Love Advice",
-  "Bridesmaids", "Lace Lingerie", "Kitchen Gadget", "Photo Album", "Group Hug",
-  "Funny Proposal", "First Dance Song", "Blushing Bride", "Wedding Date", "Bouquet",
-  "Spa Gift", "Honeymoon Hint", "Future Mother-in-Law", "Awkward Gift", "Brunch Mimosa",
+  "Registry Gift", "Wine Glasses", "Bridal Veil", "Something Blue", "FREE",
+  "Champagne Toast", "Maid of Honor", "Gift Unwrapped", "Happy Tears", "Cookware",
+  "Bridesmaid Story", "Kitchen Gadget", "Photo Frame", "Group Hug", "Guest Selfie",
+  "Funny Proposal", "Honeymoon Fund", "Bride Laughs", "Wedding Date", "Bouquet",
+  "Spa Gift", "Towels", "Family Recipe", "Brunch Mimosa", "Prize Winner",
+];
+
+const bridalPlanningTips = [
+  {
+    heading: "Choose the bridal shower bingo format",
+    body:
+      "Gift opening bingo works best when guests fill or receive squares with registry gifts, household items, honeymoon items, and funny shower moments. Find the guest bingo is better as an icebreaker before food or gifts because guests mingle to match prompts with real people in the room. Classic called bingo works when the host wants to read bridal words from a call list instead of waiting for gifts.",
+  },
+  {
+    heading: "Make enough unique cards",
+    body:
+      "Plan one card per guest plus a few extras for late attendees, hosts, and family members who decide to join. Most printable packs in this market offer 30 to 50 cards because showers often include mixed friend and family groups. Unique shuffled cards keep the game fair because everyone watches the same gift table, but the squares appear in different positions.",
+  },
+  {
+    heading: "Set the winning pattern before play",
+    body:
+      "Tell guests whether they need five in a row, four corners, an X pattern, picture frame, or blackout before the bride starts opening gifts. For shorter showers, one row or four corners keeps the game moving. For long gift openings, blackout can work if you have multiple small prizes and enough time to verify each winner.",
+  },
+  {
+    heading: "Use practical square ideas",
+    body:
+      "Strong bridal shower squares include towels, cookware, wine glasses, picture frame, gift card, candle, mixing bowls, sheet set, recipe book, honeymoon fund, bride laughs, happy tears, maid of honor story, honeymoon hint, family recipe, something blue, group photo, and thank you card.",
+  },
+  {
+    heading: "Prepare markers and small prizes",
+    body:
+      "Put pens, stickers, candy pieces, or small markers near the cards before guests sit down. Simple prizes such as candles, coffee cards, candy, mini champagne bottles, lotion, or spa gifts are enough because the game is meant to support the shower, not take over the event. If two guests call bingo at once, verify both cards and use a small tie prize or first verified card rule.",
+  },
+  {
+    heading: "Decide between blank and prefilled cards",
+    body:
+      "Blank bridal bingo cards are useful when guests should predict the gifts the bride will open. Prefilled cards are better when you want fast setup and less writing at the tables. For a large shower, prefilled unique cards save time; for a small shower, blank prediction cards create more conversation.",
+  },
+  {
+    heading: "Run the game during gift opening",
+    body:
+      "Hand out cards before the bride starts opening gifts. Guests mark squares as matching gifts appear, then call bingo when they complete the announced pattern. Ask the winner to read the marked gifts out loud so the host can confirm each gift has already been opened.",
+  },
+  {
+    heading: "Use an alternate version when gifts stay wrapped",
+    body:
+      "For display showers or no gift opening showers, use guest prompts, bridal trivia, couple facts, shower moments, or advice card themes instead of registry gifts. This keeps the game playable even when gifts are displayed on a table or opened later at home.",
+  },
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Bridal Shower Bingo Cards Printable Generator",
-  url: "https://mybingocard.com/bridal-shower-bingo",
-  description:
-    "Create custom printable bridal shower bingo cards. Custom squares, free PDF export, and digital play.",
-  applicationCategory: "GameApplication",
-  operatingSystem: "All",
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://mybingocard.com/bridal-shower-bingo#webpage",
+      name: "Bridal Shower Bingo Cards Printable - Gift Bingo Game",
+      url: "https://mybingocard.com/bridal-shower-bingo",
+      description:
+        "Create printable bridal shower bingo cards for gift opening, guest icebreakers, and shower games with clear rules and unique card layouts.",
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://mybingocard.com/bridal-shower-bingo#app",
+      name: "Bridal Shower Bingo Cards Printable Generator",
+      url: "https://mybingocard.com/bridal-shower-bingo",
+      description:
+        "Create custom printable bridal shower bingo cards with gift prediction squares, blank or prefilled card options, guest prompts, PDF export, and online play options.",
+      applicationCategory: "GameApplication",
+      operatingSystem: "All",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    },
+    {
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "How do you play bridal shower bingo?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Give each guest a card before gifts are opened. Guests mark a square when a matching gift, shower moment, or guest prompt happens, and the first player to complete the chosen pattern wins.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can bridal shower bingo use gift predictions?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. You can place registry items, household gifts, honeymoon gifts, and personal prompts on the card so guests can play during gift opening.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I make different cards for each shower guest?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. MyBingoCard can shuffle the same bridal shower square list into unique card layouts for guests.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How many bridal shower bingo cards should I print?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Print one card per guest plus a few extras for late RSVPs, hosts, or family members who decide to join during gift opening.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Should bridal shower bingo cards be blank or prefilled?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Blank cards are best when guests predict gifts before the bride opens them. Prefilled cards are better for fast setup, large showers, or host-led games with a call list.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "What prizes work for bridal shower bingo?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Simple prizes work best, such as candles, coffee cards, candy, mini champagne bottles, lotion, bath salts, or small spa gifts.",
+          },
+        },
+      ],
+    },
+    {
+      "@type": "HowTo",
+      name: "How to make bridal shower bingo cards",
+      step: [
+        { "@type": "HowToStep", position: 1, text: "Choose gift opening, find the guest, or classic shower bingo prompts." },
+        { "@type": "HowToStep", position: 2, text: "Customize the bridal shower squares to match the bride, registry, and guest list." },
+        { "@type": "HowToStep", position: 3, text: "Decide whether guests will use blank prediction cards or prefilled cards." },
+        { "@type": "HowToStep", position: 4, text: "Shuffle unique cards for guests and decide the winning pattern before the shower." },
+        { "@type": "HowToStep", position: 5, text: "Print the cards, prepare markers and prizes, then verify any bingo before awarding a prize." },
+        { "@type": "HowToStep", position: 6, text: "Export printable cards or use online links when guests will play on devices." },
+      ],
+    },
+  ],
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -64,7 +185,7 @@ export default function BridalShowerBingoPage() {
     <>
       <LandingPageTracker templateCategory="bridal-shower-bingo" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
-      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50">
+      <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50">
         <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
           <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
@@ -92,7 +213,7 @@ export default function BridalShowerBingoPage() {
                 Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500">Bridal Shower Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                Turn gift opening into a party game! Create unique bingo cards for every guest, export with free access, and celebrate the bride-to-be in style.
+                Turn gift opening into an easy shower game with cards for gift predictions, registry items, guest icebreakers, bridal trivia, and shower moments. Customize the squares, shuffle unique cards, and export printable PDFs when you are ready.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/create" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl font-bold text-lg hover:opacity-90 shadow-lg shadow-pink-500/30">
@@ -106,10 +227,27 @@ export default function BridalShowerBingoPage() {
           </div>
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-rose-500 to-pink-500 rounded-3xl p-12 text-center text-white mb-20">
-            <h2 className="text-3xl font-bold mb-4">She Said Yes! Now Make It Fun 💍</h2>
-            <p className="text-rose-100 text-lg mb-8">Bridal shower bingo is the #1 party game that keeps every guest engaged. Free to draft, then upgrade when you need to save or export.</p>
+            <h2 className="text-3xl font-bold mb-4">Gift Opening, Guest Bingo, or Classic Shower Play 💍</h2>
+            <p className="text-rose-100 text-lg mb-8">Use one card list for gift predictions, find the guest prompts, bridal trivia, or shower moments. Decide the winning pattern before the shower so guests know whether to play for one row, four corners, picture frame, or blackout.</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-rose-600 rounded-xl font-bold text-lg hover:bg-rose-50 transition-colors shadow-lg">Create Bridal Shower Bingo</Link>
           </div>
+
+          <section className="max-w-5xl mx-auto mb-20">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-bold text-slate-900 mb-3">Plan a Bridal Shower Bingo Game Guests Can Actually Follow</h2>
+              <p className="text-slate-600 text-lg leading-relaxed">
+                A good bridal shower bingo card does more than fill a grid. It tells guests what to watch for, keeps gift opening from feeling passive, and gives the host a simple way to run prizes without stopping the flow of the shower. Use blank cards for gift predictions, prefilled cards for faster setup, and online cards when guests will join from different places.
+              </p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              {bridalPlanningTips.map((tip) => (
+                <div key={tip.heading} className="bg-white rounded-2xl border border-rose-100 p-6 shadow-sm">
+                  <h3 className="text-xl font-bold text-slate-900 mb-3">{tip.heading}</h3>
+                  <p className="text-slate-600 leading-relaxed">{tip.body}</p>
+                </div>
+              ))}
+            </div>
+          </section>
 
           <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl font-bold text-slate-900 text-center mb-8">More Event Bingo Cards</h2>

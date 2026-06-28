@@ -84,7 +84,7 @@ function generateCardPageHTML(card: any, cardCells: string[], cardNum: number, t
             ">${isBlank ? "" : isFreeSpace ? "FREE" : cell.startsWith("__IMG__:") ? (() => { try { const d = JSON.parse(cell.slice(8)); const u = d.imageUrl?.startsWith("/") ? "https://mybingocard.com" + d.imageUrl : d.imageUrl; const lblStyle = d.fit === 'cover' ? 'position:relative;z-index:1;background:rgba(0,0,0,0.4);color:#fff;border-radius:3px;padding:1px 3px;' : ''; const lbl = d.label ? `<div style="font-size:0.65em;margin-top:2px;${lblStyle}">${escapeHtml(d.label)}</div>` : ""; if (d.fit === "cover") { return `<img src="${u}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;" />${lbl}`; } return `<img src="${u}" style="max-width:90%;max-height:${d.label ? '65%' : '85%'};object-fit:contain;" />${lbl}`; } catch { return escapeHtml(cellLabel); } })() : escapeHtml(cellLabel)}</div>`;
           }).join("")}
         </div>
-        <div class="footer">MyBingoCard.com</div>
+        <div class="footer">https://mybingocard.com</div>
       </div>
     </div>
   `;
@@ -186,7 +186,7 @@ export async function POST(
     if (!hasPremiumAccess(user)) {
       return NextResponse.json(
         {
-          error: "Sign in to use free printable batch exports.",
+          error: "Sign in and activate your account to use printable batch exports.",
           batchPurchaseRequired: false,
         },
         { status: 403 }

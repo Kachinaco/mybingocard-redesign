@@ -49,7 +49,7 @@ export async function POST(request: Request) {
           elapsedMs: honeypot.elapsedMs,
         },
       }).catch(() => {});
-      return NextResponse.json({ success: true, message: "Thanks! Check your email for your free templates." });
+      return NextResponse.json({ success: true, message: "Thanks! Check your email for your template links." });
     }
 
     const client = await clientPromise;
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
           reason: captureBlock.reason || "blocked_identity",
         },
       }).catch(() => {});
-      return NextResponse.json({ success: true, message: "Thanks! Check your email for your free templates." });
+      return NextResponse.json({ success: true, message: "Thanks! Check your email for your template links." });
     }
 
     const subscribers = await getEmailSubscribersCollection(db);
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
       },
     }).catch(() => {});
 
-    return NextResponse.json({ success: true, message: "Thanks! Check your email for your free templates." });
+    return NextResponse.json({ success: true, message: "Thanks! Check your email for your template links." });
   } catch (error) {
     console.error("Email capture error:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });

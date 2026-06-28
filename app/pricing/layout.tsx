@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Bingo Card Generator Pricing - Free Creator Tools & Free Batches",
+  title: "Bingo Card Generator Pricing and Access",
   description:
-    "Compare MyBingoCard pricing: free saved cards, templates, AI ideas, and image cells, plus free PDF exports, PNG exports, printable batch packs, share links, and live bingo hosting.",
+    "Compare MyBingoCard access for saved cards, templates, AI ideas, image cells, PDF exports, printable batches, share links, and live games.",
   alternates: {
     canonical: "https://mybingocard.com/pricing",
   },
   openGraph: {
-    title: "Bingo Card Generator Free Access | MyBingoCard",
+    title: "Bingo Card Generator Pricing | MyBingoCard",
     description:
-      "Create, save, customize, export, batch, share, and host live bingo games for free right now.",
+      "See what is included for custom bingo card creation, printable batches, player share links, and live bingo hosting.",
     url: "https://mybingocard.com/pricing",
     siteName: "MyBingoCard",
     type: "website",

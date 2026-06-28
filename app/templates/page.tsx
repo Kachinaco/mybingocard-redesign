@@ -665,7 +665,7 @@ export default function TemplatesPage() {
               </div>
               <h3 className="text-2xl font-bold text-slate-900 mb-3">Templates are loading</h3>
               <p className="text-slate-600 max-w-md mx-auto mb-6">
-                All templates are included for free. Start from a blank card while the gallery refreshes.
+                Template access is included right now. Start from a blank card while the gallery refreshes.
               </p>
               <Link
                 href="/create"

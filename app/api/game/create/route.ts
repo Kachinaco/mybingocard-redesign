@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     if (!hasPremiumAccess(user)) {
       return NextResponse.json(
         {
-          error: "Sign in to use free live game hosting.",
+          error: "Sign in and activate your account to use live game hosting.",
           upgradeRequired: true,
           trialRequired: false,
         },

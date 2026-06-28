@@ -206,6 +206,38 @@ function JsonLd({ page }: { page: SeoLandingPageData }) {
   );
 }
 
+function ToolkitSection({ page }: { page: SeoLandingPageData }) {
+  if (!page.toolkit) return null;
+
+  const accent = accentStyles[page.accent];
+
+  return (
+    <section className="py-20 bg-white border-y border-slate-100">
+      <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
+        <div className="grid lg:grid-cols-[0.8fr_1.2fr] gap-10 items-start">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-5">{page.toolkit.title}</h2>
+            <p className="text-slate-600 leading-relaxed">{page.toolkit.intro}</p>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {page.toolkit.items.map((item, index) => (
+              <div key={item.title} className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${accent.gradient} text-sm font-bold text-white`}>
+                    {index + 1}
+                  </span>
+                  <h3 className="text-lg font-bold text-slate-900">{item.title}</h3>
+                </div>
+                <p className="text-sm leading-relaxed text-slate-600">{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
   const accent = accentStyles[page.accent];
   const useThisListHref = buildUseThisListHref(page);
@@ -248,7 +280,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
                       Browse Templates
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-500">Free to create, save, customize, and export. free batches, sharing, and hosting are optional.</p>
+                  <p className="text-sm text-slate-500">Start with a draft, then unlock saving, exports, batches, sharing, or hosted games when the card is ready.</p>
                 </div>
                 <BingoPreview page={page} />
               </div>
@@ -267,8 +299,8 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
                 <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
                   <h3 className="text-lg font-bold text-slate-900 mb-4">What you can make</h3>
                   <ul className="space-y-3 text-sm text-slate-600">
-                    <li className="flex gap-3"><span className={accent.text}>✓</span><span>Free PDF exports for in-person games</span></li>
-                    <li className="flex gap-3"><span className={accent.text}>✓</span><span>free online play links for phones or laptops</span></li>
+                    <li className="flex gap-3"><span className={accent.text}>✓</span><span>Printable PDF card sets for in-person games</span></li>
+                    <li className="flex gap-3"><span className={accent.text}>✓</span><span>Online play links for phones or laptops</span></li>
                     <li className="flex gap-3"><span className={accent.text}>✓</span><span>Unique shuffled cards for groups and classes</span></li>
                     <li className="flex gap-3"><span className={accent.text}>✓</span><span>Reusable card themes you can edit later</span></li>
                   </ul>
@@ -334,6 +366,8 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
               </div>
             </div>
           </section>
+
+          <ToolkitSection page={page} />
 
           <section className="py-20 bg-slate-50 border-y border-slate-100">
             <div className="container mx-auto px-4 lg:px-8">
@@ -432,7 +466,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
                   <div className="space-y-5 text-slate-200">
                     <div>
                       <h3 className="font-bold text-white mb-1">Before the game</h3>
-                      <p>Build the card, remove weak squares, choose free export or free online play, and make enough unique cards for the group.</p>
+                      <p>Build the card, remove weak squares, choose print or online play, and make enough unique cards for the group.</p>
                     </div>
                     <div>
                       <h3 className="font-bold text-white mb-1">During the game</h3>
@@ -487,13 +521,13 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
             <div className="container mx-auto px-4 max-w-3xl">
               <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to make your card?</h2>
               <p className="text-slate-300 text-lg mb-8">
-                Start with a blank bingo card, customize the content, export it for free, then add free batches, sharing, or hosted play when needed.
+                Start with a blank bingo card, customize the content, then prepare printable cards, batch packs, sharing, or hosted play when needed.
               </p>
               <Link
                 href={useThisListHref}
                 className="inline-flex bg-white text-slate-900 px-9 py-4 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-colors"
               >
-                Start a Free Draft
+                Start a Draft
               </Link>
             </div>
           </section>

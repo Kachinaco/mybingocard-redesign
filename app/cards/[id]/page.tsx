@@ -490,7 +490,7 @@ export default function CardViewPage() {
         context: "owner_card",
       });
       await redirectToCheckout({
-        label: "Free sharing access",
+        label: "Sharing access",
         successPath: `/cards/${cardId}?next=share`,
       });
       return false;
@@ -819,7 +819,7 @@ export default function CardViewPage() {
   const batchActionLabel = batchLoading
     ? `Generating ${batchCount} cards...`
     : batchCheckoutLoading
-      ? "Opening free tools..."
+      ? "Opening activation tools..."
       : `Generate ${batchCount} Cards`;
   const handleBatchPrimaryAction = handleBatchGenerate;
   const sharePanel = card.isPublic && card.shareLink ? (
@@ -1039,7 +1039,7 @@ export default function CardViewPage() {
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <p className="text-xs font-black uppercase tracking-wide text-amber-700">
-                              {isPremiumBatchUser ? "Free PDF packs" : "Free PDF packs"}
+                              {isPremiumBatchUser ? "Included PDF packs" : "PDF packs"}
                             </p>
                             <h3 className="mt-1 text-lg font-black text-slate-950">
                               Generate printable cards
@@ -1336,7 +1336,7 @@ export default function CardViewPage() {
 
               {!userPlan?.canRemoveBranding && (
                 <div className="text-center mt-4">
-                  <p className="text-xs text-slate-400 mb-1">Created with MyBingoCard.com</p>
+                  <p className="text-xs text-slate-400 mb-1">Created with https://mybingocard.com</p>
                   <button onClick={() => redirectToCheckout()} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors">
                     Remove watermark →
                   </button>
@@ -1397,15 +1397,15 @@ export default function CardViewPage() {
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="text-[11px] font-black uppercase tracking-wide text-amber-700">
-                            {isPremiumBatchUser ? "Free PDF packs" : "Free PDF packs"}
+                            {isPremiumBatchUser ? "Included PDF packs" : "PDF packs"}
                           </p>
                           <p className="mt-0.5 text-xs text-slate-700">
-                            {isPremiumBatchUser ? "Included free." : `Selected: ${selectedBatchPrice}`}
+                            {isPremiumBatchUser ? "Included with your access." : `Selected: ${selectedBatchPrice}`}
                           </p>
                         </div>
                         {!isPremiumBatchUser && (
                           <div className="rounded-xl bg-white px-3 py-2 text-right text-slate-950 shadow-sm ring-1 ring-amber-200">
-                            <p className="text-[11px] font-black uppercase">{hasSelectedBatchPurchase ? "Free" : "Free"}</p>
+                            <p className="text-[11px] font-black uppercase">{hasSelectedBatchPurchase ? "Included" : "Price"}</p>
                             <p className="text-xl font-black">{hasSelectedBatchPurchase ? "$0" : selectedBatchPrice}</p>
                           </div>
                         )}

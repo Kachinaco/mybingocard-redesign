@@ -6,7 +6,7 @@ import SeoSupportBlock from "@/components/SeoSupportBlock";
 export const metadata: Metadata = {
   title: "Blog — Bingo Card Ideas, Tips & Guides",
   description:
-    "Discover bingo card ideas, tips, and step-by-step guides for weddings, baby showers, classrooms, parties, and holidays. Learn how to create the perfect custom bingo cards.",
+    "Bingo card ideas, tips, and guides for weddings, baby showers, classrooms, parties, and holidays. Learn how to create custom bingo cards.",
   alternates: {
     canonical: "https://mybingocard.com/blog",
   },
@@ -85,9 +85,67 @@ const posts = [
   },
 ];
 
+const blogPageSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": ["Blog", "CollectionPage"],
+      "@id": "https://mybingocard.com/blog#webpage",
+      url: "https://mybingocard.com/blog",
+      name: "Blog - Bingo Card Ideas, Tips & Guides",
+      description:
+        "Bingo card ideas, tips, and guides for weddings, baby showers, classrooms, parties, and holidays. Learn how to create custom bingo cards.",
+      isPartOf: {
+        "@id": "https://mybingocard.com/#website",
+      },
+      about: {
+        "@id": "https://mybingocard.com/#software",
+      },
+      mainEntity: {
+        "@id": "https://mybingocard.com/blog#itemlist",
+      },
+    },
+    {
+      "@type": "ItemList",
+      "@id": "https://mybingocard.com/blog#itemlist",
+      name: "MyBingoCard bingo card ideas and guides",
+      itemListElement: posts.map((post, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        url: `https://mybingocard.com/blog/${post.slug}`,
+        name: post.title,
+        description: post.excerpt,
+      })),
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://mybingocard.com/blog#breadcrumb",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: "https://mybingocard.com/",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Blog",
+          item: "https://mybingocard.com/blog",
+        },
+      ],
+    },
+  ],
+};
+
 export default function BlogPage() {
   return (
-    <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPageSchema) }}
+      />
+      <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
       <BlogTracker />
       {/* Navbar */}
       <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
@@ -196,7 +254,7 @@ export default function BlogPage() {
                 <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
               </Link>
               <p className="text-slate-500 max-w-sm leading-relaxed">
-                Free bingo draft editor for printable and online games, from classrooms to parties and weddings.
+                Bingo card maker for printable and online games, from classrooms to parties and weddings.
               </p>
             </div>
             <div>
@@ -223,6 +281,7 @@ export default function BlogPage() {
         </div>
       </footer>      <SeoSupportBlock slug="blog" />
 
-    </div>
+      </div>
+    </>
   );
 }

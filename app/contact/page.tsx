@@ -4,16 +4,97 @@ import ContactTracker from "./ContactTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Contact Us — MyBingoCard",
-  description: "Get in touch with the MyBingoCard team. We're here to help with questions, feedback, or support.",
+  title: "Contact MyBingoCard Support for Bingo Cards",
+  description: "Contact MyBingoCard support for help with custom bingo cards, PDF exports, printable batches, player share links, hosted games, billing, or account questions.",
   alternates: {
     canonical: "https://mybingocard.com/contact",
   },
 };
 
+const contactFaqItems = [
+  {
+    question: "How do I contact MyBingoCard support?",
+    answer:
+      "Email support@mybingocard.com for help with custom bingo cards, printable exports, batch packs, player share links, hosted games, account access, billing, or feedback.",
+  },
+  {
+    question: "How quickly does MyBingoCard respond?",
+    answer:
+      "MyBingoCard reads every support message and typically responds within 24 hours.",
+  },
+  {
+    question: "Can MyBingoCard help with account, billing, or refund questions?",
+    answer:
+      "Yes. Email support@mybingocard.com with account, billing, subscription, cancellation, or refund questions so support can review the situation.",
+  },
+  {
+    question: "Can MyBingoCard help with live game or player-link issues?",
+    answer:
+      "Yes. Support can help with hosted games, room codes, player links, printable exports, and other bingo card setup questions.",
+  },
+];
+
+const contactPageSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "ContactPage",
+      "@id": "https://mybingocard.com/contact#webpage",
+      url: "https://mybingocard.com/contact",
+      name: "Contact MyBingoCard Support",
+      description:
+        "Contact MyBingoCard support for help with custom bingo cards, PDF exports, printable batches, player share links, hosted games, billing, or account questions.",
+      isPartOf: {
+        "@id": "https://mybingocard.com/#website",
+      },
+      about: {
+        "@id": "https://mybingocard.com/#software",
+      },
+      mainEntity: {
+        "@id": "https://mybingocard.com/#organization",
+      },
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://mybingocard.com/contact#faq",
+      mainEntity: contactFaqItems.map((item) => ({
+        "@type": "Question",
+        name: item.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: item.answer,
+        },
+      })),
+    },
+    {
+      "@type": "BreadcrumbList",
+      "@id": "https://mybingocard.com/contact#breadcrumb",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: "https://mybingocard.com/",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Contact",
+          item: "https://mybingocard.com/contact",
+        },
+      ],
+    },
+  ],
+};
+
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageSchema) }}
+      />
+      <div className="min-h-screen bg-slate-50">
       <ContactTracker />
       <header className="bg-white border-b border-slate-200">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -40,7 +121,7 @@ export default function ContactPage() {
 
               <div>
                 <h2 className="text-xl font-bold text-slate-900 mb-3">Get in Touch</h2>
-                <p className="text-slate-600 leading-relaxed">We'd love to hear from you! Whether you have a question, feedback, or need help with your bingo cards, we're here for you.</p>
+                <p className="text-slate-600 leading-relaxed">We'd love to hear from you. Ask about custom bingo cards, printable exports, batch packs, player share links, hosted games, account access, billing, or feedback.</p>
               </div>
 
               <div>
@@ -54,11 +135,12 @@ export default function ContactPage() {
               <div>
                 <h2 className="text-xl font-bold text-slate-900 mb-3">Common Questions</h2>
                 <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-slate-600">How do I use free access? — Create an account and start from the Create page</li>
+                  <li className="text-slate-600">How do I activate my account? — Create an account and start from the Create page</li>
                   <li className="text-slate-600">How do I cancel my subscription? — Go to Settings and click Manage Subscription</li>
                   <li className="text-slate-600">Can I get a refund? — Email us and we'll work something out</li>
                   <li className="text-slate-600">How do I export my cards? — Open any card and click the Export tab</li>
                   <li className="text-slate-600">How do I host a live game? — Open a card and click "Host Live Game" in the Play tab</li>
+                  <li className="text-slate-600">How do players join? — Send the room code or player link from your hosted game</li>
                 </ul>
               </div>
 
@@ -70,6 +152,7 @@ export default function ContactPage() {
         <p>&copy; 2026 MyBingoCard. All rights reserved.</p>
       </footer>      <SeoSupportBlock slug="contact" />
 
-    </div>
+      </div>
+    </>
   );
 }

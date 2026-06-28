@@ -4,36 +4,118 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Icebreaker Bingo Cards — Free People Bingo & Get to Know You Bingo | MyBingoCard",
+  title: "Icebreaker Bingo Cards Printable: Human Bingo",
   description:
-    "Create icebreaker bingo cards for team meetings, classrooms, and networking events. Custom human bingo generator with get to know you questions, people bingo cards, and printable PDF export.",
+    "Create printable icebreaker bingo cards for classrooms, onboarding, networking events, and team meetings. Add human bingo prompts and play online.",
   alternates: {
     canonical: "https://mybingocard.com/icebreaker-bingo",
   },
 };
 
 const icebreakerSquares = [
-  "Same Birthday Month", "Has a Pet", "Speaks Two Languages", "Been Skydiving", "FREE",
-  "Morning Person", "Plays Guitar", "Has Twins", "Loves Cooking", "Night Owl",
-  "Marathon Runner", "Book Worm", "World Traveler", "Writes Poetry", "Tea Over Coffee",
-  "Left Handed", "Has a Tattoo", "Surfs", "Vintage Collector", "Plant Parent",
-  "Board Gamer", "Early Bird", "Podcast Fan", "Sings in Shower", "Makes Own Bread",
+  "Same Birthday Month", "Has a Pet", "Speaks Two Languages", "New Teammate", "FREE",
+  "Morning Person", "Plays Music", "Loves Cooking", "Read This Month", "Night Owl",
+  "Ran a Race", "First Day Here", "Visited Another Country", "Writes for Fun", "Tea Over Coffee",
+  "Left Handed", "Has a Hidden Talent", "Likes Hiking", "Plant Parent", "Board Gamer",
+  "Podcast Fan", "Knows Sign Language", "Mentor Moment", "Favorite Color Match", "Can Teach a Skill",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Icebreaker Bingo Card Generator",
-  url: "https://mybingocard.com/icebreaker-bingo",
-  description:
-    "Custom icebreaker bingo card generator. Create printable people bingo cards for team meetings, classrooms, onboarding, and networking events — get to know you bingo with custom questions and free PDF export.",
-  applicationCategory: "GameApplication",
-  operatingSystem: "All",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://mybingocard.com/icebreaker-bingo#webpage",
+      url: "https://mybingocard.com/icebreaker-bingo",
+      name: "Icebreaker Bingo Cards Printable: Human Bingo",
+      description:
+        "Create printable icebreaker bingo cards for classrooms, onboarding, networking events, and team meetings. Add human bingo prompts and play online.",
+      isPartOf: {
+        "@type": "WebSite",
+        name: "MyBingoCard",
+        url: "https://mybingocard.com",
+      },
+      about: [
+        { "@type": "Thing", name: "icebreaker bingo" },
+        { "@type": "Thing", name: "human bingo" },
+        { "@type": "Thing", name: "get to know you bingo" },
+        { "@type": "Thing", name: "people bingo questions" },
+      ],
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://mybingocard.com/icebreaker-bingo#app",
+      name: "Icebreaker Bingo Card Generator",
+      url: "https://mybingocard.com/icebreaker-bingo",
+      description:
+        "Custom icebreaker bingo card generator for human bingo, get to know you games, classrooms, onboarding, networking events, and team meetings.",
+      applicationCategory: "GameApplication",
+      operatingSystem: "All",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://mybingocard.com/icebreaker-bingo#faq",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "How do you play icebreaker bingo?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Give each participant a unique card and ask them to find people who match the prompts. Players write names, mark squares, and win with one row, four corners, or blackout.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "What are good icebreaker bingo prompts?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Use safe prompts about pets, hobbies, languages, travel, favorite books, hidden talents, shared interests, team roles, and first day experiences.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can icebreaker bingo work for remote groups?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Share online cards before a Zoom, Teams, Slack, or classroom video session and let players ask questions in breakout rooms or chat.",
+          },
+        },
+      ],
+    },
+    {
+      "@type": "HowTo",
+      "@id": "https://mybingocard.com/icebreaker-bingo#howto",
+      name: "How to make icebreaker bingo cards",
+      description: "Create printable or online human bingo cards for group introductions.",
+      step: [
+        {
+          "@type": "HowToStep",
+          name: "Choose the group setting",
+          text: "Pick classroom, onboarding, conference, networking, camp, club, or team meeting prompts.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Add safe conversation prompts",
+          text: "Use human bingo questions that are easy to answer and comfortable for mixed groups.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Shuffle unique cards",
+          text: "Generate different layouts so participants need to talk to multiple people instead of copying one card.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Print or share",
+          text: "Export printable PDFs or share online cards for remote and hybrid groups.",
+        },
+      ],
+    },
+  ],
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -131,7 +213,7 @@ export default function IcebreakerBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Break the ice and get people talking with custom icebreaker bingo cards — an easy get to know you activity for groups! Our people bingo draft editor makes it easy to create human bingo cards where players mingle, ask questions, and find someone who matches each square. Perfect for first-day-of-school activities, new employee onboarding, corporate team building, networking events, and conference mixers. Each card is uniquely shuffled so every participant gets a different layout, encouraging everyone to talk to as many people as possible. Export printable PDF cards for free or add free digital links for in-person events and remote teams. With customizable questions, group-size flexibility, and templates for classrooms, offices, and social gatherings, our icebreaker bingo generator turns awkward introductions into genuine connections.
+                    Create printable icebreaker bingo cards for classrooms, onboarding, networking events, conference mixers, clubs, camps, and team meetings. Add human bingo prompts such as pets, languages, hobbies, travel, favorite books, hidden talents, shared interests, and first day facts, then shuffle unique cards so every participant has a different layout. Export PDFs for in person mingling or share online cards for Zoom, Teams, Slack, and hybrid groups.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -144,10 +226,10 @@ export default function IcebreakerBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      See Free Access
+                      See Activation
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Any group size · free PDF export</p>
+                  <p className="text-sm text-slate-400">Draft tools · Any group size · Premium export</p>
                 </div>
 
                 <div className="relative">
@@ -161,19 +243,19 @@ export default function IcebreakerBingoPage() {
           <section className="py-20 bg-white">
             <div className="container mx-auto px-4 lg:px-8">
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
-                The fastest way to connect any group
+                Icebreaker bingo for classrooms, onboarding, networking, and teams
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                Icebreaker bingo gets people moving, talking, and laughing — no awkward silence required.
+                Use human bingo prompts that help people learn names, find shared interests, and start safe conversations.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
-                  { icon: "🤝", title: "Break the Ice Fast", desc: "Skip the awkward introductions. People bingo gets everyone mingling and discovering shared interests in minutes." },
-                  { icon: "✏️", title: "Custom Questions", desc: "Add your own get-to-know-you prompts — hobbies, experiences, fun facts, or industry-specific icebreakers." },
-                  { icon: "👥", title: "Works for Any Group Size", desc: "From small teams of 10 to conferences of 500 — icebreaker bingo scales effortlessly to any audience." },
-                  { icon: "🖨️", title: "Print or Digital", desc: "Export PDF cards for free or add free digital links for remote and hybrid teams." },
-                  { icon: "💼", title: "Perfect for Onboarding", desc: "New hire orientation, first day of class, or team kickoff — human bingo makes everyone feel welcome fast." },
-                  { icon: "🎓", title: "Great for Classrooms", desc: "Teachers love people bingo for back-to-school activities. Students learn names and build friendships through play." },
+                  { icon: "🤝", title: "Safe Conversation Starters", desc: "Use prompts that are friendly for students, new hires, volunteers, conference guests, and mixed adult groups." },
+                  { icon: "✏️", title: "Custom Human Bingo Questions", desc: "Add your own find someone who prompts for hobbies, work roles, hometowns, skills, books, travel, or goals." },
+                  { icon: "👥", title: "Works for Any Group Size", desc: "Run a quick five minute welcome activity or a longer mixer for large classrooms, retreats, and conferences." },
+                  { icon: "🖨️", title: "Printable and Online Cards", desc: "Export PDFs for rooms and tables or share online cards with remote participants before the session starts." },
+                  { icon: "💼", title: "Onboarding Ready", desc: "Help new employees meet teammates, find mentors, learn team roles, and feel included on the first day." },
+                  { icon: "🎓", title: "Classroom Friendly", desc: "Use age appropriate prompts so students learn names, interests, and classroom routines through a simple game." },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
                     <div className="text-4xl mb-4">{f.icon}</div>
@@ -192,17 +274,17 @@ export default function IcebreakerBingoPage() {
             </div>
             <div className="container mx-auto px-4 relative z-10 text-center">
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-                Turn strangers into friends in five minutes
+                Start the room with real conversation
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft icebreaker bingo cards in under 2 minutes, then start creating, saving, exporting, and sharing.
+                Draft icebreaker bingo cards for classrooms, onboarding, networking, and team events, then print or share when you are ready.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-sky-50 transition-all duration-300 shadow-xl">
                   Start a Free Icebreaker Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Free Access
+                  See Activation
                 </Link>
               </div>
             </div>
@@ -224,7 +306,7 @@ export default function IcebreakerBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  The free bingo draft editor for icebreakers, team building, classrooms, and every occasion.
+                  The bingo card maker for icebreakers, team building, classrooms, and every occasion.
                 </p>
               </div>
               <div>

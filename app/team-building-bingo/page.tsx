@@ -4,36 +4,118 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Team Building Bingo Cards Generator — MyBingoCard",
+  title: "Team Building Bingo Cards Printable: Workplace Game",
   description:
-    "Create custom team building bingo cards for corporate events, icebreakers, and workplace activities. Printable team building bingo card generator with custom squares for offsites, retreats, and team bonding.",
+    "Create printable team building bingo cards for corporate events, retreats, onboarding, office icebreakers, and remote teams. Export PDFs or play online.",
   alternates: {
     canonical: "https://mybingocard.com/team-building-bingo",
   },
 };
 
 const teamSquares = [
-  "Ice Breaker", "Team Name", "Trust Fall", "Group Laugh", "FREE",
-  "New Friend", "High Five", "Team Cheer", "Shared Snack", "Good Idea",
-  "Inside Joke", "Team Photo", "Volunteer", "Name Game", "Creative Task",
-  "Problem Solved", "Collaboration", "Team Win", "Surprise Skill", "Coffee Break",
-  "Brainstorm", "Mentor Moment", "Goal Set", "Group Hug", "Celebration",
+  "New Teammate", "Shared Goal", "Team Photo", "Problem Solved", "FREE",
+  "Coffee Chat", "Hidden Talent", "High Five", "Brainstorm", "Quick Win",
+  "Cross Team Help", "Mentor Moment", "Group Challenge", "Fun Fact", "Team Cheer",
+  "Leadership Tip", "Project Win", "Lunch Buddy", "Creative Idea", "Remote Teammate",
+  "Company Value", "Workshop Prompt", "Retreat Activity", "Action Item", "Celebration",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Team Building Bingo Cards Generator",
-  url: "https://mybingocard.com/team-building-bingo",
-  description:
-    "Custom team building bingo draft generator. Create, customize, and print bingo cards for corporate icebreakers, offsites, and workplace team bonding in minutes.",
-  applicationCategory: "GameApplication",
-  operatingSystem: "All",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
+  "@graph": [
+    {
+      "@type": "WebPage",
+      "@id": "https://mybingocard.com/team-building-bingo#webpage",
+      url: "https://mybingocard.com/team-building-bingo",
+      name: "Team Building Bingo Cards Printable: Workplace Game",
+      description:
+        "Create printable team building bingo cards for corporate events, retreats, onboarding, office icebreakers, and remote teams. Export PDFs or play online.",
+      isPartOf: {
+        "@type": "WebSite",
+        name: "MyBingoCard",
+        url: "https://mybingocard.com",
+      },
+      about: [
+        { "@type": "Thing", name: "team building bingo" },
+        { "@type": "Thing", name: "workplace bingo" },
+        { "@type": "Thing", name: "icebreaker bingo" },
+        { "@type": "Thing", name: "corporate retreat games" },
+      ],
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://mybingocard.com/team-building-bingo#app",
+      name: "Team Building Bingo Cards Generator",
+      url: "https://mybingocard.com/team-building-bingo",
+      description:
+        "Custom team building bingo draft generator for workplace icebreakers, onboarding activities, corporate retreats, remote team calls, and office meetings.",
+      applicationCategory: "GameApplication",
+      operatingSystem: "All",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://mybingocard.com/team-building-bingo#faq",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "How do you play team building bingo?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Give each participant a unique bingo card, ask them to find teammates or moments that match the squares, and award a win for one row, four corners, or blackout.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "What should I put on team building bingo cards?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Use prompts for fun facts, company values, shared goals, project wins, hidden talents, coffee chats, workshop moments, and simple challenges that fit your group.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can team building bingo work for remote teams?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Share online cards in Slack, Teams, Zoom, or another meeting tool so remote and hybrid employees can play without printed handouts.",
+          },
+        },
+      ],
+    },
+    {
+      "@type": "HowTo",
+      "@id": "https://mybingocard.com/team-building-bingo#howto",
+      name: "How to make team building bingo cards",
+      description: "Create printable or online team building bingo cards for work events.",
+      step: [
+        {
+          "@type": "HowToStep",
+          name: "Choose workplace prompts",
+          text: "Pick team building prompts, icebreaker questions, company values, retreat moments, or onboarding activities.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Customize the card",
+          text: "Edit the title, square list, free space, and prize rules for your team.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Shuffle unique cards",
+          text: "Generate different layouts for teams or participants and choose one row, four corners, or blackout as the win condition.",
+        },
+        {
+          "@type": "HowToStep",
+          name: "Print or share",
+          text: "Export printable PDFs or share online cards for remote and hybrid teams.",
+        },
+      ],
+    },
+  ],
 };
 
 function BingoGrid({ squares, label, gradient }: { squares: string[]; label: string; gradient: string }) {
@@ -122,7 +204,7 @@ export default function TeamBuildingBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Kick off your next corporate event with custom team building bingo cards that turn awkward icebreakers into genuinely fun group activities. Our workplace bingo draft editor creates unique cards filled with team bonding moments that encourage collaboration and laughter. Every card is randomly shuffled so each team member gets a different layout, sparking conversation and friendly competition across departments. Export clean PDFs for free or add free digital cards for in-person offsites, retreats, and remote teams on video calls. Whether you&apos;re onboarding new hires, planning a company retreat, or running a weekly team meeting icebreaker, create your corporate bingo cards in minutes.
+                    Create printable team building bingo cards for corporate events, retreats, onboarding, workshops, office icebreakers, and remote team calls. Add prompts for shared goals, fun facts, company values, team challenges, hidden talents, coffee chats, and project wins, then shuffle unique cards so each participant has a different layout. Export PDFs for conference rooms and offsites or share online cards for Slack, Teams, Zoom, and hybrid events.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -135,10 +217,10 @@ export default function TeamBuildingBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      See Free Access
+                      See Activation
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
+                  <p className="text-sm text-slate-400">Draft tools · Premium saves and exports</p>
                 </div>
 
                 <div className="relative">
@@ -156,42 +238,42 @@ export default function TeamBuildingBingoPage() {
           <section className="py-20 bg-white">
             <div className="container mx-auto px-4 lg:px-8">
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
-                Why use our team building bingo maker?
+                Team building bingo for retreats, onboarding, and workplace icebreakers
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                Everything you need for the perfect workplace icebreaker — from printable cards to remote-friendly play.
+                Use one card maker for corporate retreats, team meetings, new hire activities, remote calls, and conference room games.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
                   {
                     icon: "🤝",
-                    title: "Team-Focused Squares",
-                    desc: "Pre-loaded with workplace bonding moments like brainstorms, high fives, and surprise skills — or add your own.",
+                    title: "Workplace Safe Prompts",
+                    desc: "Use neutral squares that encourage conversation, collaboration, and light competition without embarrassing anyone.",
                   },
                   {
                     icon: "🖨️",
-                    title: "PDF Exports",
-                    desc: "Export clean PDFs for free for conference rooms, offsite packets, or desk handouts.",
+                    title: "Printable PDFs",
+                    desc: "Export cards for offsite packets, conference rooms, training rooms, retreat tables, and new hire activities.",
                   },
                   {
                     icon: "🔀",
-                    title: "Unique Every Card",
-                    desc: "Every team member gets a different shuffled card, so the whole department can play without duplicate winners.",
+                    title: "Unique Team Layouts",
+                    desc: "Shuffle each card so employees, small groups, or departments get different layouts from the same prompt list.",
                   },
                   {
                     icon: "💻",
-                    title: "Remote Team Ready",
-                    desc: "Add free links on Slack or Teams so remote employees can play along on video calls — no printing needed.",
+                    title: "Remote Team Play",
+                    desc: "Share online cards in Slack, Teams, Zoom, or a calendar invite so remote employees can join without handouts.",
                   },
                   {
                     icon: "✏️",
-                    title: "Custom Challenges",
-                    desc: "Add your own team-specific challenges, company values, or inside jokes. Make it uniquely yours.",
+                    title: "Custom Company Culture",
+                    desc: "Add company values, team language, department goals, workshop prompts, or activity themes for your event.",
                   },
                   {
                     icon: "💸",
-                    title: "Free Drafts for Your Team",
-                    desc: "Create team building bingo cards for free. Save, export, and batch cards without budget approval; player links and live hosting are free right now.",
+                    title: "Simple Prize Rules",
+                    desc: "Choose one row, four corners, blackout, or a timed challenge so the game fits a short meeting or a full retreat.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -211,17 +293,17 @@ export default function TeamBuildingBingoPage() {
             </div>
             <div className="container mx-auto px-4 relative z-10 text-center">
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-                Ready to energize your next team event?
+                Ready for a better team activity?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft your team building bingo cards in under 2 minutes, then start creating, saving, exporting, and sharing — works for in-person offsites and remote teams alike.
+                Draft team building bingo cards for retreats, onboarding, meetings, and remote teams, then print or share when you are ready.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-blue-50 transition-all duration-300 shadow-xl">
                   Create Team Building Bingo Cards
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Free Access
+                  See Activation
                 </Link>
               </div>
             </div>

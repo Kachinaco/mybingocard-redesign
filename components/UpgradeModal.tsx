@@ -81,28 +81,28 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
 
   const reasonContent = {
     card_limit: {
-      title: "Everything Is Free Right Now",
-      description: "Printable batches, direct player sharing, and hosted live bingo events are included for all users while checkout is disabled.",
+      title: "Activate Premium Tools",
+      description: "Printable batches, direct player sharing, and hosted live bingo events unlock after account activation.",
       features: ["Printable batches up to 500 cards", "Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer"],
     },
     premium_template: {
-      title: "Everything Is Free Right Now",
-      description: "All templates, printable batches, direct player sharing, and hosted live bingo events are included right now.",
+      title: "Activate Premium Tools",
+      description: "Templates, printable batches, direct player sharing, and hosted live bingo events unlock after account activation.",
       features: ["Printable batches up to 500 cards", "Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer"],
     },
     ai_generate: {
-      title: "Everything Is Free Right Now",
-      description: "AI generation, direct player sharing, and hosted live bingo events are included for signed-in users right now.",
+      title: "Activate Premium Tools",
+      description: "AI generation, direct player sharing, and hosted live bingo events unlock after account activation.",
       features: ["Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer", "Cleaner shared card experience"],
     },
     batch_generate: {
-      title: "Everything Is Free Right Now",
-      description: "Printable batches, direct player sharing, and hosted live bingo events are included right now.",
+      title: "Activate Premium Tools",
+      description: "Printable batches, direct player sharing, and hosted live bingo events unlock after account activation.",
       features: ["Printable batches up to 500 cards", "Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer"],
     },
     modal: {
-      title: "Everything Is Free Right Now",
-      description: "Creation, saving, exports, templates, images, AI, batches, direct sharing, and hosted bingo events are free right now.",
+      title: "Activate Premium Tools",
+      description: "Creation, saving, exports, templates, images, AI, batches, direct sharing, and hosted bingo events unlock after account activation.",
       features: ["Printable batches up to 500 cards", "Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer"],
     },
   }[reason];
@@ -195,14 +195,14 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
                 disabled={loading}
                 className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-indigo-200 transition-all disabled:opacity-70"
               >
-                {loading ? "Loading..." : "Start Creating Free"}
+                {loading ? "Loading..." : "Start Creating"}
               </button>
               <button
                 onClick={handleUpgrade}
                 disabled={loading}
                 className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-all disabled:opacity-70 border border-slate-200"
               >
-                {loading ? "Loading..." : "Use Free Tools"}
+                {loading ? "Loading..." : "Use Premium Tools"}
               </button>
               </div>
               <p className="text-center text-xs text-slate-400 mt-3">No trial, card, or payment is needed while checkout is disabled.</p>

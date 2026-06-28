@@ -15,7 +15,7 @@ export default function PremiumCheckoutButton({
   className,
   successPath,
   source,
-  label = "Continue Free",
+  label = "Continue",
 }: PremiumCheckoutButtonProps) {
   const [loading, setLoading] = useState(false);
 
@@ -30,7 +30,7 @@ export default function PremiumCheckoutButton({
       });
 
       await redirectToCheckout({
-        label: "All tools are free right now",
+        label: "Activate premium tools",
         successPath,
       });
     } finally {

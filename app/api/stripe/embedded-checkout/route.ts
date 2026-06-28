@@ -49,6 +49,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     free: true,
     redirectUrl: sanitizeReturnPath(returnPath, "/dashboard?success=true&free=1"),
-    message: "Checkout is disabled because all MyBingoCard features are free right now.",
+    message: "Checkout is currently disabled. Continue to your dashboard to finish setup.",
   });
 }
