@@ -38,29 +38,29 @@ const PLAN_ROWS = [
   ["Batch generation", "Up to 500", "Up to 500", "Up to 500"],
   ["Share links", "Yes", "Yes", "Yes"],
   ["Live event hosting", "Yes", "Yes", "Yes"],
-  ["Billing", "$0 while checkout is paused", "$7.99/mo when checkout is active", "$29.99 when checkout is active"],
+  ["Access", "Included", "Included", "Included"],
 ];
 
 const FAQ_ITEMS = [
   {
     question: "What can I do on the free plan?",
     answer:
-      "You can draft custom bingo cards with text or image cells, use templates, choose 3x3, 4x4, or 5x5 grids, and try AI-powered square ideas. Checkout is currently paused, so advanced tools may be included during this period.",
+      "You can draft custom bingo cards with text or image cells, use templates, choose 3x3, 4x4, or 5x5 grids, and try AI-powered square ideas. Current access also includes exports, batch generation, sharing, and hosted games while MyBingoCard is in its early public release.",
   },
   {
-    question: "What is paid now?",
+    question: "What access is included now?",
     answer:
-      "Checkout is currently paused. If paid checkout is active later, Premium covers printable batches, player share links, email sharing, and hosted live bingo rooms.",
+      "The current public release includes Premium creation tools, printable batches, player share links, email sharing, and hosted live bingo rooms. If paid plans are introduced later, pricing will be shown clearly before any purchase.",
   },
   {
-    question: "Can I pay once instead of subscribing?",
+    question: "Will paid plans return?",
     answer:
-      "The lifetime option is currently paused with checkout. When active, lifetime access is intended for hosts who want one-time access instead of a monthly plan.",
+      "Paid plans may return as optional access for repeat hosts, larger groups, or higher-volume use. The site will always show current pricing and terms before asking for payment.",
   },
   {
-    question: "Can I cancel monthly Premium?",
+    question: "Can existing subscribers manage billing?",
     answer:
-      "When monthly Premium checkout is active, subscribers can manage or cancel from account settings. Checkout is currently paused, so new users are not charged through this page.",
+      "Yes. Existing subscribers can manage or cancel their subscription from account settings. New users are not charged by this pricing page unless a checkout flow displays a clear price first.",
   },
 ];
 
@@ -125,7 +125,7 @@ export default function PricingPage() {
 
         <section className="text-center mb-16">
           <div className="inline-block px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-bold uppercase tracking-wide mb-6">
-            Draft First, Activate When Ready
+            Draft First, Use More When Ready
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
             Compare bingo card creation, print, and hosting access
@@ -159,9 +159,9 @@ export default function PricingPage() {
               <p className="text-sm text-slate-500 mb-6">Built for printable sets, player links, email sharing, and hosted live bingo rooms.</p>
               <div className="flex items-baseline gap-1 mb-8">
                 <span className="text-5xl font-black text-slate-900 tracking-tight">$0</span>
-                <span className="text-slate-500 font-medium">right now</span>
+                <span className="text-slate-500 font-medium">included</span>
               </div>
-              <p className="-mt-5 mb-6 text-sm font-semibold text-indigo-600">Included while checkout is paused</p>
+              <p className="-mt-5 mb-6 text-sm font-semibold text-indigo-600">Included in the current public release</p>
               <PlanFeatureList features={PREMIUM_FEATURES} />
             </div>
             <div className="p-8 pt-0 mt-auto">
@@ -180,12 +180,12 @@ export default function PricingPage() {
             </div>
             <div className="p-8 flex-grow">
               <h2 className="text-2xl font-bold text-slate-900 mb-2">Lifetime Access</h2>
-              <p className="text-sm text-slate-500 mb-6">A one-time access option for repeat hosts when checkout is active.</p>
+              <p className="text-sm text-slate-500 mb-6">A simple access path for repeat hosts who want the full toolset.</p>
               <div className="flex items-baseline gap-1 mb-8">
                 <span className="text-5xl font-black text-slate-900 tracking-tight">$0</span>
-                <span className="text-slate-500 font-medium">right now</span>
+                <span className="text-slate-500 font-medium">included</span>
               </div>
-              <PlanFeatureList features={[...PREMIUM_FEATURES, "One-time access when checkout is active"]} />
+              <PlanFeatureList features={[...PREMIUM_FEATURES, "Current public-release access"]} />
             </div>
             <div className="p-8 pt-0 mt-auto">
               <PricingCheckoutButton

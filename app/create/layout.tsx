@@ -63,7 +63,7 @@ const createPageSchema = {
         price: "0",
         priceCurrency: "USD",
         description:
-          "Drafting and editor access are included while checkout is paused; activation tools are available when a game is ready for print, sharing, or hosting.",
+          "Drafting, editor access, exports, sharing, and hosted bingo tools are included in the current public release.",
       },
     },
     {

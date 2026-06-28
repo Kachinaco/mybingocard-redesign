@@ -87,6 +87,55 @@ const createPageGeneratorLinks = [
   },
 ];
 
+const createPageUseCases = [
+  {
+    title: "Classroom vocabulary review",
+    copy: "Paste a spelling list, sight words, state capitals, science terms, or reading prompts into the grid. Use a 5x5 board for a full lesson review, keep the free space on for younger students, and print shuffled cards so each student has a different layout.",
+    examples: ["sight words", "multiplication facts", "state capitals", "book characters"],
+  },
+  {
+    title: "Baby shower and bridal shower games",
+    copy: "Create gift bingo, prediction bingo, advice bingo, or guest bingo cards before the party. Add names, registry items, inside jokes, or simple picture squares, then prepare a printable batch for tables or a phone-friendly share link.",
+    examples: ["gift bingo", "prediction squares", "guest names", "party moments"],
+  },
+  {
+    title: "Work meetings and team events",
+    copy: "Build office bingo, icebreaker bingo, onboarding bingo, or conference bingo with prompts that fit your group. Keep the language specific to your team so the cards feel original instead of generic.",
+    examples: ["icebreaker prompts", "meeting phrases", "training topics", "conference moments"],
+  },
+  {
+    title: "Fundraisers and community nights",
+    copy: "Prepare printable cards for school fundraisers, church events, senior centers, libraries, and community rooms. Use batch generation for larger groups and caller tools when one person is running the event from a laptop.",
+    examples: ["prize rounds", "sponsor words", "theme nights", "caller lists"],
+  },
+];
+
+const createPageSteps = [
+  "Choose a blank board or start from a template that matches the event.",
+  "Set the grid size to 3x3, 4x4, or 5x5 and decide whether the center square should be free.",
+  "Add text, numbers, prompts, names, or image cells that are specific to your players.",
+  "Preview the card, adjust colors and labels, then create a printable batch or share link.",
+];
+
+const createPageFaqItems = [
+  {
+    question: "What should I put on a bingo card?",
+    answer: "Use short, specific squares your players can recognize quickly. Good squares include vocabulary words, gift items, party moments, names, meeting phrases, scavenger prompts, song titles, or event-specific actions.",
+  },
+  {
+    question: "How many squares do I need?",
+    answer: "A 3x3 card needs 9 squares, a 4x4 card needs 16, and a 5x5 card needs 25. For unique shuffled cards, add more words than the grid requires so each player receives a different mix.",
+  },
+  {
+    question: "Can I make cards for people playing online?",
+    answer: "Yes. You can build the card in the browser, prepare player links, and use hosted bingo tools for remote classes, virtual parties, or online team events.",
+  },
+  {
+    question: "Can I print cards instead?",
+    answer: "Yes. MyBingoCard supports printable cards and batch packs, so a teacher, host, or event organizer can create a full group set from one card idea.",
+  },
+];
+
 function CreatePageGeneratorLinkSection({ className = "" }: { className?: string }) {
   return (
     <section
@@ -127,6 +176,79 @@ function CreatePageGeneratorLinkSection({ className = "" }: { className?: string
             </Link>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function CreatePageGuideSection() {
+  return (
+    <section className="mx-auto mt-10 max-w-6xl rounded-3xl border border-slate-200 bg-white px-5 py-8 shadow-sm md:px-8">
+      <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-[#007AFF]">
+            Planning guide
+          </p>
+          <h2 className="mt-3 text-2xl font-black text-slate-900 md:text-3xl">
+            Build a card that matches the event, not just a generic grid.
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-slate-600 md:text-base">
+            MyBingoCard works best when the squares are specific to the people
+            playing. A teacher might use vocabulary words and definitions. A
+            shower host might use gift items, guest names, or predictions. A
+            team lead might use onboarding topics, meeting phrases, or
+            conference moments. Start with the event, then choose the grid size
+            and output format that fits the group.
+          </p>
+          <ol className="mt-6 space-y-3">
+            {createPageSteps.map((step, index) => (
+              <li key={step} className="flex gap-3 text-sm leading-6 text-slate-600">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-black text-indigo-700">
+                  {index + 1}
+                </span>
+                <span>{step}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {createPageUseCases.map((item) => (
+            <article key={item.title} className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+              <h3 className="text-base font-bold text-slate-900">{item.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{item.copy}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {item.examples.map((example) => (
+                  <span key={example} className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">
+                    {example}
+                  </span>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CreatePageFaqSection() {
+  return (
+    <section className="mx-auto mt-10 max-w-6xl rounded-3xl border border-slate-200 bg-white px-5 py-8 shadow-sm md:px-8">
+      <div className="max-w-3xl">
+        <p className="text-xs font-bold uppercase tracking-wide text-[#007AFF]">
+          Bingo card questions
+        </p>
+        <h2 className="mt-3 text-2xl font-black text-slate-900 md:text-3xl">
+          Practical answers before you open the editor.
+        </h2>
+      </div>
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        {createPageFaqItems.map((item) => (
+          <article key={item.question} className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+            <h3 className="text-base font-bold text-slate-900">{item.question}</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{item.answer}</p>
+          </article>
+        ))}
       </div>
     </section>
   );
@@ -1784,7 +1906,7 @@ function CreateCardContent() {
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to keep creating</h2>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Saving, exports, templates, images, and AI are included while checkout is paused. Printable batch packs, share links, and hosted bingo events are activation tools when your game is ready.
+                Saving, exports, templates, images, and AI are included in the current public release. Printable batch packs, share links, and hosted bingo events are available when your game is ready.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
@@ -2864,10 +2986,12 @@ export default function CreateCardPage() {
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Build bingo cards for classrooms, baby showers, weddings, parties, and team events. Customize every square, then unlock printable files, share links, or hosted bingo events when needed.</p>
             <div className="mt-8 flex flex-wrap gap-3 text-sm font-semibold">
               <Link href="/templates" className="rounded-md bg-[#007AFF] px-4 py-2 text-white">Browse Templates</Link>
-              <Link href="/pricing" className="rounded-md border border-slate-300 px-4 py-2 text-slate-700">See activation</Link>
+              <Link href="/pricing" className="rounded-md border border-slate-300 px-4 py-2 text-slate-700">See access</Link>
             </div>
           </div>
           <CreatePageGeneratorLinkSection className="mt-12" />
+          <CreatePageGuideSection />
+          <CreatePageFaqSection />
         </main>
       </div>
     )}>

@@ -63,7 +63,7 @@ export default function TermsPage() {
                 <h2 className="text-xl font-bold text-slate-900 mb-3">Account Access</h2>
                 <ul className="space-y-2 list-disc list-inside">
                   <li className="text-slate-600">Creation, saving, exporting, sharing, dashboard access, batches, and live games may require an account</li>
-                  <li className="text-slate-600">Some tools may be included while checkout is paused; if checkout is re-enabled later, paid access terms will be shown before purchase</li>
+                  <li className="text-slate-600">Some tools may be included during public-release periods; if paid checkout is offered later, paid access terms will be shown before purchase</li>
                   <li className="text-slate-600">Existing subscribers can manage or cancel their subscription from Settings</li>
                   <li className="text-slate-600">If paid plans return later, pricing and terms will be shown before any purchase</li>
                 </ul>

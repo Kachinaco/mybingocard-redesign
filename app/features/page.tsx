@@ -101,7 +101,7 @@ const featuresPageSchema = {
         price: "0",
         priceCurrency: "USD",
         description:
-          "Creator tools are included while checkout is paused; activation tools are available for print, sharing, and hosted games when needed.",
+          "Creator tools, print exports, sharing, and hosted games are included in the current public release.",
       },
     },
     {
