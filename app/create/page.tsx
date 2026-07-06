@@ -356,6 +356,7 @@ function CreateCardContent() {
   const [upgradeReason, setUpgradeReason] = useState<"card_limit" | "ai_generate" | "batch_generate">("card_limit");
   const [imagePickerCellIndex, setImagePickerCellIndex] = useState<number | null>(null);
   const [showNewUserTip, setShowNewUserTip] = useState(false);
+  const [showCreatePageAd, setShowCreatePageAd] = useState(false);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedSnapshotRef = useRef("");
   const currentCardIdRef = useRef<string | null>(cardIdFromUrl);
@@ -374,6 +375,14 @@ function CreateCardContent() {
   useEffect(() => {
     currentCardIdRef.current = currentCardId;
   }, [currentCardId]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 768px)");
+    const sync = () => setShowCreatePageAd(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
 
   // Show new user tip if they have 0 cards and haven't dismissed it
   useEffect(() => {
@@ -1927,7 +1936,7 @@ function CreateCardContent() {
           )}
 
           {/* Ad placement for free users */}
-          {(!permissionStatus?.planType || permissionStatus.planType === "FREE") && (
+          {showCreatePageAd && (!permissionStatus?.planType || permissionStatus.planType === "FREE") && (
             <div className="mb-6">
               <AdUnit slot="create-page" format="horizontal" className="rounded-xl overflow-hidden" />
             </div>
