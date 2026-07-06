@@ -1956,7 +1956,7 @@ function CreateCardContent() {
           {editorUnlocked && !isLoadingCard && (
           <div className="grid lg:grid-cols-[minmax(0,240px)_1fr_minmax(0,340px)] gap-4 lg:gap-5 items-start">
             {/* Left Panel - Card Details */}
-            <div className="lg:order-1 space-y-5 min-w-0">
+            <div className="order-2 lg:order-1 space-y-5 min-w-0">
               {/* Basic Info */}
               <div className="bg-white/60 rounded-2xl border border-gray-200/50 p-4">
                 <h2 className="text-base font-bold text-gray-900 mb-3">
@@ -2151,7 +2151,7 @@ function CreateCardContent() {
             </div>
 
             {/* Right Panel - AI, Style & Batch */}
-            <div className="lg:order-3 space-y-4 min-w-0">
+            <div className="order-3 lg:order-3 space-y-4 min-w-0">
               {/* AI Generate */}
               {bingoVariant === "custom" && (
                 <AiGenerateSection
@@ -2512,7 +2512,7 @@ function CreateCardContent() {
             </div>
 
             {/* Center Panel - Bingo Grid */}
-            <div className="lg:order-2 lg:sticky lg:top-24 lg:self-start min-w-0">
+            <div className="order-1 lg:order-2 lg:sticky lg:top-24 lg:self-start min-w-0">
               <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200 p-3 lg:p-4 flex flex-col">
                 <div className="flex justify-between items-center mb-3">
                   <h2 className="text-base font-bold text-gray-900">
