@@ -1823,7 +1823,7 @@ function CreateCardContent() {
         </div>
       </header>
 
-      <main className="pt-16 pb-44 md:pb-24 px-4">
+      <main className="pt-16 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-24 px-4">
         <div className="container mx-auto max-w-7xl">
           <div className="mb-3 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
