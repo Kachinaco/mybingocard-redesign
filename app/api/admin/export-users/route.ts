@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/admin";
+import { getUsersForExport } from "@/lib/db/users";
 
 export async function GET() {
   try {
@@ -9,28 +9,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    const users = await db
-      .collection("users")
-      .find(
-        {},
-        {
-          projection: {
-            email: 1,
-            name: 1,
-            planType: 1,
-            subscriptionStatus: 1,
-            signupMethod: 1,
-            createdAt: 1,
-            totalCardsCreated: 1,
-            totalExports: 1,
-          },
-        }
-      )
-      .sort({ createdAt: -1 })
-      .toArray();
+    const users = await getUsersForExport();
 
     const header =
       "email,name,planType,subscriptionStatus,signupMethod,createdAt,totalCardsCreated,totalExports";

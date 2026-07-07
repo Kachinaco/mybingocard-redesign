@@ -1,78 +1,17 @@
 import { auth } from "@/auth";
 import { getAdminSessionEmail, isAdminSession } from "@/lib/admin";
 import { getCurrentBuildInfo } from "@/lib/build-info";
-import clientPromise from "@/lib/mongodb";
+import {
+  getAdminErrorPageData,
+  normalizeAdminErrorStatus,
+  updateAdminErrorFingerprintStatus,
+  type AdminErrorStatus,
+} from "@/lib/db/client-errors";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-type ErrorStatus = "open" | "watching" | "fixed" | "ignored";
-
-type ErrorFingerprintDoc = {
-  _id: string;
-  type?: string;
-  message?: string;
-  source?: string | null;
-  latestPageUrl?: string | null;
-  latestPathname?: string | null;
-  latestBuildId?: string | null;
-  latestStack?: string | null;
-  latestSymbolicatedStack?: string | null;
-  latestSourceMappedFrames?: Array<{
-    source?: string;
-    line?: number;
-    column?: number;
-    name?: string | null;
-    contextLine?: string | null;
-  }>;
-  latestBreadcrumbs?: Array<{
-    type?: string;
-    message?: string;
-    timestamp?: string;
-    href?: string;
-    data?: Record<string, unknown>;
-  }>;
-  severity?: "low" | "medium" | "high";
-  errorCategory?: string;
-  impactArea?: string;
-  alertSuppressed?: boolean;
-  resourceHost?: string | null;
-  status?: ErrorStatus | string;
-  statusUpdatedAt?: Date;
-  statusUpdatedBy?: string | null;
-  totalCount?: number;
-  firstSeenAt?: Date;
-  lastSeenAt?: Date;
-  lastAlertedAt?: Date;
-  lastAlertRecentCount?: number;
-  lastAlertRecentSessions?: number;
-  sessionIds?: Array<string | null>;
-  anonymousIds?: Array<string | null>;
-  pageUrls?: Array<string | null>;
-  buildIds?: Array<string | null>;
-};
-
-type ErrorEventDoc = {
-  _id: string;
-  type?: string;
-  message?: string;
-  pageUrl?: string | null;
-  pathname?: string | null;
-  buildId?: string | null;
-  userAgent?: string | null;
-  sessionId?: string | null;
-  anonymousId?: string | null;
-  symbolicatedStack?: string | null;
-  sourceMappedFrames?: ErrorFingerprintDoc["latestSourceMappedFrames"];
-  errorCategory?: string;
-  impactArea?: string;
-  alertSuppressed?: boolean;
-  resourceHost?: string | null;
-  createdAt?: Date;
-  breadcrumbs?: ErrorFingerprintDoc["latestBreadcrumbs"];
-};
-
-const STATUS_OPTIONS: Array<{ status: ErrorStatus; label: string }> = [
+const STATUS_OPTIONS: Array<{ status: AdminErrorStatus; label: string }> = [
   { status: "open", label: "Open" },
   { status: "watching", label: "Watching" },
   { status: "fixed", label: "Fixed" },
@@ -111,34 +50,6 @@ function shortText(value?: string | null, fallback = "Unknown", max = 180) {
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;
 }
 
-function normalizedStatus(status?: string | null): ErrorStatus {
-  return status === "watching" || status === "fixed" || status === "ignored" ? status : "open";
-}
-
-function statusQuery(filter: string) {
-  if (filter === "all") return {};
-  if (filter === "open") {
-    return { $or: [{ status: "open" }, { status: { $exists: false } }, { status: null }] };
-  }
-  if (filter === "watching" || filter === "fixed" || filter === "ignored") {
-    return { status: filter };
-  }
-  return {
-    $or: [
-      { status: { $exists: false } },
-      { status: null },
-      { status: { $nin: ["fixed", "ignored"] } },
-    ],
-  };
-}
-
-function andQuery(...parts: Array<Record<string, unknown>>) {
-  const active = parts.filter((part) => Object.keys(part).length > 0);
-  if (active.length === 0) return {};
-  if (active.length === 1) return active[0];
-  return { $and: active };
-}
-
 function adminErrorHref(status: string, fingerprint?: string) {
   const params = new URLSearchParams();
   if (status && status !== "unresolved") params.set("status", status);
@@ -172,25 +83,12 @@ async function updateErrorFingerprintStatus(formData: FormData) {
   }
 
   const now = new Date();
-  const client = await clientPromise;
-  await client.db("mybingocard").collection("error_fingerprints").updateOne(
-    { _id: fingerprint } as any,
-    {
-      $set: {
-        status,
-        statusUpdatedAt: now,
-        statusUpdatedBy: getAdminSessionEmail(session),
-        updatedAt: now,
-      },
-      $push: {
-        statusHistory: {
-          status,
-          updatedAt: now,
-          updatedBy: getAdminSessionEmail(session),
-        },
-      },
-    } as any
-  );
+  await updateAdminErrorFingerprintStatus({
+    fingerprint,
+    status: status as AdminErrorStatus,
+    updatedAt: now,
+    updatedBy: getAdminSessionEmail(session),
+  });
 
   revalidatePath("/admin/errors");
   redirect(adminErrorHref(status === "fixed" || status === "ignored" ? "all" : "unresolved", fingerprint));
@@ -209,14 +107,8 @@ export default async function AdminErrorsPage({
   const params = await searchParams;
   const selectedFingerprint = typeof params?.fingerprint === "string" ? params.fingerprint : null;
   const selectedStatusFilter = typeof params?.status === "string" ? params.status : "unresolved";
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const currentBuild = getCurrentBuildInfo();
-  const unresolvedQuery = statusQuery("unresolved");
-  const activeStatusQuery = statusQuery(selectedStatusFilter);
-
-  const [
+  const {
     groups,
     groups24h,
     events24h,
@@ -226,50 +118,13 @@ export default async function AdminErrorsPage({
     newSinceDeployGroups,
     statusCountsRaw,
     selectedEvents,
-  ] = await Promise.all([
-    db.collection<ErrorFingerprintDoc>("error_fingerprints")
-      .find(activeStatusQuery as any)
-      .sort({ lastSeenAt: -1 })
-      .limit(50)
-      .toArray(),
-    db.collection("error_fingerprints").countDocuments(andQuery(
-      unresolvedQuery,
-      { lastSeenAt: { $gte: since24h } }
-    ) as any),
-    db.collection("error_events").countDocuments({ createdAt: { $gte: since24h } }),
-    currentBuild.buildId
-      ? db.collection("error_events").countDocuments({ createdAt: { $gte: since24h }, buildId: currentBuild.buildId })
-      : Promise.resolve(0),
-    currentBuild.buildCreatedAt
-      ? db.collection("error_events").countDocuments({ createdAt: { $gte: currentBuild.buildCreatedAt } })
-      : Promise.resolve(0),
-    db.collection("error_fingerprints").countDocuments(andQuery(
-      unresolvedQuery,
-      { lastSeenAt: { $gte: since24h }, severity: "high" }
-    ) as any),
-    currentBuild.buildCreatedAt
-      ? db.collection("error_fingerprints").countDocuments(andQuery(
-          unresolvedQuery,
-          { firstSeenAt: { $gte: currentBuild.buildCreatedAt } }
-        ) as any)
-      : Promise.resolve(0),
-    db.collection("error_fingerprints").aggregate<{ _id: string | null; count: number }>([
-      { $group: { _id: { $ifNull: ["$status", "open"] }, count: { $sum: 1 } } },
-    ]).toArray(),
-    selectedFingerprint
-      ? db.collection<ErrorEventDoc>("error_events")
-          .find({ fingerprint: selectedFingerprint })
-          .sort({ createdAt: -1 })
-          .limit(25)
-          .toArray()
-      : Promise.resolve([]),
-  ]);
-
-  const selectedGroup = selectedFingerprint
-    ? groups.find((group) => group._id === selectedFingerprint) ||
-      await db.collection<ErrorFingerprintDoc>("error_fingerprints").findOne({ _id: selectedFingerprint })
-    : null;
-  const statusCounts = new Map(statusCountsRaw.map((item) => [normalizedStatus(item._id), item.count]));
+    selectedGroup,
+  } = await getAdminErrorPageData({
+    selectedFingerprint,
+    selectedStatusFilter,
+    currentBuild,
+  });
+  const statusCounts = new Map(statusCountsRaw.map((item) => [normalizeAdminErrorStatus(item._id), item.count]));
   const unresolvedCount =
     (statusCounts.get("open") || 0) +
     (statusCounts.get("watching") || 0);
@@ -372,7 +227,7 @@ export default async function AdminErrorsPage({
                           {group.severity || "low"}
                         </span>
                         <span className={`rounded-full border px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${statusClass(group.status)}`}>
-                          {normalizedStatus(group.status)}
+                          {normalizeAdminErrorStatus(group.status)}
                         </span>
                         <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-slate-500">
                           {group.type || "unknown"}
@@ -425,7 +280,7 @@ export default async function AdminErrorsPage({
               <div className="mt-4 space-y-3 text-sm">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className={`rounded-full border px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${statusClass(selectedGroup.status)}`}>
-                    {normalizedStatus(selectedGroup.status)}
+                    {normalizeAdminErrorStatus(selectedGroup.status)}
                   </span>
                   <span className={`rounded-full border px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${severityClass(selectedGroup.severity)}`}>
                     {selectedGroup.severity || "low"}
@@ -443,7 +298,7 @@ export default async function AdminErrorsPage({
                       name="status"
                       value={option.status}
                       className={`rounded-lg border px-3 py-2 text-xs font-bold uppercase tracking-wide transition ${
-                        normalizedStatus(selectedGroup.status) === option.status
+                        normalizeAdminErrorStatus(selectedGroup.status) === option.status
                           ? "border-indigo-300 bg-indigo-600 text-white"
                           : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                       }`}

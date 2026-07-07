@@ -4,93 +4,32 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Super Bowl Bingo Cards Printable: Party Game",
+  title: "Super Bowl Bingo Cards Printable — Custom Super Bowl Bingo Generator | MyBingoCard",
   description:
-    "Create printable Super Bowl bingo cards for watch parties, commercials, halftime, football moments, party prizes, and online play.",
+    "Create custom printable Super Bowl bingo cards for your watch party. The best Super Bowl bingo generator — custom squares, PDF export perfect for any football party.",
   alternates: {
     canonical: "https://mybingocard.com/super-bowl-bingo",
   },
 };
 
 const superBowlSquares = [
-  "Touchdown", "Halftime Show", "Commercial Cry", "Flag On Play", "FREE",
+  "Touchdown", "Halftime Show", "Beer Commercial", "Flag on Play", "FREE",
   "Field Goal", "Interception", "Celebrity Cameo", "Funny Ad", "Instant Replay",
-  "Sack", "Coin Toss", "Nachos Spilled", "Wardrobe Moment", "Party Prize",
-  "Coach Challenge", "Two Minute Warning", "Overtime Talk", "Referee Debate", "Big Catch",
+  "Sack", "Coin Toss", "Nachos Spilled", "Wardrobe Moment", "Party Bet Won",
+  "Coach Challenges", "Two-Minute Warning", "Food Baby", "Overtime", "Referee Argue",
   "Prop Bet", "Puppy Bowl", "National Anthem", "Confetti Drop", "MVP Speech",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebPage",
-      name: "Super Bowl Bingo Cards Printable",
-      url: "https://mybingocard.com/super-bowl-bingo",
-      description:
-        "Create printable Super Bowl bingo cards for watch parties, commercials, halftime, football moments, party prizes, and online play.",
-    },
-    {
-      "@type": "WebApplication",
-      name: "Super Bowl Bingo Cards Printable Generator",
-      url: "https://mybingocard.com/super-bowl-bingo",
-      description:
-        "Create custom printable Super Bowl bingo cards for commercials, halftime show moments, football plays, prop bets, party prizes, and remote watch parties.",
-      applicationCategory: "GameApplication",
-      operatingSystem: "All",
-      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-    },
-    {
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "What should I put on Super Bowl bingo cards?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Use a mix of football plays, commercials, celebrity cameos, halftime moments, food table moments, prop bet prompts, referee calls, and party prize squares.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Can I print different Super Bowl bingo cards for every guest?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. Add your Super Bowl prompts once, generate shuffled cards, and export printable PDFs so each guest gets a different board.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How do you play Super Bowl bingo?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Hand out cards before kickoff, mark squares as plays, ads, halftime moments, and party events happen, then award prizes for five in a row, four corners, or blackout.",
-          },
-        },
-      ],
-    },
-    {
-      "@type": "HowTo",
-      name: "How to make Super Bowl bingo cards",
-      step: [
-        {
-          "@type": "HowToStep",
-          name: "Choose game and ad prompts",
-          text: "Add football plays, commercial themes, celebrity cameos, halftime ideas, food table moments, and prize rules.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Generate unique cards",
-          text: "Create shuffled bingo cards so football fans and commercial watchers each get a different layout.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Print or share",
-          text: "Export PDFs for the party table or share online cards for remote Super Bowl watch parties.",
-        },
-      ],
-    },
-  ],
+  "@type": "WebApplication",
+  name: "Super Bowl Bingo Cards Printable Generator",
+  url: "https://mybingocard.com/super-bowl-bingo",
+  description:
+    "Create custom printable Super Bowl bingo cards for your watch party. Custom squares, free PDF export.",
+  applicationCategory: "GameApplication",
+  operatingSystem: "All",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -154,7 +93,7 @@ export default function SuperBowlBingoPage() {
                 Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">Super Bowl Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                Create printable Super Bowl bingo cards for watch parties, commercial bingo, halftime show games, football plays, prop bets, and party prizes. Add touchdowns, celebrity ads, referee calls, snack table moments, the national anthem, funny commercials, and MVP speech prompts, then generate unique shuffled cards for football fans and guests who are only there for the ads.
+                Even non-football fans can have a blast! Super Bowl bingo keeps your whole watch party engaged — from the commercials to the halftime show to the final score.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/create" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl font-bold text-lg hover:opacity-90 shadow-lg">
@@ -169,9 +108,9 @@ export default function SuperBowlBingoPage() {
 
           <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6 mb-20">
             {[
-              { icon: "📺", title: "Commercial Bingo", desc: "Add celebrity cameos, emotional ads, product reveals, brand slogans, and funny commercial moments." },
-              { icon: "🏆", title: "Watch Party Prizes", desc: "Set prizes for a line, four corners, halftime winner, final score round, or full card blackout." },
-              { icon: "🍕", title: "Cards For Every Guest", desc: "Generate unique cards for football fans, kids, casual viewers, and remote friends watching from home." },
+              { icon: "📺", title: "For Every Fan", desc: "Football fans play by game action. Non-fans play by commercials and halftime moments." },
+              { icon: "🏆", title: "Party Prizes", desc: "Set prizes for BINGO winners. A simple prize plan gives players another reason to follow along." },
+              { icon: "🍕", title: "Print for Everyone", desc: "Generate unique cards for each guest so everyone has a different layout." },
             ].map((f) => (
               <div key={f.title} className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 text-center">
                 <div className="text-4xl mb-4">{f.icon}</div>
@@ -183,7 +122,7 @@ export default function SuperBowlBingoPage() {
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-green-600 to-emerald-600 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">Touchdown! Time to Play 🏈</h2>
-            <p className="text-green-100 text-lg mb-8">Draft Super Bowl bingo cards for commercials, halftime, game moments, party food, and prize rounds, then print or share when you are ready.</p>
+            <p className="text-green-100 text-lg mb-8">Draft a unique card for every guest at your Super Bowl party, then start checkout to save.</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-green-700 rounded-xl font-bold text-lg hover:bg-green-50 transition-colors shadow-lg">Create Super Bowl Bingo</Link>
           </div>
 

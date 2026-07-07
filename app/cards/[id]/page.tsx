@@ -39,7 +39,6 @@ const CARD_COUNT_OPTIONS = [30, 100, 250, 500] as const;
 
 function formatPerCard(count: BatchCount) {
   const cents = BATCH_PACKS[count].amount / count;
-  if (cents === 0) return "Free";
   return `${Math.ceil(cents)}¢/card`;
 }
 
@@ -247,7 +246,7 @@ export default function CardViewPage() {
           hasPremiumAccess: Boolean(data.hasPremiumAccess),
           legacyFreeAccess: Boolean(data.legacyFreeAccess),
           canExportHD: data.plan?.canExportHD || false,
-          canExportPNG: data.plan?.canExportPNG || true,
+          canExportPNG: data.plan?.canExportPNG || false,
           canRemoveBranding: data.plan?.canRemoveBranding || false,
         });
       }
@@ -415,6 +414,11 @@ export default function CardViewPage() {
   };
 
   const handleExportPDF = async () => {
+    if (shouldUseBatchForPdf) {
+      openBatchForPdf("single_pdf_export");
+      return;
+    }
+
     try {
       trackExportButtonClicked("single_pdf_export", "single_pdf");
       setExporting("pdf");
@@ -490,7 +494,7 @@ export default function CardViewPage() {
         context: "owner_card",
       });
       await redirectToCheckout({
-        label: "Sharing access",
+        label: "Premium monthly, $7.99/mo",
         successPath: `/cards/${cardId}?next=share`,
       });
       return false;
@@ -811,7 +815,7 @@ export default function CardViewPage() {
   const shareUrl = card.shareLink ? `${typeof window !== "undefined" ? window.location.origin : ""}/share/${card.shareLink}` : "";
   const qrCodeUrl = shareUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(shareUrl)}` : "";
 
-  const isPremiumBatchUser = true;
+  const isPremiumBatchUser = Boolean(userPlan?.hasPremiumAccess);
   const shouldUseBatchForPdf = false;
   const selectedBatchPrice = formatBatchPackPrice(batchCount);
   const selectedPack = BATCH_PACKS[batchCount];
@@ -819,9 +823,13 @@ export default function CardViewPage() {
   const batchActionLabel = batchLoading
     ? `Generating ${batchCount} cards...`
     : batchCheckoutLoading
-      ? "Opening activation tools..."
-      : `Generate ${batchCount} Cards`;
-  const handleBatchPrimaryAction = handleBatchGenerate;
+      ? "Redirecting to checkout..."
+      : isPremiumBatchUser || hasSelectedBatchPurchase
+        ? `Generate ${batchCount} Cards`
+        : `Pay ${selectedBatchPrice} & Generate Cards`;
+  const handleBatchPrimaryAction = isPremiumBatchUser || hasSelectedBatchPurchase
+    ? handleBatchGenerate
+    : handleBatchCheckout;
   const sharePanel = card.isPublic && card.shareLink ? (
     <SocialShare
       url={shareUrl}
@@ -985,7 +993,7 @@ export default function CardViewPage() {
                     }}
                     className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "download" ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
                   >
-                    💳 Download Cards
+                    📄 Export
                   </button>
                 </div>
 
@@ -1034,24 +1042,59 @@ export default function CardViewPage() {
 
                 {activeTab === "download" && (
                   <div className="p-4">
+                    {/* Free single export */}
+                    {!shouldUseBatchForPdf && (
+                      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm mb-4">
+                        <div className="border-b border-slate-200 bg-emerald-50 p-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-wide rounded-md bg-emerald-100 text-emerald-700 px-2 py-0.5">Free</span>
+                            <p className="text-xs font-semibold text-emerald-700">Single card export</p>
+                          </div>
+                          <h3 className="mt-1 text-lg font-black text-slate-950">
+                            Download this card
+                          </h3>
+                          <p className="mt-1 text-sm text-slate-600">
+                            Export a single PDF or PNG of this card at no cost.
+                          </p>
+                        </div>
+                        <div className="p-4 space-y-2">
+                          <button onClick={handleExportPDF} disabled={exporting !== null} className="w-full px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition disabled:opacity-50 flex items-center justify-center gap-2 font-semibold text-sm">
+                            {exporting === "pdf" ? (
+                              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Generating...</span></>
+                            ) : (
+                              <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 0 0 2-2V9.414a1 1 0 0 0-.293-.707l-5.414-5.414A1 1 0 0 0 12.586 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z" /></svg><span>Download PDF</span></>
+                            )}
+                          </button>
+                          <button onClick={handleExportPNG} disabled={exporting !== null} className="w-full px-4 py-3 border-2 border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition disabled:opacity-50 flex items-center justify-center gap-2 font-semibold text-sm">
+                            {exporting === "png" ? (
+                              <><div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /><span>Generating...</span></>
+                            ) : (
+                              <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg><span>Download PNG</span></>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Paid batch section */}
                     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                       <div className="border-b border-slate-200 bg-amber-50 p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <p className="text-xs font-black uppercase tracking-wide text-amber-700">
-                              {isPremiumBatchUser ? "Included PDF packs" : "PDF packs"}
+                              {isPremiumBatchUser ? "Premium batch packs" : "Paid batch packs"}
                             </p>
                             <h3 className="mt-1 text-lg font-black text-slate-950">
-                              Generate printable cards
+                              Generate multiple cards
                             </h3>
                             <p className="mt-1 text-sm text-slate-600">
-                              Choose how many unique cards to generate, then download the PDF.
+                              Need cards for a group? Generate a batch below.
                             </p>
                           </div>
                           {!isPremiumBatchUser && (
                             <div className="shrink-0 rounded-xl bg-white px-3 py-2 text-right shadow-sm ring-1 ring-amber-200">
                               <p className="text-[11px] font-black uppercase text-slate-500">
-                                {hasSelectedBatchPurchase ? "Free" : "Free"}
+                                {hasSelectedBatchPurchase ? "Paid" : "Due today"}
                               </p>
                               <p className="text-2xl font-black text-slate-950">
                                 {hasSelectedBatchPurchase ? "$0" : selectedBatchPrice}
@@ -1065,12 +1108,12 @@ export default function CardViewPage() {
                       </div>
 
                       <div className="p-4">
-                        {!shouldUseBatchForPdf && (
+                        {shouldUseBatchForPdf && (
                           <button onClick={handleExportPDF} disabled={exporting !== null} className="mb-4 w-full px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition disabled:opacity-50 flex items-center justify-center gap-2 font-semibold text-sm">
                             {exporting === "pdf" ? (
-                              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Generating...</span></>
+                              <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Generating batch...</span></>
                             ) : (
-                              <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 0 0 2-2V9.414a1 1 0 0 0-.293-.707l-5.414-5.414A1 1 0 0 0 12.586 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z" /></svg><span>Download Cards</span></>
+                              <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 0 0 2-2V9.414a1 1 0 0 0-.293-.707l-5.414-5.414A1 1 0 0 0 12.586 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z" /></svg><span>Download Batch PDF</span></>
                             )}
                           </button>
                         )}
@@ -1109,14 +1152,14 @@ export default function CardViewPage() {
                                       <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black uppercase text-amber-700">Best value</span>
                                     )}
                                     {isReady && (
-                                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">Included</span>
+                                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">Already paid</span>
                                     )}
                                     {isPaidDue && (
-                                      <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-black uppercase text-white">Free</span>
+                                      <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-black uppercase text-white">Paid</span>
                                     )}
                                   </span>
                                   <span className="mt-0.5 block text-xs font-semibold text-slate-500">
-                                    {isPremiumBatchUser ? "Included free" : isReady ? "Ready to generate" : `${formatPerCard(n)} included`}
+                                    {isPremiumBatchUser ? "Included with Premium" : isReady ? "Ready to generate" : `${formatPerCard(n)} one-time`}
                                   </span>
                                 </span>
                                 <span className="text-right">
@@ -1181,7 +1224,7 @@ export default function CardViewPage() {
                             <div className="mb-3 flex items-center justify-between gap-3">
                               <div>
                                 <p className="text-xs font-black uppercase tracking-wide text-slate-500">
-                                  {isPremiumBatchUser || hasSelectedBatchPurchase ? "Ready to generate" : "Free batch pack"}
+                                  {isPremiumBatchUser || hasSelectedBatchPurchase ? "Ready to generate" : "Paid batch pack"}
                                 </p>
                                 <p className="mt-0.5 text-base font-black text-slate-950">{batchCount} cards</p>
                                 <p className="text-xs text-slate-600">
@@ -1191,7 +1234,7 @@ export default function CardViewPage() {
                               {!isPremiumBatchUser && (
                                 <div className="text-right">
                                   <p className="text-[11px] font-black uppercase text-slate-500">
-                                    {hasSelectedBatchPurchase ? "Free" : "Free"}
+                                    {hasSelectedBatchPurchase ? "Paid" : "Due today"}
                                   </p>
                                   <p className="text-3xl font-black text-slate-950">
                                     {hasSelectedBatchPurchase ? "$0" : selectedBatchPrice}
@@ -1336,7 +1379,7 @@ export default function CardViewPage() {
 
               {!userPlan?.canRemoveBranding && (
                 <div className="text-center mt-4">
-                  <p className="text-xs text-slate-400 mb-1">Created with https://mybingocard.com</p>
+                  <p className="text-xs text-slate-400 mb-1">Created with MyBingoCard.com</p>
                   <button onClick={() => redirectToCheckout()} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors">
                     Remove watermark →
                   </button>
@@ -1393,27 +1436,44 @@ export default function CardViewPage() {
                 )}
                 {activeTab === "download" && (
                   <div className="space-y-3">
+                    {/* Free single export */}
+                    {!shouldUseBatchForPdf && (
+                      <div className="rounded-2xl border border-slate-200 bg-emerald-50 p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-[10px] font-black uppercase tracking-wide rounded-md bg-emerald-100 text-emerald-700 px-2 py-0.5">Free</span>
+                          <p className="text-[11px] font-semibold text-emerald-700">Single card</p>
+                        </div>
+                        <button onClick={handleExportPDF} disabled={exporting !== null} className="w-full py-2.5 bg-red-600 text-white rounded-xl disabled:opacity-50 font-semibold text-sm mb-2">
+                          {exporting === "pdf" ? "..." : "📄 Download PDF"}
+                        </button>
+                        <button onClick={handleExportPNG} disabled={exporting !== null} className="w-full py-2.5 border-2 border-slate-200 text-slate-700 rounded-xl disabled:opacity-50 font-semibold text-sm bg-white">
+                          {exporting === "png" ? "..." : "🖼 Download PNG"}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Paid batch section */}
                     <div className="rounded-2xl border border-slate-200 bg-amber-50 p-3">
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="text-[11px] font-black uppercase tracking-wide text-amber-700">
-                            {isPremiumBatchUser ? "Included PDF packs" : "PDF packs"}
+                            {isPremiumBatchUser ? "Premium batch packs" : "Paid batch packs"}
                           </p>
                           <p className="mt-0.5 text-xs text-slate-700">
-                            {isPremiumBatchUser ? "Included with your access." : `Selected: ${selectedBatchPrice}`}
+                            {isPremiumBatchUser ? "Included with Premium." : `Selected: ${selectedBatchPrice}`}
                           </p>
                         </div>
                         {!isPremiumBatchUser && (
                           <div className="rounded-xl bg-white px-3 py-2 text-right text-slate-950 shadow-sm ring-1 ring-amber-200">
-                            <p className="text-[11px] font-black uppercase">{hasSelectedBatchPurchase ? "Included" : "Price"}</p>
+                            <p className="text-[11px] font-black uppercase">{hasSelectedBatchPurchase ? "Paid" : "Due today"}</p>
                             <p className="text-xl font-black">{hasSelectedBatchPurchase ? "$0" : selectedBatchPrice}</p>
                           </div>
                         )}
                       </div>
                     </div>
-                    {!shouldUseBatchForPdf && (
+                    {shouldUseBatchForPdf && (
                       <button onClick={handleExportPDF} disabled={exporting !== null} className="w-full py-2.5 bg-red-600 text-white rounded-xl disabled:opacity-50 font-semibold text-sm">
-                        {exporting === "pdf" ? "..." : "📄 Download Cards"}
+                        {exporting === "pdf" ? "..." : "📄 Download Batch PDF"}
                       </button>
                     )}
                     <div className="space-y-2">
@@ -1445,8 +1505,8 @@ export default function CardViewPage() {
                                 {isPremiumBatchUser
                                   ? "Included"
                                   : (availableBatchCounts[n] || 0) > 0
-                                    ? "Included"
-                                    : `${formatPerCard(n)} included`}
+                                    ? "Already paid"
+                                    : `${formatPerCard(n)} one-time`}
                               </p>
                               {n === 500 && !isPremiumBatchUser && (
                                 <p className="mt-0.5 text-[10px] font-black uppercase text-amber-700">Best value</p>
@@ -1458,7 +1518,7 @@ export default function CardViewPage() {
                                   {(availableBatchCounts[n] || 0) > 0 ? "$0" : BATCH_PACKS[n].label}
                                 </p>
                                 <p className="text-[10px] text-slate-500">
-                                  {batchCount === n ? "Selected" : (availableBatchCounts[n] || 0) > 0 ? "Free" : "Free"}
+                                  {batchCount === n ? "Selected" : (availableBatchCounts[n] || 0) > 0 ? "Paid" : "Paid"}
                                 </p>
                               </div>
                             )}
@@ -1493,7 +1553,7 @@ export default function CardViewPage() {
                       <>
                       {!isPremiumBatchUser && !hasSelectedBatchPurchase && (
                         <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900">
-                          Selected free download: {batchCount} printable cards.
+                          Selected paid download: {selectedBatchPrice} due at checkout for {batchCount} printable cards.
                         </p>
                       )}
                       <button
@@ -1534,7 +1594,7 @@ export default function CardViewPage() {
                 }}
                 className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "download" && barExpanded ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"}`}
               >
-                💳 Download
+                📄 Export
               </button>
             </div>
           </div>

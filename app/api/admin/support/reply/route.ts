@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
 import { requireAdmin, getAdminSessionEmail } from "@/lib/admin";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import {
+  appendSupportTicketReply,
+  getSupportTicketById,
+} from "@/lib/db/support-tickets";
 import { sendSupportReplyEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
@@ -24,12 +26,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    const ticket = await db
-      .collection("support_tickets")
-      .findOne({ _id: new ObjectId(ticketId) });
+    const ticket = await getSupportTicketById(ticketId);
 
     if (!ticket) {
       return NextResponse.json(
@@ -62,14 +59,7 @@ export async function POST(request: Request) {
       message: message.trim(),
       sentAt: new Date(),
     };
-    await db.collection("support_tickets").updateOne(
-      { _id: new ObjectId(ticketId) },
-      {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        $push: { replies: replyEntry } as any,
-        $set: { updatedAt: new Date() },
-      }
-    );
+    await appendSupportTicketReply(ticketId, replyEntry);
 
     await trackActivity({
       event: "support_ticket_replied",

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getRequestActivityContext, shouldSuppressNoisyGameActivity, trackActivity } from "@/lib/activity";
+import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import {
   notifyBatchButtonClicked,
   notifyBatchSelected,
@@ -24,22 +24,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Event is required" }, { status: 400 });
     }
 
+    const session = await auth();
     const requestContext = getRequestActivityContext(request);
     const metadata = body.data.metadata && typeof body.data.metadata === "object" ? body.data.metadata : {};
-    const pathname = typeof body.data.pathname === "string" ? body.data.pathname : requestContext.pathname;
-
-    if (shouldSuppressNoisyGameActivity({ event, pathname, metadata })) {
-      return NextResponse.json({ success: true, suppressed: true });
-    }
-
-    const session = await auth();
 
     await trackActivity({
       event,
       source: "client",
       userId: session?.user?.id || null,
       email: session?.user?.email || null,
-      pathname,
+      pathname: typeof body.data.pathname === "string" ? body.data.pathname : requestContext.pathname,
       sessionId: typeof body.data.sessionId === "string" ? body.data.sessionId : null,
       anonymousId: typeof body.data.anonymousId === "string" ? body.data.anonymousId : null,
       domain: requestContext.domain,

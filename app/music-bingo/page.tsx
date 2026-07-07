@@ -4,9 +4,9 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Music Bingo Cards Printable: Playlist Game",
+  title: "Music Bingo Cards — Custom Song Bingo Generator | MyBingoCard",
   description:
-    "Create printable music bingo cards for playlists, name that tune games, bars, parties, classrooms, fundraisers, and music trivia nights.",
+    "Create music bingo cards for your next party or event. Custom song bingo generator with custom playlists, name that tune bingo, and printable music bingo cards. free PDF export.",
   alternates: {
     canonical: "https://mybingocard.com/music-bingo",
   },
@@ -15,86 +15,25 @@ export const metadata: Metadata = {
 const musicSquares = [
   "Hit Song", "One Hit Wonder", "Classic Rock", "Pop Anthem", "FREE",
   "Country Tune", "80s Hit", "90s Jam", "Love Song", "Dance Track",
-  "Movie Theme", "TV Jingle", "Guitar Solo", "Song Intro", "Piano Keys",
+  "Movie Theme", "TV Jingle", "Guitar Solo", "Drum Beat", "Piano Keys",
   "Sing Along", "Name That Tune", "Remix", "Duet", "Encore",
-  "Crowd Favorite", "Hidden Gem", "Chart Topper", "Playlist Pick", "Final Song",
+  "Crowd Favorite", "Hidden Gem", "Chart Topper", "Album Track", "Final Song",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebPage",
-      name: "Music Bingo Cards Printable",
-      url: "https://mybingocard.com/music-bingo",
-      description:
-        "Create printable music bingo cards for playlists, name that tune games, bars, parties, classrooms, fundraisers, and music trivia nights.",
-    },
-    {
-      "@type": "WebApplication",
-      name: "Music Bingo Card Generator",
-      url: "https://mybingocard.com/music-bingo",
-      description:
-        "Custom music bingo card generator for printable song bingo cards, playlist games, name that tune nights, bar events, fundraisers, classrooms, and online play.",
-      applicationCategory: "GameApplication",
-      operatingSystem: "All",
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "USD",
-      },
-    },
-    {
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "How do you make music bingo cards from a playlist?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "List the songs, artists, decades, genres, or lyric clues you want players to recognize, generate shuffled cards, then use the playlist as your call sheet during the game.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "What should I put on music bingo cards?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Use song titles, artist names, decades, genres, movie themes, TV jingles, one hit wonders, duet prompts, name that tune clues, or playlist categories.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Can I use music bingo for bars or fundraisers?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. Create themed cards for bar trivia nights, school events, charity fundraisers, senior activities, classroom games, wedding receptions, or house parties.",
-          },
-        },
-      ],
-    },
-    {
-      "@type": "HowTo",
-      name: "How to make music bingo cards",
-      step: [
-        {
-          "@type": "HowToStep",
-          name: "Choose a playlist",
-          text: "Pick songs, artists, decades, genres, or name that tune clues from the playlist or event theme.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Generate shuffled cards",
-          text: "Create unique music bingo boards so every guest, student, table, or team gets a different card.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Play the songs",
-          text: "Use the playlist as the call sheet, let players mark matching squares, and award prizes for lines, corners, or blackout.",
-        },
-      ],
-    },
-  ],
+  "@type": "WebApplication",
+  name: "Music Bingo Card Generator",
+  url: "https://mybingocard.com/music-bingo",
+  description:
+    "Custom music bingo card generator. Create printable song bingo cards for parties, events, and name that tune games — custom playlists, genre themes, and free PDF export.",
+  applicationCategory: "GameApplication",
+  operatingSystem: "All",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -192,7 +131,7 @@ export default function MusicBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Create printable music bingo cards for playlists, name that tune games, bar trivia nights, school events, fundraisers, senior activities, wedding receptions, and house parties. Add song titles, artists, decades, genres, movie themes, TV jingles, lyric clues, one hit wonders, and custom playlist picks. Generate shuffled cards so every guest, table, team, or student has a different board, then use your playlist as the call sheet and export PDFs or share online cards.
+                    Turn any playlist into a thrilling music bingo night with our song bingo draft editor! Create custom music bingo cards featuring hit songs, classic rock anthems, 90s jams, country favorites, or any genre you love. Each card is uniquely shuffled so every player gets a different combination — perfect for house parties, bar trivia nights, team socials, and fundraiser events. Play name that tune style where the DJ spins tracks and players mark their cards, or use our built-in playlist mode for a fully automated music bingo experience. Export printable PDF cards for free or add paid digital links for in-person events and remote play. With genre-themed templates, custom word lists, and support for any music library, our music bingo generator makes it easy to host an unforgettable game night.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -205,10 +144,10 @@ export default function MusicBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      See Activation
+                      View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Draft tools · Any genre · Premium export</p>
+                  <p className="text-sm text-slate-400">Free creator tools · Any genre · free PDF export</p>
                 </div>
 
                 <div className="relative">
@@ -225,16 +164,16 @@ export default function MusicBingoPage() {
                 Everything you need for music bingo night
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                Build printable cards, online boards, and call sheets for playlist games, DJ nights, classrooms, bars, and fundraisers.
+                From song recognition games to full playlist parties — our music bingo maker has you covered.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
-                  { icon: "🎵", title: "Name That Tune Play", desc: "Play a song intro, chorus, or clue while players mark the matching song, artist, genre, or decade." },
-                  { icon: "🎧", title: "Playlist Based Cards", desc: "Build bingo cards from party playlists, decade hits, country nights, wedding songs, school themes, or bar trivia sets." },
-                  { icon: "🎉", title: "Event Ready", desc: "Use music bingo for bars, fundraisers, classrooms, team socials, senior centers, family parties, and wedding receptions." },
-                  { icon: "🖨️", title: "PDF Or Online Cards", desc: "Export printable PDFs for table teams or share online cards for phones, remote players, and hybrid events." },
-                  { icon: "🎸", title: "Genre Themes", desc: "Create cards for classic rock, 80s pop, country, hip hop, jazz, Broadway, Disney songs, or holiday music." },
-                  { icon: "👨‍👩‍👧", title: "Simple Call Sheet", desc: "Use your playlist as the call sheet, shuffle songs, and award prizes for one line, four corners, or blackout." },
+                  { icon: "🎵", title: "Song Recognition", desc: "Play name that tune bingo — the DJ spins a track, players mark their cards. First to five in a row wins!" },
+                  { icon: "🎧", title: "Custom Playlists", desc: "Build bingo cards from any playlist — Spotify favorites, decade hits, genre deep cuts, or your own song list." },
+                  { icon: "🎉", title: "Party Mode", desc: "Host an epic music bingo night at bars, house parties, or corporate events with automated game flow." },
+                  { icon: "🖨️", title: "PDF Export or Digital Play", desc: "Export PDF cards for free or add paid digital links for in-person events and remote music bingo." },
+                  { icon: "🎸", title: "Genre Themes", desc: "Classic rock, 80s pop, country, hip-hop, jazz — themed templates for every musical taste." },
+                  { icon: "👨‍👩‍👧", title: "Fun for All Ages", desc: "From kids' sing-alongs to adult trivia nights — music bingo brings every generation together." },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
                     <div className="text-4xl mb-4">{f.icon}</div>
@@ -256,14 +195,14 @@ export default function MusicBingoPage() {
                 Hit play on the best party game ever
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft music bingo cards for playlists, bars, parties, fundraisers, classrooms, and trivia nights, then print or share when you are ready.
+                Draft music bingo cards in under 2 minutes, then start checkout to save or export.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-rose-50 transition-all duration-300 shadow-xl">
                   Start a Free Music Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Activation
+                  See Pricing Plans
                 </Link>
               </div>
             </div>
@@ -285,7 +224,7 @@ export default function MusicBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  The bingo card maker for music nights, parties, classrooms, and every occasion.
+                  The free bingo draft editor for music nights, parties, classrooms, and every occasion.
                 </p>
               </div>
               <div>

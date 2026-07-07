@@ -1,5 +1,7 @@
 import { createHash } from "crypto";
-import type { Db } from "mongodb";
+import clientPromise from "@/lib/mongodb";
+import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
+import type { SqliteFilter } from "@/lib/sqlite-document-store";
 
 type SignupLimitReason = "ip_short_window" | "ip_hourly" | "ip_user_agent" | "user_agent_global";
 
@@ -29,6 +31,15 @@ const ONE_HOUR_MS = 60 * ONE_MINUTE_MS;
 const ONE_DAY_SECONDS = 24 * 60 * 60;
 
 let signupAttemptIndexesReady: Promise<void> | null = null;
+
+type SignupAttemptDocument = {
+  ipAddress: string | null;
+  email: string | null;
+  userAgentHash: string | null;
+  allowed: boolean;
+  reason: SignupLimitReason | null;
+  createdAt: Date;
+};
 
 function positiveIntFromEnv(name: string, fallback: number): number {
   const raw = process.env[name];
@@ -75,8 +86,12 @@ function cutoff(now: Date, windowMs: number): Date {
   return new Date(now.getTime() - windowMs);
 }
 
-async function ensureSignupAttemptIndexes(db: Db): Promise<void> {
+async function ensureSignupAttemptIndexes(): Promise<void> {
+  if (useSqliteDb()) return;
+
   if (!signupAttemptIndexesReady) {
+    const client = await clientPromise;
+    const db = client.db("mybingocard");
     const collection = db.collection("signup_attempts");
     signupAttemptIndexesReady = Promise.all([
       collection.createIndex({ createdAt: 1 }, { expireAfterSeconds: 2 * ONE_DAY_SECONDS, name: "signup_attempts_ttl" }),
@@ -89,32 +104,49 @@ async function ensureSignupAttemptIndexes(db: Db): Promise<void> {
   await signupAttemptIndexesReady;
 }
 
-export async function checkSignupAbuseLimit(
-  db: Db,
-  input: {
-    email?: string | null;
-    ipAddress?: string | null;
-    userAgent?: string | null;
-    now?: Date;
+async function countSignupAttempts(filter: SqliteFilter): Promise<number> {
+  if (useSqliteDb()) {
+    return getSqliteStore().count("signup_attempts", filter);
   }
-): Promise<SignupAbuseLimitResult> {
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  return db.collection("signup_attempts").countDocuments(filter);
+}
+
+async function recordSignupAttempt(document: SignupAttemptDocument): Promise<void> {
+  if (useSqliteDb()) {
+    getSqliteStore().insertOne("signup_attempts", document);
+    return;
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  await db.collection("signup_attempts").insertOne(document);
+}
+
+export async function checkSignupAbuseLimit(input: {
+  email?: string | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  now?: Date;
+}): Promise<SignupAbuseLimitResult> {
   const now = input.now || new Date();
   const policy = getSignupAbusePolicy();
-  const collection = db.collection("signup_attempts");
   const ipAddress = cleanString(input.ipAddress, 100);
   const email = normalizeEmail(input.email);
   const userAgentHash = hashSignupUserAgent(input.userAgent);
 
-  await ensureSignupAttemptIndexes(db);
+  await ensureSignupAttemptIndexes();
 
   let blocked: Exclude<SignupAbuseLimitResult, { allowed: true }> | null = null;
 
   if (ipAddress) {
     const [shortCount, hourlyCount, ipUserAgentCount] = await Promise.all([
-      collection.countDocuments({ ipAddress, createdAt: { $gte: cutoff(now, policy.shortWindowMs) } }),
-      collection.countDocuments({ ipAddress, createdAt: { $gte: cutoff(now, policy.hourlyWindowMs) } }),
+      countSignupAttempts({ ipAddress, createdAt: { $gte: cutoff(now, policy.shortWindowMs) } }),
+      countSignupAttempts({ ipAddress, createdAt: { $gte: cutoff(now, policy.hourlyWindowMs) } }),
       userAgentHash
-        ? collection.countDocuments({
+        ? countSignupAttempts({
             ipAddress,
             userAgentHash,
             createdAt: { $gte: cutoff(now, policy.ipUserAgentWindowMs) },
@@ -150,7 +182,7 @@ export async function checkSignupAbuseLimit(
   }
 
   if (!blocked && userAgentHash) {
-    const globalUserAgentCount = await collection.countDocuments({
+    const globalUserAgentCount = await countSignupAttempts({
       userAgentHash,
       createdAt: { $gte: cutoff(now, policy.globalUserAgentWindowMs) },
     });
@@ -166,7 +198,7 @@ export async function checkSignupAbuseLimit(
     }
   }
 
-  await collection.insertOne({
+  await recordSignupAttempt({
     ipAddress,
     email,
     userAgentHash,

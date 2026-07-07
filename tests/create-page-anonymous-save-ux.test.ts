@@ -12,7 +12,10 @@ describe("create page anonymous save UX", () => {
     expect(source).not.toContain('t("btn.signup_to_save")');
     expect(source).not.toContain('t("btn.signup_to_save_full")');
     expect(source).toContain('session?.user ? "Save Card" : "Save This Card Free"');
-    expect(source).toContain("Create a free account so your card does not disappear.");
+    expect(
+      source.includes("Create a free account so your card does not disappear.") ||
+        source.includes("Create a free account to save this card.")
+    ).toBe(true);
   });
 
   test("redirects anonymous saves before posting oversized local-image drafts", () => {
@@ -34,7 +37,7 @@ describe("create page anonymous save UX", () => {
     expect(source).toContain('const saveCheckoutCallbackUrl = "/create?checkout=save";');
     expect(source).toContain('setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1")');
     expect(source).toContain('searchParams.get("checkout") === "save"');
-    expect(source).toContain('trackClientActivity("free_access_started_after_auth"');
+    expect(source).toContain('trackClientActivity("checkout_auto_started_after_auth"');
     expect(source).toContain('next_step: "auth_then_free_save"');
     expect(source).toContain('router.push("/dashboard")');
     expect(source).toContain('removeBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey)');

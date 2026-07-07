@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
 import { getUserByEmail } from "@/lib/db/users";
 import { sendEmailVerificationEmail } from "@/lib/email";
 import { trackActivity } from "@/lib/activity";
 import { sanitizePostVerificationCallback } from "@/lib/auth/verify-email-redirect";
 import { readJsonObject } from "@/lib/request-json";
+import { countEmailVerificationTokens, createEmailVerificationToken, deleteEmailVerificationTokensByUserId } from "@/lib/db/auth-data";
 
 // Rate limit: max 3 resends per email per hour
 const RESEND_WINDOW_MS = 60 * 60 * 1000; // 1 hour
@@ -38,17 +38,12 @@ export async function POST(request: Request) {
       return successResponse;
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
     // Rate limit resends
     const windowStart = new Date(Date.now() - RESEND_WINDOW_MS);
-    const recentResends = await db
-      .collection("email_verification_tokens")
-      .countDocuments({
-        email,
-        createdAt: { $gte: windowStart },
-      });
+    const recentResends = await countEmailVerificationTokens({
+      email,
+      createdAtSince: windowStart,
+    });
 
     if (recentResends >= MAX_RESENDS) {
       // Still return success to avoid leaking info, but don't actually send
@@ -62,16 +57,14 @@ export async function POST(request: Request) {
     }
 
     // Invalidate any existing tokens for this user
-    await db.collection("email_verification_tokens").deleteMany({
-      userId: user._id.toString(),
-    });
+    await deleteEmailVerificationTokensByUserId(user._id.toString());
 
     // Generate new verification token
     const { randomBytes } = await import("crypto");
     const verifyToken = randomBytes(32).toString("hex");
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-    await db.collection("email_verification_tokens").insertOne({
+    await createEmailVerificationToken({
       userId: user._id.toString(),
       email,
       token: verifyToken,

@@ -21,8 +21,9 @@ try {
 
 const nodemailer = require('./smtp-client.cjs');
 const { MongoClient } = require('mongodb');
+const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
 
-const MONGO_URI = 'mongodb://localhost:27017/mybingocard';
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 const FROM = process.env.EMAIL_FROM || 'support@mybingocard.com';
 const CAMPAIGN_ID = 'live_games_announcement_2026_03_13';
 const DRY_RUN = !process.argv.includes('--send');
@@ -86,10 +87,6 @@ function buildText(firstName) {
 }
 
 async function main() {
-  const client = new MongoClient(MONGO_URI);
-  await client.connect();
-  const db = client.db('mybingocard');
-
   if (PREVIEW_TO) {
     console.log(`Sending preview to ${PREVIEW_TO}...`);
     await transporter.sendMail({
@@ -102,59 +99,67 @@ async function main() {
       },
     });
     console.log('Preview sent!');
-    await client.close();
     return;
   }
 
-  // Get all users who haven't unsubscribed
-  const unsubscribed = await db.collection('email_preferences').distinct('email', { unsubscribed: true });
-  const users = await db.collection('users').find(
-    { email: { $nin: unsubscribed }, createdAt: { $exists: true } },
-    { projection: { email: 1, name: 1, _id: 0 } }
-  ).toArray();
+  const sqliteDb = useSqliteBackend() ? openSqliteShadowDatabase() : null;
+  const client = sqliteDb ? null : new MongoClient(MONGO_URI);
+  if (client) await client.connect();
+  const db = sqliteDb || client.db('mybingocard');
 
-  // Filter out already sent
-  const alreadySent = await db.collection('drip_log').distinct('email', { campaignId: CAMPAIGN_ID });
-  const toSend = users.filter(u => u.email && !alreadySent.includes(u.email));
+  try {
 
-  console.log(`Total users: ${users.length} | Already sent: ${alreadySent.length} | To send: ${toSend.length}`);
-  if (DRY_RUN) {
-    console.log('\n🔍 DRY RUN — pass --send to actually send');
-    toSend.forEach(u => console.log(`  → ${u.email} (${u.name || 'no name'})`));
-    await client.close();
-    return;
-  }
+    // Get all users who haven't unsubscribed
+    const unsubscribed = await db.collection('email_preferences').distinct('email', { unsubscribed: true });
+    const users = await db.collection('users').find(
+      { email: { $nin: unsubscribed }, createdAt: { $exists: true } },
+      { projection: { email: 1, name: 1, _id: 0 } }
+    ).toArray();
 
-  let sent = 0, failed = 0;
-  for (const user of toSend) {
-    try {
-      const firstName = getFirstName(user.name);
-      await transporter.sendMail({
-        from: FROM, to: user.email,
-        subject: '🎯 Live Bingo Games are coming to MyBingoCard this Friday',
-        html: buildHtml(firstName), text: buildText(firstName),
-        headers: {
-          'List-Unsubscribe': `<https://mybingocard.com/api/unsubscribe?email=${encodeURIComponent(user.email)}>, <mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(user.email)}>`,
-          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-        },
-      });
-      await db.collection('drip_log').insertOne({
-        email: user.email, campaignId: CAMPAIGN_ID,
-        subject: '🎯 Live Bingo Games are coming to MyBingoCard this Friday',
-        sentAt: new Date(),
-      });
-      console.log(`[SENT] ${user.email}`);
-      sent++;
-      // Small delay to avoid rate limits
-      await new Promise(r => setTimeout(r, 200));
-    } catch (err) {
-      console.error(`[FAILED] ${user.email}: ${err.message}`);
-      failed++;
+    // Filter out already sent
+    const alreadySent = await db.collection('drip_log').distinct('email', { campaignId: CAMPAIGN_ID });
+    const toSend = users.filter(u => u.email && !alreadySent.includes(u.email));
+
+    console.log(`Total users: ${users.length} | Already sent: ${alreadySent.length} | To send: ${toSend.length}`);
+    if (DRY_RUN) {
+      console.log('\n🔍 DRY RUN — pass --send to actually send');
+      toSend.forEach(u => console.log(`  → ${u.email} (${u.name || 'no name'})`));
+      return;
     }
-  }
 
-  console.log(`\nDone. Sent: ${sent} | Failed: ${failed}`);
-  await client.close();
+    let sent = 0, failed = 0;
+    for (const user of toSend) {
+      try {
+        const firstName = getFirstName(user.name);
+        await transporter.sendMail({
+          from: FROM, to: user.email,
+          subject: '🎯 Live Bingo Games are coming to MyBingoCard this Friday',
+          html: buildHtml(firstName), text: buildText(firstName),
+          headers: {
+            'List-Unsubscribe': `<https://mybingocard.com/api/unsubscribe?email=${encodeURIComponent(user.email)}>, <mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(user.email)}>`,
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+          },
+        });
+        await db.collection('drip_log').insertOne({
+          email: user.email, campaignId: CAMPAIGN_ID,
+          subject: '🎯 Live Bingo Games are coming to MyBingoCard this Friday',
+          sentAt: new Date(),
+        });
+        console.log(`[SENT] ${user.email}`);
+        sent++;
+        // Small delay to avoid rate limits
+        await new Promise(r => setTimeout(r, 200));
+      } catch (err) {
+        console.error(`[FAILED] ${user.email}: ${err.message}`);
+        failed++;
+      }
+    }
+
+    console.log(`\nDone. Sent: ${sent} | Failed: ${failed}`);
+  } finally {
+    if (client) await client.close();
+    if (sqliteDb) sqliteDb.close();
+  }
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

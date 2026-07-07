@@ -6,7 +6,7 @@ import SeoSupportBlock from "@/components/SeoSupportBlock";
 export const metadata: Metadata = {
   title: "Blog — Bingo Card Ideas, Tips & Guides",
   description:
-    "Bingo card ideas, tips, and guides for weddings, baby showers, classrooms, parties, and holidays. Learn how to create custom bingo cards.",
+    "Discover bingo card ideas, tips, and step-by-step guides for weddings, baby showers, classrooms, parties, and holidays. Learn how to create the perfect custom bingo cards.",
   alternates: {
     canonical: "https://mybingocard.com/blog",
   },
@@ -85,71 +85,13 @@ const posts = [
   },
 ];
 
-const blogPageSchema = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": ["Blog", "CollectionPage"],
-      "@id": "https://mybingocard.com/blog#webpage",
-      url: "https://mybingocard.com/blog",
-      name: "Blog - Bingo Card Ideas, Tips & Guides",
-      description:
-        "Bingo card ideas, tips, and guides for weddings, baby showers, classrooms, parties, and holidays. Learn how to create custom bingo cards.",
-      isPartOf: {
-        "@id": "https://mybingocard.com/#website",
-      },
-      about: {
-        "@id": "https://mybingocard.com/#software",
-      },
-      mainEntity: {
-        "@id": "https://mybingocard.com/blog#itemlist",
-      },
-    },
-    {
-      "@type": "ItemList",
-      "@id": "https://mybingocard.com/blog#itemlist",
-      name: "MyBingoCard bingo card ideas and guides",
-      itemListElement: posts.map((post, index) => ({
-        "@type": "ListItem",
-        position: index + 1,
-        url: `https://mybingocard.com/blog/${post.slug}`,
-        name: post.title,
-        description: post.excerpt,
-      })),
-    },
-    {
-      "@type": "BreadcrumbList",
-      "@id": "https://mybingocard.com/blog#breadcrumb",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "Home",
-          item: "https://mybingocard.com/",
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "Blog",
-          item: "https://mybingocard.com/blog",
-        },
-      ],
-    },
-  ],
-};
-
 export default function BlogPage() {
   return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPageSchema) }}
-      />
-      <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
       <BlogTracker />
       {/* Navbar */}
       <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
-        <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
+        <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-all duration-300">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,12 +115,12 @@ export default function BlogPage() {
         </div>
       </header>
 
-      <main className="pt-20">
+      <main className="pt-16">
         {/* Hero */}
-        <section className="py-16 lg:py-24">
+        <section className="py-10 lg:py-14">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-16">
-              <h1 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
+              <h1 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
                 Bingo Card Ideas, Tips &{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Guides</span>
               </h1>
@@ -227,13 +169,13 @@ export default function BlogPage() {
         </section>
 
         {/* CTA */}
-        <section className="py-20 bg-white border-t border-slate-100">
+        <section className="py-14 bg-white border-t border-slate-100">
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">Ready to create your own bingo cards?</h2>
-            <p className="text-slate-600 mb-8 max-w-xl mx-auto">
+            <p className="text-slate-600 mb-6 max-w-xl mx-auto">
               Put these ideas into action — draft custom bingo cards in under 2 minutes.
             </p>
-            <Link href="/create" className="inline-flex bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300">
+            <Link href="/create" className="inline-flex bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-bold text-base shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300">
               Start a Draft
             </Link>
           </div>
@@ -243,7 +185,7 @@ export default function BlogPage() {
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 pt-16 pb-12">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div className="col-span-1 md:col-span-2">
               <Link href="/" className="flex items-center gap-2 mb-6">
                 <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -254,7 +196,7 @@ export default function BlogPage() {
                 <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
               </Link>
               <p className="text-slate-500 max-w-sm leading-relaxed">
-                Bingo card maker for printable and online games, from classrooms to parties and weddings.
+                Free bingo draft editor for printable and online games, from classrooms to parties and weddings.
               </p>
             </div>
             <div>
@@ -281,7 +223,6 @@ export default function BlogPage() {
         </div>
       </footer>      <SeoSupportBlock slug="blog" />
 
-      </div>
-    </>
+    </div>
   );
 }

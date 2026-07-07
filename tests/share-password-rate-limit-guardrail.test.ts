@@ -18,9 +18,15 @@ describe("share password guardrails", () => {
   });
 
   test("keeps old public share links playable without exposing password hashes", () => {
-    expect(shareRouteSource).toContain("function normalizeLegacySharedCard");
-    expect(shareRouteSource).toContain('collection("bingocards").findOne({ shareId: shareLink })');
-    expect(shareRouteSource).toContain("collectionName: \"bingocards\"");
+    const cardDbSource = readFileSync(
+      join(process.cwd(), "lib/db/cards.ts"),
+      "utf8"
+    );
+
+    expect(cardDbSource).toContain("function normalizeLegacySharedCard");
+    expect(cardDbSource).toContain('"bingocards", { shareId: shareLink }');
+    expect(cardDbSource).toContain('collectionName: "bingocards"');
+    expect(shareRouteSource).toContain("getSharedCardForShareLink");
     expect(shareRouteSource).toContain("function publicCardPayload");
     expect(shareRouteSource).not.toContain("NextResponse.json({ card, ...flags })");
   });

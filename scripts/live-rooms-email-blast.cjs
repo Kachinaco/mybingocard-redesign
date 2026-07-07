@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const nodemailer = require('./smtp-client.cjs');
 const { MongoClient } = require('mongodb');
+const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -176,13 +177,14 @@ Unsubscribe: ${appUrl}/unsubscribe?email=${encodeURIComponent(user.email)}`;
 const DRY_RUN = process.argv.includes('--dry-run');
 
 async function run() {
-  const client = new MongoClient(MONGODB_URI);
+  const sqliteDb = useSqliteBackend() ? openSqliteShadowDatabase() : null;
+  const client = sqliteDb ? null : new MongoClient(MONGODB_URI);
   let sentCount = 0;
   let skippedCount = 0;
 
   try {
-    await client.connect();
-    const db = client.db('mybingocard');
+    if (client) await client.connect();
+    const db = sqliteDb || client.db('mybingocard');
 
     // Check who already got this blast
     const blastId = 'live_rooms_launch';
@@ -286,7 +288,8 @@ async function run() {
       } catch {}
     }
   } finally {
-    await client.close();
+    if (client) await client.close();
+    if (sqliteDb) sqliteDb.close();
   }
 }
 

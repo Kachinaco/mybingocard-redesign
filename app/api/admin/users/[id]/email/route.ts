@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { requireAdmin, getAdminSessionEmail } from "@/lib/admin";
+import { getUserById } from "@/lib/db/users";
 import { sendAdminCustomEmail } from "@/lib/email";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
@@ -40,11 +40,7 @@ export async function POST(
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-    const user = await db
-      .collection("users")
-      .findOne({ _id: new ObjectId(id) }, { projection: { email: 1, name: 1 } });
+    const user = await getUserById(id);
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });

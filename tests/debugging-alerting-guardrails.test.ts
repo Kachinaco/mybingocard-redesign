@@ -7,6 +7,7 @@ const readSource = (path: string) => readFileSync(resolve(process.cwd(), path), 
 describe("debugging and alerting guardrails", () => {
   const errorCaptureSource = readSource("components/ErrorCapture.tsx");
   const errorRouteSource = readSource("app/api/errors/client/route.ts");
+  const clientErrorsDbSource = readSource("lib/db/client-errors.ts");
   const activityClientSource = readSource("lib/activity-client.ts");
   const discordSource = readSource("lib/discord.ts");
   const adminLayoutSource = readSource("app/admin/layout.tsx");
@@ -47,7 +48,8 @@ describe("debugging and alerting guardrails", () => {
     expect(errorRouteSource).toContain("connect\\.facebook\\.net");
     expect(errorRouteSource).toContain("www\\.facebook\\.com\\/tr");
     expect(errorRouteSource).toContain("third_party_tracking_failure");
-    expect(errorRouteSource).toContain("marketing_tracking_failures");
+    expect(errorRouteSource).toContain("upsertMarketingTrackingFailure");
+    expect(clientErrorsDbSource).toContain("marketing_tracking_failures");
     expect(errorRouteSource).toContain("alertSuppressed");
     expect(errorRouteSource).toContain('event: signal.alertSuppressed ? "client_marketing_tracking_failure" : "client_error_captured"');
     expect(errorRouteSource).toContain("if (!signal.alertSuppressed)");
@@ -62,16 +64,18 @@ describe("debugging and alerting guardrails", () => {
   });
 
   test("server groups errors by fingerprint and alerts only on thresholds", () => {
-    expect(errorRouteSource).toContain("error_fingerprints");
+    expect(clientErrorsDbSource).toContain("error_fingerprints");
     expect(errorRouteSource).toContain("fingerprint");
     expect(errorRouteSource).toContain("ALERT_WINDOW_MS");
     expect(errorRouteSource).toContain("ALERT_COOLDOWN_MS");
-    expect(errorRouteSource).toContain("lastAlertedAt");
+    expect(clientErrorsDbSource).toContain("lastAlertedAt");
     expect(errorRouteSource).toContain("notifyClientErrorCaptured");
     expect(errorRouteSource).toContain("notifyClientErrorSpike");
     expect(errorRouteSource).toContain("client_error_captured");
     expect(errorRouteSource).not.toContain("isCrawlerUserAgent");
     expect(errorRouteSource).toContain("maybeNotifyClientErrorCaptured");
+    expect(errorRouteSource).toContain("upsertClientErrorFingerprint");
+    expect(errorRouteSource).toContain("getRecentClientErrorStats");
     expect(errorRouteSource).toContain("CAPTURE_ALERT_COOLDOWN_MS");
     expect(errorRouteSource).toContain("recentSessions >= 2");
   });

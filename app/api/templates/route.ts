@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { getCommunityTemplateCards } from "@/lib/db/cards";
 import {
   getAllTemplates,
   searchTemplates,
@@ -24,13 +25,7 @@ export async function GET(request: Request) {
 
     // Community cards (popular public user-created cards)
     if (searchParams.get("community") === "true") {
-      const clientPromise = (await import("@/lib/mongodb")).default;
-      const client = await clientPromise;
-      const db = client.db("mybingocard");
-      const communityCards = await db.collection("cards").find(
-        { isPublic: true, views: { $gte: 3 } },
-        { projection: { userId: 0, sharePassword: 0 } }
-      ).sort({ views: -1 }).limit(limit ? parseInt(limit) : 20).toArray();
+      const communityCards = await getCommunityTemplateCards(limit ? parseInt(limit) : 20);
 
       return NextResponse.json({ templates: communityCards.map(c => ({
         _id: c._id,

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import clientPromise from "@/lib/mongodb";
+import { countUserCards } from "@/lib/db/cards";
+import { createNpsResponse } from "@/lib/db/nps";
+import { getUserByEmail, markUserNpsShownByEmail } from "@/lib/db/users";
 import { sendDiscordNotification } from "@/lib/discord";
 
 export async function GET() {
@@ -10,19 +12,12 @@ export async function GET() {
       return NextResponse.json({ show: false });
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    const user = await db
-      .collection("users")
-      .findOne({ email: session.user.email });
+    const user = await getUserByEmail(session.user.email);
     if (!user || user.npsShownAt) {
       return NextResponse.json({ show: false });
     }
 
-    const cardCount = await db
-      .collection("cards")
-      .countDocuments({ userId: user._id.toString() });
+    const cardCount = await countUserCards(user._id.toString());
 
     return NextResponse.json({ show: cardCount >= 2 });
   } catch (error) {
@@ -40,10 +35,7 @@ export async function POST(request: Request) {
 
     const { score, comment } = await request.json();
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    await db.collection("nps_responses").insertOne({
+    await createNpsResponse({
       userId: session.user.id,
       email: session.user.email,
       score: Number(score),
@@ -52,10 +44,7 @@ export async function POST(request: Request) {
     });
 
     // Mark as shown so the widget doesn't appear again
-    await db.collection("users").updateOne(
-      { email: session.user.email },
-      { $set: { npsShownAt: new Date() } }
-    );
+    await markUserNpsShownByEmail(session.user.email);
 
     // Send to Discord
     const emoji =

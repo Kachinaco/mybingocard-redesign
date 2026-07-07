@@ -213,7 +213,6 @@ export default function AdminUserDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [impersonating, setImpersonating] = useState(false);
-  const [extendingTrial, setExtendingTrial] = useState(false);
   const [cancelingSub, setCancelingSub] = useState(false);
   const [deletingCardId, setDeletingCardId] = useState<string | null>(null);
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -389,28 +388,6 @@ export default function AdminUserDetailPage() {
     }
   };
 
-  const extendTrial = async () => {
-    if (!confirm("Extend this user's trial by 7 days?")) return;
-    setExtendingTrial(true);
-    setActionError(null);
-    try {
-      const res = await fetch(`/api/admin/users/${id}/extend-trial`, {
-        method: "POST",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Failed to extend trial");
-      setUser((prev) =>
-        prev
-          ? { ...prev, trialEndsAt: data.trialEndsAt, subscriptionStatus: "trialing" }
-          : prev
-      );
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Failed to extend trial");
-    } finally {
-      setExtendingTrial(false);
-    }
-  };
-
   const cancelSubscription = async () => {
     if (
       !confirm(
@@ -547,14 +524,6 @@ export default function AdminUserDetailPage() {
                   : impersonating
                     ? "Starting..."
                     : "View as User"}
-              </button>
-              <button
-                type="button"
-                onClick={extendTrial}
-                disabled={extendingTrial}
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {extendingTrial ? "Extending..." : "Extend Trial"}
               </button>
               {user.stripeCustomerId && (
                 <a

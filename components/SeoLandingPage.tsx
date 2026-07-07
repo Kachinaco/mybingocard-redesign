@@ -80,10 +80,10 @@ function buildUseThisListHref(page: SeoLandingPageData): string {
 function Header() {
   return (
     <header className="fixed top-0 w-full z-50 bg-white/85 backdrop-blur-md border-b border-slate-200/70">
-      <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
+      <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-all duration-300">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-all duration-300">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
           </div>
@@ -110,7 +110,7 @@ function BingoPreview({ page }: { page: SeoLandingPageData }) {
     <div className="relative">
       <div className={`absolute -top-10 -left-10 w-44 h-44 bg-gradient-to-br ${accent.gradient} rounded-full blur-3xl opacity-15`}></div>
       <div className={`absolute -bottom-10 -right-10 w-44 h-44 bg-gradient-to-br ${accent.gradient} rounded-full blur-3xl opacity-10`}></div>
-      <div className="relative bg-white rounded-2xl shadow-2xl shadow-slate-200/80 p-6 border border-slate-100 rotate-1 hover:rotate-0 transition-all duration-300">
+      <div className="relative bg-white rounded-2xl shadow-2xl shadow-slate-200/80 p-4 border border-slate-100 rotate-1 hover:rotate-0 transition-all duration-300">
         <div className="text-center mb-4">
           <div className="flex justify-center gap-3 text-4xl font-black tracking-widest">
             {"BINGO".split("").map((letter) => (
@@ -206,38 +206,6 @@ function JsonLd({ page }: { page: SeoLandingPageData }) {
   );
 }
 
-function ToolkitSection({ page }: { page: SeoLandingPageData }) {
-  if (!page.toolkit) return null;
-
-  const accent = accentStyles[page.accent];
-
-  return (
-    <section className="py-20 bg-white border-y border-slate-100">
-      <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
-        <div className="grid lg:grid-cols-[0.8fr_1.2fr] gap-10 items-start">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-5">{page.toolkit.title}</h2>
-            <p className="text-slate-600 leading-relaxed">{page.toolkit.intro}</p>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            {page.toolkit.items.map((item, index) => (
-              <div key={item.title} className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${accent.gradient} text-sm font-bold text-white`}>
-                    {index + 1}
-                  </span>
-                  <h3 className="text-lg font-bold text-slate-900">{item.title}</h3>
-                </div>
-                <p className="text-sm leading-relaxed text-slate-600">{item.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
   const accent = accentStyles[page.accent];
   const useThisListHref = buildUseThisListHref(page);
@@ -252,42 +220,42 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
       <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
         <Header />
 
-        <main className="pt-20">
-          <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28">
+        <main className="pt-16">
+          <section className="relative overflow-hidden pt-8 pb-16 lg:pt-12 lg:pb-20">
             <div className="container mx-auto px-4 lg:px-8 relative">
-              <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+              <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
                 <div className="text-center lg:text-left">
-                  <div className={`inline-flex items-center gap-2 ${accent.soft} ${accent.text} border rounded-full px-4 py-1.5 mb-8`}>
+                  <div className={`inline-flex items-center gap-2 ${accent.soft} ${accent.text} border rounded-full px-4 py-1.5 mb-4`}>
                     <span className="text-xs font-semibold uppercase tracking-wide">{page.eyebrow}</span>
                   </div>
-                  <h1 className="text-4xl lg:text-6xl font-bold tracking-tight text-slate-900 mb-6 leading-[1.1]">
+                  <h1 className="text-3xl lg:text-5xl font-bold tracking-tight text-slate-900 mb-4 leading-[1.1]">
                     {page.h1}
                   </h1>
-                  <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
+                  <p className="text-base text-slate-600 mb-6 leading-relaxed max-w-xl mx-auto lg:mx-0">
                     {page.lead}
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
                       href={useThisListHref}
-                      className={`bg-gradient-to-r ${accent.gradient} text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl ${accent.shadow} hover:-translate-y-1 transition-all duration-300`}
+                      className={`bg-gradient-to-r ${accent.gradient} text-white px-6 py-3 rounded-xl font-bold text-base shadow-xl ${accent.shadow} hover:-translate-y-1 transition-all duration-300`}
                     >
                       {page.primaryCta}
                     </Link>
                     <Link
                       href="/templates"
-                      className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300"
+                      className="bg-white text-slate-700 border border-slate-200 px-6 py-3 rounded-xl font-bold text-base hover:bg-slate-50 transition-all duration-300"
                     >
                       Browse Templates
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-500">Start with a draft, then unlock saving, exports, batches, sharing, or hosted games when the card is ready.</p>
+                  <p className="text-sm text-slate-500">Free to create, save, customize, and export. Paid batches, sharing, and hosting are optional.</p>
                 </div>
                 <BingoPreview page={page} />
               </div>
             </div>
           </section>
 
-          <section className="py-16 bg-white border-y border-slate-100">
+          <section className="py-12 bg-white border-y border-slate-100">
             <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
               <div className="grid lg:grid-cols-[1.25fr_0.75fr] gap-10 items-start">
                 <div>
@@ -299,8 +267,8 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
                 <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
                   <h3 className="text-lg font-bold text-slate-900 mb-4">What you can make</h3>
                   <ul className="space-y-3 text-sm text-slate-600">
-                    <li className="flex gap-3"><span className={accent.text}>✓</span><span>Printable PDF card sets for in-person games</span></li>
-                    <li className="flex gap-3"><span className={accent.text}>✓</span><span>Online play links for phones or laptops</span></li>
+                    <li className="flex gap-3"><span className={accent.text}>✓</span><span>Free PDF exports for in-person games</span></li>
+                    <li className="flex gap-3"><span className={accent.text}>✓</span><span>Paid online play links for phones or laptops</span></li>
                     <li className="flex gap-3"><span className={accent.text}>✓</span><span>Unique shuffled cards for groups and classes</span></li>
                     <li className="flex gap-3"><span className={accent.text}>✓</span><span>Reusable card themes you can edit later</span></li>
                   </ul>
@@ -309,7 +277,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
             </div>
           </section>
 
-          <section className="py-20 bg-slate-50">
+          <section className="py-14 bg-slate-50">
             <div className="container mx-auto px-4 lg:px-8">
               <div className="text-center max-w-3xl mx-auto mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Why use MyBingoCard?</h2>
@@ -326,7 +294,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
             </div>
           </section>
 
-          <section className="py-20 bg-white">
+          <section className="py-14 bg-white">
             <div className="container mx-auto px-4 lg:px-8">
               <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
                 <div>
@@ -367,9 +335,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
             </div>
           </section>
 
-          <ToolkitSection page={page} />
-
-          <section className="py-20 bg-slate-50 border-y border-slate-100">
+          <section className="py-14 bg-slate-50 border-y border-slate-100">
             <div className="container mx-auto px-4 lg:px-8">
               <div className="grid lg:grid-cols-[0.85fr_1.15fr] gap-12 max-w-6xl mx-auto items-start">
                 <div>
@@ -399,7 +365,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
             </div>
           </section>
 
-          <section className="py-20 bg-white">
+          <section className="py-14 bg-white">
             <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
               <div className="text-center max-w-3xl mx-auto mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
@@ -437,7 +403,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
             </div>
           </section>
 
-          <section className="py-20 bg-slate-50 border-y border-slate-100">
+          <section className="py-14 bg-slate-50 border-y border-slate-100">
             <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
               <div className="grid lg:grid-cols-2 gap-10">
                 <div className="rounded-2xl bg-white border border-slate-100 p-8 shadow-sm">
@@ -466,7 +432,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
                   <div className="space-y-5 text-slate-200">
                     <div>
                       <h3 className="font-bold text-white mb-1">Before the game</h3>
-                      <p>Build the card, remove weak squares, choose print or online play, and make enough unique cards for the group.</p>
+                      <p>Build the card, remove weak squares, choose free export or paid online play, and make enough unique cards for the group.</p>
                     </div>
                     <div>
                       <h3 className="font-bold text-white mb-1">During the game</h3>
@@ -482,7 +448,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
             </div>
           </section>
 
-          <section className="py-20 bg-slate-50 border-y border-slate-100">
+          <section className="py-14 bg-slate-50 border-y border-slate-100">
             <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-10">FAQ</h2>
               <div className="space-y-4">
@@ -496,7 +462,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
             </div>
           </section>
 
-          <section className="py-20 bg-white">
+          <section className="py-14 bg-white">
             <div className="container mx-auto px-4 lg:px-8">
               <div className="text-center max-w-3xl mx-auto mb-10">
                 <h2 className="text-3xl font-bold text-slate-900 mb-4">Related bingo generators</h2>
@@ -521,13 +487,13 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
             <div className="container mx-auto px-4 max-w-3xl">
               <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to make your card?</h2>
               <p className="text-slate-300 text-lg mb-8">
-                Start with a blank bingo card, customize the content, then prepare printable cards, batch packs, sharing, or hosted play when needed.
+                Start with a blank bingo card, customize the content, export it for free, then add paid batches, sharing, or hosted play when needed.
               </p>
               <Link
                 href={useThisListHref}
                 className="inline-flex bg-white text-slate-900 px-9 py-4 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-colors"
               >
-                Start a Draft
+                Start a Free Draft
               </Link>
             </div>
           </section>

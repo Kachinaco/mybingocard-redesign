@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
-import clientPromise from "@/lib/mongodb";
 import { sendMagicLinkEmail } from "@/lib/email";
 import { trackActivity } from "@/lib/activity";
 import { notifyMagicLink } from "@/lib/discord";
 import { sanitizePostVerificationCallback } from "@/lib/auth/verify-email-redirect";
 import { readJsonObject } from "@/lib/request-json";
+import { createMagicLinkToken } from "@/lib/db/auth-data";
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -30,17 +30,14 @@ export async function POST(request: Request) {
     const token = crypto.randomBytes(32).toString("hex");
     const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const expiresAt = new Date(Date.now() + MAGIC_LINK_TTL_MS);
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
 
-    await db.collection("magic_link_tokens").insertOne({
+    await createMagicLinkToken({
       email,
       tokenHash,
       callbackUrl,
       expiresAt,
       createdAt: new Date(),
     });
-    await db.collection("magic_link_tokens").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
     const url = `${appUrl}/magic-link?token=${encodeURIComponent(token)}&callbackUrl=${encodeURIComponent(callbackUrl)}`;
     await sendMagicLinkEmail(email, url);

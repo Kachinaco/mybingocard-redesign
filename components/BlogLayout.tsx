@@ -15,7 +15,7 @@ export default function BlogLayout({ children, title, date, readTime, category, 
     <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
       {/* Navbar */}
       <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
-        <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
+        <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-all duration-300">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -39,11 +39,11 @@ export default function BlogLayout({ children, title, date, readTime, category, 
         </div>
       </header>
 
-      <main className="pt-20">
-        <article className="py-12 lg:py-20">
+      <main className="pt-16">
+        <article className="py-10 lg:py-14">
           <div className="container mx-auto px-4 lg:px-8 max-w-3xl">
             {/* Breadcrumb */}
-            <nav className="flex items-center gap-2 text-sm text-slate-500 mb-8">
+            <nav className="flex items-center gap-2 text-sm text-slate-500 mb-6">
               <Link href="/" className="hover:text-indigo-600 transition-colors">Home</Link>
               <span>/</span>
               <Link href="/blog" className="hover:text-indigo-600 transition-colors">Blog</Link>
@@ -52,14 +52,14 @@ export default function BlogLayout({ children, title, date, readTime, category, 
             </nav>
 
             {/* Header */}
-            <div className="mb-12">
+            <div className="mb-8">
               <div className="flex items-center gap-3 mb-4">
                 <span className={`text-xs font-bold px-3 py-1 rounded-full bg-gradient-to-r ${categoryGradient} text-white`}>
                   {category}
                 </span>
                 <span className="text-sm text-slate-400">{readTime}</span>
               </div>
-              <h1 className="text-3xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-tight leading-tight">
+              <h1 className="text-2xl lg:text-4xl font-bold text-slate-900 mb-4 tracking-tight leading-tight">
                 {title}
               </h1>
               <div className="text-sm text-slate-500">
@@ -78,7 +78,7 @@ export default function BlogLayout({ children, title, date, readTime, category, 
               <p className="text-slate-600 mb-6 max-w-md mx-auto">
                 Put these ideas into action — draft custom bingo cards in under 2 minutes.
               </p>
-              <Link href="/create" className="inline-flex bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300">
+              <Link href="/create" className="inline-flex bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-bold text-base shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300">
                 Start a Draft
               </Link>
             </div>
@@ -89,7 +89,7 @@ export default function BlogLayout({ children, title, date, readTime, category, 
       {/* Footer */}
       <footer className="bg-white border-t border-slate-200 pt-16 pb-12">
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div className="col-span-1 md:col-span-2">
               <Link href="/" className="flex items-center gap-2 mb-6">
                 <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
@@ -100,7 +100,7 @@ export default function BlogLayout({ children, title, date, readTime, category, 
                 <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
               </Link>
               <p className="text-slate-500 max-w-sm leading-relaxed">
-                Bingo card maker for printable and online games, from classrooms to parties and weddings.
+                Free bingo draft editor for printable and online games, from classrooms to parties and weddings.
               </p>
             </div>
             <div>

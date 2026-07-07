@@ -1,26 +1,20 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
 import bcrypt from "bcryptjs";
 import { trackActivity } from "@/lib/activity";
 import { getRequestActivityContext } from "@/lib/activity";
 import { PLANS } from "@/lib/stripe/config";
 import { notifySharedCardViewed } from "@/lib/discord";
 import { readJsonObject } from "@/lib/request-json";
+import {
+  getSharedCardForShareLink,
+  incrementSharedCardViews,
+} from "@/lib/db/cards";
+import { getUserById } from "@/lib/db/users";
 
-type SharedCardRecord = {
-  card: any;
-  collectionName: "cards" | "bingocards";
-  rawId: ObjectId;
-};
-
-async function getOwnerFlags(db: any, userId: string) {
+async function getOwnerFlags(userId: unknown) {
   try {
     if (!userId) return { shuffleEnabled: false, adFree: false };
-    const owner = await db.collection("users").findOne(
-      { _id: new ObjectId(String(userId)) },
-      { projection: { planType: 1 } }
-    );
+    const owner = await getUserById(String(userId));
     const plan = PLANS[(owner?.planType as keyof typeof PLANS) || "FREE"] || PLANS.FREE;
     return {
       shuffleEnabled: !!(plan.limits as any).canShuffleSharedCards,
@@ -29,44 +23,6 @@ async function getOwnerFlags(db: any, userId: string) {
   } catch {
     return { shuffleEnabled: false, adFree: false };
   }
-}
-
-function normalizeLegacySharedCard(card: any, shareLink: string) {
-  const numericSize = Number(card.size);
-  const size = numericSize === 3 || numericSize === 4 || numericSize === 5 ? numericSize : 5;
-  const cells = Array.isArray(card.cells)
-    ? card.cells.map((cell: any) => (typeof cell === "string" ? cell : cell?.text || ""))
-    : [];
-
-  return {
-    ...card,
-    shareLink,
-    cells,
-    size,
-    rows: Number(card.rows) || size,
-    columns: Number(card.columns) || size,
-    bingoVariant: card.bingoVariant || "custom",
-    freeSpace: !!card.freeSpace,
-    style: card.style || {},
-    isPublic: card.isPublic !== false,
-    views: Number(card.views) || 0,
-  };
-}
-
-async function findSharedCard(db: any, shareLink: string): Promise<SharedCardRecord | null> {
-  const card = await db.collection("cards").findOne({ shareLink });
-  if (card) {
-    return { card, collectionName: "cards", rawId: card._id };
-  }
-
-  const legacyCard = await db.collection("bingocards").findOne({ shareId: shareLink });
-  if (!legacyCard) return null;
-
-  return {
-    card: normalizeLegacySharedCard(legacyCard, shareLink),
-    collectionName: "bingocards",
-    rawId: legacyCard._id,
-  };
 }
 
 function publicCardPayload(card: any) {
@@ -80,17 +36,15 @@ export async function GET(
 ) {
   try {
     const { shareLink } = await params;
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-    const sharedCard = await findSharedCard(db, shareLink);
-    const card = sharedCard?.card;
+    const sharedCard = await getSharedCardForShareLink(shareLink);
 
-    if (!sharedCard || !card.isPublic) {
+    if (!sharedCard || !sharedCard.card.isPublic) {
       return NextResponse.json(
         { error: "Card not found or not shared" },
         { status: 404 }
       );
     }
+    const card = sharedCard.card;
 
     // Check expiry
     if (card.shareExpiresAt && new Date(card.shareExpiresAt) < new Date()) {
@@ -109,13 +63,10 @@ export async function GET(
     }
 
     // Increment views for non-password-protected cards
-    await db.collection(sharedCard.collectionName).updateOne(
-      { _id: sharedCard.rawId },
-      { $inc: { views: 1 } }
-    );
+    await incrementSharedCardViews(sharedCard);
 
     // Look up card owner's plan for feature flags
-    const flags = await getOwnerFlags(db, card.userId);
+    const flags = await getOwnerFlags(card.userId);
 
     // Track shared card view with viewer context
     const reqCtx = getRequestActivityContext(request);
@@ -173,17 +124,15 @@ export async function POST(
 
     const { password } = body.data;
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-    const sharedCard = await findSharedCard(db, shareLink);
-    const card = sharedCard?.card;
+    const sharedCard = await getSharedCardForShareLink(shareLink);
 
-    if (!sharedCard || !card.isPublic) {
+    if (!sharedCard || !sharedCard.card.isPublic) {
       return NextResponse.json(
         { error: "Card not found" },
         { status: 404 }
       );
     }
+    const card = sharedCard.card;
 
     // Check expiry
     if (card.shareExpiresAt && new Date(card.shareExpiresAt) < new Date()) {
@@ -194,7 +143,7 @@ export async function POST(
     }
 
     // Look up card owner's plan for feature flags
-    const flags = await getOwnerFlags(db, card.userId);
+    const flags = await getOwnerFlags(card.userId);
 
     // If no password set, return the card directly
     if (!card.sharePassword) {
@@ -229,10 +178,7 @@ export async function POST(
     }
 
     // Increment views on successful password verification
-    await db.collection(sharedCard.collectionName).updateOne(
-      { _id: sharedCard.rawId },
-      { $inc: { views: 1 } }
-    );
+    await incrementSharedCardViews(sharedCard);
 
     // Track shared card view (password-protected)
     const reqCtx = getRequestActivityContext(request);

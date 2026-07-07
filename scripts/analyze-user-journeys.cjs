@@ -1,11 +1,12 @@
 const fs = require("fs");
 const path = require("path");
 const { MongoClient } = require("mongodb");
+const { openSqliteShadowDatabase, useSqliteBackend } = require("./sqlite-shadow-store.cjs");
 
 const ROOT = path.resolve(__dirname, "..");
 const ENV_PATH = path.join(ROOT, ".env.local");
-const OUT_DIR = "/root/clawd/obsidian/research/mybingocard";
-const RUN_DATE = "2026-05-18";
+const OUT_DIR = process.env.MYBINGOCARD_JOURNEY_OUT_DIR || "/root/clawd/obsidian/research/mybingocard";
+const RUN_DATE = process.env.MYBINGOCARD_JOURNEY_RUN_DATE || "2026-05-18";
 const REPORT_PATH = path.join(OUT_DIR, `user-journey-analysis-${RUN_DATE}.md`);
 const CSV_PATH = path.join(OUT_DIR, `user-journey-summary-${RUN_DATE}.csv`);
 const JSON_PATH = path.join(OUT_DIR, `user-journey-summary-${RUN_DATE}.json`);
@@ -421,9 +422,10 @@ function summarizeJourney({ user, events, cards, games, rooms, subscription, sup
 
 async function run() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
-  const client = new MongoClient(MONGODB_URI);
-  await client.connect();
-  const db = client.db("mybingocard");
+  const sqliteDb = useSqliteBackend() ? openSqliteShadowDatabase() : null;
+  const client = sqliteDb ? null : new MongoClient(MONGODB_URI);
+  if (client) await client.connect();
+  const db = sqliteDb || client.db("mybingocard");
 
   const [
     users,
@@ -852,7 +854,11 @@ async function run() {
     noActivation: noActivation.length,
   }, null, 2));
 
-  await client.close();
+  if (client) {
+    await client.close();
+  } else {
+    sqliteDb.close();
+  }
 }
 
 run().catch((error) => {

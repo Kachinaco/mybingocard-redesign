@@ -1,32 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getImageById } from "@/lib/db/images";
-import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+import { getImageById, isImageReferencedByPublicCard } from "@/lib/db/images";
 import { readFile } from "node:fs/promises";
-
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-async function isImageReferencedByPublicCard(imageId: string, userId: string) {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const imageIdPattern = new RegExp(escapeRegExp(imageId));
-  let ownerObjectId: ObjectId | null = null;
-  try {
-    ownerObjectId = new ObjectId(userId);
-  } catch {}
-  const card = await db.collection("cards").findOne(
-    {
-      isPublic: true,
-      userId: ownerObjectId ? { $in: [userId, ownerObjectId] } : userId,
-      cells: { $elemMatch: { $regex: imageIdPattern } },
-    },
-    { projection: { _id: 1 } }
-  );
-  return Boolean(card);
-}
 
 export async function GET(
   request: Request,

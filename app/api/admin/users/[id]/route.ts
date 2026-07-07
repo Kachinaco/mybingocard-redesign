@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { getAdminSessionEmail, requireAdmin } from "@/lib/admin";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { getAdminUserDetail } from "@/lib/db/users";
 
 export async function GET(
   request: Request,
@@ -23,52 +23,11 @@ export async function GET(
       return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
+    const detail = await getAdminUserDetail(id);
 
-    const user = await db.collection("users").findOne(
-      { _id: new ObjectId(id) },
-      {
-        projection: {
-          password: 0,
-        },
-      }
-    );
-
-    if (!user) {
+    if (!detail) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
-    // Get user's cards
-    const cards = await db
-      .collection("cards")
-      .find({ userId: id })
-      .sort({ createdAt: -1 })
-      .toArray();
-
-    // Get recent activity events for this user
-    const activityFilter: Record<string, unknown>[] = [{ userId: id }];
-    if (user.email) {
-      activityFilter.push({ email: user.email });
-    }
-    const activityEvents = await db
-      .collection("activity_events")
-      .find({ $or: activityFilter })
-      .sort({ createdAt: -1 })
-      .limit(100)
-      .project({
-        event: 1,
-        source: 1,
-        metadata: 1,
-        pathname: 1,
-        sessionId: 1,
-        anonymousId: 1,
-        domain: 1,
-        ipAddress: 1,
-        userAgent: 1,
-        createdAt: 1,
-      })
-      .toArray();
 
     await trackActivity({
       event: "admin_user_details_accessed",
@@ -84,11 +43,7 @@ export async function GET(
       },
     });
 
-    return NextResponse.json({
-      user,
-      cards,
-      activityEvents,
-    });
+    return NextResponse.json(detail);
   } catch (error) {
     console.error("Admin user detail error:", error);
     return NextResponse.json(

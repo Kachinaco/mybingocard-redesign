@@ -41,9 +41,10 @@ describe("free image bingo access", () => {
   });
 
   test("public shared image cards can render their uploaded images", () => {
-    expect(imageServeRouteSource).toContain("function isImageReferencedByPublicCard");
-    expect(imageServeRouteSource).toContain("isPublic: true");
-    expect(imageServeRouteSource).toContain("cells: { $elemMatch: { $regex: imageIdPattern } }");
+    expect(imageDbSource).toContain("export async function isImageReferencedByPublicCard");
+    expect(imageServeRouteSource).toContain("isImageReferencedByPublicCard");
+    expect(imageDbSource).toContain("isPublic: true");
+    expect(imageDbSource).toContain("cells: { $elemMatch: { $regex: imageIdPattern } }");
     expect(imageServeRouteSource).toContain("publicSharedImage");
   });
 });

@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { createImage, getUserImageCount, getUploadLimits, isAllowedMimeType } from "@/lib/db/images";
+import {
+  createImage,
+  getUserImageCount,
+  getUploadLimits,
+  isAllowedMimeType,
+  updateImagePaths,
+} from "@/lib/db/images";
 import { getUserById, addFeatureUsed } from "@/lib/db/users";
 import { hasPremiumAccess, isLegacyFreeUser } from "@/lib/subscription-status";
 import { trackActivity, getRequestActivityContext } from "@/lib/activity";
@@ -127,15 +133,10 @@ export async function POST(request: Request) {
     await writeFile(mainPath, mainImage);
     await writeFile(thumbPath, thumbImage);
 
-    // Update record with paths
-    const { ObjectId } = await import("mongodb");
-    const clientPromise = (await import("@/lib/mongodb")).default;
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-    await db.collection("images").updateOne(
-      { _id: new ObjectId(imageId) },
-      { $set: { storagePath: mainPath, thumbnailPath: thumbPath } }
-    );
+    await updateImagePaths(imageId, {
+      storagePath: mainPath,
+      thumbnailPath: thumbPath,
+    });
 
     await trackActivity({
       event: "image_uploaded",

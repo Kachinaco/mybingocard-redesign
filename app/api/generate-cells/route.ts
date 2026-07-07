@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { auth } from "@/auth";
 import { getUserByEmail, addFeatureUsed, type User } from "@/lib/db/users";
+import { countPriorUserAiGenerations, countRecentAiGenerations } from "@/lib/db/activity-events";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { getTrialDaysLeft, hasPremiumAccess, isUserOnTrial } from "@/lib/subscription-status";
-import clientPromise from "@/lib/mongodb";
 import { notifyFirstAiGeneration } from "@/lib/discord";
 import { generateBingoCells } from "@/lib/ai-generation";
 import { readJsonObject } from "@/lib/request-json";
@@ -54,46 +54,6 @@ function getAnonymousQuotaKey(req: NextRequest, ip: string): string {
     .slice(0, 32);
 }
 
-async function getRecentAiGenerationCount({
-  userId,
-  anonymousQuotaKey,
-}: {
-  userId?: string | null;
-  anonymousQuotaKey?: string | null;
-}): Promise<number> {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-
-  if (userId) {
-    return db.collection("activity_events").countDocuments({
-      event: "ai_cells_generated",
-      userId,
-      createdAt: { $gte: since },
-    });
-  }
-
-  if (anonymousQuotaKey) {
-    return db.collection("activity_events").countDocuments({
-      event: "ai_cells_generated",
-      userId: null,
-      "metadata.aiQuotaKey": anonymousQuotaKey,
-      createdAt: { $gte: since },
-    });
-  }
-
-  return 0;
-}
-
-async function getPriorUserAiGenerationCount(userId: string): Promise<number> {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  return db.collection("activity_events").countDocuments({
-    event: "ai_cells_generated",
-    userId,
-  });
-}
-
 export async function POST(req: NextRequest) {
   try {
     const session = await auth();
@@ -130,7 +90,7 @@ export async function POST(req: NextRequest) {
     const unlimitedAi = Boolean(sessionUserId) || isUnlimitedAiUser(user ? { ...user, email: sessionUserEmail } : null);
     let freeGenerationsUsed = 0;
     if (!unlimitedAi) {
-      freeGenerationsUsed = await getRecentAiGenerationCount({ userId: sessionUserId, anonymousQuotaKey });
+      freeGenerationsUsed = await countRecentAiGenerations({ userId: sessionUserId, anonymousQuotaKey });
       if (freeGenerationsUsed >= FREE_DAILY_LIMIT) {
         const ctx = getRequestActivityContext(req as any);
         await trackActivity({
@@ -223,7 +183,7 @@ export async function POST(req: NextRequest) {
         ...ctx,
       });
 
-      const priorCount = sessionUserId ? await getPriorUserAiGenerationCount(sessionUserId) : 0;
+      const priorCount = sessionUserId ? await countPriorUserAiGenerations(sessionUserId) : 0;
       if (sessionUserId && sessionUserEmail && priorCount === 1) {
         await trackActivity({
           event: "first_ai_generation",

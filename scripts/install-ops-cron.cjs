@@ -12,7 +12,6 @@ const BEGIN = "# BEGIN MyBingoCard Ops Guardrails";
 const END = "# END MyBingoCard Ops Guardrails";
 const BLOCK = `${BEGIN}
 */15 * * * * cd ${APP_DIR} && ${NODE_BIN} scripts/ops-regression-monitor.cjs --discord >> /var/log/mybingocard-ops-monitor.log 2>&1
-*/30 * * * * cd ${APP_DIR} && ${NODE_BIN} scripts/cleanup-stale-game-rooms.cjs >> /var/log/mybingocard-game-room-cleanup.log 2>&1
 12 7 * * * cd ${APP_DIR} && ${NODE_BIN} scripts/traffic-truth-report.cjs --days 14 --discord >> /var/log/mybingocard-traffic-truth.log 2>&1
 22 7 * * 1 cd ${APP_DIR} && ${NODE_BIN} scripts/traffic-recovery-submit.cjs --limit 80 >> /var/log/mybingocard-traffic-recovery.log 2>&1
 ${END}`;

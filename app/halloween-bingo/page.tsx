@@ -4,93 +4,32 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Halloween Bingo Cards Printable: Party Game",
+  title: "Halloween Bingo Cards Printable — Custom Halloween Bingo Generator | MyBingoCard",
   description:
-    "Create printable Halloween bingo cards for kids, classrooms, adult parties, trunk or treat events, movie nights, and spooky game night.",
+    "Create custom printable Halloween bingo cards for your party or classroom. The best Halloween bingo card generator — spooky squares, PDF export, perfect for kids and adults.",
   alternates: {
     canonical: "https://mybingocard.com/halloween-bingo",
   },
 };
 
 const halloweenSquares = [
-  "Pumpkin", "Candy Corn", "Witch Hat", "Black Cat", "FREE",
+  "Jack-o-Lantern", "Candy Corn", "Witch Hat", "Black Cat", "FREE",
   "Full Moon", "Haunted House", "Spider Web", "Trick or Treat", "Ghost",
-  "Skeleton", "Vampire Cape", "Costume Contest", "Candy Bowl", "Bat",
-  "Monster Mask", "Mummy Wrap", "Broomstick", "Pumpkin Patch", "Class Party",
-  "Jump Scare", "Movie Night", "Glow Stick", "Calling Card", "Prize Bag",
+  "Skeleton", "Vampire Cape", "Cauldron", "Graveyard", "Bat",
+  "Frankenstein", "Mummy Wrap", "Evil Eye", "Broomstick", "Pumpkin Patch",
+  "Jump Scare", "Monster Mash", "Devil Horns", "Skull", "Fog Machine",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebPage",
-      name: "Halloween Bingo Cards Printable",
-      url: "https://mybingocard.com/halloween-bingo",
-      description:
-        "Create printable Halloween bingo cards for kids, classrooms, adult parties, trunk or treat events, movie nights, and spooky game night.",
-    },
-    {
-      "@type": "WebApplication",
-      name: "Halloween Bingo Cards Printable Generator",
-      url: "https://mybingocard.com/halloween-bingo",
-      description:
-        "Create custom printable Halloween bingo cards with unique shuffled boards, spooky squares, classroom party prompts, candy marker ideas, and online play.",
-      applicationCategory: "GameApplication",
-      operatingSystem: "All",
-      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-    },
-    {
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "What should I put on Halloween bingo cards?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Use a mix of pumpkins, ghosts, bats, costumes, candy, movie moments, class party prompts, trunk or treat clues, and simple picture friendly Halloween words.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Can I print different Halloween bingo cards for a classroom?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. Add your Halloween prompts once, generate shuffled cards, and export printable PDFs so each student or party guest gets a different board.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How do you play Halloween bingo at a party?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Hand out cards, use candy or small stickers as markers, call Halloween words or show picture prompts, and award prizes for five in a row, four corners, or a full card.",
-          },
-        },
-      ],
-    },
-    {
-      "@type": "HowTo",
-      name: "How to make Halloween bingo cards",
-      step: [
-        {
-          "@type": "HowToStep",
-          name: "Choose spooky prompts",
-          text: "Add Halloween icons, classroom party words, costume clues, candy prompts, movie moments, or trunk or treat ideas.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Generate unique cards",
-          text: "Create shuffled boards so students, kids, adults, or party guests each receive a different card.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Print and play",
-          text: "Export PDFs, use candy markers, read calling cards, and play for five in a row or a full card.",
-        },
-      ],
-    },
-  ],
+  "@type": "WebApplication",
+  name: "Halloween Bingo Cards Printable Generator",
+  url: "https://mybingocard.com/halloween-bingo",
+  description:
+    "Create custom printable Halloween bingo cards. Spooky squares, free PDF export for kids, classrooms, and parties.",
+  applicationCategory: "GameApplication",
+  operatingSystem: "All",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -154,7 +93,7 @@ export default function HalloweenBingoPage() {
                 Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-purple-600">Halloween Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                Create printable Halloween bingo cards for classroom parties, trunk or treat events, kids activities, adult costume parties, family game night, and spooky movie marathons. Add pumpkins, ghosts, bats, candy, costume clues, prize prompts, and calling card words, then generate unique shuffled boards for every player.
+                The perfect spooky party game! Create unique Halloween bingo cards for kids, classrooms, and adult parties. Export for free or play digitally.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/create" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-500 to-purple-600 text-white rounded-xl font-bold text-lg hover:opacity-90 shadow-lg">
@@ -169,9 +108,9 @@ export default function HalloweenBingoPage() {
 
           <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6 mb-20">
             {[
-              { icon: "👻", title: "Classroom Party Cards", desc: "Print unique cards for every student and use candy corn, stickers, or small erasers as markers." },
-              { icon: "🎃", title: "Movie Night Prompts", desc: "Build boards around spooky movie moments, jump scares, pumpkins, monsters, and classic Halloween scenes." },
-              { icon: "🕸️", title: "Trunk Or Treat Games", desc: "Use candy, costume clues, prize bags, and calling cards for a quick activity at church, school, or neighborhood events." },
+              { icon: "👻", title: "Kids Love It", desc: "Perfect for classroom Halloween parties. Print a unique card for every student." },
+              { icon: "🎃", title: "Movie Night", desc: "Play during a Halloween movie marathon — mark squares as spooky moments happen." },
+              { icon: "🕸️", title: "Trick or Treat", desc: "Hand out bingo cards with candy. First to get bingo wins the prize bag!" },
             ].map((f) => (
               <div key={f.title} className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 text-center">
                 <div className="text-4xl mb-4">{f.icon}</div>
@@ -183,7 +122,7 @@ export default function HalloweenBingoPage() {
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-orange-500 to-purple-600 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">BOO! Ready to Play? 👻</h2>
-            <p className="text-orange-100 text-lg mb-8">Create spooky bingo cards in minutes for classrooms, parties, trunk or treat tables, and Halloween movie night. Draft your card first, then activate saves, exports, templates, image cells, player links, and live hosting.</p>
+            <p className="text-orange-100 text-lg mb-8">Create spooky bingo cards in minutes. Save, export, use templates, and add image cells for free; pay only for player links or live hosting.</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-orange-600 rounded-xl font-bold text-lg hover:bg-orange-50 transition-colors shadow-lg">Create Halloween Bingo</Link>
           </div>
 

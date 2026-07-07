@@ -6,8 +6,8 @@ import { getUserByEmail } from "@/lib/db/users";
 import { hasPremiumAccess } from "@/lib/subscription-status";
 
 export const metadata: Metadata = {
-  title: "Account Access",
-  description: "Review MyBingoCard account access for saving cards, exports, sharing, batches, and hosted bingo games.",
+  title: "Activate Account",
+  description: "Choose Free or Premium access for your MyBingoCard account.",
   robots: {
     index: false,
     follow: false,

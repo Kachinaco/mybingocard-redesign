@@ -1,5 +1,6 @@
 import clientPromise from "../mongodb";
 import { ObjectId } from "mongodb";
+import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
 
 export interface Coupon {
   _id: ObjectId;
@@ -24,9 +25,6 @@ export async function createCoupon(data: {
   stripePromotionCodeId?: string;
   stripeCouponId?: string;
 }): Promise<Coupon> {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
   const coupon: Partial<Coupon> = {
     code: data.code.toUpperCase(),
     discountPercent: data.discountPercent,
@@ -40,6 +38,13 @@ export async function createCoupon(data: {
     createdAt: new Date(),
   };
 
+  if (useSqliteDb()) {
+    const result = getSqliteStore().insertOne("coupons", coupon as Coupon);
+    return { ...coupon, _id: result.insertedId as ObjectId } as Coupon;
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
   const result = await db
     .collection<Coupon>("coupons")
     .insertOne(coupon as Coupon);
@@ -47,6 +52,10 @@ export async function createCoupon(data: {
 }
 
 export async function getAllCoupons(): Promise<Coupon[]> {
+  if (useSqliteDb()) {
+    return getSqliteStore().findMany<Coupon>("coupons", {}, { sort: { createdAt: -1 } });
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   return db
@@ -57,6 +66,13 @@ export async function getAllCoupons(): Promise<Coupon[]> {
 }
 
 export async function getCouponByCode(code: string): Promise<Coupon | null> {
+  if (useSqliteDb()) {
+    return getSqliteStore().findOne<Coupon>("coupons", {
+      code: code.toUpperCase(),
+      active: true,
+    });
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   return db
@@ -65,6 +81,15 @@ export async function getCouponByCode(code: string): Promise<Coupon | null> {
 }
 
 export async function toggleCoupon(id: string, active: boolean): Promise<void> {
+  if (useSqliteDb()) {
+    getSqliteStore().updateOne(
+      "coupons",
+      { _id: new ObjectId(id) },
+      { $set: { active } }
+    );
+    return;
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   await db
@@ -73,6 +98,15 @@ export async function toggleCoupon(id: string, active: boolean): Promise<void> {
 }
 
 export async function incrementCouponUsage(code: string): Promise<void> {
+  if (useSqliteDb()) {
+    getSqliteStore().updateOne(
+      "coupons",
+      { code: code.toUpperCase() },
+      { $inc: { usedCount: 1 } }
+    );
+    return;
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   await db

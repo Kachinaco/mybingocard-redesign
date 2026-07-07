@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import clientPromise from "@/lib/mongodb";
-import { getUserReferrals, getReferralStats, generateReferralCode } from "@/lib/db/referrals";
+import { ensureUserReferralCode, getReferralStats, getUserReferrals } from "@/lib/db/referrals";
 import { trackActivity } from "@/lib/activity";
 
 export async function GET() {
@@ -11,19 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    // Ensure user has a referral code
-    let user = await db.collection("users").findOne({ email: session.user.email });
-    if (!user?.referralCode) {
-      const code = generateReferralCode();
-      await db.collection("users").updateOne(
-        { email: session.user.email },
-        { $set: { referralCode: code } }
-      );
-      user = await db.collection("users").findOne({ email: session.user.email });
-    }
+    const referralCode = await ensureUserReferralCode(session.user.email);
 
     const referrals = await getUserReferrals(session.user.id);
     const stats = await getReferralStats(session.user.id);
@@ -36,14 +23,14 @@ export async function GET() {
       email: session.user.email,
       pathname: "/api/referrals",
       metadata: {
-        referral_code: user?.referralCode || null,
+        referral_code: referralCode,
         total_referrals: stats?.total || 0,
       },
     }).catch(() => {});
 
     return NextResponse.json({
-      referralCode: user?.referralCode,
-      referralLink: `${appUrl}/r/${user?.referralCode}`,
+      referralCode,
+      referralLink: referralCode ? `${appUrl}/r/${referralCode}` : null,
       stats,
       referrals: referrals.map(r => ({
         email: r.referredEmail,

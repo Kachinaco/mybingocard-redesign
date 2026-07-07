@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { MongoClient } = require('mongodb');
-const { getProductMetrics } = require('../lib/db/product-metrics.cjs');
+const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -48,24 +48,6 @@ function formatCohort(cohort) {
     : '0/0 (0%)';
 }
 
-function formatDurationMinutes(minutes) {
-  if (minutes === null || minutes === undefined) return 'n/a';
-  if (minutes < 60) return minutes + 'm';
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  if (hours < 24) return remainingMinutes ? hours + 'h ' + remainingMinutes + 'm' : hours + 'h';
-  const days = Math.floor(hours / 24);
-  const remainingHours = hours % 24;
-  return remainingHours ? days + 'd ' + remainingHours + 'h' : days + 'd';
-}
-
-function formatCurrency(amount) {
-  return amount.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
-
 function formatDate(value) {
   if (!value) return 'unknown';
   const date = new Date(value);
@@ -75,6 +57,21 @@ function formatDate(value) {
     day: 'numeric',
     timeZone: 'America/Phoenix',
   });
+}
+
+function objectIdString(value) {
+  if (value && typeof value === 'object' && typeof value.toHexString === 'function') {
+    return value.toHexString();
+  }
+  if (value && typeof value === 'object' && typeof value.$oid === 'string') {
+    return value.$oid;
+  }
+  return String(value || '');
+}
+
+function dateTime(value) {
+  const date = value instanceof Date ? value : new Date(value || 0);
+  return Number.isNaN(date.getTime()) ? null : date.getTime();
 }
 
 function formatBillingAtRiskLine(user, now) {
@@ -95,6 +92,10 @@ function formatBillingAtRiskLine(user, now) {
 }
 
 async function sendDiscord(payload) {
+  if (!WEBHOOK_URL) {
+    console.log('Discord webhook not configured; skipping daily-summary post');
+    return false;
+  }
   const res = await fetch(WEBHOOK_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -105,15 +106,19 @@ async function sendDiscord(payload) {
 }
 
 async function run() {
-  const client = new MongoClient(MONGODB_URI);
+  const sqliteBackend = useSqliteBackend();
+  const client = sqliteBackend ? openSqliteShadowDatabase() : new MongoClient(MONGODB_URI);
   try {
-    await client.connect();
-    const db = client.db('mybingocard');
+    if (!sqliteBackend) await client.connect();
+    const db = sqliteBackend ? client : client.db('mybingocard');
 
     const now = new Date();
     const yesterday = new Date(now.getTime() - 86400000);
     const lastWeek = new Date(now.getTime() - 7 * 86400000);
     const lastMonth = new Date(now.getTime() - 30 * 86400000);
+    const sqliteActivityEvents = sqliteBackend
+      ? await db.collection('activity_events').find({}).toArray()
+      : null;
 
     // =============================================
     // EMBED 1: Overview (existing metrics + retention)
@@ -167,8 +172,52 @@ async function run() {
     const ghostCount = allUserIds.filter(u => !usersWithCards.has(u._id.toString())).length;
     const ghostPct = totalUsers > 0 ? ((ghostCount / totalUsers) * 100).toFixed(0) : '0';
 
-    // --- Product Health (reportable creators, guests, operators; replaces login retention as primary KPI) ---
-    const productMetrics = await getProductMetrics(db, { now, windowDays: 30 });
+    // --- Retention (reportable users only; excludes test/admin/guest and Cory-owned accounts) ---
+    async function calculateReturnCohort(days) {
+      const cutoff = new Date(now.getTime() - days * 86400000);
+      const users = (await db.collection('users').find(
+        { createdAt: { $lte: cutoff } },
+        { projection: { name: 1, email: 1, createdAt: 1, customerType: 1, lastLoginAt: 1 } }
+      ).toArray()).filter(isReportableRetentionUser);
+
+      let returned = 0;
+      for (const user of users) {
+        if (!user.createdAt) continue;
+
+        const userId = user._id.toString();
+        const email = String(user.email || '').toLowerCase();
+        const threshold = new Date(new Date(user.createdAt).getTime() + days * 86400000);
+        const activity = sqliteActivityEvents
+          ? sqliteActivityEvents.some((event) => {
+              const eventTime = dateTime(event.createdAt);
+              if (eventTime == null || eventTime < threshold.getTime()) return false;
+              const eventUserId = objectIdString(event.userId);
+              const eventEmail = String(event.email || '').toLowerCase();
+              return eventUserId === userId || eventEmail === email;
+            })
+          : await db.collection('activity_events').findOne({
+              createdAt: { $gte: threshold },
+              $or: [
+                { userId },
+                { email },
+              ],
+            }, { projection: { _id: 1 } });
+
+        const loginReturned = user.lastLoginAt && new Date(user.lastLoginAt) >= threshold;
+        if (activity || loginReturned) returned++;
+      }
+
+      return {
+        returned,
+        eligible: users.length,
+        pct: users.length > 0 ? ((returned / users.length) * 100).toFixed(0) : '0',
+      };
+    }
+
+    const retention24h = await calculateReturnCohort(1);
+    const retention48h = await calculateReturnCohort(2);
+    const retention14d = await calculateReturnCohort(14);
+    const retention30d = await calculateReturnCohort(30);
 
     // --- Billing At Risk ---
     const billingAtRiskUsers = await db.collection('users')
@@ -276,20 +325,9 @@ async function run() {
             'Payment failed / at risk: **' + pastDueUsers + '** | Manual follow-up: **' + billingManualFollowups.length + '**',
             'New (24h): **' + newUsers24h + '** | (7d): **' + newUsers7d + '** | (30d): **' + newUsers30d + '**',
             'Conversion: **' + conversionRate + '%**',
+            'Retention: 24h **' + formatCohort(retention24h) + '** | 48h **' + formatCohort(retention48h) + '**',
+            'Retention: 14d **' + formatCohort(retention14d) + '** | 30d **' + formatCohort(retention30d) + '**',
             'Ghost users (0 cards): **' + ghostCount + '** (' + ghostPct + '%)',
-          ].join('\n'),
-          inline: false,
-        },
-        {
-          name: 'Product Health (30d)',
-          value: [
-            'Activation: card **' + productMetrics.activation.activationRate + '%** (' + productMetrics.activation.activatedCreators + '/' + productMetrics.activation.reportableCreators + ') | event-ready **' + productMetrics.activation.eventReadyRate + '%**',
-            'Time to value: first card **' + formatDurationMinutes(productMetrics.activation.medianTimeToFirstCardMinutes) + '** | event-ready **' + formatDurationMinutes(productMetrics.activation.medianTimeToEventReadyMinutes) + '**',
-            'Events: completed **' + productMetrics.events.completedEvents + '/' + productMetrics.events.eventReadyEvents + '** (' + productMetrics.events.completionRate + '%)',
-            'Live games: joins **' + productMetrics.liveGames.playersJoined + '** | started **' + productMetrics.liveGames.gamesStarted + '** | completed **' + productMetrics.liveGames.gamesCompleted + '**',
-            'Operators: active **' + productMetrics.operators.active30d + '** | repeat creators **' + productMetrics.operators.repeatCreators30d + '** | seasonal return **' + productMetrics.operators.seasonalReturnRate + '%**',
-            'Segments: guests **' + productMetrics.segments.guestPlayers + '** | casual creators **' + productMetrics.segments.casualCreators + '** | operators **' + productMetrics.segments.operators + '**',
-            'Revenue: $**' + formatCurrency(productMetrics.revenue.revenuePerCompletedEvent) + '** per completed event | $**' + formatCurrency(productMetrics.revenue.totalRevenue) + '** collected',
           ].join('\n'),
           inline: false,
         },

@@ -685,8 +685,8 @@ export default function SharedCardPage() {
         {!isFullscreen && !shuffleEnabled && (
           <div className="mb-6 text-center text-sm text-slate-400 print:hidden">
             <p>Everyone sees the same card layout.</p>
-            <Link href="/create" className="text-indigo-500 hover:underline font-medium">
-              Create free shuffled cards
+            <Link href="/pricing" className="text-indigo-500 hover:underline font-medium">
+              Upgrade to Premium
             </Link>{" "}
             for unique cards per viewer.
           </div>

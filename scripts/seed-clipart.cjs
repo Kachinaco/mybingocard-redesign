@@ -6,12 +6,14 @@
  */
 
 const { MongoClient, ObjectId } = require('mongodb');
+const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
 const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
 
-const MONGODB_URI = 'mongodb://localhost:27017/mybingocard';
-const UPLOAD_BASE = '/var/www/mybingocard.com/uploads/system/clipart';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
+const UPLOAD_BASE = process.env.MYBINGOCARD_CLIPART_UPLOAD_BASE || '/var/www/mybingocard.com/uploads/system/clipart';
+const CLIPART_LIMIT = Number(process.env.MYBINGOCARD_CLIPART_LIMIT || 0);
 const IMG_SIZE = 400; // main image px
 const THUMB_SIZE = 150;
 const WEBP_QUALITY = 85;
@@ -137,30 +139,34 @@ function createEmojiSVG(emoji, bgColor, size) {
 }
 
 async function main() {
-  console.log('Connecting to MongoDB...');
-  const client = new MongoClient(MONGODB_URI);
-  await client.connect();
-  const db = client.db('mybingocard');
-  const imagesCol = db.collection('images');
-  const templatesCol = db.collection('templates');
+  const sqliteDb = useSqliteBackend() ? openSqliteShadowDatabase() : null;
+  const client = sqliteDb ? null : new MongoClient(MONGODB_URI);
 
-  // Ensure upload directory exists
-  fs.mkdirSync(UPLOAD_BASE, { recursive: true });
+  try {
+    console.log(sqliteDb ? 'Connecting to SQLite shadow store...' : 'Connecting to MongoDB...');
+    if (client) await client.connect();
+    const db = sqliteDb || client.db('mybingocard');
+    const imagesCol = db.collection('images');
+    const templatesCol = db.collection('templates');
 
-  // Clear existing system images
-  const existingCount = await imagesCol.countDocuments({ isSystem: true });
-  if (existingCount > 0) {
-    console.log(`Clearing ${existingCount} existing system images...`);
-    await imagesCol.deleteMany({ isSystem: true });
-  }
+    // Ensure upload directory exists
+    fs.mkdirSync(UPLOAD_BASE, { recursive: true });
 
-  console.log(`Generating ${CLIPART.length} clip-art images...`);
+    // Clear existing system images
+    const existingCount = await imagesCol.countDocuments({ isSystem: true });
+    if (existingCount > 0) {
+      console.log(`Clearing ${existingCount} existing system images...`);
+      await imagesCol.deleteMany({ isSystem: true });
+    }
 
-  const imageMap = {}; // name -> { imageId, imageUrl }
+    const clipartItems = CLIPART_LIMIT > 0 ? CLIPART.slice(0, CLIPART_LIMIT) : CLIPART;
+    console.log(`Generating ${clipartItems.length} clip-art images...`);
 
-  for (const item of CLIPART) {
-    const id = new ObjectId();
-    const idStr = id.toString();
+    const imageMap = {}; // name -> { imageId, imageUrl }
+
+    for (const item of clipartItems) {
+      const id = new ObjectId();
+      const idStr = id.toString();
 
     // Generate SVG
     const svg = createEmojiSVG(item.emoji, item.bg, IMG_SIZE);
@@ -204,10 +210,10 @@ async function main() {
       imageUrl: `/api/images/${idStr}`,
     };
 
-    process.stdout.write('.');
-  }
+      process.stdout.write('.');
+    }
 
-  console.log(`\nCreated ${CLIPART.length} clip-art images.`);
+    console.log(`\nCreated ${clipartItems.length} clip-art images.`);
 
   // ── Create image-based templates ───────────────────────────────────
 
@@ -439,12 +445,14 @@ async function main() {
     }
   }
 
-  console.log('\nDone! Summary:');
-  console.log(`  Clip-art images: ${CLIPART.length}`);
-  console.log(`  Categories: ${[...new Set(CLIPART.map(c => c.category))].join(', ')}`);
-  console.log(`  Image templates: ${imageTemplates.length}`);
-
-  await client.close();
+    console.log('\nDone! Summary:');
+    console.log(`  Clip-art images: ${clipartItems.length}`);
+    console.log(`  Categories: ${[...new Set(clipartItems.map(c => c.category))].join(', ')}`);
+    console.log(`  Image templates: ${imageTemplates.length}`);
+  } finally {
+    if (client) await client.close();
+    if (sqliteDb) sqliteDb.close();
+  }
 }
 
 main().catch((err) => {

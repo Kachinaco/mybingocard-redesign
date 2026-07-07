@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
 import { trackActivity, getRequestActivityContext } from "@/lib/activity";
+import { unsubscribeEmail } from "@/lib/db/email-marketing";
 
 /**
  * Extract the unsubscribe email from any of the supported request shapes:
@@ -34,21 +34,7 @@ async function extractEmail(req: NextRequest): Promise<string | null> {
 }
 
 async function applyUnsubscribe(req: NextRequest, rawEmail: string): Promise<NextResponse> {
-  const email = rawEmail.toLowerCase().trim();
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  await db.collection("email_preferences").updateOne(
-    { email },
-    {
-      $set: {
-        email,
-        unsubscribedAt: new Date(),
-        marketingEmails: false,
-      },
-    },
-    { upsert: true }
-  );
+  const email = await unsubscribeEmail(rawEmail);
 
   const reqCtx = getRequestActivityContext(req as unknown as Request);
   trackActivity({

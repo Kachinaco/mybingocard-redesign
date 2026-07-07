@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import clientPromise from "@/lib/mongodb";
 import { trackActivity } from "@/lib/activity";
+import { createCancellationSurvey } from "@/lib/db/cancellation-surveys";
 
 export async function POST(request: Request) {
   try {
@@ -20,10 +20,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    await db.collection("cancellation_surveys").insertOne({
+    await createCancellationSurvey({
       email: session.user.email,
       userId: session.user.id,
       reason,

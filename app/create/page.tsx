@@ -54,206 +54,6 @@ type AutoSaveState = "idle" | "saving" | "saved" | "error";
 type BatchPdfOption = "pdf-1" | "pdf-2" | "pdf-4" | "pdf-gray" | null;
 type AvailableBatchCounts = Partial<Record<BatchCount, number>>;
 
-const createPageGeneratorLinks = [
-  {
-    href: "/bingo-card-maker",
-    label: "Bingo Card Maker",
-    copy: "Plan custom printable and online cards before opening the editor.",
-  },
-  {
-    href: "/online-bingo-card-generator",
-    label: "Online Bingo Card Generator",
-    copy: "Use browser player links and hosted games when players are remote.",
-  },
-  {
-    href: "/printable-bingo-cards",
-    label: "Printable Bingo Cards",
-    copy: "Prepare PDF card sets, print layouts, and unique shuffled cards.",
-  },
-  {
-    href: "/bingo-board-generator",
-    label: "Bingo Board Generator",
-    copy: "Choose 3x3, 4x4, or 5x5 boards for classrooms and events.",
-  },
-  {
-    href: "/ai-bingo-card-generator",
-    label: "AI Bingo Card Generator",
-    copy: "Generate square ideas from a theme, audience, or event prompt.",
-  },
-  {
-    href: "/word-bingo-generator",
-    label: "Word Bingo Generator",
-    copy: "Turn vocabulary, names, clues, and prompts into bingo cards.",
-  },
-];
-
-const createPageUseCases = [
-  {
-    title: "Classroom vocabulary review",
-    copy: "Paste a spelling list, sight words, state capitals, science terms, or reading prompts into the grid. Use a 5x5 board for a full lesson review, keep the free space on for younger students, and print shuffled cards so each student has a different layout.",
-    examples: ["sight words", "multiplication facts", "state capitals", "book characters"],
-  },
-  {
-    title: "Baby shower and bridal shower games",
-    copy: "Create gift bingo, prediction bingo, advice bingo, or guest bingo cards before the party. Add names, registry items, inside jokes, or simple picture squares, then prepare a printable batch for tables or a phone-friendly share link.",
-    examples: ["gift bingo", "prediction squares", "guest names", "party moments"],
-  },
-  {
-    title: "Work meetings and team events",
-    copy: "Build office bingo, icebreaker bingo, onboarding bingo, or conference bingo with prompts that fit your group. Keep the language specific to your team so the cards feel original instead of generic.",
-    examples: ["icebreaker prompts", "meeting phrases", "training topics", "conference moments"],
-  },
-  {
-    title: "Fundraisers and community nights",
-    copy: "Prepare printable cards for school fundraisers, church events, senior centers, libraries, and community rooms. Use batch generation for larger groups and caller tools when one person is running the event from a laptop.",
-    examples: ["prize rounds", "sponsor words", "theme nights", "caller lists"],
-  },
-];
-
-const createPageSteps = [
-  "Choose a blank board or start from a template that matches the event.",
-  "Set the grid size to 3x3, 4x4, or 5x5 and decide whether the center square should be free.",
-  "Add text, numbers, prompts, names, or image cells that are specific to your players.",
-  "Preview the card, adjust colors and labels, then create a printable batch or share link.",
-];
-
-const createPageFaqItems = [
-  {
-    question: "What should I put on a bingo card?",
-    answer: "Use short, specific squares your players can recognize quickly. Good squares include vocabulary words, gift items, party moments, names, meeting phrases, scavenger prompts, song titles, or event-specific actions.",
-  },
-  {
-    question: "How many squares do I need?",
-    answer: "A 3x3 card needs 9 squares, a 4x4 card needs 16, and a 5x5 card needs 25. For unique shuffled cards, add more words than the grid requires so each player receives a different mix.",
-  },
-  {
-    question: "Can I make cards for people playing online?",
-    answer: "Yes. You can build the card in the browser, prepare player links, and use hosted bingo tools for remote classes, virtual parties, or online team events.",
-  },
-  {
-    question: "Can I print cards instead?",
-    answer: "Yes. MyBingoCard supports printable cards and batch packs, so a teacher, host, or event organizer can create a full group set from one card idea.",
-  },
-];
-
-function CreatePageGeneratorLinkSection({ className = "" }: { className?: string }) {
-  return (
-    <section
-      className={[
-        "mx-auto max-w-6xl rounded-3xl border border-slate-200 bg-white px-5 py-8 shadow-sm md:px-8",
-        className,
-      ]
-        .filter(Boolean)
-        .join(" ")}
-    >
-      <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-[#007AFF]">
-            Bingo generator starting points
-          </p>
-          <h2 className="mt-3 text-2xl font-black text-slate-900 md:text-3xl">
-            Choose the right card maker path before you build.
-          </h2>
-          <p className="mt-4 text-sm leading-7 text-slate-600 md:text-base">
-            The editor works best after the card format is clear. Use these
-            generator pages when you need printable card packs, online bingo
-            links, AI square ideas, word lists, or a specific board size.
-          </p>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {createPageGeneratorLinks.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="rounded-2xl border border-slate-100 bg-slate-50 p-4 transition hover:border-indigo-200 hover:bg-white hover:shadow-sm"
-            >
-              <h3 className="text-base font-bold text-slate-900">
-                {item.label}
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                {item.copy}
-              </p>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CreatePageGuideSection() {
-  return (
-    <section className="mx-auto mt-10 max-w-6xl rounded-3xl border border-slate-200 bg-white px-5 py-8 shadow-sm md:px-8">
-      <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-[#007AFF]">
-            Planning guide
-          </p>
-          <h2 className="mt-3 text-2xl font-black text-slate-900 md:text-3xl">
-            Build a card that matches the event, not just a generic grid.
-          </h2>
-          <p className="mt-4 text-sm leading-7 text-slate-600 md:text-base">
-            MyBingoCard works best when the squares are specific to the people
-            playing. A teacher might use vocabulary words and definitions. A
-            shower host might use gift items, guest names, or predictions. A
-            team lead might use onboarding topics, meeting phrases, or
-            conference moments. Start with the event, then choose the grid size
-            and output format that fits the group.
-          </p>
-          <ol className="mt-6 space-y-3">
-            {createPageSteps.map((step, index) => (
-              <li key={step} className="flex gap-3 text-sm leading-6 text-slate-600">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-black text-indigo-700">
-                  {index + 1}
-                </span>
-                <span>{step}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {createPageUseCases.map((item) => (
-            <article key={item.title} className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-              <h3 className="text-base font-bold text-slate-900">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{item.copy}</p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {item.examples.map((example) => (
-                  <span key={example} className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">
-                    {example}
-                  </span>
-                ))}
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CreatePageFaqSection() {
-  return (
-    <section className="mx-auto mt-10 max-w-6xl rounded-3xl border border-slate-200 bg-white px-5 py-8 shadow-sm md:px-8">
-      <div className="max-w-3xl">
-        <p className="text-xs font-bold uppercase tracking-wide text-[#007AFF]">
-          Bingo card questions
-        </p>
-        <h2 className="mt-3 text-2xl font-black text-slate-900 md:text-3xl">
-          Practical answers before you open the editor.
-        </h2>
-      </div>
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        {createPageFaqItems.map((item) => (
-          <article key={item.question} className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-            <h3 className="text-base font-bold text-slate-900">{item.question}</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{item.answer}</p>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 type CardPayload = {
   title: string;
   description: string;
@@ -269,6 +69,7 @@ type CardPayload = {
 
 const pendingSaveCheckoutIntentKey = "mybingo_pending_save_checkout_intent";
 const saveCheckoutCallbackUrl = "/create?checkout=save";
+const premiumCheckoutCallbackUrl = "/create?checkout=premium";
 type AuthModalIntent = "draft_only" | "save_checkout";
 
 function CreateCardContent() {
@@ -371,6 +172,7 @@ function CreateCardContent() {
   const draftLoadTrackedRef = useRef(false);
   const batchCancelTrackedRef = useRef(false);
   const autoCheckoutStartedRef = useRef(false);
+  const autoSaveAfterAuthRef = useRef(false);
 
   useEffect(() => {
     currentCardIdRef.current = currentCardId;
@@ -940,12 +742,12 @@ function CreateCardContent() {
     if (session?.user && permissionStatus && !permissionStatus.allowed) {
       persistDraft();
       trackClientActivity("card_save_blocked", {
-        reason: "free_access_required",
+        reason: "upgrade_required",
         title: payload.title,
         size: payload.size,
         cells_filled: cellsFilledCount,
         status: 403,
-        server_error: "client_free_access_required",
+        server_error: "client_upgrade_required",
         is_update: Boolean(currentCardIdRef.current),
       });
       setAutoSaveState("error");
@@ -1410,7 +1212,7 @@ function CreateCardContent() {
 
   const handleBatchCheckout = async () => {
     trackClientActivity("batch_primary_clicked", {
-      action: "generate_free_batch",
+      action: "buy",
       source: "create_page",
       batch_count: batchCount,
       price: formatBatchPackPrice(batchCount),
@@ -1430,7 +1232,7 @@ function CreateCardContent() {
         });
         const data = await res.json();
         if (!res.ok || !data.url) {
-          setError(data.error || "Failed to start creating");
+          setError(data.error || "Failed to start checkout");
           return;
         }
         window.location.href = data.url;
@@ -1444,8 +1246,8 @@ function CreateCardContent() {
         successPath: `/create?batchPurchase=success&batchCount=${batchCount}`,
       });
     } catch (checkoutError) {
-      console.error("Free batch setup error:", checkoutError);
-      setError("Failed to start batch setup");
+      console.error("Batch checkout error:", checkoutError);
+      setError("Failed to start batch checkout");
     } finally {
       setBatchCheckoutLoading(false);
     }
@@ -1696,33 +1498,58 @@ function CreateCardContent() {
 
   useEffect(() => {
     if (autoCheckoutStartedRef.current) return;
-    if (!session?.user || checkingPermission || !permissionStatus || permissionStatus.allowed || isEditingExistingCard) {
+    if (autoSaveAfterAuthRef.current) return;
+    if (!session?.user || checkingPermission || !permissionStatus) {
       return;
     }
-
-    const hasPendingIntent =
-      searchParams.get("checkout") === "save" ||
+    // For the free path, only proceed if permission is allowed
+    // For the Premium checkout path, redirect to Stripe regardless of current limits
+    const isPremiumCheckoutPath = searchParams.get("checkout") === "premium";
+    const isSavePath = searchParams.get("checkout") === "save" ||
       getBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey) === "1";
 
-    if (!hasPendingIntent) return;
+    if (!isPremiumCheckoutPath && !isSavePath) return;
+    if (isEditingExistingCard) return;
 
     autoCheckoutStartedRef.current = true;
+    autoSaveAfterAuthRef.current = true;
     removeBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey);
 
-    if (searchParams.get("checkout") === "save" && typeof window !== "undefined") {
+    // Clean checkout param from URL
+    if (typeof window !== "undefined") {
       const nextUrl = new URL(window.location.href);
       nextUrl.searchParams.delete("checkout");
       window.history.replaceState(null, "", nextUrl.pathname + nextUrl.search + nextUrl.hash);
     }
 
-    trackClientActivity("free_access_started_after_auth", {
-      source: "save_card",
-      plan: "free",
-      cards_created: permissionStatus.cardsCreated ?? null,
-      cards_limit: permissionStatus.cardsLimit ?? null,
-    });
+    if (isPremiumCheckoutPath) {
+      // Premium subscription: redirect to Stripe checkout for monthly plan
+      trackClientActivity("checkout_auto_started_after_auth", {
+        source: "save_card",
+        plan: "premium",
+        intent: "subscription",
+      });
+      redirectToCheckout({
+        purchaseType: "monthly",
+        successPath: "/create?checkout=save",
+      });
+      return;
+    }
 
-    router.push("/dashboard");
+    // Free path: auto-save the restored draft, redirect to saved card on success
+    if (permissionStatus.allowed && title.trim() && cells.some((c) => c.trim())) {
+      trackClientActivity("checkout_auto_started_after_auth", {
+        source: "save_card",
+        plan: "free",
+        cards_created: permissionStatus.cardsCreated ?? null,
+        cards_limit: permissionStatus.cardsLimit ?? null,
+      });
+      saveCard({ redirectAfterSave: true }).catch(() => {
+        router.push("/dashboard");
+      });
+    } else {
+      router.push("/dashboard");
+    }
   }, [
     session?.user,
     checkingPermission,
@@ -1750,8 +1577,6 @@ function CreateCardContent() {
   const isPremiumBatchUser = Boolean(permissionStatus?.hasPremiumAccess);
   const canUploadImages = Boolean(session?.user);
   const selectedBatchPrice = formatBatchPackPrice(batchCount);
-  const getBatchDisplayLabel = (count: BatchCount) =>
-    BATCH_PACKS[count].label === "Free" ? "Included" : BATCH_PACKS[count].label;
   const selectedBatchPurchases = availableBatchCounts[batchCount] || 0;
   const hasSelectedBatchPurchase = selectedBatchPurchases > 0;
   const batchPurchaseStatus = searchParams.get("batchPurchase");
@@ -1759,12 +1584,12 @@ function CreateCardContent() {
   const batchStatusMessage =
     batchPurchaseStatus === "success"
       ? isGuestReturn && !session?.user
-        ? `Batch ready. Sign in to access your ${batchCount}-card batch.`
+        ? `Payment received. Sign in with the email you used at checkout to access your ${batchCount}-card batch.`
         : hasSelectedBatchPurchase
-          ? `${batchCount}-card batch is ready to generate.`
-          : `Batch ready. If your ${batchCount}-card batch does not unlock within a few seconds, refresh this page.`
+          ? `${batchCount}-card batch purchased. It is ready to generate.`
+          : `Payment received. If your ${batchCount}-card batch does not unlock within a few seconds, refresh this page.`
       : batchPurchaseStatus === "canceled"
-        ? "Batch setup canceled."
+        ? "Batch purchase canceled."
         : "";
   const availableBatchSummary = ([30, 100, 250, 500] as const)
     .filter((count) => (availableBatchCounts[count] || 0) > 0)
@@ -1772,13 +1597,13 @@ function CreateCardContent() {
     .join(", ");
   const batchActionLabel = checkingPermission && session?.user
     ? "Checking your plan..."
-      : batchLoading
-        ? `Generating ${batchCount} cards...`
+    : batchLoading
+      ? `Generating ${batchCount} cards...`
       : batchCheckoutLoading
-        ? "Opening activation tools..."
+        ? "Redirecting to checkout..."
         : isPremiumBatchUser || hasSelectedBatchPurchase
           ? `Generate ${batchCount} Unique Cards`
-          : `Generate ${batchCount}-Card Batch Free`;
+          : `Buy ${batchCount}-Card Batch • ${selectedBatchPrice}`;
   const batchActionDisabled =
     showPreview ||
     batchLoading ||
@@ -1889,18 +1714,18 @@ function CreateCardContent() {
 
           {/* Fallback account gate */}
           {isPremiumGateActive && (
-            <div className="mb-8 bg-blue-50 border-2 border-blue-200 rounded-2xl p-8 text-center">
+            <div className="mb-6 bg-blue-50 border-2 border-blue-200 rounded-2xl p-6 text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
                 <svg className="w-8 h-8 text-[#007AFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to keep creating</h2>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Saving, exports, templates, images, and AI are included in the current public release. Printable batch packs, share links, and hosted bingo events are available when your game is ready.
+                Saving, exports, templates, images, and AI are free. Printable batch packs, share links, and hosted bingo events are optional paid tools.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   onClick={() => setShowAuthModal(true)}
-                  className="bg-[#007AFF] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-sm transition-all"
+                  className="bg-[#007AFF] text-white px-6 py-3 rounded-xl font-bold text-base shadow-sm transition-all"
                 >
                   Sign in
                 </button>
@@ -2337,7 +2162,7 @@ function CreateCardContent() {
                         <div className="text-[10px] font-medium text-gray-500">cards</div>
                         {!isPremiumBatchUser && (
                           <div className="mt-1 text-xs font-bold text-blue-600">
-                            {getBatchDisplayLabel(n)}
+                            {BATCH_PACKS[n].label}
                           </div>
                         )}
                         {isPremiumBatchUser && (
@@ -2372,13 +2197,13 @@ function CreateCardContent() {
 
                 {isPremiumBatchUser && batchMode && (
                   <p className="text-xs text-gray-500 mb-3">
-                    Every card gets a unique shuffled arrangement. Included with your access.
+                    Every card gets a unique shuffled arrangement. Included with Premium.
                   </p>
                 )}
 
                 {!isPremiumBatchUser && !session?.user && batchMode && (
                   <p className="text-xs text-gray-500 mb-3">
-                    Sign up to continue with printable batch packs.
+                    Sign up to purchase batch packs, or upgrade to Premium for included batches.
                   </p>
                 )}
 
@@ -2785,7 +2610,6 @@ function CreateCardContent() {
           </div>
         </div>
         )}
-        <CreatePageGeneratorLinkSection className="mt-14" />
       </main>
 
 
@@ -2801,8 +2625,8 @@ function CreateCardContent() {
           }}
         >
           <div style={{
-            background: "white", borderRadius: "20px", padding: "36px 32px",
-            maxWidth: "420px", width: "100%",
+            background: "white", borderRadius: "20px", padding: "32px 28px",
+            maxWidth: "440px", width: "100%",
             boxShadow: "0 24px 64px rgba(0,0,0,0.18)",
             position: "relative", textAlign: "center"
           }}>
@@ -2818,130 +2642,221 @@ function CreateCardContent() {
               }}
             >×</button>
 
-            {/* Card ready icon */}
-            <div style={{ fontSize: "40px", marginBottom: "12px" }}>🎯</div>
-
-            <h2 style={{ margin: "0 0 6px", fontSize: "22px", fontWeight: 800, color: "#1e293b", letterSpacing: "-0.5px" }}>
-              Save this card
-            </h2>
-            {title && (
-              <p style={{ margin: "0 0 4px", fontSize: "14px", color: "#7c3aed", fontWeight: 600 }}>
-                &ldquo;{title}&rdquo;
-              </p>
-            )}
-            <p style={{ margin: "0 0 6px", fontSize: "14px", color: "#64748b" }}>
-              Create a free account so your card does not disappear.
-            </p>
-            <p style={{ margin: "0 0 24px", fontSize: "13px", color: "#94a3b8" }}>
-              Your draft is preserved. After sign in, you will come right back here to keep editing, export a PDF/PNG, or save it to your dashboard.
-            </p>
-
             {!magicSent ? (
               <>
-                {/* Google */}
-                <button
-                  data-mybingocard-oauth-provider="google"
-                  onClick={() => {
-                    const callbackUrl = authModalIntent === "save_checkout" ? saveCheckoutCallbackUrl : "/create";
-                    if (authModalIntent === "save_checkout") {
-                      setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1");
-                    }
-                    trackClientActivity("signup_google_clicked", {
-                      provider: "google",
-                      callbackUrl,
-                      surface: "create_save_modal",
-                      intent: authModalIntent,
-                    });
-                    trackClientActivity("oauth_signup_started", { provider: "google", callbackUrl });
-                    if (startNativeOAuth("google", callbackUrl)) return;
-                    signIn("google", { callbackUrl });
-                  }}
-                  style={{
-                    width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-                    gap: "10px", padding: "13px 16px", borderRadius: "12px",
-                    border: "1.5px solid #e2e8f0", background: "white", cursor: "pointer",
-                    fontSize: "15px", fontWeight: 600, color: "#1e293b",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.08)", marginBottom: "16px",
-                    transition: "all 0.15s"
-                  }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  Continue with Google
-                </button>
+                {/* Card ready icon */}
+                <div style={{ fontSize: "36px", marginBottom: "8px" }}>🎯</div>
 
-                {appleSignInEnabled && (
+                <h2 style={{ margin: "0 0 4px", fontSize: "20px", fontWeight: 800, color: "#1e293b", letterSpacing: "-0.5px" }}>
+                  Save your card
+                </h2>
+                {title && (
+                  <p style={{ margin: "0 0 8px", fontSize: "14px", color: "#7c3aed", fontWeight: 600 }}>
+                    &ldquo;{title}&rdquo;
+                  </p>
+                )}
+                <p style={{ margin: "0 0 20px", fontSize: "13px", color: "#64748b" }}>
+                  Create a free account to save this card. Free accounts get one saved bingo card.
+                </p>
+
+                {/* === Free path === */}
+                <div style={{
+                  background: "#f8fafc", borderRadius: "14px", padding: "16px",
+                  marginBottom: "16px", border: "1px solid #e2e8f0"
+                }}>
+                  <div style={{
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    gap: "6px", marginBottom: "12px"
+                  }}>
+                    <span style={{
+                      background: "#dbeafe", color: "#1e40af", fontSize: "11px",
+                      fontWeight: 700, padding: "2px 8px", borderRadius: "6px",
+                      letterSpacing: "0.5px", textTransform: "uppercase"
+                    }}>Free</span>
+                    <span style={{ fontSize: "13px", color: "#64748b", fontWeight: 500 }}>1 card</span>
+                  </div>
+
+                  {/* Google */}
                   <button
-                    data-mybingocard-oauth-provider="apple"
+                    data-mybingocard-oauth-provider="google"
                     onClick={() => {
-                      const callbackUrl = authModalIntent === "save_checkout" ? saveCheckoutCallbackUrl : "/create";
-                      if (authModalIntent === "save_checkout") {
-                        setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1");
-                      }
-                      trackClientActivity("signup_apple_clicked", {
-                        provider: "apple",
+                      const callbackUrl = saveCheckoutCallbackUrl;
+                      setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1");
+                      trackClientActivity("signup_google_clicked", {
+                        provider: "google",
                         callbackUrl,
                         surface: "create_save_modal",
-                        intent: authModalIntent,
+                        intent: "draft_only",
                       });
-                      trackClientActivity("oauth_signup_started", { provider: "apple", callbackUrl });
-                      if (startNativeOAuth("apple", callbackUrl)) return;
-                      signIn("apple", { callbackUrl });
+                      trackClientActivity("oauth_signup_started", { provider: "google", callbackUrl });
+                      if (startNativeOAuth("google", callbackUrl)) return;
+                      signIn("google", { callbackUrl });
                     }}
                     style={{
                       width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-                      gap: "10px", padding: "13px 16px", borderRadius: "12px",
-                      border: "1.5px solid #000", background: "#000", cursor: "pointer",
-                      fontSize: "15px", fontWeight: 600, color: "white",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.12)", marginBottom: "16px",
+                      gap: "10px", padding: "12px 16px", borderRadius: "10px",
+                      border: "1.5px solid #e2e8f0", background: "white", cursor: "pointer",
+                      fontSize: "14px", fontWeight: 600, color: "#1e293b",
+                      boxShadow: "0 1px 2px rgba(0,0,0,0.06)", marginBottom: "8px",
                       transition: "all 0.15s"
                     }}
                   >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                      <path d="M16.37 1.51c0 1.14-.42 2.14-1.25 3-.9.92-1.95 1.45-3.08 1.36-.14-1.1.43-2.28 1.25-3.12.86-.88 2.25-1.55 3.08-1.24ZM20.5 17.38c-.47 1.07-.7 1.55-1.3 2.5-.84 1.29-2.02 2.9-3.48 2.91-1.3.01-1.64-.85-3.4-.84-1.77.01-2.14.85-3.44.84-1.46-.01-2.57-1.46-3.41-2.75-2.35-3.61-2.6-7.85-1.15-10.1 1.03-1.6 2.65-2.53 4.18-2.53 1.55 0 2.53.86 3.82.86 1.25 0 2.02-.86 3.83-.86 1.37 0 2.82.75 3.84 2.04-3.37 1.85-2.82 6.67.01 7.93Z" />
+                    <svg width="18" height="18" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                     </svg>
-                    Continue with Apple
+                    Continue with Google
                   </button>
-                )}
 
-                <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "0 0 16px" }}>
-                  <div style={{ flex: 1, height: "1px", background: "#e2e8f0" }} />
-                  <span style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 500 }}>or use email</span>
-                  <div style={{ flex: 1, height: "1px", background: "#e2e8f0" }} />
+                  {appleSignInEnabled && (
+                    <button
+                      data-mybingocard-oauth-provider="apple"
+                      onClick={() => {
+                        const callbackUrl = saveCheckoutCallbackUrl;
+                        setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1");
+                        trackClientActivity("signup_apple_clicked", {
+                          provider: "apple",
+                          callbackUrl,
+                          surface: "create_save_modal",
+                          intent: "draft_only",
+                        });
+                        trackClientActivity("oauth_signup_started", { provider: "apple", callbackUrl });
+                        if (startNativeOAuth("apple", callbackUrl)) return;
+                        signIn("apple", { callbackUrl });
+                      }}
+                      style={{
+                        width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                        gap: "10px", padding: "12px 16px", borderRadius: "10px",
+                        border: "1.5px solid #000", background: "#000", cursor: "pointer",
+                        fontSize: "14px", fontWeight: 600, color: "white",
+                        marginBottom: "8px", transition: "all 0.15s"
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M16.37 1.51c0 1.14-.42 2.14-1.25 3-.9.92-1.95 1.45-3.08 1.36-.14-1.1.43-2.28 1.25-3.12.86-.88 2.25-1.55 3.08-1.24ZM20.5 17.38c-.47 1.07-.7 1.55-1.3 2.5-.84 1.29-2.02 2.9-3.48 2.91-1.3.01-1.64-.85-3.4-.84-1.77.01-2.14.85-3.44.84-1.46-.01-2.57-1.46-3.41-2.75-2.35-3.61-2.6-7.85-1.15-10.1 1.03-1.6 2.65-2.53 4.18-2.53 1.55 0 2.53.86 3.82.86 1.25 0 2.02-.86 3.83-.86 1.37 0 2.82.75 3.84 2.04-3.37 1.85-2.82 6.67.01 7.93Z" />
+                      </svg>
+                      Continue with Apple
+                    </button>
+                  )}
+
+                  {/* Magic link */}
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <input
+                      type="email"
+                      placeholder="your@email.com"
+                      value={magicEmail}
+                      onChange={(e) => setMagicEmail(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleMagicLink(); }}
+                      style={{
+                        flex: 1, padding: "10px 12px", borderRadius: "10px",
+                        border: "1.5px solid #e2e8f0", fontSize: "13px",
+                        outline: "none", color: "#1e293b"
+                      }}
+                    />
+                    <button
+                      onClick={handleMagicLink}
+                      disabled={magicLoading || !magicEmail.trim()}
+                      style={{
+                        padding: "10px 16px", borderRadius: "10px", border: "none",
+                        background: magicEmail.trim() ? "#7c3aed" : "#e2e8f0",
+                        color: magicEmail.trim() ? "white" : "#94a3b8",
+                        fontWeight: 600, fontSize: "13px", cursor: magicEmail.trim() ? "pointer" : "default",
+                        whiteSpace: "nowrap"
+                      }}
+                    >
+                      {magicLoading ? "Sending..." : "Send link"}
+                    </button>
+                  </div>
                 </div>
 
-                {/* Magic link email */}
-                <input
-                  type="email"
-                  placeholder="your@email.com"
-                  value={magicEmail}
-                  onChange={(e) => setMagicEmail(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleMagicLink(); }}
-                  style={{
-                    width: "100%", padding: "12px 14px", borderRadius: "10px",
-                    border: "1.5px solid #e2e8f0", fontSize: "14px", marginBottom: "10px",
-                    outline: "none", boxSizing: "border-box", color: "#1e293b"
-                  }}
-                />
-                <button
-                  onClick={handleMagicLink}
-                  disabled={magicLoading || !magicEmail.trim()}
-                  style={{
-                    width: "100%", padding: "13px", borderRadius: "12px", border: "none",
-                    background: magicEmail.trim() ? "#7c3aed" : "#e2e8f0",
-                    color: magicEmail.trim() ? "white" : "#94a3b8",
-                    fontWeight: 700, fontSize: "15px", cursor: magicEmail.trim() ? "pointer" : "default",
-                    marginBottom: "16px", transition: "all 0.15s"
-                  }}
-                >
-                  {magicLoading ? "Sending..." : "Send magic link"}
-                </button>
+                {/* === Premium path === */}
+                <div style={{
+                  background: "linear-gradient(135deg, #faf5ff 0%, #ede9fe 100%)",
+                  borderRadius: "14px", padding: "16px", border: "1.5px solid #c4b5fd"
+                }}>
+                  <p style={{
+                    margin: "0 0 4px", fontSize: "14px", fontWeight: 700, color: "#5b21b6"
+                  }}>
+                    Want more than one card?
+                  </p>
+                  <p style={{
+                    margin: "0 0 12px", fontSize: "12px", color: "#7c3aed", lineHeight: 1.5
+                  }}>
+                    Subscribe for $7.99/month to unlock unlimited cards, live hosting, share links, and PDF batches.
+                  </p>
 
-                <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0 }}>
+                  <button
+                    data-mybingocard-oauth-provider="google"
+                    onClick={() => {
+                      const callbackUrl = premiumCheckoutCallbackUrl;
+                      setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1");
+                      trackClientActivity("signup_google_clicked", {
+                        provider: "google",
+                        callbackUrl,
+                        surface: "create_save_modal",
+                        intent: "subscription",
+                      });
+                      trackClientActivity("oauth_signup_started", { provider: "google", callbackUrl });
+                      if (startNativeOAuth("google", callbackUrl)) return;
+                      signIn("google", { callbackUrl });
+                    }}
+                    style={{
+                      width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                      gap: "8px", padding: "12px 16px", borderRadius: "10px",
+                      border: "none", background: "linear-gradient(135deg, #7c3aed, #6d28d9)",
+                      cursor: "pointer", fontSize: "14px", fontWeight: 700, color: "white",
+                      boxShadow: "0 2px 8px rgba(124,58,237,0.3)", marginBottom: "8px",
+                      transition: "all 0.15s"
+                    }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24">
+                      <path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="white" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="white" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                      <path fill="white" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Subscribe with Google
+                  </button>
+
+                  {appleSignInEnabled && (
+                    <button
+                      data-mybingocard-oauth-provider="apple"
+                      onClick={() => {
+                        const callbackUrl = premiumCheckoutCallbackUrl;
+                        setBrowserStorageItem("sessionStorage", pendingSaveCheckoutIntentKey, "1");
+                        trackClientActivity("signup_apple_clicked", {
+                          provider: "apple",
+                          callbackUrl,
+                          surface: "create_save_modal",
+                          intent: "subscription",
+                        });
+                        trackClientActivity("oauth_signup_started", { provider: "apple", callbackUrl });
+                        if (startNativeOAuth("apple", callbackUrl)) return;
+                        signIn("apple", { callbackUrl });
+                      }}
+                      style={{
+                        width: "100%", display: "flex", alignItems: "center", justifyContent: "center",
+                        gap: "8px", padding: "12px 16px", borderRadius: "10px",
+                        border: "none", background: "#000", cursor: "pointer",
+                        fontSize: "14px", fontWeight: 700, color: "white",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.2)", transition: "all 0.15s"
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M16.37 1.51c0 1.14-.42 2.14-1.25 3-.9.92-1.95 1.45-3.08 1.36-.14-1.1.43-2.28 1.25-3.12.86-.88 2.25-1.55 3.08-1.24ZM20.5 17.38c-.47 1.07-.7 1.55-1.3 2.5-.84 1.29-2.02 2.9-3.48 2.91-1.3.01-1.64-.85-3.4-.84-1.77.01-2.14.85-3.44.84-1.46-.01-2.57-1.46-3.41-2.75-2.35-3.61-2.6-7.85-1.15-10.1 1.03-1.6 2.65-2.53 4.18-2.53 1.55 0 2.53.86 3.82.86 1.25 0 2.02-.86 3.83-.86 1.37 0 2.82.75 3.84 2.04-3.37 1.85-2.82 6.67.01 7.93Z" />
+                      </svg>
+                      Subscribe with Apple
+                    </button>
+                  )}
+
+                  <p style={{ margin: "8px 0 0", fontSize: "11px", color: "#a78bfa" }}>
+                    $7.99/month. Cancel anytime.
+                  </p>
+                </div>
+
+                <p style={{ fontSize: "12px", color: "#94a3b8", margin: "14px 0 0" }}>
                   Already have an account?{" "}
                   <a href={"/login?callbackUrl=/create"} style={{ color: "#7c3aed", fontWeight: 600, textDecoration: "none" }}>Sign in</a>
                 </p>
@@ -2964,6 +2879,7 @@ function CreateCardContent() {
           </div>
         </div>
       )}
+
 
       <UpgradeModal isOpen={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} reason={upgradeReason} triggerContext={{ cards_created: permissionStatus?.cardsCreated ?? null, cards_limit: permissionStatus?.cardsLimit ?? null }} />
       <ImagePickerModal

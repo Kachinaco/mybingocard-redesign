@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { countUserCards } from "@/lib/db/cards";
 import { getUserByEmail } from "@/lib/db/users";
 import { PLANS } from "@/lib/stripe/config";
 import { getEffectiveCardLimit, hasPremiumAccess, isLegacyFreeUser } from "@/lib/subscription-status";
-import clientPromise from "@/lib/mongodb";
 import { trackActivity } from "@/lib/activity";
 
 export async function GET() {
@@ -20,8 +20,6 @@ export async function GET() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
     const planType = user.planType || "FREE";
     const plan = PLANS[planType as keyof typeof PLANS];
 
@@ -34,9 +32,7 @@ export async function GET() {
       });
     }
 
-    const totalCards = await db.collection("cards").countDocuments({
-      userId: user._id.toString(),
-    });
+    const totalCards = await countUserCards(user._id.toString());
 
     const entitled = hasPremiumAccess(user);
     const legacyFree = isLegacyFreeUser(user);
@@ -69,7 +65,6 @@ export async function GET() {
       allowed,
       reason,
       upgradeRequired: !allowed && !legacyFree,
-      trialRequired: !allowed && !legacyFree,
       cardsCreated: totalCards,
       cardsLimit: maxCards,
       planType,

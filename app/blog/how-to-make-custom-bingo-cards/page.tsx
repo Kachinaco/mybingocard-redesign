@@ -4,10 +4,10 @@ import BlogLayout from "@/components/BlogLayout";
 import BlogPostTracker from "../BlogPostTracker";
 
 export const metadata: Metadata = {
-  title: "How to Make Custom Bingo Cards Online",
+  title: "How to Make Custom Bingo Cards in 5 Minutes — Step-by-Step Guide",
   description:
-    "Learn how to make custom bingo cards online from a free draft, then personalize and print cards for any event.",
-  keywords: ["how to make bingo cards", "custom bingo cards", "bingo card maker", "create bingo cards", "printable bingo cards", "online bingo cards"],
+    "Learn how to make custom bingo cards online from a free draft. Step-by-step guide to creating personalized, printable bingo cards for any event using MyBingoCard.",
+  keywords: ["how to make bingo cards", "custom bingo cards", "bingo card maker", "create bingo cards", "printable bingo cards", "free bingo draft editor"],
   alternates: { canonical: "https://mybingocard.com/blog/how-to-make-custom-bingo-cards" },
   openGraph: {
     title: "How to Make Custom Bingo Cards in 5 Minutes",
@@ -28,25 +28,11 @@ const schema = {
   publisher: { "@type": "Organization", name: "MyBingoCard", url: "https://mybingocard.com" },
 };
 
-const howToSchema = {
-  "@context": "https://schema.org",
-  "@type": "HowTo",
-  name: "How to make custom bingo cards",
-  description: "Choose a theme, prepare a word or image list, pick a grid size, generate unique cards, and distribute them for print or online play.",
-  step: [
-    { "@type": "HowToStep", name: "Choose a theme", text: "Decide whether the card is for a classroom, party, baby shower, wedding, holiday, team event, or another use case." },
-    { "@type": "HowToStep", name: "Build a square list", text: "Write more items than the grid needs so each card can be shuffled into a unique layout." },
-    { "@type": "HowToStep", name: "Pick a grid size", text: "Use 3x3 for quick games, 4x4 for shorter sessions, or 5x5 for standard bingo." },
-    { "@type": "HowToStep", name: "Customize the card", text: "Set the title, colors, free space, words, images, and style to match the event." },
-    { "@type": "HowToStep", name: "Generate and distribute", text: "Preview the card, generate unique cards, then choose printable export, batch packs, or online player links when ready." },
-  ],
-};
-
 export default function HowToMakeCustomBingoCards() {
   return (
     <>
       <BlogPostTracker slug="how-to-make-custom-bingo-cards" title="How to Make Custom Bingo Cards in 5 Minutes" />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([schema, howToSchema]) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       <BlogLayout
         title="How to Make Custom Bingo Cards in 5 Minutes"
         date="March 1, 2026"
@@ -89,20 +75,9 @@ export default function HowToMakeCustomBingoCards() {
           <strong>Pro tip:</strong> Mix easy-to-spot items (things that will definitely happen) with rare ones (things that might happen). This balance keeps the game exciting without making it impossible to win.
         </p>
 
-        <h2>How Many Squares Should You Prepare?</h2>
-        <p>
-          The grid size changes how many ideas you need. A 3x3 card needs 9 squares, or 8 plus a free space. A 4x4 card needs 16 squares. A 5x5 card needs 25 squares, or 24 plus a free space. If you want every player to get a meaningfully different card, prepare extra ideas beyond the bare minimum.
-        </p>
-        <ul>
-          <li><strong>Small kids or quick icebreakers:</strong> use 3x3 with 12 to 15 possible items.</li>
-          <li><strong>Short party games:</strong> use 4x4 with 20 to 25 possible items.</li>
-          <li><strong>Standard bingo games:</strong> use 5x5 with 30 to 40 possible items.</li>
-          <li><strong>Large events:</strong> use a bigger item pool and batch generation so duplicate cards are less likely.</li>
-        </ul>
-
         <h2>Step 3: Design Your Card</h2>
         <p>
-          With <Link href="/create">MyBingoCard&apos;s bingo card maker</Link>, you can customize every aspect of your card:
+          With <Link href="/create">MyBingoCard&apos;s free draft editor</Link>, you can customize every aspect of your card:
         </p>
         <ul>
           <li><strong>Colors</strong> — Match your event&apos;s color palette</li>
@@ -116,22 +91,17 @@ export default function HowToMakeCustomBingoCards() {
           This is the magic of digital bingo card makers. When you hit &quot;generate,&quot; each card is automatically shuffled so every guest receives a unique layout. This means no two players have the same card, which prevents simultaneous winners and keeps the game competitive.
         </p>
         <p>
-          With MyBingoCard, you can draft individual cards first, then unlock printable exports, batch packs, player share links, and hosted live bingo when your game is ready.
+          With MyBingoCard, you can export individual cards for free and buy printable batch packs when you need up to 500 unique cards from a single word list. Pay only when you need larger printable sets, player share links, or hosted live bingo.
         </p>
 
-        <h2>Step 5: Unlock Export or Add Sharing</h2>
+        <h2>Step 5: Export for Free or Add Paid Sharing</h2>
         <p>
           You have two options for distributing your bingo cards:
         </p>
         <ul>
-          <li><strong>PDF export</strong> — Export a clean PDF sized for standard paper and print shops.</li>
-          <li><strong>Digital share link</strong> — Create player links when you want guests to play on their phone, tablet, or computer with no printing needed.</li>
+          <li><strong>PDF export</strong> — Export a clean PDF for free, sized for standard paper and print shops.</li>
+          <li><strong>Digital share link</strong> — Buy player links when you want guests to play on their phone, tablet, or computer with no printing needed.</li>
         </ul>
-
-        <h2>Do Not Forget the Caller List</h2>
-        <p>
-          Printable cards are only half the game. For word bingo, prepare the same square list as a caller sheet so you can call items in random order. For event bingo, write a short rule card that says what counts as a match. For classroom bingo, call definitions, clues, or equations instead of simply reading the answers.
-        </p>
 
         <h2>Tips for a Great Bingo Game</h2>
         <ul>
@@ -143,7 +113,7 @@ export default function HowToMakeCustomBingoCards() {
 
         <h2>Start Creating Your Bingo Cards Now</h2>
         <p>
-          Ready to make your own custom bingo cards? Head to our <Link href="/create">bingo card creator</Link>, build your card in under 5 minutes, and draft, customize, generate, and unlock export, share links, and hosted live bingo when ready.
+          Ready to make your own custom bingo cards? Head to our <Link href="/create">bingo card creator</Link>, build your card in under 5 minutes, and save, customize, generate, and export for free. Pay only if you want player share links or hosted live bingo.
         </p>
       </BlogLayout>
     </>

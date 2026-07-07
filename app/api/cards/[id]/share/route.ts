@@ -46,9 +46,8 @@ export async function POST(
     if (!hasShareSettingsAccess(user)) {
       return NextResponse.json(
         {
-          error: "Sign in and activate your account to use sharing for bingo cards.",
+          error: "Upgrade to Premium or choose lifetime access to share bingo cards.",
           upgradeRequired: true,
-          trialRequired: false,
         },
         { status: 403 }
       );
@@ -125,9 +124,8 @@ export async function PUT(
     if (!hasShareSettingsAccess(user)) {
       return NextResponse.json(
         {
-          error: "Sign in and activate your account to use sharing settings.",
+          error: "Upgrade to Premium or choose lifetime access to update share settings.",
           upgradeRequired: true,
-          trialRequired: false,
         },
         { status: 403 }
       );

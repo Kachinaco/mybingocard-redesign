@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import clientPromise from "@/lib/mongodb";
 import { getUserByEmail } from "@/lib/db/users";
 import {
   createSubscription,
@@ -10,6 +9,7 @@ import {
 } from "@/lib/db/subscriptions";
 import { getBatchPack, isBatchCount, type BatchCount } from "@/lib/batchPacks";
 import { upsertBatchPurchaseFromAppleTransaction } from "@/lib/db/batchPurchases";
+import { applyApplePremiumEntitlement, upsertAppleIapTransaction } from "@/lib/db/apple-iap";
 import { createVerify, X509Certificate } from "node:crypto";
 
 export const runtime = "nodejs";
@@ -154,9 +154,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
     if (isBatchCount(batchCount)) {
       if (!transaction.transactionId) {
         return NextResponse.json({ error: "Apple batch transaction is missing transactionId" }, { status: 400 });
@@ -179,29 +176,21 @@ export async function POST(request: Request) {
         appleEnvironment: transaction.environment || null,
       });
 
-      await db.collection("apple_iap_transactions").updateOne(
-        { transactionId: transaction.transactionId },
-        {
-          $set: {
-            userId: user._id.toString(),
-            email: session.user.email,
-            productId,
-            purchaseType: "batch_pack",
-            batchCount,
-            batchPurchaseId: batchPurchase?._id?.toString?.() || null,
-            originalTransactionId: transaction.originalTransactionId || null,
-            environment: transaction.environment || null,
-            purchaseDate,
-            expiresDate: null,
-            status: "paid",
-            updatedAt: now,
-          },
-          $setOnInsert: {
-            createdAt: now,
-          },
-        },
-        { upsert: true }
-      );
+      await upsertAppleIapTransaction({
+        transactionId: transaction.transactionId,
+        userId: user._id.toString(),
+        email: session.user.email,
+        productId,
+        purchaseType: "batch_pack",
+        batchCount,
+        batchPurchaseId: batchPurchase?._id?.toString?.() || null,
+        originalTransactionId: transaction.originalTransactionId || null,
+        environment: transaction.environment || null,
+        purchaseDate,
+        expiresDate: null,
+        status: "paid",
+        now,
+      });
 
       return NextResponse.json({
         success: true,
@@ -212,25 +201,18 @@ export async function POST(request: Request) {
       });
     }
 
-    await db.collection("users").updateOne(
-      { _id: user._id },
-      {
-        $set: {
-          planType: "PREMIUM",
-          subscriptionStatus,
-          currentPeriodStart: purchaseDate,
-          currentPeriodEnd: isLifetime ? null : expiresDate,
-          trialEndsAt: subscriptionStatus === "trialing" ? expiresDate : null,
-          cancelAtPeriodEnd: false,
-          purchaseProvider: "apple",
-          appleProductId: productId,
-          appleTransactionId: transaction.transactionId || null,
-          appleOriginalTransactionId: transaction.originalTransactionId || transaction.transactionId || null,
-          appleEnvironment: transaction.environment || null,
-          updatedAt: now,
-        },
-      }
-    );
+    await applyApplePremiumEntitlement({
+      userId: user._id,
+      subscriptionStatus,
+      purchaseDate,
+      expiresDate,
+      isLifetime,
+      productId,
+      transactionId: transaction.transactionId || null,
+      originalTransactionId: transaction.originalTransactionId || transaction.transactionId || null,
+      environment: transaction.environment || null,
+      now,
+    });
 
     const existingSubscription = await getSubscriptionByUserId(user._id.toString());
     const subscriptionUpdate = {
@@ -255,27 +237,19 @@ export async function POST(request: Request) {
       await updateSubscription(user._id.toString(), subscriptionUpdate);
     }
 
-    await db.collection("apple_iap_transactions").updateOne(
-      { transactionId: transaction.transactionId || signedTransactionInfo },
-      {
-        $set: {
-          userId: user._id.toString(),
-          email: session.user.email,
-          productId,
-          purchaseType: "premium",
-          originalTransactionId: transaction.originalTransactionId || null,
-          environment: transaction.environment || null,
-          purchaseDate,
-          expiresDate,
-          status: subscriptionStatus,
-          updatedAt: now,
-        },
-        $setOnInsert: {
-          createdAt: now,
-        },
-      },
-      { upsert: true }
-    );
+    await upsertAppleIapTransaction({
+      transactionId: transaction.transactionId || signedTransactionInfo,
+      userId: user._id.toString(),
+      email: session.user.email,
+      productId,
+      purchaseType: "premium",
+      originalTransactionId: transaction.originalTransactionId || null,
+      environment: transaction.environment || null,
+      purchaseDate,
+      expiresDate,
+      status: subscriptionStatus,
+      now,
+    });
 
     return NextResponse.json({
       success: true,

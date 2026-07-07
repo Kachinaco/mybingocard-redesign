@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { trackCardShared } from "@/lib/analytics";
 import { trackClientActivity } from "@/lib/activity-client";
+import { useCheckout } from "@/components/CheckoutModal";
 import { getShareEmailPack } from "@/lib/shareEmailPacks";
 
 interface SocialShareProps {
@@ -27,6 +28,7 @@ function parseEmailInput(input: string) {
 }
 
 export default function SocialShare({ url, title, cardId, userPlanType, openEmailTrigger = 0 }: SocialShareProps) {
+  const { openCheckout } = useCheckout();
   const [copied, setCopied] = useState(false);
   const [nativeSharing, setNativeSharing] = useState(false);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
@@ -42,7 +44,7 @@ export default function SocialShare({ url, title, cardId, userPlanType, openEmai
   const encodedDesc = encodeURIComponent(`Check out this bingo card: ${title}`);
   const parsedEmails = useMemo(() => parseEmailInput(emailInput), [emailInput]);
   const emailPack = getShareEmailPack(parsedEmails.length || 1);
-  const isPremiumUser = true;
+  const isPremiumUser = userPlanType === "Premium" || userPlanType === "PREMIUM";
 
   const shareLinks = [
     {
@@ -147,6 +149,39 @@ export default function SocialShare({ url, title, cardId, userPlanType, openEmai
     try {
       setEmailSending(true);
       setEmailStatus(null);
+
+      if (!isPremiumUser) {
+        const pack = getShareEmailPack(emails.length);
+        if (!pack) {
+          setEmailStatus({
+            type: "error",
+            message: "You can send to up to 500 emails at a time.",
+          });
+          return;
+        }
+
+        trackClientActivity("email_share_checkout_started", {
+          cardId,
+          title,
+          recipientCount: emails.length,
+          packSize: pack.size,
+          amountCents: pack.amount,
+        });
+
+        await openCheckout({
+          purchaseType: "email_share_batch",
+          cardId,
+          emails,
+          label: `${pack.size} Email Share Pack — ${pack.label}`,
+          returnPath: `${window.location.pathname}?shareEmail=sent`,
+        });
+
+        setEmailStatus({
+          type: "success",
+          message: "Checkout opened. The emails will send after payment is complete.",
+        });
+        return;
+      }
 
       const response = await fetch(`/api/cards/${cardId}/share/email`, {
         method: "POST",
@@ -395,7 +430,7 @@ export default function SocialShare({ url, title, cardId, userPlanType, openEmai
               <div className="flex items-start justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3">
                 <div>
                   <p className="text-xs font-black uppercase tracking-wide text-slate-500">
-                    Free email share
+                    {isPremiumUser ? "Premium sharing" : "Paid email share"}
                   </p>
                   <p className="mt-0.5 text-sm font-black text-slate-950">
                     {parsedEmails.length || 0} {parsedEmails.length === 1 ? "recipient" : "recipients"} selected
@@ -403,10 +438,10 @@ export default function SocialShare({ url, title, cardId, userPlanType, openEmai
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-black text-slate-950">
-                    $0
+                    {isPremiumUser ? "$0" : emailPack?.label || "-"}
                   </p>
                   <p className="text-[11px] font-bold text-slate-500">
-                    included
+                    {isPremiumUser ? "included" : "due today"}
                   </p>
                 </div>
               </div>
@@ -420,9 +455,21 @@ export default function SocialShare({ url, title, cardId, userPlanType, openEmai
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-semibold">Share pack</span>
                   <span className="font-black text-slate-950">
-                    {emailPack ? `Up to ${emailPack.size}` : "Max 500"}
+                    {isPremiumUser ? "Included" : emailPack ? `Up to ${emailPack.size}` : "Max 500"}
                   </span>
                 </div>
+                {!isPremiumUser && (
+                  <button
+                    type="button"
+                    onClick={() => openCheckout({
+                      label: "Premium — $7.99/mo · Email shares included",
+                      returnPath: window.location.pathname,
+                    })}
+                    className="mt-2 w-full rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-black text-indigo-700 transition hover:bg-indigo-100"
+                  >
+                    Or subscribe and email batches are included
+                  </button>
+                )}
               </div>
             </div>
 
@@ -459,7 +506,11 @@ export default function SocialShare({ url, title, cardId, userPlanType, openEmai
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4Z" />
                   </svg>
                 )}
-                {emailSending ? "Sending..." : "Send Emails"}
+                {emailSending
+                  ? isPremiumUser ? "Sending..." : "Opening checkout..."
+                  : isPremiumUser
+                    ? "Send Emails"
+                    : `Pay ${emailPack?.label || ""} & Send`}
               </button>
             </div>
           </div>

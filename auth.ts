@@ -4,15 +4,15 @@ import Google from "next-auth/providers/google";
 import Apple from "next-auth/providers/apple";
 import Credentials from "next-auth/providers/credentials";
 import { cookies } from "next/headers";
-import { MongoDBAdapter } from "@auth/mongodb-adapter";
-import clientPromise from "./lib/mongodb";
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
 import { ATTRIBUTION_COOKIE_NAME, parseAttributionCookie, stripOAuthReferrer } from "@/lib/attribution";
-import { createUser, ensureUserDefaults, getUserByEmail, getUserById, incrementUserCounter, updateUserAttribution, updateUserLastAttribution, updateUserSignupMethod } from "./lib/db/users";
+import { createUser, ensureUserDefaults, getUserByEmail, getUserById, incrementUserCounter, updateUser, updateUserAttribution, updateUserLastAttribution, updateUserSignupMethod } from "./lib/db/users";
 import { sendWelcomeEmail } from "./lib/email";
 import { trackActivity } from "./lib/activity";
 import { IMPERSONATION_COOKIE_NAME, parseImpersonationCookie } from "@/lib/impersonation";
+import { createMyBingoCardAuthAdapter } from "@/lib/db/auth-adapter";
+import { claimGuestUser, consumeMagicLinkToken, countRecentFailedLoginAttempts, recordLoginAttempt } from "@/lib/db/auth-data";
 
 const authBaseUrl =
   process.env.AUTH_URL ||
@@ -26,7 +26,7 @@ const LOGIN_FAILURE_WINDOW_MS = 15 * 60 * 1000;
 const MAX_LOGIN_FAILURES = 20;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: MongoDBAdapter(clientPromise),
+  adapter: createMyBingoCardAuthAdapter(),
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
@@ -92,34 +92,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         try {
-          const client = await clientPromise;
-          const db = client.db("mybingocard");
-          const { ObjectId } = await import("mongodb");
-
-          let objectId: InstanceType<typeof ObjectId>;
-          try {
-            objectId = new ObjectId(credentials.userId as string);
-          } catch {
-            return null;
-          }
-
           // Atomic single-use: match the token+expiry and clear it in one op.
           // The DB query itself encapsulates the token comparison, so there is
           // no need for a separate timingSafeEqual — MongoDB's equality match
           // on an indexed field performs the comparison server-side and the
           // $unset guarantees the token cannot be reused even under races.
-          const result = await db.collection("users").findOneAndUpdate(
-            {
-              _id: objectId,
-              customerType: "guest",
-              guestClaimToken: credentials.guestToken as string,
-              guestClaimTokenExpiresAt: { $gt: new Date() },
-            },
-            { $unset: { guestClaimToken: "", guestClaimTokenExpiresAt: "" } },
-            { returnDocument: "before" }
-          );
-
-          const user = result as any;
+          const user = await claimGuestUser(credentials.userId as string, credentials.guestToken as string);
           if (!user) return null;
 
           return {
@@ -146,12 +124,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         try {
           const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
-          const client = await clientPromise;
-          const db = client.db("mybingocard");
-          const record = await db.collection("magic_link_tokens").findOneAndDelete({
-            tokenHash,
-            expiresAt: { $gt: new Date() },
-          });
+          const record = await consumeMagicLinkToken(tokenHash);
 
           if (!record?.email || record.email.endsWith("@guest.mybingocard.com")) {
             return null;
@@ -164,16 +137,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               name: record.email.split("@")[0],
               signupMethod: "magic_link",
             });
-            await db.collection("users").updateOne(
-              { _id: user._id },
-              { $set: { emailVerified: new Date(), updatedAt: new Date() } }
-            );
-            user.emailVerified = new Date();
+            const verifiedAt = new Date();
+            await updateUser(user._id.toString(), { emailVerified: verifiedAt });
+            user.emailVerified = verifiedAt;
           } else if (!user.emailVerified) {
-            await db.collection("users").updateOne(
-              { _id: user._id },
-              { $set: { emailVerified: new Date(), updatedAt: new Date() } }
-            );
+            await updateUser(user._id.toString(), { emailVerified: new Date() });
           }
 
           return {
@@ -207,9 +175,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           email: String(credentials.email).toLowerCase(),
         };
         let isThrottled = false;
+        let passwordMatches = false;
         try {
-          const client = await clientPromise;
-          const db = client.db("mybingocard");
           const ip =
             (request as Request & { headers?: Headers })?.headers?.get?.("x-forwarded-for")?.split(",")[0]?.trim() ||
             (request as Request & { headers?: Headers })?.headers?.get?.("x-real-ip") ||
@@ -217,15 +184,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           loginAttemptContext.ip = ip;
 
           const failureWindowStart = new Date(Date.now() - LOGIN_FAILURE_WINDOW_MS);
-          const recentFailures = await db.collection("login_attempts").countDocuments({
-            success: false,
-            createdAt: { $gte: failureWindowStart },
-            $or: [{ ip }, { email: loginAttemptContext.email }],
+          const recentFailures = await countRecentFailedLoginAttempts({
+            ip,
+            email: loginAttemptContext.email,
+            since: failureWindowStart,
           });
 
           if (recentFailures >= MAX_LOGIN_FAILURES) {
             isThrottled = true;
-            await db.collection("login_attempts").insertOne({
+            await recordLoginAttempt({
               ip,
               email: loginAttemptContext.email,
               success: false,
@@ -234,11 +201,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               createdAt: new Date(),
             });
           } else {
-            const success = !!(user?.password && await bcrypt.compare(credentials.password as string, user.password));
-            await db.collection("login_attempts").insertOne({
+            passwordMatches = !!(user?.password && await bcrypt.compare(credentials.password as string, user.password));
+            await recordLoginAttempt({
               ip,
               email: loginAttemptContext.email,
-              success,
+              success: passwordMatches,
               createdAt: new Date(),
             });
           }
@@ -253,12 +220,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        const isValid = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        );
-
-        if (!isValid) {
+        if (!passwordMatches) {
           return null;
         }
 
@@ -317,12 +279,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (provider === "google" || provider === "apple" || provider === "magic-link") {
             const existingUser = await getUserById(event.user.id);
             if (existingUser && !existingUser.emailVerified) {
-              const client = await clientPromise;
-              const db = client.db("mybingocard");
-              await db.collection("users").updateOne(
-                { _id: new (await import("mongodb")).ObjectId(event.user.id) },
-                { $set: { emailVerified: new Date(), updatedAt: new Date() } }
-              );
+              await updateUser(event.user.id, { emailVerified: new Date() });
             }
           }
 
@@ -345,12 +302,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           // Behavior counters
           await incrementUserCounter(event.user.id, "loginCount");
-          const client2 = await clientPromise;
-          const db2 = client2.db("mybingocard");
-          await db2.collection("users").updateOne(
-            { _id: new (await import("mongodb")).ObjectId(event.user.id) },
-            { $set: { lastLoginAt: new Date() } }
-          );
+          await updateUser(event.user.id, { lastLoginAt: new Date() });
         } catch (error) {
           console.error("Failed to capture sign-in attribution:", error);
         }

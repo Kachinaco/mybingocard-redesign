@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
 import { trackActivity } from "@/lib/activity";
 import { trackApiError } from "@/lib/api-error-tracking";
 import { buildPostVerificationLoginUrl, buildVerifyEmailErrorUrl, sanitizePostVerificationCallback } from "@/lib/auth/verify-email-redirect";
+import { deleteEmailVerificationToken, findEmailVerificationToken } from "@/lib/db/auth-data";
+import { updateUser } from "@/lib/db/users";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -18,10 +18,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    const record = await db.collection("email_verification_tokens").findOne({ token });
+    const record = await findEmailVerificationToken(token);
 
     if (!record) {
       trackActivity({
@@ -36,7 +33,7 @@ export async function GET(request: Request) {
     }
 
     if (new Date(record.expires) < new Date()) {
-      await db.collection("email_verification_tokens").deleteOne({ token });
+      await deleteEmailVerificationToken(token);
       trackActivity({
         event: "email_verification_failed",
         source: "server",
@@ -55,13 +52,10 @@ export async function GET(request: Request) {
     }
 
     // Mark user as verified
-    await db.collection("users").updateOne(
-      { _id: new ObjectId(record.userId) },
-      { $set: { emailVerified: new Date(), updatedAt: new Date() } }
-    );
+    await updateUser(record.userId, { emailVerified: new Date() });
 
     // Delete the used token
-    await db.collection("email_verification_tokens").deleteOne({ token });
+    await deleteEmailVerificationToken(token);
 
     trackActivity({
       event: "email_verification_completed",

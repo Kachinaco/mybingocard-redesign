@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import type { Db } from "mongodb";
-import clientPromise from "@/lib/mongodb";
 import { notifyClientErrorCaptured, notifyClientErrorSpike } from "@/lib/discord";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { symbolicateStack } from "@/lib/source-map-resolver";
+import {
+  claimClientErrorCaptureNotification,
+  claimClientErrorSpikeAlert,
+  getRecentClientErrorStats,
+  insertClientErrorEvent,
+  reopenFixedClientErrorFingerprint,
+  upsertClientErrorFingerprint,
+  upsertMarketingTrackingFailure,
+} from "@/lib/db/client-errors";
 
 const ALERT_WINDOW_MS = 10 * 60_000;
 const ALERT_COOLDOWN_MS = 30 * 60_000;
@@ -177,58 +184,7 @@ function getErrorSignal(doc: { type: string; pageUrl: string | null; source: str
   };
 }
 
-async function recordMarketingTrackingFailure(
-  db: Db,
-  doc: {
-    fingerprint: string;
-    message: string;
-    source: string | null;
-    pageUrl: string | null;
-    pathname: string | null;
-    userAgent: string | null;
-    sessionId: string | null;
-    anonymousId: string | null;
-    buildId: string | null;
-    createdAt: Date;
-  },
-  signal: {
-    resourceHost: string | null;
-    suppressionReason: string | null;
-  }
-) {
-  await db.collection<{ _id: string }>("marketing_tracking_failures").updateOne(
-    { _id: doc.fingerprint },
-    {
-      $setOnInsert: {
-        firstSeenAt: doc.createdAt,
-      },
-      $set: {
-        message: doc.message,
-        source: doc.source,
-        resourceHost: signal.resourceHost,
-        latestPageUrl: doc.pageUrl,
-        latestPathname: doc.pathname,
-        latestUserAgent: doc.userAgent,
-        latestBuildId: doc.buildId,
-        suppressionReason: signal.suppressionReason,
-        lastSeenAt: doc.createdAt,
-        updatedAt: doc.createdAt,
-      },
-      $inc: { totalCount: 1 },
-      $addToSet: {
-        pageUrls: doc.pageUrl,
-        pathnames: doc.pathname,
-        buildIds: doc.buildId,
-        anonymousIds: doc.anonymousId,
-        sessionIds: doc.sessionId,
-      },
-    },
-    { upsert: true }
-  );
-}
-
 async function maybeAlertForFingerprint(
-  db: Db,
   doc: {
     fingerprint: string;
     type: string;
@@ -243,34 +199,9 @@ async function maybeAlertForFingerprint(
 ) {
   const now = new Date();
   const recentSince = new Date(Date.now() - ALERT_WINDOW_MS);
-  const [recent] = await db.collection("error_events").aggregate([
-    { $match: { fingerprint: doc.fingerprint, createdAt: { $gte: recentSince } } },
-    {
-      $group: {
-        _id: null,
-        count: { $sum: 1 },
-        sessions: { $addToSet: "$sessionId" },
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        count: 1,
-        sessionCount: {
-          $size: {
-            $filter: {
-              input: "$sessions",
-              as: "sessionId",
-              cond: { $and: [{ $ne: ["$$sessionId", null] }, { $ne: ["$$sessionId", ""] }] },
-            },
-          },
-        },
-      },
-    },
-  ]).toArray();
-
-  const recentCount = recent?.count || 0;
-  const recentSessions = recent?.sessionCount || 0;
+  const recent = await getRecentClientErrorStats(doc.fingerprint, recentSince);
+  const recentCount = recent.count;
+  const recentSessions = recent.sessionCount;
   const shouldAlert =
     doc.severity === "high"
       ? recentCount >= 3 || recentSessions >= 2
@@ -281,23 +212,13 @@ async function maybeAlertForFingerprint(
   if (!shouldAlert) return;
 
   const cooldownBefore = new Date(Date.now() - ALERT_COOLDOWN_MS);
-  const claimed = await db.collection<{ _id: string }>("error_fingerprints").findOneAndUpdate(
-    {
-      _id: doc.fingerprint,
-      $or: [
-        { lastAlertedAt: { $exists: false } },
-        { lastAlertedAt: { $lt: cooldownBefore } },
-      ],
-    },
-    {
-      $set: {
-        lastAlertedAt: now,
-        lastAlertRecentCount: recentCount,
-        lastAlertRecentSessions: recentSessions,
-      },
-    },
-    { returnDocument: "after" }
-  );
+  const claimed = await claimClientErrorSpikeAlert({
+    fingerprint: doc.fingerprint,
+    cooldownBefore,
+    now,
+    recentCount,
+    recentSessions,
+  });
 
   if (!claimed) return;
 
@@ -317,7 +238,6 @@ async function maybeAlertForFingerprint(
 }
 
 async function maybeNotifyClientErrorCaptured(
-  db: Db,
   doc: {
     fingerprint: string;
     type: string;
@@ -335,22 +255,13 @@ async function maybeNotifyClientErrorCaptured(
   const shouldNotify = doc.severity === "high" || (doc.severity === "medium" && totalCount === 1);
   if (!shouldNotify) return;
 
+  const now = new Date();
   const cooldownBefore = new Date(Date.now() - CAPTURE_ALERT_COOLDOWN_MS);
-  const claimed = await db.collection<{ _id: string }>("error_fingerprints").findOneAndUpdate(
-    {
-      _id: doc.fingerprint,
-      $or: [
-        { lastCapturedNotificationAt: { $exists: false } },
-        { lastCapturedNotificationAt: { $lt: cooldownBefore } },
-      ],
-    },
-    {
-      $set: {
-        lastCapturedNotificationAt: new Date(),
-      },
-    },
-    { returnDocument: "after" }
-  );
+  const claimed = await claimClientErrorCaptureNotification({
+    fingerprint: doc.fingerprint,
+    cooldownBefore,
+    now,
+  });
 
   if (!claimed) return;
 
@@ -421,75 +332,15 @@ export async function POST(req: NextRequest) {
     const severity = signal.severity;
     const storedDoc = { ...doc, fingerprint, ...signal };
 
-	    const client = await clientPromise;
-    const db = client.db("mybingocard");
-    await db.collection("error_events").insertOne(storedDoc);
+    await insertClientErrorEvent(storedDoc);
     if (signal.errorCategory === "third_party_tracking_failure") {
-      await recordMarketingTrackingFailure(db, { ...doc, fingerprint }, signal);
+      await upsertMarketingTrackingFailure({ ...doc, fingerprint }, signal);
     }
 
-    const groupUpdate = await db.collection<{ _id: string; totalCount?: number; status?: string }>("error_fingerprints").findOneAndUpdate(
-      { _id: fingerprint },
-      {
-        $setOnInsert: {
-          firstSeenAt: doc.createdAt,
-          status: "open",
-        },
-        $set: {
-          type: doc.type,
-          message: doc.message,
-          source: doc.source,
-          latestStack: doc.stack,
-          latestSymbolicatedStack: doc.symbolicatedStack,
-          latestSourceMappedFrames: doc.sourceMappedFrames,
-          latestPageUrl: doc.pageUrl,
-          latestPathname: doc.pathname,
-          latestUserAgent: doc.userAgent,
-          latestBuildId: doc.buildId,
-          latestRelease: doc.release,
-          latestBreadcrumbs: doc.breadcrumbs,
-          severity,
-          errorCategory: signal.errorCategory,
-          impactArea: signal.impactArea,
-          alertSuppressed: signal.alertSuppressed,
-          suppressionReason: signal.suppressionReason,
-          resourceHost: signal.resourceHost,
-          lastSeenAt: doc.createdAt,
-          updatedAt: doc.createdAt,
-        },
-        $inc: { totalCount: 1 },
-        $addToSet: {
-          pageUrls: doc.pageUrl,
-          pathnames: doc.pathname,
-          buildIds: doc.buildId,
-          userIds: doc.userId,
-          anonymousIds: doc.anonymousId,
-          sessionIds: doc.sessionId,
-        },
-      },
-      { upsert: true, returnDocument: "after" }
-    );
-
+    const groupUpdate = await upsertClientErrorFingerprint(storedDoc);
     const totalCount = groupUpdate?.totalCount || 1;
     if (groupUpdate?.status === "fixed") {
-      await db.collection("error_fingerprints").updateOne(
-        { _id: fingerprint, status: "fixed" } as any,
-        {
-          $set: {
-            status: "open",
-            regressedAt: doc.createdAt,
-            updatedAt: doc.createdAt,
-          },
-          $push: {
-            statusHistory: {
-              status: "open",
-              updatedAt: doc.createdAt,
-              updatedBy: "error-monitor",
-              reason: "fixed fingerprint recurred",
-            },
-          },
-        } as any
-      );
+      await reopenFixedClientErrorFingerprint(fingerprint, doc.createdAt);
     }
 
     trackActivity({
@@ -518,7 +369,7 @@ export async function POST(req: NextRequest) {
     }).catch(() => {});
 
     if (!signal.alertSuppressed) {
-      await maybeNotifyClientErrorCaptured(db, {
+      await maybeNotifyClientErrorCaptured({
         fingerprint,
         type: doc.type,
         message: doc.message,
@@ -531,7 +382,7 @@ export async function POST(req: NextRequest) {
         breadcrumbs: doc.breadcrumbs as Array<{ type?: string; message?: string; timestamp?: string }>,
       }, totalCount);
 
-      await maybeAlertForFingerprint(db, {
+      await maybeAlertForFingerprint({
         fingerprint,
         type: doc.type,
         message: doc.message,

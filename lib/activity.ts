@@ -1,4 +1,4 @@
-import clientPromise from "./mongodb";
+import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
 
 export type ActivitySource = "client" | "server" | "auth" | "webhook";
 
@@ -14,69 +14,6 @@ export interface ActivityInput {
   ipAddress?: string | null;
   userAgent?: string | null;
   metadata?: Record<string, unknown> | null;
-}
-
-const NOISY_GAME_EVENTS = new Set([
-  "game_cell_marked",
-  "game_player_cell_marked",
-  "game_stream_disconnected",
-  "button_clicked",
-  "page_engagement",
-  "tab_returned",
-  "session_summary",
-]);
-
-function isNoisyPerformanceEvent(event: string): boolean {
-  return event.startsWith("performance_") || event.startsWith("scroll_depth_");
-}
-
-function stringLooksLikeGamePath(value: string): boolean {
-  const trimmed = value.trim();
-  if (!trimmed) return false;
-  if (trimmed.startsWith("/game/")) return true;
-
-  try {
-    const url = new URL(trimmed);
-    return url.pathname.startsWith("/game/");
-  } catch {
-    return false;
-  }
-}
-
-function metadataString(metadata: Record<string, unknown> | null | undefined, key: string): string | null {
-  const value = metadata?.[key];
-  return typeof value === "string" ? value : null;
-}
-
-function metadataClientPath(metadata: Record<string, unknown> | null | undefined): string | null {
-  const clientContext = metadata?.client_context;
-  if (!clientContext || typeof clientContext !== "object") return null;
-
-  const context = clientContext as Record<string, unknown>;
-  const path = typeof context.path === "string" ? context.path : null;
-  const href = typeof context.href === "string" ? context.href : null;
-  return path || href;
-}
-
-export function shouldSuppressNoisyGameActivity(input: Pick<ActivityInput, "event" | "pathname" | "metadata">): boolean {
-  const event = input.event || "";
-  if (!NOISY_GAME_EVENTS.has(event) && !isNoisyPerformanceEvent(event)) {
-    return false;
-  }
-
-  const metadata = input.metadata || {};
-  const pathCandidates = [
-    input.pathname,
-    metadataString(metadata, "pathname"),
-    metadataString(metadata, "path"),
-    metadataString(metadata, "href"),
-    metadataString(metadata, "pageUrl"),
-    metadataString(metadata, "currentUrl"),
-    metadataString(metadata, "currentPathname"),
-    metadataClientPath(metadata),
-  ].filter((value): value is string => typeof value === "string");
-
-  return pathCandidates.some(stringLooksLikeGamePath) || typeof metadata.roomCode === "string";
 }
 
 const SENSITIVE_METADATA_KEY_PATTERN =
@@ -160,15 +97,8 @@ export async function trackActivity(input: ActivityInput): Promise<void> {
     return;
   }
 
-  if (shouldSuppressNoisyGameActivity(input)) {
-    return;
-  }
-
   try {
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    await db.collection("activity_events").insertOne({
+    const document = {
       event: input.event,
       source: input.source || "server",
       userId: input.userId || null,
@@ -181,7 +111,18 @@ export async function trackActivity(input: ActivityInput): Promise<void> {
       userAgent: input.userAgent || null,
       metadata: sanitizeActivityMetadata(input.metadata),
       createdAt: new Date(),
-    });
+    };
+
+    if (useSqliteDb()) {
+      getSqliteStore().insertOne("activity_events", document);
+      return;
+    }
+
+    const { default: clientPromise } = await import("./mongodb");
+    const client = await clientPromise;
+    const db = client.db("mybingocard");
+
+    await db.collection("activity_events").insertOne(document);
   } catch (error) {
     console.error("Activity tracking failed:", error);
   }

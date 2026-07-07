@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const nodemailer = require('./smtp-client.cjs');
 const { MongoClient } = require('mongodb');
+const { openSqliteShadowStore, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -152,7 +153,235 @@ async function notifyDiscordTrialEvent(title, fields) {
   }
 }
 
+function objectIdString(value) {
+  if (value && typeof value === 'object' && typeof value.toHexString === 'function') {
+    return value.toHexString();
+  }
+  if (value && typeof value === 'object' && typeof value.$oid === 'string') {
+    return value.$oid;
+  }
+  return String(value || '');
+}
+
+function dateValue(value) {
+  const date = value instanceof Date ? value : new Date(value || 0);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function emailMatches(document, user) {
+  return String(document.email || '').trim().toLowerCase() === String(user.email || '').trim().toLowerCase();
+}
+
+function userIdMatches(document, user) {
+  return objectIdString(document.userId) === objectIdString(user._id);
+}
+
+function alreadyLogged(dripLog, user, campaignId) {
+  return dripLog.some((entry) => userIdMatches(entry, user) && entry.campaignId === campaignId);
+}
+
+function activityBelongsToUser(event, user) {
+  return userIdMatches(event, user) || emailMatches(event, user);
+}
+
+function countCardsForUser(cards, user) {
+  const userId = objectIdString(user._id);
+  return cards.filter((card) => objectIdString(card.userId) === userId).length;
+}
+
+function latestActivityForUser(activityEvents, user) {
+  return activityEvents
+    .filter((event) => activityBelongsToUser(event, user))
+    .sort((a, b) => {
+      const aDate = dateValue(a.createdAt)?.getTime() || 0;
+      const bDate = dateValue(b.createdAt)?.getTime() || 0;
+      return bDate - aDate;
+    })[0] || null;
+}
+
+function sqliteFindExpiredTrials(users, now) {
+  return users.filter((user) => {
+    const trialEndsAt = dateValue(user.trialEndsAt);
+    return trialEndsAt
+      && trialEndsAt <= now
+      && user.planType === 'PREMIUM'
+      && user.subscriptionStatus === 'trialing';
+  });
+}
+
+function sqliteFindWarningUsers(users, warnStart, warnEnd) {
+  return users.filter((user) => {
+    const trialEndsAt = dateValue(user.trialEndsAt);
+    return trialEndsAt
+      && trialEndsAt >= warnStart
+      && trialEndsAt <= warnEnd
+      && user.planType === 'PREMIUM'
+      && !['active', 'lifetime'].includes(user.subscriptionStatus);
+  });
+}
+
+function sqliteFindActiveTrialUsers(users, now) {
+  return users.filter((user) => {
+    const trialEndsAt = dateValue(user.trialEndsAt);
+    return trialEndsAt
+      && trialEndsAt > now
+      && user.planType === 'PREMIUM'
+      && user.subscriptionStatus !== 'lifetime';
+  });
+}
+
+async function runSqlite() {
+  const store = openSqliteShadowStore();
+  try {
+    const users = store.findMany('users').map((row) => row.document);
+    const dripLog = store.findMany('drip_log').map((row) => row.document);
+    const cards = store.findMany('cards').map((row) => row.document);
+    const activityEvents = store.findMany('activity_events').map((row) => row.document);
+    const now = new Date();
+
+    const expiredTrials = sqliteFindExpiredTrials(users, now);
+
+    let expiredCount = 0;
+    for (const user of expiredTrials) {
+      user.planType = 'FREE';
+      user.subscriptionStatus = 'inactive';
+      user.updatedAt = now;
+      store.replaceOne('users', user);
+
+      if (!alreadyLogged(dripLog, user, 'trial_expired')) {
+        try {
+          await sendTrialExpiredEmail(user.email, user.name);
+          const log = {
+            userId: objectIdString(user._id),
+            email: user.email,
+            campaignId: 'trial_expired',
+            sentAt: now,
+          };
+          store.insertOne('drip_log', log);
+          dripLog.push(log);
+          console.log(`Trial expired + email sent: ${user.email}`);
+
+          const cardCount = countCardsForUser(cards, user);
+          await notifyDiscordTrialEvent('🔴 Trial Expired — Downgraded to Free', [
+            { name: 'User', value: `${user.name || 'Unknown'} (${user.email})`, inline: true },
+            { name: 'Cards Created', value: `${cardCount}`, inline: true },
+          ]);
+        } catch (e) {
+          console.error(`Failed to send trial expired email to ${user.email}:`, e.message);
+        }
+      }
+
+      expiredCount++;
+    }
+
+    let trialDayEmailsSent = 0;
+    for (const daysLeft of [3, 1]) {
+      const warnDate = new Date(now);
+      warnDate.setDate(warnDate.getDate() + daysLeft);
+      const warnStart = new Date(warnDate);
+      warnStart.setHours(0, 0, 0, 0);
+      const warnEnd = new Date(warnDate);
+      warnEnd.setHours(23, 59, 59, 999);
+
+      const warningUsers = sqliteFindWarningUsers(users, warnStart, warnEnd);
+      const campaignId = `trial_ending_${daysLeft}d`;
+
+      for (const user of warningUsers) {
+        if (alreadyLogged(dripLog, user, campaignId)) continue;
+
+        try {
+          await sendTrialEndingSoonEmail(user.email, user.name, daysLeft);
+          const log = {
+            userId: objectIdString(user._id),
+            email: user.email,
+            campaignId,
+            sentAt: now,
+          };
+          store.insertOne('drip_log', log);
+          dripLog.push(log);
+          trialDayEmailsSent++;
+          console.log(`Trial warning (${daysLeft}d left) sent: ${user.email}`);
+
+          const cardCount = countCardsForUser(cards, user);
+          const urgencyLabel = daysLeft === 1 ? 'Tomorrow' : `${daysLeft} Days`;
+          await notifyDiscordTrialEvent(`⏳ Trial Ending in ${urgencyLabel}`, [
+            { name: 'User', value: `${user.name || 'Unknown'} (${user.email})`, inline: true },
+            { name: 'Days Left', value: `${daysLeft}`, inline: true },
+            { name: 'Cards Created', value: `${cardCount}`, inline: true },
+          ]);
+        } catch (e) {
+          console.error(`Failed to send trial warning to ${user.email}:`, e.message);
+        }
+      }
+    }
+
+    const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+    const trialUsers = sqliteFindActiveTrialUsers(users, now);
+
+    let churnFlagged = 0;
+
+    for (const user of trialUsers) {
+      if (!user.trialEndsAt) continue;
+
+      const trialStart = new Date(user.trialEndsAt);
+      trialStart.setDate(trialStart.getDate() - 7);
+      const trialDay = Math.max(1, Math.ceil((now - trialStart) / 86400000));
+
+      if (trialDay < 2) continue;
+      if (alreadyLogged(dripLog, user, 'trial_churn_risk_detected')) continue;
+
+      const recentActivity = activityEvents.some((event) => (
+        activityBelongsToUser(event, user)
+        && dateValue(event.createdAt)
+        && dateValue(event.createdAt) >= fortyEightHoursAgo
+      ));
+      if (recentActivity) continue;
+
+      const lastEvent = latestActivityForUser(activityEvents, user);
+      const lastActiveDate = lastEvent?.createdAt || user.createdAt || trialStart;
+      const daysInactive = Math.max(1, Math.floor((now - new Date(lastActiveDate)) / 86400000));
+      const cardsCreated = countCardsForUser(cards, user);
+
+      const userName = user.name || 'Unknown';
+      const msg = `🚨 Trial user **${userName}** (${user.email}) has been inactive for ${daysInactive} day${daysInactive === 1 ? '' : 's'} (trial day ${trialDay} of 7). Cards created: ${cardsCreated}`;
+      await notifyDiscord(msg);
+
+      const event = {
+        event: 'trial_churn_risk_detected',
+        source: 'server',
+        userId: objectIdString(user._id),
+        email: user.email,
+        metadata: { trialDay, daysInactive, cardsCreated },
+        createdAt: now,
+      };
+      store.insertOne('activity_events', event);
+      activityEvents.push(event);
+
+      const log = {
+        userId: objectIdString(user._id),
+        email: user.email,
+        campaignId: 'trial_churn_risk_detected',
+        sentAt: now,
+      };
+      store.insertOne('drip_log', log);
+      dripLog.push(log);
+
+      churnFlagged++;
+      console.log(`Churn risk flagged: ${user.email} (trial day ${trialDay}, inactive ${daysInactive}d, ${cardsCreated} cards)`);
+    }
+
+    console.log(`Trial check complete: ${expiredCount} expired, ${trialDayEmailsSent} day emails sent, ${churnFlagged} churn risks flagged`);
+  } finally {
+    store.close();
+  }
+}
+
 async function run() {
+  if (useSqliteBackend()) {
+    await runSqlite();
+    return;
+  }
+
   const client = new MongoClient(MONGODB_URI);
   try {
     await client.connect();

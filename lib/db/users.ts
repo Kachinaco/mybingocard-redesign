@@ -3,6 +3,7 @@ import { ObjectId } from "mongodb";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import type { PlanType } from "@/lib/stripe/config";
+import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
 
 export interface User {
   _id: ObjectId;
@@ -21,6 +22,12 @@ export interface User {
   cancelAtPeriodEnd?: boolean;
   cancelAt?: Date | null;
   trialEndsAt?: Date | null;
+  billingPastDueSince?: Date | null;
+  billingLastPaymentFailedAt?: Date | null;
+  billingNextPaymentAttempt?: Date | null;
+  billingFailedAttemptCount?: number | null;
+  billingLastInvoiceId?: string | null;
+  billingRecoveredAt?: Date | null;
   referralCode?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -43,16 +50,21 @@ export interface User {
   signupCountry?: string;  // "PH" from IP geolocation
   signupLanguage?: string; // "en-PH" from Accept-Language header
   requiresCheckout?: boolean;
+  lastSeen?: Date;
+  npsShownAt?: Date;
+  onboardingDismissed?: boolean;
+  onboardingCompleted?: Record<string, boolean>;
   // Behavior counters
   totalCardsCreated?: number;
   lastCardCreatedAt?: Date;
-  firstCardCreatedAt?: Date;
   totalExports?: number;
   lastExportAt?: Date;
   featuresUsed?: string[];
   loginCount?: number;
   lastLoginAt?: Date;
   customerType?: "real" | "admin" | "complimentary" | "test" | "guest";
+  guestClaimToken?: string;
+  guestClaimTokenExpiresAt?: Date;
 }
 
 export type UserAttributionFields = Pick<
@@ -60,7 +72,215 @@ export type UserAttributionFields = Pick<
   "utm_source" | "utm_medium" | "utm_campaign" | "utm_content" | "utm_term" | "referrer"
 >;
 
+export interface UserExportRow {
+  email?: string;
+  name?: string;
+  planType?: PlanType;
+  subscriptionStatus?: User["subscriptionStatus"];
+  signupMethod?: User["signupMethod"];
+  createdAt?: Date;
+  totalCardsCreated?: number;
+  totalExports?: number;
+}
+
+export interface AdminUserListOptions {
+  page?: number;
+  limit?: number;
+  search?: string;
+  plan?: string;
+  sortBy?: string;
+}
+
+export interface AdminUserListItem {
+  _id: unknown;
+  name: string;
+  email: string;
+  planType: string;
+  subscriptionStatus: string;
+  createdAt: unknown;
+  lastActive: unknown;
+  image?: string;
+  cardCount: number;
+  trialEndsAt: unknown;
+  stripeCustomerId: string | null;
+  customerType?: string;
+}
+
+export interface AdminUserListResult {
+  users: AdminUserListItem[];
+  totalUsers: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface AdminActivityEvent {
+  _id?: unknown;
+  event?: string;
+  source?: string;
+  metadata?: unknown;
+  pathname?: string;
+  sessionId?: string;
+  anonymousId?: string;
+  domain?: string;
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt?: Date;
+}
+
+export interface AdminUserDetailResult {
+  user: Omit<User, "password">;
+  cards: Record<string, unknown>[];
+  activityEvents: AdminActivityEvent[];
+}
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function idToString(value: unknown) {
+  if (
+    value
+    && typeof value === "object"
+    && "toHexString" in value
+    && typeof (value as { toHexString?: unknown }).toHexString === "function"
+  ) {
+    return (value as { toHexString: () => string }).toHexString();
+  }
+  return String(value ?? "");
+}
+
+function toAdminUserListItem(user: Partial<User>, cardCount: number): AdminUserListItem {
+  return {
+    _id: user._id,
+    name: user.name || "No name",
+    email: user.email || "",
+    planType: user.planType || "FREE",
+    subscriptionStatus: user.subscriptionStatus || "inactive",
+    createdAt: user.createdAt,
+    lastActive: user.updatedAt,
+    image: user.image,
+    cardCount,
+    trialEndsAt: user.trialEndsAt || null,
+    stripeCustomerId: user.stripeCustomerId || null,
+    customerType: user.customerType,
+  };
+}
+
+function stripUserPassword(user: User): Omit<User, "password"> {
+  const next = { ...user };
+  delete next.password;
+  return next;
+}
+
+function projectAdminActivityEvent(event: Record<string, unknown>): AdminActivityEvent {
+  return {
+    _id: event._id,
+    event: event.event as string | undefined,
+    source: event.source as string | undefined,
+    metadata: event.metadata,
+    pathname: event.pathname as string | undefined,
+    sessionId: event.sessionId as string | undefined,
+    anonymousId: event.anonymousId as string | undefined,
+    domain: event.domain as string | undefined,
+    ipAddress: event.ipAddress as string | undefined,
+    userAgent: event.userAgent as string | undefined,
+    createdAt: event.createdAt as Date | undefined,
+  };
+}
+
+function buildAdminUserFilter(search: string, plan: string): Record<string, unknown> {
+  const conditions: Record<string, unknown>[] = [];
+
+  if (search) {
+    const escapedSearch = escapeRegex(search);
+    conditions.push({
+      $or: [
+        { name: { $regex: escapedSearch, $options: "i" } },
+        { email: { $regex: escapedSearch, $options: "i" } },
+      ],
+    });
+  }
+
+  if (plan) {
+    switch (plan) {
+      case "premium":
+        conditions.push({ planType: "PREMIUM", subscriptionStatus: "active" });
+        break;
+      case "free":
+        conditions.push({
+          $or: [{ planType: { $exists: false } }, { planType: "FREE" }, { planType: null }],
+        });
+        break;
+      case "trialing":
+        conditions.push({ subscriptionStatus: "trialing" });
+        break;
+      case "lifetime":
+        conditions.push({ planType: "LIFETIME" });
+        break;
+      case "past_due":
+        conditions.push({ subscriptionStatus: "past_due" });
+        break;
+      case "canceled":
+        conditions.push({ subscriptionStatus: "canceled" });
+        break;
+    }
+  }
+
+  if (conditions.length > 1) return { $and: conditions };
+  if (conditions.length === 1) return conditions[0] as Record<string, unknown>;
+  return {};
+}
+
+function buildAdminUserSort(sortBy: string): Record<string, 1 | -1> {
+  switch (sortBy) {
+    case "oldest":
+      return { createdAt: 1 };
+    case "last_active":
+      return { updatedAt: -1 };
+    default:
+      return { createdAt: -1 };
+  }
+}
+
+function sqliteCardCountsForUserIds(userIds: string[]) {
+  if (userIds.length === 0) return new Map<string, number>();
+
+  const cards = getSqliteStore().findMany<{ userId?: unknown }>(
+    "cards",
+    { userId: { $in: userIds } }
+  );
+  const counts = new Map<string, number>();
+
+  for (const card of cards) {
+    const userId = idToString(card.userId);
+    counts.set(userId, (counts.get(userId) || 0) + 1);
+  }
+
+  return counts;
+}
+
+async function mongoCardCountsForUserIds(userIds: string[]) {
+  if (userIds.length === 0) return new Map<string, number>();
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  const cardCounts = await db
+    .collection("cards")
+    .aggregate([
+      { $match: { userId: { $in: userIds } } },
+      { $group: { _id: "$userId", count: { $sum: 1 } } },
+    ])
+    .toArray();
+
+  return new Map(cardCounts.map((count) => [String(count._id), count.count as number]));
+}
+
 export async function getUserByEmail(email: string): Promise<User | null> {
+  if (useSqliteDb()) {
+    return getSqliteStore().findOne<User>("users", { email });
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
@@ -69,6 +289,10 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 }
 
 export async function getUserById(id: string): Promise<User | null> {
+  if (useSqliteDb()) {
+    return getSqliteStore().findOne<User>("users", { _id: new ObjectId(id) });
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
@@ -76,6 +300,286 @@ export async function getUserById(id: string): Promise<User | null> {
     _id: new ObjectId(id)
   });
   return user;
+}
+
+export async function getUsersForExport(): Promise<UserExportRow[]> {
+  if (useSqliteDb()) {
+    return getSqliteStore()
+      .findMany<User>("users", {}, { sort: { createdAt: -1 } })
+      .map(toUserExportRow);
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  const users = await db
+    .collection<User>("users")
+    .find(
+      {},
+      {
+        projection: {
+          email: 1,
+          name: 1,
+          planType: 1,
+          subscriptionStatus: 1,
+          signupMethod: 1,
+          createdAt: 1,
+          totalCardsCreated: 1,
+          totalExports: 1,
+        },
+      }
+    )
+    .sort({ createdAt: -1 })
+    .toArray();
+
+  return users.map(toUserExportRow);
+}
+
+export async function getAdminUsersPage(options: AdminUserListOptions = {}): Promise<AdminUserListResult> {
+  const page = Math.max(1, options.page || 1);
+  const limit = Math.max(1, Math.min(200, options.limit || 50));
+  const skip = (page - 1) * limit;
+  const search = options.search || "";
+  const plan = options.plan || "";
+  const sortBy = options.sortBy || "newest";
+  const filter = buildAdminUserFilter(search, plan);
+
+  if (useSqliteDb()) {
+    const store = getSqliteStore();
+
+    if (sortBy === "most_cards") {
+      const allUsers = store.findMany<User>("users", filter);
+      const allUserIds = allUsers.map((user) => idToString(user._id));
+      const cardCounts = sqliteCardCountsForUserIds(allUserIds);
+      const rows = allUsers
+        .map((user) => toAdminUserListItem(user, cardCounts.get(idToString(user._id)) || 0))
+        .sort((left, right) => right.cardCount - left.cardCount);
+
+      return {
+        users: rows.slice(skip, skip + limit),
+        totalUsers: rows.length,
+        page,
+        limit,
+        totalPages: Math.ceil(rows.length / limit),
+      };
+    }
+
+    const users = store.findMany<User>("users", filter, {
+      sort: buildAdminUserSort(sortBy),
+      skip,
+      limit,
+    });
+    const totalUsers = store.count("users", filter);
+    const userIds = users.map((user) => idToString(user._id));
+    const cardCounts = sqliteCardCountsForUserIds(userIds);
+
+    return {
+      users: users.map((user) => toAdminUserListItem(user, cardCounts.get(idToString(user._id)) || 0)),
+      totalUsers,
+      page,
+      limit,
+      totalPages: Math.ceil(totalUsers / limit),
+    };
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+
+  if (sortBy === "most_cards") {
+    const pipeline = [
+      ...(Object.keys(filter).length > 0 ? [{ $match: filter }] : []),
+      {
+        $lookup: {
+          from: "cards",
+          let: { uid: { $toString: "$_id" } },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$userId", "$$uid"] } } },
+            { $count: "count" },
+          ],
+          as: "cardData",
+        },
+      },
+      {
+        $addFields: {
+          cardCount: {
+            $ifNull: [{ $arrayElemAt: ["$cardData.count", 0] }, 0],
+          },
+        },
+      },
+      { $sort: { cardCount: -1 as const } },
+      {
+        $facet: {
+          data: [
+            { $skip: skip },
+            { $limit: limit },
+            {
+              $project: {
+                name: 1, email: 1, planType: 1, subscriptionStatus: 1,
+                createdAt: 1, updatedAt: 1, image: 1, cardCount: 1,
+                trialEndsAt: 1, stripeCustomerId: 1, customerType: 1,
+              },
+            },
+          ],
+          total: [{ $count: "count" }],
+        },
+      },
+    ];
+
+    const results = await db.collection("users").aggregate(pipeline).toArray();
+    const result = results[0] as { data?: Partial<User & { cardCount: number }>[]; total?: { count: number }[] } | undefined;
+    const users = result?.data || [];
+    const totalUsers = result?.total?.[0]?.count || 0;
+
+    return {
+      users: users.map((user) => toAdminUserListItem(user, user.cardCount || 0)),
+      totalUsers,
+      page,
+      limit,
+      totalPages: Math.ceil(totalUsers / limit),
+    };
+  }
+
+  const [users, totalUsers] = await Promise.all([
+    db
+      .collection<User>("users")
+      .find(filter, {
+        projection: {
+          name: 1, email: 1, planType: 1, subscriptionStatus: 1,
+          createdAt: 1, updatedAt: 1, image: 1,
+          trialEndsAt: 1, stripeCustomerId: 1, customerType: 1,
+        },
+      })
+      .sort(buildAdminUserSort(sortBy))
+      .skip(skip)
+      .limit(limit)
+      .toArray(),
+    db.collection("users").countDocuments(filter),
+  ]);
+  const cardCounts = await mongoCardCountsForUserIds(users.map((user) => idToString(user._id)));
+
+  return {
+    users: users.map((user) => toAdminUserListItem(user, cardCounts.get(idToString(user._id)) || 0)),
+    totalUsers,
+    page,
+    limit,
+    totalPages: Math.ceil(totalUsers / limit),
+  };
+}
+
+export async function getAdminUserDetail(id: string): Promise<AdminUserDetailResult | null> {
+  const objectId = new ObjectId(id);
+
+  if (useSqliteDb()) {
+    const store = getSqliteStore();
+    const user = store.findOne<User>("users", { _id: objectId });
+    if (!user) return null;
+
+    const cards = store.findMany<Record<string, unknown>>(
+      "cards",
+      { $or: [{ userId: id }, { userId: objectId }] },
+      { sort: { createdAt: -1 } }
+    );
+    const activityFilter: Record<string, unknown>[] = [{ userId: id }];
+    if (user.email) activityFilter.push({ email: user.email });
+    const activityEvents = store
+      .findMany<Record<string, unknown>>(
+        "activity_events",
+        { $or: activityFilter },
+        { sort: { createdAt: -1 }, limit: 100 }
+      )
+      .map(projectAdminActivityEvent);
+
+    return {
+      user: stripUserPassword(user),
+      cards,
+      activityEvents,
+    };
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+
+  const user = await db.collection<User>("users").findOne(
+    { _id: objectId },
+    {
+      projection: {
+        password: 0,
+      },
+    }
+  );
+
+  if (!user) return null;
+
+  const cards = await db
+    .collection("cards")
+    .find({ userId: id })
+    .sort({ createdAt: -1 })
+    .toArray();
+  const activityFilter: Record<string, unknown>[] = [{ userId: id }];
+  if (user.email) activityFilter.push({ email: user.email });
+  const activityEvents = await db
+    .collection("activity_events")
+    .find({ $or: activityFilter })
+    .sort({ createdAt: -1 })
+    .limit(100)
+    .project({
+      event: 1,
+      source: 1,
+      metadata: 1,
+      pathname: 1,
+      sessionId: 1,
+      anonymousId: 1,
+      domain: 1,
+      ipAddress: 1,
+      userAgent: 1,
+      createdAt: 1,
+    })
+    .toArray();
+
+  return {
+    user,
+    cards,
+    activityEvents: activityEvents.map(projectAdminActivityEvent),
+  };
+}
+
+export async function extendAdminUserTrialById(
+  id: string,
+  now = new Date()
+): Promise<{ user: User; newTrialEnd: Date } | null> {
+  const user = await getUserById(id);
+  if (!user) return null;
+
+  const currentTrialEnd = user.trialEndsAt ? new Date(user.trialEndsAt) : null;
+  const base = currentTrialEnd && currentTrialEnd > now ? currentTrialEnd : now;
+  const newTrialEnd = new Date(base.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  await updateUser(id, {
+    trialEndsAt: newTrialEnd,
+    subscriptionStatus: "trialing",
+  });
+
+  return { user, newTrialEnd };
+}
+
+export async function markAdminUserCancelAtPeriodEndById(id: string): Promise<User | null> {
+  const user = await getUserById(id);
+  if (!user) return null;
+
+  await updateUser(id, { cancelAtPeriodEnd: true });
+  return user;
+}
+
+function toUserExportRow(user: Partial<User>): UserExportRow {
+  return {
+    email: user.email || "",
+    name: user.name || "",
+    planType: user.planType || "FREE",
+    subscriptionStatus: user.subscriptionStatus || "inactive",
+    signupMethod: user.signupMethod,
+    createdAt: user.createdAt,
+    totalCardsCreated: user.totalCardsCreated,
+    totalExports: user.totalExports,
+  };
 }
 
 export async function createUser(data: {
@@ -99,9 +603,6 @@ export async function createUser(data: {
   signupDevice?: string;
   signupLanguage?: string;
 }): Promise<User> {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
   const hashedPassword = data.password
     ? await bcrypt.hash(data.password, 10)
     : undefined;
@@ -133,12 +634,82 @@ export async function createUser(data: {
     referralCode: crypto.randomBytes(4).toString("hex"),
   };
 
+  if (useSqliteDb()) {
+    const result = getSqliteStore().insertOne("users", user as User);
+    return {
+      ...user,
+      _id: result.insertedId as ObjectId,
+    } as User;
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
   const result = await db.collection<User>("users").insertOne(user as User);
 
   return {
     ...user,
     _id: result.insertedId,
   } as User;
+}
+
+export async function createGuestShareLinkUser(data: {
+  _id: ObjectId;
+  email: string;
+  guestClaimToken: string;
+  guestClaimTokenExpiresAt: Date;
+  now?: Date;
+}): Promise<User> {
+  const now = data.now || new Date();
+  const guestUser: User = {
+    _id: data._id,
+    email: data.email,
+    name: "Guest Player",
+    planType: "FREE",
+    subscriptionStatus: "inactive",
+    customerType: "guest",
+    signupMethod: "share_link",
+    createdAt: now,
+    updatedAt: now,
+    guestClaimToken: data.guestClaimToken,
+    guestClaimTokenExpiresAt: data.guestClaimTokenExpiresAt,
+  };
+
+  if (useSqliteDb()) {
+    getSqliteStore().insertOne("users", guestUser);
+    return guestUser;
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  await db.collection<User>("users").insertOne(guestUser);
+  return guestUser;
+}
+
+export async function getActiveGuestClaimUser(
+  userId: string,
+  now = new Date()
+): Promise<User | null> {
+  let objectId: ObjectId;
+  try {
+    objectId = new ObjectId(userId);
+  } catch {
+    return null;
+  }
+
+  const filter: any = {
+    _id: objectId,
+    customerType: "guest",
+    guestClaimToken: { $exists: true, $ne: null },
+    guestClaimTokenExpiresAt: { $gt: now },
+  };
+
+  if (useSqliteDb()) {
+    return getSqliteStore().findOne<User>("users", filter);
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  return db.collection<User>("users").findOne(filter);
 }
 
 function buildMissingAttributionUpdates(
@@ -161,6 +732,20 @@ export async function updateUser(
   id: string,
   data: Partial<User>
 ): Promise<User | null> {
+  if (useSqliteDb()) {
+    return getSqliteStore().findOneAndUpdate<User>(
+      "users",
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          ...data,
+          updatedAt: new Date()
+        }
+      },
+      { returnDocument: "after" }
+    );
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
@@ -176,6 +761,179 @@ export async function updateUser(
   );
 
   return result;
+}
+
+export async function recordNativeOAuthLogin(
+  user: User,
+  data: {
+    signupMethod: NonNullable<User["signupMethod"]>;
+    name?: string;
+    now?: Date;
+  }
+): Promise<User | null> {
+  const now = data.now || new Date();
+  const updates: Partial<User> = {
+    emailVerified: user.emailVerified || now,
+    lastLoginAt: now,
+    updatedAt: now,
+    signupMethod: user.signupMethod || data.signupMethod,
+  };
+
+  if (data.name && !user.name) {
+    updates.name = data.name;
+  }
+
+  const update = {
+    $set: updates,
+    $inc: { loginCount: 1 },
+  };
+
+  if (useSqliteDb()) {
+    return getSqliteStore().findOneAndUpdate<User>(
+      "users",
+      { _id: user._id },
+      update,
+      { returnDocument: "after" }
+    );
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+
+  return db.collection<User>("users").findOneAndUpdate(
+    { _id: user._id },
+    update,
+    { returnDocument: "after" }
+  );
+}
+
+export async function deleteUserAccountData(user: Pick<User, "_id" | "email">): Promise<void> {
+  const userId = user._id.toString();
+  const userOid = new ObjectId(userId);
+  const accountUserFilter = { $or: [{ userId: userOid }, { userId }] };
+
+  if (useSqliteDb()) {
+    const store = getSqliteStore();
+    store.deleteMany("cards", { userId });
+    store.deleteMany("gameHistory", { userId });
+    store.deleteMany("game_states", { userId });
+    store.deleteMany("favorites", { userId });
+    store.deleteMany("batch_purchases", { $or: [{ userId }, { email: user.email }] });
+    store.deleteMany("accounts", accountUserFilter);
+    store.deleteMany("sessions", accountUserFilter);
+    store.deleteOne("email_preferences", { email: user.email });
+    store.deleteMany("drip_opens", { email: user.email });
+    store.deleteMany("drip_log", { userId });
+    store.deleteOne("users", { _id: userOid });
+    return;
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  await Promise.all([
+    db.collection("cards").deleteMany({ userId }),
+    db.collection("gameHistory").deleteMany({ userId }),
+    db.collection("game_states").deleteMany({ userId }),
+    db.collection("favorites").deleteMany({ userId }),
+    db.collection("batch_purchases").deleteMany({
+      $or: [{ userId }, { email: user.email }],
+    }),
+    db.collection("accounts").deleteMany(accountUserFilter),
+    db.collection("sessions").deleteMany(accountUserFilter),
+    db.collection("email_preferences").deleteOne({ email: user.email }),
+    db.collection("drip_opens").deleteMany({ email: user.email }),
+    db.collection("drip_log").deleteMany({ userId }),
+    db.collection("users").deleteOne({ _id: userOid }),
+  ]);
+}
+
+export async function updateUserLastSeenByEmail(email: string, lastSeen = new Date()): Promise<void> {
+  await updateUserFieldsByEmail(email, { lastSeen });
+}
+
+export async function markUserNpsShownByEmail(email: string, npsShownAt = new Date()): Promise<void> {
+  await updateUserFieldsByEmail(email, { npsShownAt });
+}
+
+export async function setUserOnboardingDismissedByEmail(
+  email: string,
+  dismissed = true
+): Promise<void> {
+  await updateUserFieldsByEmail(email, { onboardingDismissed: dismissed });
+}
+
+export async function markUserOnboardingStepCompletedByEmail(
+  email: string,
+  step: string
+): Promise<void> {
+  await updateUserFieldsByEmail(email, { [`onboardingCompleted.${step}`]: true });
+}
+
+async function updateUserFieldsByEmail(
+  email: string,
+  fields: Record<string, unknown>
+): Promise<void> {
+  if (Object.keys(fields).length === 0) return;
+
+  if (useSqliteDb()) {
+    getSqliteStore().updateOne<User>("users", { email }, { $set: fields });
+    return;
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  await db.collection<User>("users").updateOne({ email }, { $set: fields } as any);
+}
+
+export async function updateMissingUserSignupContext(
+  id: string,
+  data: {
+    signupDevice?: string;
+    signupLanguage?: string;
+  }
+): Promise<void> {
+  const desired: Record<string, string> = {};
+  if (data.signupDevice) desired.signupDevice = data.signupDevice;
+  if (data.signupLanguage) desired.signupLanguage = data.signupLanguage;
+
+  if (Object.keys(desired).length === 0) return;
+
+  if (useSqliteDb()) {
+    const objectId = new ObjectId(id);
+    const user = getSqliteStore().findOne<User>("users", { _id: objectId });
+    if (!user) return;
+
+    const updates: Record<string, string> = {};
+    if (desired.signupDevice && !user.signupDevice) updates.signupDevice = desired.signupDevice;
+    if (desired.signupLanguage && !user.signupLanguage) updates.signupLanguage = desired.signupLanguage;
+
+    if (Object.keys(updates).length === 0) return;
+
+    getSqliteStore().updateOne<User>(
+      "users",
+      { _id: objectId },
+      { $set: updates }
+    );
+    return;
+  }
+
+  const updatePipeline = [
+    {
+      $set: Object.fromEntries(
+        Object.entries(desired).map(([key, value]) => [
+          key,
+          { $cond: [{ $ifNull: [`$${key}`, false] }, `$${key}`, value] },
+        ])
+      ),
+    },
+  ];
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  await db.collection<User>("users").updateOne(
+    { _id: new ObjectId(id) },
+    updatePipeline as any
+  );
 }
 
 export async function updateUserAttribution(
@@ -286,9 +1044,6 @@ export async function updateUserSubscription(
     trialEndsAt?: Date | null;
   }
 ): Promise<User | null> {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
   const updateData: any = {
     updatedAt: new Date(),
   };
@@ -341,6 +1096,17 @@ export async function updateUserSubscription(
     updateData.trialEndsAt = subscriptionData.trialEndsAt;
   }
 
+  if (useSqliteDb()) {
+    return getSqliteStore().findOneAndUpdate<User>(
+      "users",
+      { email },
+      { $set: updateData },
+      { returnDocument: "after" }
+    );
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
   const result = await db.collection<User>("users").findOneAndUpdate(
     { email },
     { $set: updateData },
@@ -350,15 +1116,114 @@ export async function updateUserSubscription(
   return result;
 }
 
+export async function updateUserBillingRecoveryState(
+  email: string,
+  data: {
+    status: "failed" | "recovered" | "canceled";
+    invoiceId?: string | null;
+    attemptCount?: number | null;
+    nextPaymentAttempt?: Date | null;
+  }
+): Promise<void> {
+  const now = new Date();
+
+  if (data.status === "failed") {
+    if (useSqliteDb()) {
+      const store = getSqliteStore();
+      const existing = store.findOne<User>("users", { email });
+      store.updateOne<User>(
+        "users",
+        { email },
+        {
+          $set: {
+            billingPastDueSince:
+              existing?.subscriptionStatus === "past_due" && existing?.billingPastDueSince
+                ? existing.billingPastDueSince
+                : now,
+            billingLastPaymentFailedAt: now,
+            billingNextPaymentAttempt: data.nextPaymentAttempt || null,
+            billingFailedAttemptCount: data.attemptCount ?? null,
+            billingLastInvoiceId: data.invoiceId || null,
+            updatedAt: now,
+          },
+        }
+      );
+      return;
+    }
+
+    const client = await clientPromise;
+    const db = client.db("mybingocard");
+    const existing = await db.collection<User>("users").findOne(
+      { email },
+      { projection: { subscriptionStatus: 1, billingPastDueSince: 1 } }
+    );
+
+    await db.collection<User>("users").updateOne(
+      { email },
+      {
+        $set: {
+          billingPastDueSince:
+            existing?.subscriptionStatus === "past_due" && existing?.billingPastDueSince
+              ? existing.billingPastDueSince
+              : now,
+          billingLastPaymentFailedAt: now,
+          billingNextPaymentAttempt: data.nextPaymentAttempt || null,
+          billingFailedAttemptCount: data.attemptCount ?? null,
+          billingLastInvoiceId: data.invoiceId || null,
+          updatedAt: now,
+        },
+      }
+    );
+    return;
+  }
+
+  const update = {
+    $set: {
+      billingRecoveredAt: data.status === "recovered" ? now : null,
+      updatedAt: now,
+    },
+    $unset: {
+      billingPastDueSince: "" as const,
+      billingLastPaymentFailedAt: "" as const,
+      billingNextPaymentAttempt: "" as const,
+      billingFailedAttemptCount: "" as const,
+      billingLastInvoiceId: "" as const,
+    },
+  };
+
+  if (useSqliteDb()) {
+    getSqliteStore().updateOne<User>("users", { email }, update);
+    return;
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  await db.collection<User>("users").updateOne({ email }, update);
+}
+
 export async function updateUserPassword(
   email: string,
   password: string
 ): Promise<boolean> {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  if (useSqliteDb()) {
+    const result = getSqliteStore().updateOne<User>(
+      "users",
+      { email },
+      {
+        $set: {
+          password: hashedPassword,
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    return result.matchedCount > 0;
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
   const result = await db.collection<User>("users").updateOne(
     { email },
     {
@@ -377,6 +1242,18 @@ export async function incrementUserCounter(
   field: string,
   value?: number
 ): Promise<void> {
+  if (useSqliteDb()) {
+    getSqliteStore().updateOne<User>(
+      "users",
+      { _id: new ObjectId(userId) },
+      {
+        $inc: { [field]: value || 1 },
+        $set: { updatedAt: new Date() },
+      }
+    );
+    return;
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   await db.collection<User>("users").updateOne(
@@ -392,6 +1269,18 @@ export async function addFeatureUsed(
   userId: string,
   feature: string
 ): Promise<void> {
+  if (useSqliteDb()) {
+    getSqliteStore().updateOne<User>(
+      "users",
+      { _id: new ObjectId(userId) },
+      {
+        $addToSet: { featuresUsed: feature },
+        $set: { updatedAt: new Date() },
+      }
+    );
+    return;
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   await db.collection<User>("users").updateOne(
@@ -404,6 +1293,18 @@ export async function addFeatureUsed(
 }
 
 export async function incrementCardStats(userId: string): Promise<void> {
+  if (useSqliteDb()) {
+    getSqliteStore().updateOne<User>(
+      "users",
+      { _id: new ObjectId(userId) },
+      {
+        $inc: { totalCardsCreated: 1 },
+        $set: { lastCardCreatedAt: new Date(), updatedAt: new Date() },
+      }
+    );
+    return;
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   await db.collection<User>("users").updateOne(
@@ -413,53 +1314,4 @@ export async function incrementCardStats(userId: string): Promise<void> {
       $set: { lastCardCreatedAt: new Date(), updatedAt: new Date() },
     }
   );
-}
-
-export async function hasPriorCardCreationActivity(
-  userId: string,
-  email?: string | null
-): Promise<boolean> {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const identities: Record<string, unknown>[] = [{ userId }];
-
-  if (email) {
-    identities.push({ email });
-  }
-
-  try {
-    identities.push({ userId: new ObjectId(userId) });
-  } catch {
-    // Legacy or non-ObjectId user IDs are stored as strings only.
-  }
-
-  const event = await db.collection("activity_events").findOne(
-    {
-      event: { $in: ["first_card_created", "card_created", "batch_cards_created"] },
-      $or: identities,
-    },
-    { projection: { _id: 1 } }
-  );
-
-  return Boolean(event);
-}
-
-export async function claimFirstCardMilestone(userId: string): Promise<boolean> {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const now = new Date();
-  const result = await db.collection<User>("users").updateOne(
-    {
-      _id: new ObjectId(userId),
-      firstCardCreatedAt: { $exists: false },
-    },
-    {
-      $set: {
-        firstCardCreatedAt: now,
-        updatedAt: now,
-      },
-    }
-  );
-
-  return result.modifiedCount === 1;
 }

@@ -279,6 +279,10 @@ function buildMessage(mail: SmtpMail): { messageId: string; data: string } {
 }
 
 export async function sendSmtpMail(mail: SmtpMail): Promise<SmtpSendResult> {
+  if (process.env.MYBINGOCARD_EMAIL_SENDS_DISABLED === "1") {
+    return { messageId: `no-send-${crypto.randomUUID()}@mybingocard.local` };
+  }
+
   const config = getConfig();
   const connection = await connect(config.host, config.port, config.secure);
   const message = buildMessage(mail);

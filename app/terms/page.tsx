@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | MyBingoCard",
-  description: "Read the MyBingoCard terms for accounts, bingo card content, printable exports, player links, hosted games, acceptable use, and billing.",
+  title: "Terms of Service — MyBingoCard",
+  description: "MyBingoCard terms of service. Read our terms and conditions for using the bingo card generator.",
   alternates: {
     canonical: "https://mybingocard.com/terms",
   },
@@ -36,7 +36,7 @@ export default function TermsPage() {
       <main className="container mx-auto px-4 py-12 max-w-3xl">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 md:p-12">
           <h1 className="text-3xl font-black text-slate-900 mb-2">Terms of Service</h1>
-            <p className="text-sm text-slate-400">Last updated: June 18, 2026</p>
+            <p className="text-sm text-slate-400">Last updated: March 8, 2026</p>
 
           <div className="mt-8 space-y-8">
 
@@ -60,12 +60,14 @@ export default function TermsPage() {
               </div>
 
               <div>
-                <h2 className="text-xl font-bold text-slate-900 mb-3">Account Access</h2>
+                <h2 className="text-xl font-bold text-slate-900 mb-3">Free and Premium Plans</h2>
                 <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-slate-600">Creation, saving, exporting, sharing, dashboard access, batches, and live games may require an account</li>
-                  <li className="text-slate-600">Some tools may be included during public-release periods; if paid checkout is offered later, paid access terms will be shown before purchase</li>
-                  <li className="text-slate-600">Existing subscribers can manage or cancel their subscription from Settings</li>
-                  <li className="text-slate-600">If paid plans return later, pricing and terms will be shown before any purchase</li>
+                  <li className="text-slate-600">Free access lets you draft and preview bingo cards before checkout, but saving, exporting, sharing, dashboard access, and live games require Premium access</li>
+                  <li className="text-slate-600">Premium subscriptions are billed monthly at $7.99/month through Stripe starting at checkout</li>
+                  <li className="text-slate-600">Lifetime Premium is available as a one-time payment where offered on the site</li>
+                  <li className="text-slate-600">You can cancel your subscription anytime from your Settings page</li>
+                  <li className="text-slate-600">Cancellations take effect at the end of the current billing period</li>
+                  <li className="text-slate-600">No refunds for partial months</li>
                 </ul>
               </div>
 
@@ -84,7 +86,6 @@ export default function TermsPage() {
                 <ul className="space-y-2 list-disc list-inside">
                   <li className="text-slate-600">Do not use MyBingoCard for illegal activities</li>
                   <li className="text-slate-600">Do not create cards with hateful, abusive, or harmful content</li>
-                  <li className="text-slate-600">Do not use MyBingoCard to run gambling, illegal lotteries, or prize games that violate local rules</li>
                   <li className="text-slate-600">Do not attempt to disrupt or overload our services</li>
                   <li className="text-slate-600">Do not scrape, crawl, or automated-access our platform without permission</li>
                 </ul>

@@ -80,7 +80,7 @@ function generateBatchHTML(
             })
             .join("")}
         </div>
-        ${!removeBranding ? '<div class="card-footer">https://mybingocard.com</div>' : ''}
+        ${!removeBranding ? '<div class="card-footer">MyBingoCard.com</div>' : ''}
       </div>
     `;
   });
@@ -252,7 +252,6 @@ function generateBatchHTML(
             overflow-wrap: break-word;
             overflow: hidden;
             line-height: 1.2;
-            position: relative;
           }
           .cell img { display: block; }
 
@@ -412,7 +411,7 @@ export async function POST(request: Request) {
           ipAddress: requestContext.ipAddress,
           userAgent: requestContext.userAgent,
           metadata: {
-            reason: "free_batch_access_required",
+            reason: "purchased_batch_required",
             cardCount: cardIds.length,
             cardsPerPage,
             grayscale,
@@ -421,7 +420,7 @@ export async function POST(request: Request) {
           },
         });
         return NextResponse.json(
-          { error: "Sign in and activate your account to download batch PDFs for these cards." },
+          { error: "Batch PDF download requires a purchased batch for these cards." },
           { status: 403 }
         );
       }
@@ -448,7 +447,7 @@ export async function POST(request: Request) {
         });
         return NextResponse.json(
           {
-            error: `This PDF has ${cardIds.length} cards, but this generated batch includes ${purchasedBatch.batchCount}.`,
+            error: `This PDF has ${cardIds.length} cards, but the purchased pack includes ${purchasedBatch.batchCount}.`,
           },
           { status: 403 }
         );

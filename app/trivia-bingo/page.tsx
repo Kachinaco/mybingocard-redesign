@@ -3,9 +3,9 @@ import Link from "next/link";
 import LandingPageTracker from "@/components/LandingPageTracker";
 
 export const metadata: Metadata = {
-  title: "Trivia Bingo Cards Printable: Pub Quiz Generator",
+  title: "Trivia Bingo Cards Generator — MyBingoCard",
   description:
-    "Make printable trivia bingo cards for pub quizzes, answer based rounds, bar trivia, classrooms, team tables, call lists, and PDF cards.",
+    "Create custom trivia bingo cards for trivia nights, pub quizzes, and game nights. Printable trivia night bingo card generator with custom squares for bars, restaurants, and party trivia events.",
   alternates: {
     canonical: "https://mybingocard.com/trivia-bingo",
   },
@@ -13,183 +13,26 @@ export const metadata: Metadata = {
 
 const triviaSquares = [
   "Easy Answer", "Wild Guess", "Team Debate", "Wrong Answer", "FREE",
-  "Bonus Round", "Clutch Play", "Phone Check", "History Round", "Pop Culture",
-  "Science Question", "Sports Round", "Movie Quote", "Music Lyric", "Geography",
-  "Picture Round", "Lucky Guess", "Comeback", "Perfect Round", "Tiebreaker",
-  "Final Answer", "Answer Card", "Table Team", "Host Clue", "Prize Round",
-];
-
-const triviaPlanningTips = [
-  {
-    title: "Choose the trivia bingo format",
-    desc: "Use answer based cards when players mark correct answers, category cards when rounds are announced, or moment cards for host clues, table debates, lucky guesses, and tiebreakers.",
-  },
-  {
-    title: "Build a balanced answer pool",
-    desc: "Mix history, geography, science, sports, movies, music, and pop culture so the card feels like a real pub quiz instead of one narrow trivia category.",
-  },
-  {
-    title: "Run it by table or by player",
-    desc: "For bar trivia, give one card to each team table. For classrooms, family nights, and private parties, give each player their own shuffled card.",
-  },
-  {
-    title: "Print enough unique cards",
-    desc: "Small game nights may only need 10 to 20 cards, but pubs, fundraisers, and school events often need 50, 100, or 200 unique cards so tables do not share the same layout.",
-  },
-  {
-    title: "Explain phone and marking rules",
-    desc: "Tell players whether phones are allowed, whether only announced answers count, and whether a square can be marked during picture rounds, music clips, or bonus questions.",
-  },
-  {
-    title: "Use venue-friendly winning patterns",
-    desc: "One row keeps a busy pub quiz moving. Four corners, diagonal, blackout, and prize round patterns work well when you want trivia bingo to last longer.",
-  },
-  {
-    title: "Keep a host answer sheet",
-    desc: "Print the call list, answer key, or host prompt sheet beside the quiz deck so the host can confirm disputed squares before awarding prizes or moving to a tiebreaker.",
-  },
-  {
-    title: "Match the print layout to the room",
-    desc: "Use one card per page when tables need large type, two cards per page for standard handouts, or four cards per page when players only need a quick side game.",
-  },
-  {
-    title: "Plan the tiebreaker before play",
-    desc: "If two teams call bingo on the same question, use the next trivia question, a closest number guess, or a sudden death bonus round instead of deciding at the prize table.",
-  },
-];
-
-const triviaFormats = [
-  {
-    title: "Answer based trivia bingo",
-    body:
-      "Put answer words on the cards, ask the quiz questions, then have players mark a square when the host reveals a matching answer. This format works well for pub quizzes, classroom review, and family trivia because the card rewards knowledge and luck at the same time.",
-  },
-  {
-    title: "Category and round bingo",
-    body:
-      "Use squares like picture round, sports question, music clue, science round, geography, bonus round, and tiebreaker. Players mark the card as each round appears, which makes a good side game for existing trivia nights.",
-  },
-  {
-    title: "Host moment bingo",
-    body:
-      "Use table debates, phone check, lucky guess, wrong answer, host clue, technical difficulty, perfect round, and prize round prompts. This version is lighter and works well at bars, restaurants, team events, and casual game nights.",
-  },
-  {
-    title: "Write in answer bingo",
-    body:
-      "Give players blank or partially blank cards, have them write expected answers into random squares, then read answers in a random order after the quiz. The first team to complete the selected pattern wins after the host verifies the answers.",
-  },
+  "Bonus Round", "Clutch Play", "Phone Check", "History Buff", "Pop Culture",
+  "Science Nerd", "Sports Fan", "Movie Quote", "Music Lyric", "Geography Ace",
+  "Math Whiz", "Lucky Guess", "Comeback", "Perfect Round", "Overtime",
+  "Tiebreaker", "Final Answer", "Victory Dance", "Team Cheer", "Next Week?",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebPage",
-      name: "Trivia Bingo Cards Printable",
-      url: "https://mybingocard.com/trivia-bingo",
-      description:
-        "Make printable trivia bingo cards for pub quizzes, answer based rounds, bar trivia, classrooms, team tables, call lists, and PDF cards.",
-    },
-    {
-      "@type": "WebApplication",
-      name: "Trivia Bingo Cards Generator",
-      url: "https://mybingocard.com/trivia-bingo",
-      description:
-        "Custom trivia bingo generator for printable pub quiz cards, answer based bingo, team table games, classroom trivia, bar events, online game nights, call lists, answer keys, and PDF card sets.",
-      applicationCategory: "GameApplication",
-      operatingSystem: "All",
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "USD",
-      },
-    },
-    {
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "How does trivia bingo work?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Trivia bingo can use answer words, category prompts, host moments, or team behaviors on the card. Players mark squares as questions, answers, rounds, or trivia night moments happen.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "What should I put on trivia bingo cards?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Use trivia categories, answer terms, picture rounds, music clues, tiebreakers, bonus rounds, table team moments, lucky guesses, and prize round prompts.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Can I print trivia bingo cards for a pub quiz?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. Add your trivia prompts once, generate shuffled boards, and export printable PDFs for bar tables, restaurant events, classrooms, or private game nights.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Should trivia bingo use answers or categories?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Either works. Answer based trivia bingo is best when players mark answers as the host reveals them, while category or moment bingo works well for casual pub quizzes, classrooms, and party games.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How many trivia bingo cards should I print?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Print one unique card for each player or team table, plus extras for late arrivals. Small game nights may need 10 to 20 cards, while pubs, fundraisers, and school events may need 50, 100, or more.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Do trivia bingo hosts need a call list or answer key?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "A call list or answer key helps the host verify disputed squares, track which answers have been announced, and confirm the winning card before awarding a prize.",
-          },
-        },
-      ],
-    },
-    {
-      "@type": "HowTo",
-      name: "How to make trivia bingo cards",
-      step: [
-        {
-          "@type": "HowToStep",
-          name: "Choose trivia prompts",
-          text: "Add categories, answer words, host clues, team moments, round types, tiebreakers, and prize rules.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Generate shuffled boards",
-          text: "Create unique bingo cards for each table, team, student, or player.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Prepare host materials",
-          text: "Keep the call list, answer key, question deck, and tiebreaker rule ready before the first round starts.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Print or share",
-          text: "Export PDFs with one, two, or four cards per page for pub quiz tables, or share online cards for remote trivia nights.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Verify winners",
-          text: "Check the winning card against the announced answers or host prompts before awarding prizes.",
-        },
-      ],
-    },
-  ],
+  "@type": "WebApplication",
+  name: "Trivia Bingo Cards Generator",
+  url: "https://mybingocard.com/trivia-bingo",
+  description:
+    "Custom trivia bingo draft generator. Create, customize, and print bingo cards for trivia nights, pub quizzes, and game nights in minutes.",
+  applicationCategory: "GameApplication",
+  operatingSystem: "All",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
 };
 
 function BingoGrid({ squares, label, gradient }: { squares: string[]; label: string; gradient: string }) {
@@ -233,7 +76,7 @@ export default function TriviaBingoPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />
-      <div className="min-h-screen overflow-x-hidden bg-slate-50 selection:bg-purple-100 selection:text-purple-900">
+      <div className="min-h-screen bg-slate-50 selection:bg-purple-100 selection:text-purple-900">
         {/* Navbar */}
         <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
           <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
@@ -278,7 +121,7 @@ export default function TriviaBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Create printable trivia bingo cards for pub quizzes, bar trivia nights, restaurant events, classrooms, team games, family trivia, and answer based bingo. Add trivia categories, answer words, picture rounds, music clues, lucky guesses, tiebreakers, host prompts, bonus rounds, and table team moments. Generate shuffled cards so every team gets a different layout, then export PDFs with one, two, or four cards per page, keep a host call list, or share online cards for virtual trivia.
+                    Add an extra layer of excitement to your trivia night with custom trivia bingo cards that keep every team engaged from the first question to the final answer. Our pub quiz bingo draft editor creates unique cards filled with those classic trivia night moments everyone knows and loves. Each card is randomly shuffled so every table gets a different layout, adding a fun side game to your regular trivia competition. Export crisp PDFs for free or add paid digital cards for bar, restaurant, and virtual trivia nights. Whether you&apos;re a trivia host looking to spice up your weekly event or planning a one-time game night, create your trivia bingo cards in minutes with zero design work.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -291,10 +134,10 @@ export default function TriviaBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      See Activation
+                      View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Draft tools · Premium saves and exports</p>
+                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
                 </div>
 
                 <div className="relative">
@@ -315,85 +158,45 @@ export default function TriviaBingoPage() {
                 Why use our trivia bingo card maker?
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                Build printable cards, online boards, and simple rules for pub quizzes, bar trivia, classrooms, team nights, and answer based bingo.
+                Everything you need for the perfect trivia night side game — from printable cards to digital play.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
                   {
                     icon: "🧠",
-                    title: "Answer And Clue Squares",
-                    desc: "Use answer words, picture rounds, music clues, sports, geography, history, pop culture, and bonus categories.",
+                    title: "Trivia-Themed Squares",
+                    desc: "Pre-loaded with classic trivia night moments like lucky guesses, team debates, and victory dances — or add your own.",
                   },
                   {
                     icon: "🖨️",
                     title: "PDF Exports",
-                    desc: "Clean PDFs sized for bar tables, restaurant events, classrooms, private parties, team handouts, and one, two, or four card print layouts.",
+                    desc: "Clean PDFs sized for bar tables, restaurant events, or take-home trivia party handouts.",
                   },
                   {
                     icon: "🔀",
                     title: "Unique Every Card",
-                    desc: "Every table, team, student, or player gets a shuffled card so the whole room can play without duplicate winners.",
+                    desc: "Every team or player gets a randomly shuffled card, so the whole venue can play without duplicate winners.",
                   },
                   {
                     icon: "📱",
                     title: "Virtual Game Night",
-                    desc: "Share online cards for remote trivia nights so players can mark squares on their phones or laptops.",
+                    desc: "Share a link with paid links for remote trivia nights. Players mark squares on their phones — perfect for Zoom game nights.",
                   },
                   {
                     icon: "✏️",
                     title: "Custom Categories",
-                    desc: "Add your own trivia categories, house rules, venue traditions, sponsor prompts, prize rounds, or team names.",
+                    desc: "Add your own trivia categories, team traditions, or venue-specific moments. Make it fit your game night perfectly.",
                   },
                   {
                     icon: "💸",
-                    title: "Built for Hosts",
-                    desc: "Draft trivia bingo cards first, then activate saves, exports, batches, player links, call tracking, and live hosting when you are ready.",
+                    title: "Free for Hosts",
+                    desc: "Create trivia bingo cards for free. Save, export, and batch cards without a budget; pay only for player links or live hosting.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
                     <div className="text-4xl mb-4">{f.icon}</div>
                     <h3 className="text-xl font-bold text-slate-900 mb-2">{f.title}</h3>
                     <p className="text-slate-600 text-sm leading-relaxed">{f.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Planning Guide */}
-          <section className="py-20 bg-slate-50">
-            <div className="container mx-auto px-4 lg:px-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
-                How to run trivia bingo at a real event
-              </h2>
-              <p className="text-slate-600 text-center max-w-3xl mx-auto mb-14">
-                Strong trivia bingo cards are not just random words. They need a clear answer pool, rules the host can explain quickly, enough shuffled cards for the room, and a winning pattern that matches the pace of the quiz.
-              </p>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {triviaPlanningTips.map((tip) => (
-                  <div key={tip.title} className="bg-white rounded-2xl p-7 border border-slate-100 shadow-sm">
-                    <h3 className="text-lg font-bold text-slate-900 mb-3">{tip.title}</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed">{tip.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Format Guide */}
-          <section className="py-20 bg-white">
-            <div className="container mx-auto px-4 lg:px-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
-                Trivia bingo formats that work
-              </h2>
-              <p className="text-slate-600 text-center max-w-3xl mx-auto mb-14">
-                The best format depends on whether trivia bingo is the main game, a pub quiz side game, a classroom review activity, or a casual table game. Pick the rules first, then build the card list around those rules.
-              </p>
-              <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-                {triviaFormats.map((format) => (
-                  <div key={format.title} className="rounded-2xl border border-slate-100 bg-slate-50 p-7 shadow-sm">
-                    <h3 className="text-xl font-bold text-slate-900 mb-3">{format.title}</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed">{format.body}</p>
                   </div>
                 ))}
               </div>
@@ -410,14 +213,14 @@ export default function TriviaBingoPage() {
                 Ready to level up trivia night?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft trivia bingo cards for pub quizzes, classrooms, team games, and answer based rounds, then print, share, call, and verify winners when you are ready.
+                Draft your trivia bingo cards in under 2 minutes, then start checkout to save or export — the perfect side game for any pub quiz or game night.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-purple-50 transition-all duration-300 shadow-xl">
                   Create Trivia Bingo Cards
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Activation
+                  See Pricing Plans
                 </Link>
               </div>
             </div>

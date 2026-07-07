@@ -10,51 +10,40 @@ describe("card PDF export guardrails", () => {
   const pricingPageSource = readFileSync(resolve(process.cwd(), "app/pricing/page.tsx"), "utf8");
   const stripeConfigSource = readFileSync(resolve(process.cwd(), "lib/stripe/config.ts"), "utf8");
 
-  function pdfCellRule(source: string): string {
-    return source.match(/\.cell \{[\s\S]*?\n\s*\}/)?.[0] || "";
-  }
-
-  test("card page keeps single-card PDF export free", () => {
-    expect(cardPageSource).toContain("const isPremiumBatchUser = true;");
+  test("free users can use single-card PDF export while batches stay paid", () => {
     expect(cardPageSource).toContain("const shouldUseBatchForPdf = false;");
-    expect(cardPageSource).toContain("Download Cards");
-    expect(cardPageSource).not.toContain("Pay ${selectedBatchPrice} & Generate Cards");
+    expect(cardPageSource).toContain("Paid batch packs");
+    expect(cardPageSource).toContain("Selected paid download");
+    expect(cardPageSource).toContain("Generate ${batchCount} Cards");
+    expect(cardPageSource).toContain("Pay ${selectedBatchPrice} & Generate Cards");
+    expect(cardPageSource).toContain("handleBatchCheckout");
   });
 
-  test("single-card PDF API does not block non-premium users", () => {
+  test("single-card PDF API allows authenticated free-plan PDF downloads", () => {
+    expect(pdfRouteSource).not.toContain("if (!hasPremiumAccess(user))");
+    expect(pdfRouteSource).not.toContain("trialRequired: true");
     expect(pdfRouteSource).toContain('event: "export_pdf"');
-    expect(pdfRouteSource).not.toContain('event: "export_pdf_blocked"');
-    expect(pdfRouteSource).not.toContain("upgradeRequired: true");
-    expect(pdfRouteSource).not.toContain("hasPremiumAccess");
   });
 
-  test("PNG export is enabled by plan permissions and route has no paywall block", () => {
-    expect(cardPageSource).toContain("canExportPNG: data.plan?.canExportPNG || true");
-    expect(pngRouteSource).toContain('event: "export_png"');
-    expect(pngRouteSource).not.toContain('event: "export_png_blocked"');
+  test("PNG export is allowed for free users by plan permissions", () => {
+    expect(cardPageSource).toContain("canExportPNG: data.plan?.canExportPNG || false");
+    expect(cardPageSource).toContain("Download PNG");
+    expect(pngRouteSource).not.toContain("if (!hasPremiumAccess(user))");
     expect(pngRouteSource).not.toContain("upgradeRequired: true");
     expect(stripeConfigSource).toContain("canExportPNG: true");
   });
 
-  test("batch PDFs are included through the 500-card free batch allowance", () => {
+  test("free users can export generated batch PDFs only after a batch purchase", () => {
     expect(batchPdfRouteSource).toContain("hasPremiumBatchAccess");
-    expect(batchPdfRouteSource).toContain("maxBatchSize >= 10");
-    expect(stripeConfigSource).toContain("maxBatchSize: 500");
-    expect(batchPdfRouteSource).not.toContain("purchased_batch_required");
+    expect(batchPdfRouteSource).toContain("purchased_batch_required");
+    expect(stripeConfigSource).toContain("maxBatchSize: 1");
+    expect(batchPdfRouteSource).not.toContain("cardIds.length > 100");
   });
 
-  test("PDF image cells constrain cover images inside bingo squares", () => {
-    expect(pdfRouteSource).toContain("position:absolute;inset:0;width:100%;height:100%;object-fit:cover");
-    expect(batchPdfRouteSource).toContain("position:absolute;inset:0;width:100%;height:100%;object-fit:cover");
-    expect(pdfCellRule(pdfRouteSource)).toContain("position: relative;");
-    expect(pdfCellRule(batchPdfRouteSource)).toContain("position: relative;");
-  });
-
-  test("pricing and plan copy keep exports and batches free", () => {
+  test("free-plan marketing copy promises single-card PDF export and keeps batches paid", () => {
     expect(stripeConfigSource).toContain('"PDF and PNG export"');
     expect(pricingPageSource).toContain('["PDF export", "Yes", "Yes", "Yes"]');
-    expect(pricingPageSource).toContain('["PNG export", "Yes", "Yes", "Yes"]');
-    expect(pricingPageSource).toContain("Batch Packs and Share Links");
-    expect(pricingPageSource).toContain('["Batch generation", "Up to 500", "Up to 500", "Up to 500"]');
+    expect(pricingPageSource).toContain("Paid Batch Packs and Share Links");
+    expect(pricingPageSource).toContain('["Batch generation", "Paid packs", "Up to 500 included", "Up to 500 included"]');
   });
 });

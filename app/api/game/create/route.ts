@@ -33,9 +33,8 @@ export async function POST(request: Request) {
     if (!hasPremiumAccess(user)) {
       return NextResponse.json(
         {
-          error: "Sign in and activate your account to use live game hosting.",
+          error: "Upgrade to Premium or choose lifetime access to host live games.",
           upgradeRequired: true,
-          trialRequired: false,
         },
         { status: 403 }
       );

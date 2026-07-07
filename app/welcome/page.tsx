@@ -3,10 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Welcome - Create Your Bingo Card | MyBingoCard",
-  description: "Create custom bingo cards with words, images, templates, AI ideas, PDF exports, player links, and hosted bingo games.",
-  alternates: {
-    canonical: "https://mybingocard.com/welcome",
-  },
+  description: "Create custom bingo cards in seconds, then save and export for free. Paid sharing and hosted bingo are optional.",
   robots: {
     index: true,
     follow: true,
@@ -82,7 +79,7 @@ export default function WelcomePage() {
           </h1>
 
           <p className="text-xl text-slate-600 mb-8 max-w-xl mx-auto">
-            Add your own words, phrases, or images. Draft first, then unlock saving, exports, sharing, and hosted play when ready.
+            Add your own words, phrases, or images. Save and export for free, then add paid sharing or hosted play when needed.
           </p>
 
           {/* Main CTA */}
@@ -126,7 +123,7 @@ export default function WelcomePage() {
               </svg>
             </div>
             <h3 className="font-semibold text-slate-900 mb-2">PDF Export</h3>
-            <p className="text-sm text-slate-600">Export PDFs and add online play when your card is ready</p>
+            <p className="text-sm text-slate-600">Export PDFs for free or add paid online play</p>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 text-center">
@@ -136,7 +133,7 @@ export default function WelcomePage() {
               </svg>
             </div>
             <h3 className="font-semibold text-slate-900 mb-2">Play Online</h3>
-            <p className="text-sm text-slate-600">Host live games</p>
+            <p className="text-sm text-slate-600">Host paid live games</p>
           </div>
         </div>
 

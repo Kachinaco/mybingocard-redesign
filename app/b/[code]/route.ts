@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
-import type { SharedLink } from "@/lib/db/sharedLinks";
+import { getShareGroupInviteTarget } from "@/lib/db/sharedLinks";
 
 const APP_URL = (
   process.env.NEXT_PUBLIC_APP_URL ||
@@ -28,29 +27,10 @@ export async function GET(
   }
 
   try {
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-    const collection = db.collection<SharedLink>("shared_links");
-    const now = new Date();
-
-    const seed = await collection.findOne({ linkId: code });
-    if (!seed || seed.status === "refunded") {
+    const target = await getShareGroupInviteTarget(code);
+    if (!target) {
       return redirectNoStore("/");
     }
-
-    const pending = await collection
-      .find({
-        ownerUserId: seed.ownerUserId,
-        batchId: seed.batchId,
-        status: "pending",
-        $or: [
-          { expiresAt: { $exists: false } },
-          { expiresAt: { $gt: now } },
-        ],
-      })
-      .sort({ createdAt: 1 })
-      .limit(1)
-      .next();
 
     const requestContext = getRequestActivityContext(request);
     trackActivity({
@@ -64,18 +44,18 @@ export async function GET(
       userAgent: requestContext.userAgent,
       metadata: {
         inviteCode: code,
-        batchId: seed.batchId,
-        ownerUserId: seed.ownerUserId,
-        assignedLinkId: pending?.linkId || null,
-        available: Boolean(pending),
+        batchId: target.seed.batchId,
+        ownerUserId: target.seed.ownerUserId,
+        assignedLinkId: target.pending?.linkId || null,
+        available: Boolean(target.pending),
       },
     }).catch(() => {});
 
-    const targetLinkId = pending?.linkId || seed.linkId;
+    const targetLinkId = target.pending?.linkId || target.seed.linkId;
     const targetPath = new URL(`/play/${targetLinkId}`, APP_URL);
     targetPath.searchParams.set("group", code);
 
-    if (pending) {
+    if (target.pending) {
       targetPath.searchParams.set("autoJoin", "1");
     } else {
       targetPath.searchParams.set("groupFull", "1");

@@ -11,15 +11,6 @@ function makeGuestName() {
   return `Player ${Math.floor(100 + Math.random() * 900)}`;
 }
 
-function firstNameFromSessionName(name: string | null | undefined): string {
-  if (!name) return "";
-  return name.trim().split(/\s+/)[0] || "";
-}
-
-function isGeneratedGuestName(name: string): boolean {
-  return /^Player \d{3}$/.test(name.trim());
-}
-
 function JoinGameContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -29,9 +20,6 @@ function JoinGameContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [roomInfo, setRoomInfo] = useState<{ title: string; playerCount: number; status: string } | null>(null);
-  const callbackUrl = roomCode.length === 6 ? `/game/join?code=${encodeURIComponent(roomCode)}` : "/game/join";
-  const authQuery = encodeURIComponent(callbackUrl);
-  const sessionDisplayName = firstNameFromSessionName(session?.user?.name);
 
   useEffect(() => {
     trackClientActivity("game_join_page_viewed");
@@ -51,11 +39,10 @@ function JoinGameContent() {
 
   // Pre-fill player name from session
   useEffect(() => {
-    const sessionName = firstNameFromSessionName(session?.user?.name);
-    if (sessionName && (!playerName || isGeneratedGuestName(playerName))) {
-      setPlayerName(sessionName);
+    if (session?.user?.name && !playerName) {
+      setPlayerName(session.user.name.split(" ")[0] || "");
     }
-  }, [session, playerName]);
+  }, [session]);
 
   const fetchRoomInfo = async (code: string) => {
     try {
@@ -138,7 +125,7 @@ function JoinGameContent() {
               MyBingoCard
             </span>
           </Link>
-          <p className="text-emerald-800 mt-2 font-semibold">Join as a guest or sign in</p>
+          <p className="text-emerald-800 mt-2 font-semibold">Tap one button to join</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg border border-emerald-100 p-6">
@@ -149,29 +136,9 @@ function JoinGameContent() {
             </div>
           ) : (
           <form onSubmit={handleJoin} className="space-y-5">
-            {session ? (
-              <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-3 py-2 text-xs text-emerald-800 text-center">
-                Signed in as {sessionDisplayName || "your account"}
-              </div>
-            ) : (
-              <div className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-                <div className="flex gap-2">
-                  <Link
-                    href={`/login?callbackUrl=${authQuery}`}
-                    className="flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-center text-sm font-bold text-slate-700 hover:bg-slate-100"
-                  >
-                    Sign in
-                  </Link>
-                  <Link
-                    href={`/signup?callbackUrl=${authQuery}`}
-                    className="flex-1 rounded-lg bg-slate-900 px-3 py-2 text-center text-sm font-bold text-white hover:bg-slate-800"
-                  >
-                    Sign up
-                  </Link>
-                </div>
-                <div className="mt-2 text-center text-xs text-slate-500">
-                  Guests can join with a name only.
-                </div>
+            {session?.user?.email && (
+              <div className="text-xs text-slate-500 text-center">
+                Signed in as {session.user.email}
               </div>
             )}
             {/* Room Code */}
@@ -232,7 +199,7 @@ function JoinGameContent() {
               disabled={loading || roomCode.length !== 6 || roomInfo?.status === "finished"}
               className="w-full py-5 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition font-black text-2xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Joining..." : session ? `Join as ${playerName.trim() || sessionDisplayName || "player"}` : "Join as guest"}
+              {loading ? "Joining..." : "Join"}
             </button>
           </form>
           )}

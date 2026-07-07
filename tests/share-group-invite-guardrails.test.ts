@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 
 describe("share group invite guardrails", () => {
   const groupRouteSource = readFileSync(resolve(process.cwd(), "app/b/[code]/route.ts"), "utf8");
+  const sharedLinksDbSource = readFileSync(resolve(process.cwd(), "lib/db/sharedLinks.ts"), "utf8");
   const playClientSource = readFileSync(resolve(process.cwd(), "app/play/[linkId]/PlayClient.tsx"), "utf8");
   const shareLinksPageSource = readFileSync(resolve(process.cwd(), "app/dashboard/share-links/page.tsx"), "utf8");
   const copyGroupButtonSource = readFileSync(resolve(process.cwd(), "components/CopyGroupInviteButton.tsx"), "utf8");
@@ -11,8 +12,12 @@ describe("share group invite guardrails", () => {
   const shareBatchButtonSource = readFileSync(resolve(process.cwd(), "components/ShareBatchButton.tsx"), "utf8");
 
   test("one public group invite assigns the next pending player link", () => {
-    expect(groupRouteSource).toContain('status: "pending"');
-    expect(groupRouteSource).toContain('sort({ createdAt: 1 })');
+    expect(groupRouteSource).toContain("getShareGroupInviteTarget");
+    expect(groupRouteSource).not.toContain("clientPromise");
+    expect(sharedLinksDbSource).toContain("getShareGroupInviteTarget");
+    expect(sharedLinksDbSource).toContain('status: "pending"');
+    expect(sharedLinksDbSource).toContain("sort: { createdAt: 1 }");
+    expect(sharedLinksDbSource).toContain(".sort({ createdAt: 1 })");
     expect(groupRouteSource).toContain('targetPath.searchParams.set("autoJoin", "1")');
     expect(groupRouteSource).toContain('targetPath.searchParams.set("group", code)');
     expect(groupRouteSource).toContain('event: "share_group_invite_opened"');

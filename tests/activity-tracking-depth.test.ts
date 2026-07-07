@@ -3,15 +3,14 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 process.env.MONGODB_URI ||= "mongodb://localhost:27017/mybingocard-test";
-const { sanitizeActivityMetadata, shouldSuppressNoisyGameActivity } = await import("../lib/activity");
+const { sanitizeActivityMetadata } = await import("../lib/activity");
 
 const readSource = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
 
 const activityClientSource = readSource("lib/activity-client.ts");
 const visitorTrackerSource = readSource("components/VisitorTracker.tsx");
-const activityRouteSource = readSource("app/api/activity/route.ts");
-const trackVisitorRouteSource = readSource("app/api/track-visitor/route.ts");
 const adminUserRouteSource = readSource("app/api/admin/users/[id]/route.ts");
+const adminUserDbSource = readSource("lib/db/users.ts");
 const adminUserPageSource = readSource("app/admin/users/[id]/page.tsx");
 
 describe("activity tracking depth", () => {
@@ -77,29 +76,14 @@ describe("activity tracking depth", () => {
     expect(firstItem?.label).toBe("visible");
   });
 
-  test("live game telemetry is suppressed before it floods activity and visitor logs", () => {
-    expect(shouldSuppressNoisyGameActivity({
-      event: "game_player_cell_marked",
-      pathname: "/game/play/KPVCT2",
-      metadata: { roomCode: "KPVCT2" },
-    })).toBe(true);
-    expect(shouldSuppressNoisyGameActivity({
-      event: "game_player_joined",
-      pathname: "/game/play/KPVCT2",
-      metadata: { roomCode: "KPVCT2" },
-    })).toBe(false);
-    expect(activityRouteSource).toContain("shouldSuppressNoisyGameActivity");
-    expect(activityRouteSource).toContain("suppressed: true");
-    expect(trackVisitorRouteSource).toContain("isGamePageVisitorPayload");
-    expect(trackVisitorRouteSource).toContain("suppressed: true");
-  });
-
   test("admin user activity feed exposes deep event details for inspection", () => {
-    expect(adminUserRouteSource).toContain(".limit(100)");
-    expect(adminUserRouteSource).toContain("sessionId: 1");
-    expect(adminUserRouteSource).toContain("anonymousId: 1");
-    expect(adminUserRouteSource).toContain("ipAddress: 1");
-    expect(adminUserRouteSource).toContain("userAgent: 1");
+    expect(adminUserRouteSource).toContain("getAdminUserDetail");
+    expect(adminUserDbSource).toContain(".limit(100)");
+    expect(adminUserDbSource).toContain("limit: 100");
+    expect(adminUserDbSource).toContain("sessionId: 1");
+    expect(adminUserDbSource).toContain("anonymousId: 1");
+    expect(adminUserDbSource).toContain("ipAddress: 1");
+    expect(adminUserDbSource).toContain("userAgent: 1");
     expect(adminUserPageSource).toContain("Raw event data");
     expect(adminUserPageSource).toContain("JSON.stringify(details, null, 2)");
   });

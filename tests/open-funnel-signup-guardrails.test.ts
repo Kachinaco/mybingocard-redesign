@@ -113,10 +113,10 @@ describe("open-funnel signup guardrails", () => {
   });
 
   test("server-side capture and signup support precise identity blocks", () => {
-    expect(signupRouteSource).toContain('collection("signup_blocks").findOne');
+    expect(signupRouteSource).toContain("findActiveSignupBlock(blockFilters)");
     expect(signupRouteSource).toContain('event: "signup_blocked"');
     expect(signupRouteSource).toContain('return NextResponse.json({ error: "Unable to create account" }, { status: 403 });');
-    expect(emailCaptureRouteSource).toContain('collection("signup_blocks").findOne');
+    expect(emailCaptureRouteSource).toContain("findActiveSignupBlock(blockFilters)");
     expect(emailCaptureRouteSource).toContain('event: "email_capture_blocked"');
     expect(emailCaptureRouteSource).toContain('return NextResponse.json({ success: true');
   });

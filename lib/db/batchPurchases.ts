@@ -1,6 +1,7 @@
 import clientPromise from "../mongodb";
 import { ObjectId } from "mongodb";
 import type { BatchCount } from "@/lib/batchPacks";
+import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
 
 export interface BatchPurchase {
   _id: ObjectId;
@@ -37,9 +38,33 @@ export async function upsertBatchPurchaseFromCheckout(data: {
   stripeSessionId: string;
   stripePaymentIntentId?: string | null;
 }) {
-  const collection = await getBatchPurchasesCollection();
   const now = new Date();
 
+  if (useSqliteDb()) {
+    return getSqliteStore().findOneAndUpdate<BatchPurchase>(
+      "batch_purchases",
+      { stripeSessionId: data.stripeSessionId },
+      {
+        $setOnInsert: {
+          ...data,
+          purchaseProvider: "stripe",
+          status: "paid",
+          generatedCardIds: [],
+          purchasedAt: now,
+          generatedAt: null,
+        },
+        $set: {
+          updatedAt: now,
+        },
+      },
+      {
+        upsert: true,
+        returnDocument: "after",
+      }
+    );
+  }
+
+  const collection = await getBatchPurchasesCollection();
   const result = await collection.findOneAndUpdate(
     { stripeSessionId: data.stripeSessionId },
     {
@@ -75,9 +100,38 @@ export async function upsertBatchPurchaseFromAppleTransaction(data: {
   appleProductId: string;
   appleEnvironment?: string | null;
 }) {
-  const collection = await getBatchPurchasesCollection();
   const now = new Date();
 
+  if (useSqliteDb()) {
+    return getSqliteStore().findOneAndUpdate<BatchPurchase>(
+      "batch_purchases",
+      { appleTransactionId: data.appleTransactionId },
+      {
+        $setOnInsert: {
+          ...data,
+          purchaseProvider: "apple",
+          stripeSessionId: `apple:${data.appleTransactionId}`,
+          stripePaymentIntentId: null,
+          status: "paid",
+          generatedCardIds: [],
+          purchasedAt: now,
+          generatedAt: null,
+        },
+        $set: {
+          email: data.email,
+          appleOriginalTransactionId: data.appleOriginalTransactionId || null,
+          appleEnvironment: data.appleEnvironment || null,
+          updatedAt: now,
+        },
+      },
+      {
+        upsert: true,
+        returnDocument: "after",
+      }
+    );
+  }
+
+  const collection = await getBatchPurchasesCollection();
   const result = await collection.findOneAndUpdate(
     { appleTransactionId: data.appleTransactionId },
     {
@@ -107,7 +161,34 @@ export async function upsertBatchPurchaseFromAppleTransaction(data: {
   return result;
 }
 
+export async function getBatchPurchaseById(purchaseId: string): Promise<BatchPurchase | null> {
+  let objectId: ObjectId;
+  try {
+    objectId = new ObjectId(purchaseId);
+  } catch {
+    return null;
+  }
+
+  if (useSqliteDb()) {
+    return getSqliteStore().findOne<BatchPurchase>("batch_purchases", { _id: objectId });
+  }
+
+  const collection = await getBatchPurchasesCollection();
+  return collection.findOne({ _id: objectId });
+}
+
 export async function getAvailableBatchPurchases(userId: string) {
+  if (useSqliteDb()) {
+    return getSqliteStore().findMany<BatchPurchase>(
+      "batch_purchases",
+      {
+        userId,
+        status: "paid",
+      },
+      { sort: { purchasedAt: 1 } }
+    );
+  }
+
   const collection = await getBatchPurchasesCollection();
 
   return collection
@@ -120,6 +201,32 @@ export async function getAvailableBatchPurchases(userId: string) {
 }
 
 export async function claimBatchPurchase(userId: string, batchCount: BatchCount) {
+  if (useSqliteDb()) {
+    const store = getSqliteStore();
+    const purchase = store.findMany<BatchPurchase>(
+      "batch_purchases",
+      {
+        userId,
+        batchCount,
+        status: "paid",
+      },
+      { sort: { purchasedAt: 1 }, limit: 1 }
+    )[0];
+    if (!purchase) return null;
+
+    return store.findOneAndUpdate<BatchPurchase>(
+      "batch_purchases",
+      { _id: purchase._id },
+      {
+        $set: {
+          status: "processing",
+          updatedAt: new Date(),
+        },
+      },
+      { returnDocument: "after" }
+    );
+  }
+
   const collection = await getBatchPurchasesCollection();
 
   return collection.findOneAndUpdate(
@@ -145,6 +252,24 @@ export async function markBatchPurchaseGenerated(
   purchaseId: string,
   generatedCardIds: string[]
 ) {
+  if (useSqliteDb()) {
+    return getSqliteStore().findOneAndUpdate<BatchPurchase>(
+      "batch_purchases",
+      { _id: new ObjectId(purchaseId) },
+      {
+        $set: {
+          status: "generated",
+          generatedCardIds,
+          generatedAt: new Date(),
+          updatedAt: new Date(),
+        },
+      },
+      {
+        returnDocument: "after",
+      }
+    );
+  }
+
   const collection = await getBatchPurchasesCollection();
 
   return collection.findOneAndUpdate(
@@ -164,6 +289,25 @@ export async function markBatchPurchaseGenerated(
 }
 
 export async function releaseBatchPurchase(purchaseId: string) {
+  if (useSqliteDb()) {
+    return getSqliteStore().findOneAndUpdate<BatchPurchase>(
+      "batch_purchases",
+      {
+        _id: new ObjectId(purchaseId),
+        status: "processing",
+      },
+      {
+        $set: {
+          status: "paid",
+          updatedAt: new Date(),
+        },
+      },
+      {
+        returnDocument: "after",
+      }
+    );
+  }
+
   const collection = await getBatchPurchasesCollection();
 
   return collection.findOneAndUpdate(
@@ -187,6 +331,14 @@ export async function findGeneratedBatchPurchaseForCards(
   userId: string,
   cardIds: string[]
 ) {
+  if (useSqliteDb()) {
+    return getSqliteStore().findOne<BatchPurchase>("batch_purchases", {
+      userId,
+      status: "generated",
+      generatedCardIds: { $all: cardIds },
+    });
+  }
+
   const collection = await getBatchPurchasesCollection();
 
   return collection.findOne({
@@ -201,6 +353,26 @@ export async function getGeneratedBatchIdMapForCards(
   cardIds: string[]
 ): Promise<Record<string, string>> {
   if (cardIds.length === 0) return {};
+
+  if (useSqliteDb()) {
+    const purchases = getSqliteStore().findMany<BatchPurchase>("batch_purchases", {
+      userId,
+      status: "generated",
+      generatedCardIds: { $in: cardIds },
+    });
+
+    const batchIdByCardId: Record<string, string> = {};
+    for (const purchase of purchases) {
+      const batchId = purchase._id.toString();
+      for (const cardId of purchase.generatedCardIds || []) {
+        if (!batchIdByCardId[cardId]) {
+          batchIdByCardId[cardId] = batchId;
+        }
+      }
+    }
+
+    return batchIdByCardId;
+  }
 
   const collection = await getBatchPurchasesCollection();
   const purchases = await collection

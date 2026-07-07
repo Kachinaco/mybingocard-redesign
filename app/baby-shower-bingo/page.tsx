@@ -4,9 +4,9 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Baby Shower Bingo Cards Printable: Gift Game",
+  title: "Printable Baby Shower Bingo Cards Generator | MyBingoCard",
   description:
-    "Create printable baby shower bingo cards for gift opening, blank or prefilled games, call lists, markers, prizes, virtual showers, and PDFs.",
+    "Create printable baby shower bingo cards in minutes. Custom baby shower bingo card generator for gift bingo, prediction bingo, and custom shower games.",
   alternates: {
     canonical: "https://mybingocard.com/baby-shower-bingo",
   },
@@ -14,95 +14,26 @@ export const metadata: Metadata = {
 
 const babySquares = [
   "Diaper Bag", "Onesie", "Baby Monitor", "Stroller", "FREE",
-  "Gift Wrap", "Rattles", "Baby Blanket", "Burp Cloth", "Pacifier",
-  "Baby Shoes", "Crib Mobile", "Baby Lotion", "Swaddle", "Bottle Set",
-  "Nursery Art", "Baby Wipes", "Sleep Sack", "Teether", "Baby Book",
-  "Blank Card", "Prefilled Card", "Calling Card", "Diaper Raffle", "Prize Winner",
+  "First Cry", "Rattles", "Baby Blanket", "Burp Cloth", "Pacifier",
+  "Baby Shoes", "Crib Mobile", "Baby Lotion", "Swaddle", "Gift Wrap",
+  "Breast Pump", "Nursery Art", "Baby Wipes", "Sleep Sack", "Teether",
+  "Baby Book", "Thermometer", "Play Mat", "Baby Hat", "Nasal Bulb",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebPage",
-      "@id": "https://mybingocard.com/baby-shower-bingo#webpage",
-      name: "Baby Shower Bingo Cards Printable: Gift Game",
-      url: "https://mybingocard.com/baby-shower-bingo",
-      description:
-        "Create printable baby shower bingo cards for gift opening, classic baby bingo, blank or prefilled cards, call lists, markers, prizes, and virtual shower play.",
-    },
-    {
-      "@type": "WebApplication",
-      "@id": "https://mybingocard.com/baby-shower-bingo#app",
-      name: "Baby Shower Bingo Cards Generator",
-      url: "https://mybingocard.com/baby-shower-bingo",
-      description:
-        "Create custom baby shower bingo cards with gift prediction squares, classic baby items, blank or prefilled cards, call lists, printable PDF export, unique shuffled cards, and online play options.",
-      applicationCategory: "GameApplication",
-      operatingSystem: "All",
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "USD",
-      },
-    },
-    {
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "How do you play baby shower bingo?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Give each guest a baby shower bingo card before the game starts. Guests mark squares when a called baby item appears, when the guest of honor opens a matching gift, or when a shower moment happens. Hosts usually choose one row, four corners, or blackout as the winning pattern and verify the winner before handing out a prize.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Can baby shower bingo work for gift opening?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. Add likely registry items and baby gifts to the card, or use blank cards so guests write their own gift predictions before presents are opened. Guests mark a square when a matching gift appears.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Should baby shower bingo cards be blank or prefilled?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Both formats work. Blank cards are best when guests should predict gifts themselves, while prefilled cards are faster for large showers, coed showers, virtual showers, and hosts who want a ready to print game.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "What supplies do I need for baby shower bingo?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Plan one card per guest, a few extra cards, pens, markers or wrapped candy, a call list or calling cards, an answer key for the host, and small prizes. For larger groups, prepare 30 to 50 unique cards so guests do not all share the same board.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Can every baby shower guest get a different card?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. MyBingoCard can shuffle the same baby shower square list into unique layouts so guests do not all play identical cards. This helps with 20, 30, or 50 guest showers where duplicate cards can create messy ties.",
-          },
-        },
-      ],
-    },
-    {
-      "@type": "HowTo",
-      name: "How to make baby shower bingo cards",
-      step: [
-        { "@type": "HowToStep", position: 1, text: "Choose classic baby items, registry gifts, diaper raffle prompts, advice prompts, wishes for baby, or custom shower moments." },
-        { "@type": "HowToStep", position: 2, text: "Decide whether the game should use blank prediction cards, prefilled baby bingo cards, or a mixed list for gift opening." },
-        { "@type": "HowToStep", position: 3, text: "Customize the title, square list, free space, parent names, boy, girl, or neutral theme, and call list." },
-        { "@type": "HowToStep", position: 4, text: "Shuffle 30 to 50 unique cards when the shower has a larger guest list, then choose one row, four corners, or blackout as the winner rule." },
-        { "@type": "HowToStep", position: 5, text: "Export printable PDFs, print on regular paper or card stock, provide markers or wrapped candy, and share online cards for virtual guests." },
-      ],
-    },
-  ],
+  "@type": "WebApplication",
+  name: "Baby Shower Bingo Cards Generator",
+  url: "https://mybingocard.com/baby-shower-bingo",
+  description:
+    "Custom baby shower bingo draft generator. Create, customize, and print bingo cards for your baby shower party in minutes.",
+  applicationCategory: "GameApplication",
+  operatingSystem: "All",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
 };
 
 function BingoGrid({ squares, label, gradient }: { squares: string[]; label: string; gradient: string }) {
@@ -191,7 +122,7 @@ export default function BabyShowerBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Make the shower easier to host with printable baby shower bingo cards for gift opening, classic baby item bingo, or a custom shower game. Use blank cards for guest gift predictions or prefilled cards for faster setup. Add registry gifts, baby gear, diaper raffle prompts, advice and wishes, parent trivia, or inside jokes, then shuffle 30 to 50 unique cards so every guest has a different layout. Prepare a call list, markers, prizes, PDF export, online cards for virtual showers, and simple winner rules before play starts.
+                    Make your baby shower unforgettable with custom printable bingo cards! Our baby shower bingo draft editor lets you create unique, personalized cards in minutes — no design skills needed. Simply enter your gift list or let our suggestions fill the squares automatically. Each card is randomized so every guest gets a different layout, keeping the excitement alive during gift opening. Export clean PDF files for free, add paid digital cards, or project on a screen. With adorable themes, pastel color palettes, and customizable free spaces, you'll have the perfect baby shower game ready before the guests arrive. Try the baby shower bingo draft editor today!
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -204,10 +135,10 @@ export default function BabyShowerBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      See Activation
+                      View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Draft tools · Premium saves and exports</p>
+                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
                 </div>
 
                 <div className="relative">
@@ -225,42 +156,42 @@ export default function BabyShowerBingoPage() {
           <section className="py-20 bg-white">
             <div className="container mx-auto px-4 lg:px-8">
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
-                Baby shower bingo for every game style
+                Why use our baby shower bingo maker?
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                Use one card maker for classic baby bingo, gift prediction bingo, coed showers, boy or girl themes, neutral themes, and online shower games.
+                Everything you need for the perfect baby shower bingo game — from PDF exports to Premium virtual play.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
                   {
                     icon: "🎀",
-                    title: "Classic baby bingo",
-                    desc: "Use baby gear, nursery items, diapers, bottles, blankets, toys, pacifiers, and stroller gifts as easy squares that every guest understands.",
+                    title: "Cute Themes",
+                    desc: "Choose from adorable baby-themed designs with pastel colors, baby animals, and more.",
                   },
                   {
                     icon: "🖨️",
-                    title: "Printable PDF cards",
-                    desc: "Export cards for home printing, card stock, party tables, or a local print shop. Choose cards per page, use one card per guest, and keep extras for late RSVPs.",
+                    title: "PDF Exports",
+                    desc: "free PDF export for home printing or a local print shop.",
                   },
                   {
                     icon: "🔀",
-                    title: "Unique guest cards",
-                    desc: "Shuffle the same baby shower list into different layouts for 20, 30, or 50 guests so duplicate cards do not create confusing ties.",
+                    title: "Unique Every Card",
+                    desc: "Every guest gets a randomly shuffled card, so multiple people can't win at the same moment.",
                   },
                   {
                     icon: "📱",
-                    title: "Virtual shower play",
-                    desc: "Share online cards for remote family, hybrid showers, and guests who need to mark cards on a phone during a video call.",
+                    title: "Play Online",
+                    desc: "Share a link with paid links for virtual baby showers. Guests mark squares on their phones — no printing needed.",
                   },
                   {
                     icon: "✏️",
-                    title: "Blank or prefilled cards",
-                    desc: "Use blank cards when guests should write gift predictions, or prefilled cards when you want a ready to print game.",
+                    title: "Custom Word Lists",
+                    desc: "Add your own gift list, baby names, or inside jokes. Make it personal and memorable.",
                   },
                   {
                     icon: "💸",
-                    title: "Call lists and winner rules",
-                    desc: "Prepare calling cards, a call list, answer key, markers, wrapped candy, and prizes. Tell guests whether one row, four corners, or blackout wins.",
+                    title: "Free to Draft",
+                    desc: "Build baby shower bingo cards for free. Save, export, use templates, AI, images, and batches; pay only for player links or live hosting.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -280,17 +211,17 @@ export default function BabyShowerBingoPage() {
             </div>
             <div className="container mx-auto px-4 relative z-10 text-center">
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-                Ready for gift opening, games, and guest laughs?
+                Ready to wow the mom-to-be?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft baby shower bingo cards in minutes, then print unique cards for the party, share online cards for virtual guests, and keep the call list ready for the host.
+                Draft your baby shower bingo cards in under 2 minutes, then subscribe when you are ready to save more.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-pink-50 transition-all duration-300 shadow-xl">
                   Create Baby Shower Bingo Cards
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Activation
+                  See Pricing Plans
                 </Link>
               </div>
             </div>

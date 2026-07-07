@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { getAdminSessionEmail, requireAdmin } from "@/lib/admin";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { getUserById, markAdminUserCancelAtPeriodEndById } from "@/lib/db/users";
 import { getStripe } from "@/lib/stripe/config";
 
 export async function POST(
@@ -23,10 +23,7 @@ export async function POST(
       return NextResponse.json({ error: "Invalid user ID" }, { status: 400 });
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    const user = await db.collection("users").findOne({ _id: new ObjectId(id) });
+    const user = await getUserById(id);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
@@ -52,16 +49,7 @@ export async function POST(
       );
     }
 
-    // Update user record
-    await db.collection("users").updateOne(
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          cancelAtPeriodEnd: true,
-          updatedAt: new Date(),
-        },
-      }
-    );
+    await markAdminUserCancelAtPeriodEndById(id);
 
     await trackActivity({
       event: "admin_subscription_canceled",

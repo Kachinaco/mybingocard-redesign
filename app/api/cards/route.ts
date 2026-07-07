@@ -4,12 +4,7 @@ import { auth } from "@/auth";
 import { createCard, getUserCards, updateCard, deleteCard, getCardById } from "@/lib/db/cards";
 import { canCreateCard, getUserCardCount } from "@/lib/db/subscriptions";
 import { generateShareLink } from "@/lib/db/cards";
-import {
-  claimFirstCardMilestone,
-  getUserById,
-  hasPriorCardCreationActivity,
-  incrementCardStats,
-} from "@/lib/db/users";
+import { getUserById, incrementCardStats } from "@/lib/db/users";
 import { getGeneratedBatchIdMapForCards } from "@/lib/db/batchPurchases";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyCardCreated, notifyFirstCard } from "@/lib/discord";
@@ -85,16 +80,15 @@ export async function POST(request: Request) {
         ipAddress: requestContext.ipAddress,
         userAgent: requestContext.userAgent,
         metadata: {
-          reason: "free_access_required",
+          reason: "upgrade_required",
           planType: user?.planType || "FREE",
           subscriptionStatus: user?.subscriptionStatus || "inactive",
         },
       });
       return NextResponse.json(
         {
-          error: "Sign in to use free saving for bingo cards.",
+          error: "Upgrade to Premium or choose lifetime access to save bingo cards.",
           upgradeRequired: true,
-          trialRequired: false,
         },
         { status: 403 }
       );
@@ -179,17 +173,6 @@ export async function POST(request: Request) {
 
     // Generate share link if card is public
     const shareLink = data.isPublic ? generateShareLink() : undefined;
-    const existingCardCount = await getUserCardCount(session.user.id);
-    const lifetimeCardCount = Math.max(0, user?.totalCardsCreated || 0);
-    const hadPriorCardActivity = await hasPriorCardCreationActivity(
-      session.user.id,
-      session.user.email || user?.email || null
-    );
-    const shouldTrackFirstCard =
-      existingCardCount === 0 &&
-      lifetimeCardCount === 0 &&
-      !user?.firstCardCreatedAt &&
-      !hadPriorCardActivity;
 
     const card = await createCard({
       userId: session.user.id,
@@ -238,13 +221,11 @@ export async function POST(request: Request) {
     // Increment card stats for every card creation
     incrementCardStats(session.user.id).catch(console.error);
 
-    // First-card milestone is lifetime-only; deleting saved cards must not reset it.
-    const claimedFirstCard = shouldTrackFirstCard
-      ? await claimFirstCardMilestone(session.user.id)
-      : false;
-    if (claimedFirstCard) {
+    // First-card milestone tracking
+    const cardCount = await getUserCardCount(session.user.id);
+    if (cardCount === 1) {
       const isTrial = isUserOnTrial(user);
-      await trackActivity({
+      trackActivity({
         event: "first_card_created",
         source: "server",
         userId: session.user.id,
@@ -257,7 +238,7 @@ export async function POST(request: Request) {
           cardTitle: card.title,
           isTrial,
         },
-      });
+      }).catch(console.error);
 
       notifyFirstCard(
         session.user.name || "",
@@ -337,7 +318,7 @@ export async function PUT(request: Request) {
         ipAddress: requestContext.ipAddress,
         userAgent: requestContext.userAgent,
         metadata: {
-          reason: "free_access_required_for_update",
+          reason: "upgrade_required_for_update",
           cardId: data.cardId,
           planType: user?.planType || "FREE",
           subscriptionStatus: user?.subscriptionStatus || "inactive",
@@ -345,9 +326,8 @@ export async function PUT(request: Request) {
       });
       return NextResponse.json(
         {
-          error: "Sign in to use free saving for bingo cards.",
+          error: "Upgrade to Premium or choose lifetime access to save changes.",
           upgradeRequired: true,
-          trialRequired: false,
         },
         { status: 403 }
       );

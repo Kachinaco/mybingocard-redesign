@@ -20,11 +20,9 @@ describe("share batch UX guardrails", () => {
     expect(modalSource).toContain("Each friend gets a unique card automatically.");
   });
 
-  test("frontend explains free link creation instead of Stripe pricing", () => {
-    expect(modalSource).toContain("PRICE_PER_LINK_CENTS = 0");
-    expect(modalSource).toContain("Free for up to ${MIN_SHARE_LINKS} links");
-    expect(modalSource).toContain("Create Links · Free");
-    expect(modalSource).not.toContain("Stripe checkout minimum");
+  test("frontend explains the $0.50 minimum and package-style pricing", () => {
+    expect(modalSource).toContain("Minimum 5 links ($0.50) due to Stripe checkout minimum.");
+    expect(modalSource).toContain("Starts at $0.50 for up to 5 links, then $0.10 per extra link.");
   });
 
   test("dashboard success state explains where links are going", () => {
@@ -34,14 +32,10 @@ describe("share batch UX guardrails", () => {
     expect(dashboardCardsSource).toContain("Open Share Links dashboard");
   });
 
-  test("backend rejects requests below the 5-link floor and creates links without checkout", () => {
+  test("backend rejects share-link checkouts below Stripe minimum and passes delivery summary in success redirect", () => {
     expect(routeSource).toContain("const MIN_SHARE_LINKS = 5;");
     expect(routeSource).toContain("count must be at least ${MIN_SHARE_LINKS}");
-    expect(routeSource).toContain("PRICE_PER_LINK_CENTS = 0");
-    expect(routeSource).toContain("bulkCreateSharedLinks");
-    expect(routeSource).toContain("amountCents: 0");
     expect(routeSource).toContain("recipientCount=${recipientEmailCount}&selfCount=${selfFallbackCount}");
-    expect(routeSource).not.toContain("checkout.sessions.create");
   });
 
   test("batch purchase flow nudges buyers into playable links before PDFs", () => {

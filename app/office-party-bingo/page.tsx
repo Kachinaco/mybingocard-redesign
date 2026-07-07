@@ -4,118 +4,36 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Office Bingo Cards Printable: Work Party Game",
+  title: "Office Bingo Card Generator — Free Work Party Bingo | MyBingoCard",
   description:
-    "Create printable office bingo cards for work parties, team meetings, holiday parties, employee events, and remote teams. Export PDFs or play online.",
+    "Create hilarious office bingo cards for your next work party or team meeting. Custom office bingo card generator — perfect for holiday parties, team events, and remote meetings.",
   alternates: {
     canonical: "https://mybingocard.com/office-party-bingo",
   },
 };
 
 const officeSquares = [
-  "Buzzword", "Free Snacks", "Printer Jam", "Late Start", "FREE",
-  "Long Meeting", "Coffee Run", "Birthday Cake", "Awkward Small Talk", "Team Photo",
-  "Zoom Freeze", "Mic Muted", "Calendar Invite", "Pizza Order", "Prize Drawing",
+  "Buzzword", "Free Snacks", "IT Issues", "Late Start", "FREE",
+  "Long Meeting", "Coffee Run", "Birthday Cake", "Awkward Hug", "Office Gossip",
+  "Zoom Freeze", "Mic Muted", "Fire Drill", "Team Photo", "Pizza Order",
   "Secret Santa", "Karaoke", "Ugly Sweater", "White Elephant", "Boss Speech",
-  "Happy Hour", "Potluck", "Door Prize", "Name Tag", "Team Win",
+  "Happy Hour", "Potluck", "Door Prize", "Name Tag", "Team Building",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebPage",
-      "@id": "https://mybingocard.com/office-party-bingo#webpage",
-      url: "https://mybingocard.com/office-party-bingo",
-      name: "Office Bingo Cards Printable: Work Party Game",
-      description:
-        "Create printable office bingo cards for work parties, team meetings, holiday parties, employee events, and remote teams. Export PDFs or play online.",
-      isPartOf: {
-        "@type": "WebSite",
-        name: "MyBingoCard",
-        url: "https://mybingocard.com",
-      },
-      about: [
-        { "@type": "Thing", name: "office bingo" },
-        { "@type": "Thing", name: "work party bingo" },
-        { "@type": "Thing", name: "workplace bingo" },
-        { "@type": "Thing", name: "employee engagement games" },
-      ],
-    },
-    {
-      "@type": "WebApplication",
-      "@id": "https://mybingocard.com/office-party-bingo#app",
-      name: "Office Bingo Card Generator",
-      url: "https://mybingocard.com/office-party-bingo",
-      description:
-        "Custom office bingo card generator for work parties, holiday events, team meetings, employee appreciation, and remote team games.",
-      applicationCategory: "GameApplication",
-      operatingSystem: "All",
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "USD",
-      },
-    },
-    {
-      "@type": "FAQPage",
-      "@id": "https://mybingocard.com/office-party-bingo#faq",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "How do you play office bingo?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Give each employee a unique card, explain the winning pattern, and let players mark workplace moments, party activities, meeting phrases, or event prompts as they happen.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "What should go on office bingo cards?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Use workplace moments such as muted mic, coffee run, printer jam, calendar invite, team photo, Secret Santa, potluck, boss speech, door prize, or department inside jokes.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Can office bingo work for remote teams?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. Share online cards for Zoom, Teams, Slack, or hybrid meetings so remote employees can play without printed cards.",
-          },
-        },
-      ],
-    },
-    {
-      "@type": "HowTo",
-      "@id": "https://mybingocard.com/office-party-bingo#howto",
-      name: "How to make office bingo cards",
-      description: "Create printable or online office bingo cards for workplace events.",
-      step: [
-        {
-          "@type": "HowToStep",
-          name: "Pick the event",
-          text: "Choose a holiday party, employee appreciation event, team meeting, remote call, kickoff, or office celebration.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Add workplace prompts",
-          text: "Use office moments, work party activities, team traditions, meeting phrases, and company culture prompts.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Shuffle unique cards",
-          text: "Generate different card layouts so employees do not all mark the same squares at the same time.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Print or share",
-          text: "Export printable PDFs or share online cards for remote and hybrid employees.",
-        },
-      ],
-    },
-  ],
+  "@type": "WebApplication",
+  name: "Office Bingo Card Generator",
+  url: "https://mybingocard.com/office-party-bingo",
+  description:
+    "Custom office bingo card generator for work parties, holiday events, and team meetings. Create hilarious custom office bingo card drafts quickly.",
+  applicationCategory: "GameApplication",
+  operatingSystem: "All",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -213,7 +131,7 @@ export default function OfficePartyBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Create printable office bingo cards for work parties, holiday events, team meetings, employee appreciation days, remote happy hours, and company celebrations. Add workplace moments such as muted mic, printer jam, coffee run, Secret Santa, potluck, door prize, team photo, boss speech, and meeting buzzwords, then shuffle unique layouts for each employee. Export PDFs for in person events or share online cards for Zoom, Teams, Slack, and hybrid teams.
+                    Liven up your next work party, holiday gathering, or team meeting with custom office bingo cards! Our office bingo draft editor creates hilarious, shareable cards full of relatable workplace moments — from jargon-heavy buzzwords to the infamous muted mic. Perfect for company holiday parties, virtual team events, remote happy hours, or just a fun Friday afternoon. Add your own inside jokes, company memes, or department-specific phrases to make every card uniquely yours. Each card is auto-randomized so no two employees have the same layout. Export PDF files for free or add paid digital links for in-person parties and remote teams. Whether you&apos;re planning a small team celebration or a company-wide event, our work party bingo generator makes engagement easy to plan!
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -243,19 +161,19 @@ export default function OfficePartyBingoPage() {
           <section className="py-20 bg-white">
             <div className="container mx-auto px-4 lg:px-8">
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
-                Office bingo for work parties, meetings, and employee events
+                Office bingo for every work occasion
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                Make workplace games easier to run with printable cards, online play, custom prompts, and clear prize rules.
+                From holiday parties to weekly standups — office bingo cards bring the team together.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
-                  { icon: "🎄", title: "Holiday Office Party", desc: "Use Secret Santa, ugly sweater, potluck, cookie table, gift exchange, and year end celebration prompts." },
-                  { icon: "💻", title: "Remote Meeting Bingo", desc: "Add muted mic, camera off, chat message, screen share, pet cameo, and calendar invite squares for virtual teams." },
-                  { icon: "🏆", title: "Team Building Events", desc: "Turn retreats, kickoff meetings, and staff appreciation days into a light activity with simple prize rules." },
-                  { icon: "🎁", title: "White Elephant Games", desc: "Let employees mark gift types, reactions, swaps, speeches, and prize moments during the exchange." },
-                  { icon: "🥳", title: "Employee Milestones", desc: "Celebrate birthdays, work anniversaries, retirements, promotions, and team wins with personalized cards." },
-                  { icon: "📊", title: "Sales Kickoff Events", desc: "Use speaker phrases, booth visits, sponsor moments, product mentions, and team goals for meeting engagement." },
+                  { icon: "🎄", title: "Holiday Office Party", desc: "Ugly sweaters, Secret Santa, potluck dishes — create holiday-themed bingo that gets the whole office laughing." },
+                  { icon: "💻", title: "Virtual Meeting Bingo", desc: "\"You're on mute!\" — make remote meetings fun with relatable work-from-home bingo squares." },
+                  { icon: "🏆", title: "Team Building Events", desc: "Break the ice at company retreats and team-building days with custom corporate bingo cards." },
+                  { icon: "🎁", title: "White Elephant Games", desc: "Add a bingo twist to gift exchanges — first to see certain gifts on their card wins a prize!" },
+                  { icon: "🥳", title: "Employee Milestones", desc: "Celebrate birthdays, work anniversaries, and retirements with personalized bingo cards." },
+                  { icon: "📊", title: "Sales Kickoff Events", desc: "Turn all-hands meetings and conference sessions into interactive bingo games." },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
                     <div className="text-4xl mb-4">{f.icon}</div>
@@ -274,10 +192,10 @@ export default function OfficePartyBingoPage() {
             </div>
             <div className="container mx-auto px-4 relative z-10 text-center">
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-                Make the next work event easier to join
+                Make the office party one they&apos;ll talk about Monday
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft office bingo cards for work parties, meetings, remote teams, and employee events, then print or share when you are ready.
+                Draft your office bingo cards in under 2 minutes, then start checkout to save or export.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-amber-50 transition-all duration-300 shadow-xl">

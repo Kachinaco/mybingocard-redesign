@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getAdminSessionEmail, isAdminSession } from "@/lib/admin";
-import clientPromise from "@/lib/mongodb";
+import { getAdminLayoutBadges } from "@/lib/db/admin-dashboard";
 import { AdminMobileNav } from "./admin-mobile-nav";
 
 export { metadata } from "./metadata";
@@ -73,34 +73,6 @@ const navItems = [
   },
 ];
 
-async function getLayoutBadges() {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const [openTickets, pastDueUsers, paidUsers, recentErrorGroups] = await Promise.all([
-    db.collection("support_tickets").countDocuments({ status: "open" }),
-    db.collection("users").countDocuments({ subscriptionStatus: "past_due" }),
-    db.collection("users").countDocuments({ subscriptionStatus: "active" }),
-    db.collection("error_fingerprints").countDocuments({
-      lastSeenAt: { $gte: since },
-      $or: [
-        { status: { $exists: false } },
-        { status: null },
-        { status: { $nin: ["fixed", "ignored"] } },
-      ],
-    }),
-  ]);
-
-  return {
-    openTickets,
-    pastDueUsers,
-    recentErrorGroups,
-    mrr: paidUsers * 7.99,
-    activeUsers: paidUsers,
-  };
-}
-
 export default async function AdminLayout({
   children,
 }: {
@@ -120,7 +92,7 @@ export default async function AdminLayout({
     redirect("/dashboard");
   }
 
-  const badges = await getLayoutBadges();
+  const badges = await getAdminLayoutBadges();
 
   const mobileNavItems = navItems.map((item) => ({
     label: item.label,

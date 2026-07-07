@@ -1,5 +1,5 @@
 import { sendSmtpMail, type SmtpMail } from "@/lib/smtp";
-import clientPromise from "@/lib/mongodb";
+import { recordEmailMessageSent } from "@/lib/db/email-marketing";
 import crypto from "node:crypto";
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
@@ -276,31 +276,14 @@ async function sendEmail(payload: EmailPayload): Promise<boolean> {
     });
     if (campaignId) {
       try {
-        const client = await clientPromise;
-        const db = client.db("mybingocard");
-        await db.collection("email_messages").updateOne(
-          { emailId },
-          {
-            $set: {
-              messageId: result.messageId,
-              email: payload.to,
-              campaignId,
-              subject: payload.subject,
-              sentAt,
-              updatedAt: sentAt,
-            },
-            $setOnInsert: {
-              emailId,
-              status: "sent",
-              openCount: 0,
-              humanOpenCount: 0,
-              botOpenCount: 0,
-              clickCount: 0,
-              createdAt: sentAt,
-            },
-          },
-          { upsert: true }
-        );
+        await recordEmailMessageSent({
+          emailId,
+          messageId: result.messageId,
+          email: payload.to,
+          campaignId,
+          subject: payload.subject,
+          sentAt,
+        });
       } catch (trackingError) {
         console.error("Failed to record email tracking row:", trackingError);
       }
@@ -319,10 +302,10 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<boolea
   const bodyHtml = `
     ${renderPanel(renderBulletList([
       "Draft themed bingo cards in minutes.",
-      "Draft and customize cards before checkout.",
-      "Unlock printable batch packs, player sharing, and live hosting when your game is ready."
+      "Save, customize, and export individual cards for free.",
+      "Use printable batch packs, paid sharing, or Premium hosting when you need larger sets or live games."
     ]), "violet")}
-    <p style="margin:0;font-size:15px;color:#334155;">You are all set, ${escapeHtml(firstName)}. Start with your first card, then add batches, sharing, or hosting when you need it.</p>
+    <p style="margin:0;font-size:15px;color:#334155;">You are all set, ${escapeHtml(firstName)}. Start with your first card, then add paid batches, sharing, or hosting only when you need it.</p>
   `;
 
   return sendEmail({
@@ -340,7 +323,7 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<boolea
       email: to,
       campaignId: "welcome",
     }),
-    text: `Welcome, ${firstName}!\n\nThanks for joining MyBingoCard.\n\nYou can now:\n- Draft themed bingo cards in minutes\n- Draft and customize cards before checkout\n- Unlock printable batch packs, player sharing, and live hosting when your game is ready\n\nStart here: ${appUrl}/create\n\nNeed help? Reply to this email.`,
+    text: `Welcome, ${firstName}!\n\nThanks for joining MyBingoCard.\n\nYou can now:\n- Draft themed bingo cards in minutes\n- Save, customize, and export individual cards for free\n- Use printable batch packs, paid sharing, or Premium hosting when you need larger sets or live games\n\nStart here: ${appUrl}/create\n\nNeed help? Reply to this email.`,
     marketing: true,
   });
 }
@@ -535,7 +518,7 @@ export async function sendBillingFailedEmail(
     ${renderBulletList([
       "Open billing settings.",
       "Update payment method.",
-      "Your account access stays active while Stripe retries the payment."
+      "Your Premium access stays available while Stripe retries the payment."
     ])}
   `;
 
@@ -554,7 +537,7 @@ export async function sendBillingFailedEmail(
       email: to,
       campaignId: "billing-failed",
     }),
-    text: `Hi ${firstName},\n\nWe could not process your payment of ${amount}.\n${attemptCount ? `Attempt: ${attemptCount}.\n` : ""}${retryLine}\n\nYour account access stays active while Stripe retries the payment.\n\nUpdate billing details: ${manageBillingUrl}`,
+    text: `Hi ${firstName},\n\nWe could not process your payment of ${amount}.\n${attemptCount ? `Attempt: ${attemptCount}.\n` : ""}${retryLine}\n\nYour Premium access stays available while Stripe retries the payment.\n\nUpdate billing details: ${manageBillingUrl}`,
   });
 }
 
@@ -623,7 +606,7 @@ export async function sendAbandonedCheckoutEmail(
   const isSubscription = purchaseType === "subscription" || purchaseType === "trial";
 
   const subject = isSubscription
-    ? "Still thinking it over? Your premium access is waiting"
+    ? "Still thinking it over? Your Premium spot is waiting"
     : `Your ${batchCount ?? ""} card batch is still available`;
 
   const headline = isSubscription
@@ -631,7 +614,7 @@ export async function sendAbandonedCheckoutEmail(
     : "Your batch cards are a click away";
 
   const intro = isSubscription
-    ? `Hi ${firstName}, we noticed you started upgrading to premium access but didn't complete it.`
+    ? `Hi ${firstName}, we noticed you started upgrading to Premium but didn't complete it.`
     : `Hi ${firstName}, you were so close to generating ${batchCount ? `${batchCount} unique bingo cards` : "your card batch"}.`;
 
   const bulletItems = isSubscription
@@ -639,11 +622,11 @@ export async function sendAbandonedCheckoutEmail(
         "Live bingo event hosting.",
         "Direct player links and email sharing.",
         "Unique shuffled cards per viewer.",
-        "Sharing workflow for groups.",
+        "Paid sharing workflow for groups.",
       ]
     : [
         `${batchCount ?? "Multiple"} unique shuffled cards from your item list.`,
-        "Printable PDF export in seconds.",
+        "free PDF export in seconds.",
         "Perfect for parties, classrooms, and game nights.",
       ];
 
@@ -663,8 +646,8 @@ export async function sendAbandonedCheckoutEmail(
     html: renderLayout({
       theme: "violet",
       preheader: isSubscription
-        ? "Premium access is available — pick up where you left off."
-        : `Your ${batchCount ?? ""} card batch is still waiting — finish setup now.`,
+        ? "Your Premium upgrade is incomplete — pick up where you left off."
+        : `Your ${batchCount ?? ""} card batch is still waiting — finish checkout now.`,
       headline,
       intro,
       bodyHtml,
@@ -675,7 +658,7 @@ export async function sendAbandonedCheckoutEmail(
       campaignId: "abandoned-checkout",
     }),
     text: isSubscription
-      ? `Hi ${firstName},\n\nPremium access includes:\n- Live bingo event hosting\n- Direct player links and email sharing\n- Unique shuffled cards per viewer\n- Sharing workflow for groups\n\nContinue here: ${appUrl}/create\n\nQuestions? Reply to this email.`
+      ? `Hi ${firstName},\n\nYou started upgrading to Premium but didn't finish.\n\nPremium includes:\n- Live bingo event hosting\n- Direct player links and email sharing\n- Unique shuffled cards per viewer\n- Paid sharing workflow for groups\n\nComplete your upgrade: ${appUrl}/pricing\n\nQuestions? Reply to this email.`
       : `Hi ${firstName},\n\nYou were close to generating ${batchCount ? `${batchCount} unique bingo cards` : "your card batch"}.\n\nHead back to finish: ${appUrl}/create\n\nQuestions? Reply to this email.`,
     marketing: true,
   });
@@ -694,7 +677,7 @@ export async function sendCardComebackEmail(
     ${renderPanel(renderBulletList([
       "Open the card and tap squares to play solo.",
       "Copy a share link for players.",
-      "Export a PDF if you want to print it.",
+      "Export a PDF for free if you want to print it.",
     ]), "emerald")}
     <p style="margin:0;font-size:15px;color:#334155;">Your saved card is still in your dashboard whenever you need it.</p>
   `;
@@ -902,29 +885,29 @@ export async function sendCardLimitEmail(to: string, name: string) {
 
   return sendEmail({
     to,
-    subject: `${firstName}, unlock premium bingo features`,
+    subject: `${firstName}, unlock Premium bingo features`,
     html: renderLayout({
       theme: "violet",
-      preheader: "Use premium tools for batches, live hosting, and direct player sharing.",
-      headline: "Unlock premium bingo features",
-      intro: `Hey ${firstName}, your account can unlock printable batches, sharing, and hosting tools for player-ready bingo events.`,
+      preheader: "Upgrade to Premium for batches, live hosting, and direct player sharing.",
+      headline: "Unlock Premium bingo features",
+      intro: `Hey ${firstName}, Premium gives you printable batches, paid sharing, and hosting tools for player-ready bingo events.`,
       bodyHtml: `
         ${renderPanel(renderBulletList([
           "Live bingo event rooms",
           "Printable batches up to 500 cards",
           "Direct player links and email sharing",
           "Unique shuffled cards per viewer",
-          "Sharing workflow for groups",
+          "Paid sharing workflow for groups",
           "Priority support",
         ]), "violet")}
-        <p style="margin:0;font-size:15px;color:#334155;">You can start creating right away.</p>`,
-      ctaLabel: "Use Premium Tools →",
+        <p style="margin:0;font-size:15px;color:#334155;">Upgrade takes 30 seconds and you can start creating right away.</p>`,
+      ctaLabel: "Upgrade to Premium →",
       ctaUrl: trackableUrl(`${appUrl}/pricing?utm_source=mybingocard&utm_medium=email&utm_campaign=card_limit_hit`, to, "card_limit", "upgrade_button"),
       ctaHint: "Just reply to this email if you have questions.",
       email: to,
       campaignId: "card-limit",
     }),
-    text: `Hey ${firstName},\n\nYour account can unlock printable batches up to 500 cards, live bingo event hosting, direct player links, email sharing, unique shuffled cards per viewer, and sharing workflows for groups.\n\nContinue here: ${appUrl}/create\n\nQuestions? Reply to this email.`,
+    text: `Hey ${firstName},\n\nPremium gives you printable batches up to 500 cards, live bingo event hosting, direct player links, email sharing, unique shuffled cards per viewer, and paid sharing workflows for groups.\n\nUpgrade here: ${appUrl}/pricing\n\nQuestions? Reply to this email.`,
     marketing: true,
   });
 }

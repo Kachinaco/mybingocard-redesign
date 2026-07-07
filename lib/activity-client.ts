@@ -58,6 +58,21 @@ const TRACKER_LITE_EVENT_MAP: Record<string, string> = {
   auth_error_shown: "form_error",
   password_reset_requested: "form_submit",
   auth_magic_link_requested: "form_submit",
+  bingo_achieved: "conversion",
+  upgrade_dismissed: "click",
+  batch_tier_selected: "click",
+  export_button_clicked: "click",
+  batch_button_clicked: "click",
+  batch_primary_clicked: "click",
+  batch_pdf_export_started: "conversion",
+  card_save_attempted: "click",
+  card_save_blocked: "form_error",
+  save_blocked_auth_required: "form_submit",
+  oauth_signup_started: "signup",
+  checkout_auto_started_after_auth: "conversion",
+  checkout_loaded: "conversion",
+  checkout_cancel_clicked: "click",
+  premium_gate_keep_drafting_clicked: "click",
 };
 
 function makeClientId(prefix: "sess" | "anon"): string {

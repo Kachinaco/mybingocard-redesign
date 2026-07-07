@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import clientPromise from "@/lib/mongodb";
+import {
+  getLiveGameWaitlist,
+  upsertLiveGameWaitlistEntry,
+} from "@/lib/db/live-game-waitlist";
 
 export async function POST() {
   const session = await auth();
@@ -9,17 +12,11 @@ export async function POST() {
   }
 
   try {
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    await db.collection("live_game_waitlist").updateOne(
-      { email: session.user.email },
-      {
-        $set: { email: session.user.email, name: session.user.name || "", userId: session.user.id || "" },
-        $setOnInsert: { createdAt: new Date() },
-      },
-      { upsert: true }
-    );
+    await upsertLiveGameWaitlistEntry({
+      email: session.user.email,
+      name: session.user.name,
+      userId: session.user.id,
+    });
 
     return NextResponse.json({ ok: true });
   } catch (err) {
@@ -35,9 +32,7 @@ export async function GET() {
     if (!session?.user?.email || !adminEmails.includes(session.user.email)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-    const list = await db.collection("live_game_waitlist").find({}).sort({ createdAt: -1 }).toArray();
+    const list = await getLiveGameWaitlist();
     return NextResponse.json({ count: list.length, list });
   } catch (error) {
     console.error("Waitlist GET error:", error);

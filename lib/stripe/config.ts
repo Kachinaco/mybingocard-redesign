@@ -32,7 +32,6 @@ export const STRIPE_CONFIG = {
 };
 
 export const PREMIUM_MONTHLY_PRICE = 7.99;
-export const PREMIUM_TRIAL_DAYS = 3;
 export const LIFETIME_PRICE_ID = process.env.STRIPE_PREMIUM_ONETIME_PRICE_ID || "price_1TeG1ZGk2tmTlW8ZYqNKvjfX";
 export const LIFETIME_PRICE = 29.99;
 
@@ -50,27 +49,27 @@ export const PLANS = {
     price: 0,
     priceId: null,
     features: [
-      "Unlimited saved bingo cards",
+      "1 saved bingo card",
       "All grid sizes (3x3, 4x4, 5x5)",
       "All templates",
       "Image bingo cards",
       "PDF and PNG export",
       "Custom colors & fonts",
-      "Printable batches up to 500 cards",
+      "Paid printable batch packs",
       "AI-powered card generation",
       "Profile and saved-card access",
-      "Share links, email sharing, and hosted bingo events",
+      "Paid batches, share links, and hosted bingo events are optional",
     ],
     limits: {
-      maxCards: -1,
+      maxCards: 1,
       maxSize: 5,
-      maxBatchSize: 500,
+      maxBatchSize: 1,
       canExportPNG: true,
       canExportHD: true,
       canUseCustomFonts: true,
       canUseCustomColors: true,
       canUseAdvancedTemplates: true,
-      canShuffleSharedCards: true,
+      canShuffleSharedCards: false,
       canUploadImages: true,
       maxImageUploads: 500,
       canUseAiGenerate: true,
@@ -87,7 +86,7 @@ export const PLANS = {
       "Direct player links and email sharing",
       "Unique shuffled card per viewer",
       "Printable batches up to 500 cards",
-      "Sharing workflow for groups",
+      "Paid sharing workflow for groups",
       "Priority support",
     ],
     limits: {

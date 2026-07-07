@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { joinGameRoom, getGameRoom } from "@/lib/db/games";
 import { trackActivity, getRequestActivityContext } from "@/lib/activity";
-import { notifyLiveGamePlayerJoined } from "@/lib/discord";
 import { readJsonObject } from "@/lib/request-json";
 
 function validatePlayerName(name: unknown): string | null {
@@ -91,14 +90,6 @@ export async function POST(
         playerCount: result.room.players?.length || 1,
       },
     }).catch(() => {});
-
-    notifyLiveGamePlayerJoined(
-      result.player.playerName,
-      result.room.title,
-      roomCode,
-      result.room.players?.length || 1,
-      result.room.status
-    ).catch(() => {});
 
     return NextResponse.json({
       playerId: result.player.playerId,

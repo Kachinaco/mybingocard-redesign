@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { trackClientActivity } from "@/lib/activity-client";
+import { redirectToCheckout } from "@/lib/upgrade";
 
 export default function StartGameButton({
   cardId,
@@ -32,7 +33,15 @@ export default function StartGameButton({
         trackClientActivity("game_create_failed", {
           cardId,
           error: data.error || "Failed to start live game.",
+          upgradeRequired: Boolean(data.upgradeRequired || data.trialRequired),
         });
+        if (data.upgradeRequired || data.trialRequired) {
+          await redirectToCheckout({
+            label: "Premium monthly, $7.99/mo",
+            successPath: `${window.location.pathname}${window.location.search}`,
+          });
+          return;
+        }
         setError(data.error || "Failed to start live game.");
         return;
       }

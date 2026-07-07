@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import clientPromise from "@/lib/mongodb";
+import { createNativeOAuthHandoff } from "@/lib/db/auth-data";
 import {
   createNativeOAuthToken,
   hashNativeOAuthToken,
@@ -25,10 +25,7 @@ export async function GET(request: NextRequest) {
   const now = new Date();
   const expiresAt = new Date(now.getTime() + 2 * 60 * 1000);
 
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  await db.collection("native_oauth_handoffs").insertOne({
+  await createNativeOAuthHandoff({
     tokenHash,
     userId: user.id,
     email: user.email,

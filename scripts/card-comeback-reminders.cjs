@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const nodemailer = require('./smtp-client.cjs');
 const { MongoClient, ObjectId } = require('mongodb');
+const { openSqliteShadowStore, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
 
 const envPath = path.join(__dirname, '..', '.env.local');
 try {
@@ -123,7 +124,157 @@ function userIdQueries(userId) {
   return queries;
 }
 
+function objectIdString(value) {
+  if (value instanceof ObjectId) return value.toHexString();
+  if (value && typeof value === 'object' && typeof value.toHexString === 'function') {
+    return value.toHexString();
+  }
+  if (value && typeof value === 'object' && typeof value.$oid === 'string') {
+    return value.$oid;
+  }
+  return String(value || '');
+}
+
+function dateValue(value) {
+  const date = value instanceof Date ? value : new Date(value || 0);
+  const time = date.getTime();
+  return Number.isNaN(time) ? null : date;
+}
+
+function timestamp(value) {
+  const date = dateValue(value);
+  return date ? date.getTime() : 0;
+}
+
+function cardBelongsToUser(card, userId) {
+  return objectIdString(card.userId) === userId;
+}
+
+function latestCardForUser(cards, userId) {
+  return cards
+    .filter((card) => cardBelongsToUser(card, userId))
+    .sort((a, b) => timestamp(b.createdAt) - timestamp(a.createdAt))[0] || null;
+}
+
+function hasPlayedAfterCreate(activityEvents, user, email, cardCreatedAt) {
+  const userId = objectIdString(user._id);
+  const playEvents = new Set(['play_started', 'cell_toggled', 'bingo_achieved']);
+  return activityEvents.some((event) => {
+    if (!playEvents.has(event.event)) return false;
+    if (objectIdString(event.userId) !== userId && normalizeEmail(event.email) !== email) return false;
+    const createdAt = dateValue(event.createdAt);
+    return Boolean(createdAt && createdAt >= cardCreatedAt);
+  });
+}
+
+async function mainSqlite() {
+  const store = openSqliteShadowStore();
+  try {
+    const now = Date.now();
+    const newest = new Date(now - MIN_AGE_HOURS * 60 * 60 * 1000);
+    const oldest = new Date(now - MAX_AGE_DAYS * 24 * 60 * 60 * 1000);
+
+    const blocked = new Set(
+      store
+        .findMany('email_preferences')
+        .map((row) => row.document)
+        .filter((preference) => preference.unsubscribed === true || preference.marketingEmails === false)
+        .map((preference) => normalizeEmail(preference.email))
+        .filter(Boolean)
+    );
+
+    const cards = store.findMany('cards').map((row) => row.document);
+    const dripLogs = store.findMany('drip_log').map((row) => row.document);
+    const activityEvents = store.findMany('activity_events').map((row) => row.document);
+    const users = store
+      .findMany('users')
+      .map((row) => row.document)
+      .filter((user) => {
+        const email = normalizeEmail(user.email);
+        if (!email || blocked.has(email)) return false;
+        if (TARGET_EMAIL && email !== TARGET_EMAIL) return false;
+        if (['admin', 'test', 'guest'].includes(user.customerType)) return false;
+        const lastCardCreatedAt = dateValue(user.lastCardCreatedAt);
+        return Boolean(lastCardCreatedAt && lastCardCreatedAt >= oldest && lastCardCreatedAt <= newest);
+      })
+      .sort((a, b) => timestamp(b.lastCardCreatedAt) - timestamp(a.lastCardCreatedAt))
+      .slice(0, LIMIT);
+
+    let considered = 0;
+    let skipped = 0;
+    let sent = 0;
+
+    for (const user of users) {
+      considered += 1;
+      const email = normalizeEmail(user.email);
+      const userId = objectIdString(user._id);
+      const card = latestCardForUser(cards, userId);
+      if (!card) {
+        skipped += 1;
+        continue;
+      }
+
+      const cardCreatedAt = dateValue(card.createdAt || user.lastCardCreatedAt);
+      if (!cardCreatedAt) {
+        skipped += 1;
+        continue;
+      }
+
+      const cardId = objectIdString(card._id);
+      const alreadySent = dripLogs.some((log) => (
+        normalizeEmail(log.email) === email
+        && log.campaignId === CAMPAIGN_ID
+        && objectIdString(log.cardId) === cardId
+      ));
+      if (alreadySent) {
+        skipped += 1;
+        continue;
+      }
+
+      if (hasPlayedAfterCreate(activityEvents, user, email, cardCreatedAt)) {
+        skipped += 1;
+        continue;
+      }
+
+      const emailPayload = buildEmail({ email, name: user.name, card });
+      console.log(`${SEND_EMAILS ? 'SEND' : 'DRY_RUN'} ${email} card="${card.title}" created=${cardCreatedAt.toISOString()}`);
+
+      if (!SEND_EMAILS) continue;
+
+      await transporter.sendMail({
+        from: FROM_ADDRESS,
+        to: email,
+        subject: emailPayload.subject,
+        html: emailPayload.html,
+        text: emailPayload.text,
+        headers: {
+          'List-Unsubscribe': `<${APP_URL}/api/unsubscribe?email=${encodeURIComponent(email)}>, <mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(email)}>`,
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        },
+      });
+      store.insertOne('drip_log', {
+        userId,
+        email,
+        campaignId: CAMPAIGN_ID,
+        cardId,
+        sentAt: new Date(),
+        source: 'card-comeback-reminders',
+      });
+      sent += 1;
+    }
+
+    console.log(`Done. considered=${considered} skipped=${skipped} sent=${sent} dryRun=${!SEND_EMAILS}`);
+  } finally {
+    store.close();
+  }
+}
+
 async function main() {
+  if (useSqliteBackend()) {
+    await mainSqlite();
+    return;
+  }
+
   const client = new MongoClient(MONGODB_URI);
   await client.connect();
   const db = client.db('mybingocard');

@@ -4,9 +4,9 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Movie Bingo Cards Printable: Watch Party Game",
+  title: "Movie Bingo Cards — Custom Movie Night Bingo Generator | MyBingoCard",
   description:
-    "Create printable movie bingo cards for watch parties, family movie nights, Oscar parties, horror marathons, and film trope games.",
+    "Create movie bingo cards for your next movie night or watch party. Custom film bingo generator with tropes, cliches, and custom squares. Printable movie night bingo cards with free PDF export.",
   alternates: {
     canonical: "https://mybingocard.com/movie-bingo",
   },
@@ -14,87 +14,26 @@ export const metadata: Metadata = {
 
 const movieSquares = [
   "Plot Twist", "Jump Scare", "Love Scene", "Car Chase", "FREE",
-  "Bad Accent", "Chosen One", "Explosion", "Sequel Setup", "Famous Quote",
+  "Bad Accent", "The Chosen One", "Explosion", "Sequel Bait", "Wilhelm Scream",
   "Montage", "Slow Motion", "Plot Armor", "Villain Speech", "Comic Relief",
-  "Training Scene", "Flashback", "Cliffhanger", "Post Credits", "Award Speech",
+  "Training Arc", "Flashback", "Cliffhanger", "Post Credits", "Stan Lee Cameo",
   "Dramatic Rain", "Cool Walk", "Surprise Ally", "Final Battle", "Happy Ending",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebPage",
-      name: "Movie Bingo Cards Printable",
-      url: "https://mybingocard.com/movie-bingo",
-      description:
-        "Create printable movie bingo cards for watch parties, family movie nights, Oscar parties, horror marathons, and film trope games.",
-    },
-    {
-      "@type": "WebApplication",
-      name: "Movie Bingo Card Generator",
-      url: "https://mybingocard.com/movie-bingo",
-      description:
-        "Custom movie bingo card generator for printable watch party cards, film trope prompts, award night games, horror movie marathons, and online movie bingo.",
-      applicationCategory: "GameApplication",
-      operatingSystem: "All",
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "USD",
-      },
-    },
-    {
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "What should I put on movie bingo cards?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Use film tropes, genre moments, famous quotes, jump scares, plot twists, car chases, romantic scenes, post credit scenes, award show moments, and prompts specific to the movie or franchise.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Can I print unique cards for a movie night?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. Add your movie prompts once, generate shuffled boards, and export printable PDFs so every watch party guest has a different card.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How do you play movie bingo?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Hand out cards before the movie starts, mark squares when a matching trope or scene happens, and award prizes for five in a row, four corners, or a full card.",
-          },
-        },
-      ],
-    },
-    {
-      "@type": "HowTo",
-      name: "How to make movie bingo cards",
-      step: [
-        {
-          "@type": "HowToStep",
-          name: "Pick movie prompts",
-          text: "Add film tropes, genre cliches, watch party jokes, award show moments, franchise details, or scene predictions.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Generate unique boards",
-          text: "Create shuffled bingo cards so friends, family, students, or party guests each get a different layout.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Print or share",
-          text: "Export PDFs for the couch, classroom, or watch party table, or share online cards for remote viewing.",
-        },
-      ],
-    },
-  ],
+  "@type": "WebApplication",
+  name: "Movie Bingo Card Generator",
+  url: "https://mybingocard.com/movie-bingo",
+  description:
+    "Custom movie bingo card generator. Create printable movie night bingo cards with film tropes, cliches, and custom squares — perfect for watch parties and movie nights.",
+  applicationCategory: "GameApplication",
+  operatingSystem: "All",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -192,7 +131,7 @@ export default function MovieBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Create printable movie bingo cards for watch parties, family movie nights, Oscar parties, horror marathons, date nights, media studies classes, and franchise binges. Add film tropes, famous quotes, genre cliches, plot twists, jump scares, award show moments, post credit scenes, and custom prompts for the exact movie you are watching. Generate shuffled cards so every guest has a different board, then export PDFs or share online cards for remote viewing.
+                    Make every movie night unforgettable with custom movie bingo cards! Our film bingo draft editor lets you create printable bingo cards packed with classic movie tropes, cliches, and moments — from plot twists and jump scares to villain monologues and post-credit scenes. Every card is uniquely shuffled so the whole watch party can play along without duplicates. Perfect for family movie nights, Oscar watch parties, horror marathons, or date night at home. Export printable PDF cards for free or add paid digital links so everyone can play on their phones. With genre-specific templates for action, comedy, romance, horror, and sci-fi, you can customize cards to match any film. A movie night bingo draft editor that is easy to customize for your watch party.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -205,10 +144,10 @@ export default function MovieBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      See Activation
+                      View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Draft tools · Works with any film · Premium export</p>
+                  <p className="text-sm text-slate-400">Free creator tools · Works with any film · free PDF export</p>
                 </div>
 
                 <div className="relative">
@@ -225,16 +164,16 @@ export default function MovieBingoPage() {
                 A customizable watch party companion
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                Turn passive watching into a game with printable boards, online cards, genre prompts, and simple watch party rules.
+                Movie bingo turns passive watching into an interactive group experience everyone loves.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
-                  { icon: "🎬", title: "Film Trope Prompts", desc: "Use plot twists, jump scares, villain speeches, dramatic rain, post credit scenes, and classic genre moments." },
-                  { icon: "✏️", title: "Custom Movie Lists", desc: "Add prompts for a specific film, franchise, director, award show, classroom unit, or themed movie marathon." },
-                  { icon: "🎥", title: "Any Genre Works", desc: "Build cards for horror, romance, comedy, action, sci-fi, holiday movies, kids movies, or Oscar night." },
-                  { icon: "🖨️", title: "Printable PDFs", desc: "Export clean PDF cards for couch tables, classrooms, sleepovers, date nights, and watch party handouts." },
-                  { icon: "🍿", title: "Watch Party Rules", desc: "Mark a square when the scene appears, then play for five in a row, four corners, blackout, or prize rounds." },
-                  { icon: "🎞️", title: "Online Or In Person", desc: "Print cards for local guests or share online boards when everyone is watching from different homes." },
+                  { icon: "🎬", title: "Movie Tropes", desc: "Pre-loaded with the best film cliches — plot twists, jump scares, villain speeches, and dramatic rain scenes." },
+                  { icon: "✏️", title: "Custom Word Lists", desc: "Add your own squares for specific movies, franchises, or directors. Make bingo cards for Marvel, Star Wars, or any series." },
+                  { icon: "🎥", title: "Works with Any Film", desc: "Action, comedy, horror, romance, sci-fi — movie bingo cards work with every genre and any movie you watch." },
+                  { icon: "🖨️", title: "PDF Exports", desc: "Export clean PDF cards for free, sized for movie night and crisp printing." },
+                  { icon: "🍿", title: "Great for Watch Parties", desc: "Oscar nights, horror marathons, franchise binges — movie bingo keeps the whole group engaged and laughing." },
+                  { icon: "🎞️", title: "Fun for Movie Buffs", desc: "Film nerds and casual viewers alike love spotting tropes. The perfect game for cinephiles of all levels." },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
                     <div className="text-4xl mb-4">{f.icon}</div>
@@ -256,14 +195,14 @@ export default function MovieBingoPage() {
                 Lights, camera, bingo!
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft movie bingo cards for watch parties, Oscar night, horror marathons, and family movie nights, then print or share when you are ready.
+                Draft movie bingo cards in under 2 minutes, then start checkout to save or export.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-amber-50 transition-all duration-300 shadow-xl">
                   Start a Free Movie Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Activation
+                  See Pricing Plans
                 </Link>
               </div>
             </div>
@@ -285,7 +224,7 @@ export default function MovieBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  The bingo card maker for movie nights, watch parties, and every occasion.
+                  The free bingo draft editor for movie nights, watch parties, and every occasion.
                 </p>
               </div>
               <div>

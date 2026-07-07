@@ -1,8 +1,7 @@
 User-agent: *
 Allow: /
 
-# Block API routes and authenticated app surfaces. Crawlable utility pages carry
-# noindex meta tags so search engines can see and honor the noindex directive.
+# Block API routes and private app surfaces
 Disallow: /api/
 Disallow: /dashboard/
 Disallow: /settings
@@ -14,6 +13,8 @@ Disallow: /game/
 Disallow: /share/
 Disallow: /cards/
 Disallow: /r/
+
+# Keep password reset and account-recovery URLs out of crawl paths
 Disallow: /forgot-password
 Disallow: /reset-password
 

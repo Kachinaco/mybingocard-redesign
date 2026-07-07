@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { trackActivity, getRequestActivityContext } from "@/lib/activity";
-import clientPromise from "@/lib/mongodb";
-import {
-  getEmailSubscribersCollection,
-  upsertEmailSubscriber,
-} from "@/lib/email-capture/subscribers";
+import { captureEmailSubscriber } from "@/lib/email-capture/subscribers";
+import { findActiveSignupBlock } from "@/lib/db/auth-data";
 import { readJsonObject } from "@/lib/request-json";
 import { evaluateHoneypot } from "@/lib/honeypot";
 
@@ -49,19 +46,14 @@ export async function POST(request: Request) {
           elapsedMs: honeypot.elapsedMs,
         },
       }).catch(() => {});
-      return NextResponse.json({ success: true, message: "Thanks! Check your email for your template links." });
+      return NextResponse.json({ success: true, message: "Thanks! Check your email for your free templates." });
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
     const blockFilters: Array<Record<string, string>> = [{ type: "email", value: normalizedInputEmail }];
     if (reqCtx.ipAddress) {
       blockFilters.push({ type: "ip", value: reqCtx.ipAddress });
     }
-    const captureBlock = await db.collection("signup_blocks").findOne({
-      active: { $ne: false },
-      $or: blockFilters,
-    });
+    const captureBlock = await findActiveSignupBlock(blockFilters);
     if (captureBlock) {
       trackActivity({
         event: "email_capture_blocked",
@@ -78,12 +70,10 @@ export async function POST(request: Request) {
           reason: captureBlock.reason || "blocked_identity",
         },
       }).catch(() => {});
-      return NextResponse.json({ success: true, message: "Thanks! Check your email for your template links." });
+      return NextResponse.json({ success: true, message: "Thanks! Check your email for your free templates." });
     }
 
-    const subscribers = await getEmailSubscribersCollection(db);
-    const { email: normalizedEmail, duplicate } = await upsertEmailSubscriber(
-      subscribers,
+    const { email: normalizedEmail, duplicate } = await captureEmailSubscriber(
       normalizedInputEmail,
       source
     );
@@ -102,7 +92,7 @@ export async function POST(request: Request) {
       },
     }).catch(() => {});
 
-    return NextResponse.json({ success: true, message: "Thanks! Check your email for your template links." });
+    return NextResponse.json({ success: true, message: "Thanks! Check your email for your free templates." });
   } catch (error) {
     console.error("Email capture error:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });

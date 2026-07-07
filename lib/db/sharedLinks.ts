@@ -1,6 +1,7 @@
 import clientPromise from "../mongodb";
-import type { Collection, ObjectId } from "mongodb";
+import { ObjectId, type Collection } from "mongodb";
 import crypto from "crypto";
+import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
 
 export type SharedLinkStatus = "pending" | "claimed" | "expired" | "refunded";
 
@@ -31,7 +32,37 @@ export type CreateSharedLinkInput = Omit<
   status?: SharedLinkStatus;
 };
 
+export interface ShareLinkCheckoutRef {
+  _id: ObjectId;
+  userId: string;
+  createdAt: Date;
+  cardIds?: string[];
+  recipientEmails?: string[];
+  recipientPhones?: string[];
+}
+
+export interface ShareEmailCheckoutRef {
+  _id: ObjectId;
+  userId: string;
+  userEmail: string;
+  cardId: string;
+  emails: string[];
+  createdAt: Date;
+}
+
+export interface PreparedSharedLinkInsertFailure {
+  index: number;
+  error: string;
+}
+
+export interface PreparedSharedLinkInsertResult {
+  insertedIndexes: number[];
+  failed: PreparedSharedLinkInsertFailure[];
+}
+
 let indexesEnsured = false;
+let checkoutRefsIndexEnsured = false;
+let emailCheckoutRefsIndexEnsured = false;
 async function ensureIndexes(collection: Collection<SharedLink>) {
   if (indexesEnsured) return;
   try {
@@ -48,6 +79,48 @@ async function ensureIndexes(collection: Collection<SharedLink>) {
   }
 }
 
+async function getShareLinkCheckoutRefsCollection() {
+  const client = await clientPromise;
+  const collection = client
+    .db("mybingocard")
+    .collection<ShareLinkCheckoutRef>("share_link_checkout_refs");
+
+  if (!checkoutRefsIndexEnsured) {
+    try {
+      await collection.createIndex(
+        { createdAt: 1 },
+        { expireAfterSeconds: 24 * 60 * 60, name: "share_link_checkout_refs_ttl" }
+      );
+    } catch (error) {
+      console.error("share_link_checkout_refs index setup failed:", error);
+    }
+    checkoutRefsIndexEnsured = true;
+  }
+
+  return collection;
+}
+
+async function getShareEmailCheckoutRefsCollection() {
+  const client = await clientPromise;
+  const collection = client
+    .db("mybingocard")
+    .collection<ShareEmailCheckoutRef>("share_email_checkout_refs");
+
+  if (!emailCheckoutRefsIndexEnsured) {
+    try {
+      await collection.createIndex(
+        { createdAt: 1 },
+        { expireAfterSeconds: 24 * 60 * 60, name: "share_email_checkout_refs_ttl" }
+      );
+    } catch (error) {
+      console.error("share_email_checkout_refs index setup failed:", error);
+    }
+    emailCheckoutRefsIndexEnsured = true;
+  }
+
+  return collection;
+}
+
 async function getSharedLinksCollection() {
   const client = await clientPromise;
   const collection = client
@@ -59,6 +132,14 @@ async function getSharedLinksCollection() {
   return collection;
 }
 
+function toObjectIdOrNull(id: string): ObjectId | null {
+  try {
+    return new ObjectId(id);
+  } catch {
+    return null;
+  }
+}
+
 // Generate a URL-safe 8-char token using crypto randomness.
 // Alphabet avoids visually ambiguous characters.
 export function generateLinkId(): string {
@@ -68,6 +149,126 @@ export function generateLinkId(): string {
     result += chars.charAt(crypto.randomInt(0, chars.length));
   }
   return result;
+}
+
+export async function ensureShareLinkCheckoutRefsReady(): Promise<void> {
+  if (useSqliteDb()) return;
+  await getShareLinkCheckoutRefsCollection();
+}
+
+export async function insertShareLinkCheckoutRef(
+  doc: ShareLinkCheckoutRef
+): Promise<void> {
+  if (useSqliteDb()) {
+    getSqliteStore().insertOne("share_link_checkout_refs", doc);
+    return;
+  }
+
+  const collection = await getShareLinkCheckoutRefsCollection();
+  await collection.insertOne(doc);
+}
+
+export async function getShareLinkCheckoutRefById(
+  id: string
+): Promise<ShareLinkCheckoutRef | null> {
+  const objectId = toObjectIdOrNull(id);
+  if (!objectId) return null;
+
+  if (useSqliteDb()) {
+    return getSqliteStore().findOne<ShareLinkCheckoutRef>(
+      "share_link_checkout_refs",
+      { _id: objectId }
+    );
+  }
+
+  const collection = await getShareLinkCheckoutRefsCollection();
+  return collection.findOne({ _id: objectId });
+}
+
+export async function deleteShareLinkCheckoutRefsByIds(
+  ids: string[]
+): Promise<number> {
+  const objectIds = ids.flatMap((id) => {
+    const objectId = toObjectIdOrNull(id);
+    return objectId ? [objectId] : [];
+  });
+
+  if (objectIds.length === 0) return 0;
+
+  if (useSqliteDb()) {
+    return getSqliteStore().deleteMany(
+      "share_link_checkout_refs",
+      { _id: { $in: objectIds } }
+    ).deletedCount;
+  }
+
+  const collection = await getShareLinkCheckoutRefsCollection();
+  const result = await collection.deleteMany({ _id: { $in: objectIds } });
+  return result.deletedCount || 0;
+}
+
+export function createShareEmailCheckoutRefId(): ObjectId {
+  return new ObjectId();
+}
+
+export async function ensureShareEmailCheckoutRefsReady(): Promise<void> {
+  if (useSqliteDb()) return;
+  await getShareEmailCheckoutRefsCollection();
+}
+
+export async function insertShareEmailCheckoutRef(
+  doc: ShareEmailCheckoutRef
+): Promise<void> {
+  if (useSqliteDb()) {
+    getSqliteStore().insertOne("share_email_checkout_refs", doc);
+    return;
+  }
+
+  const collection = await getShareEmailCheckoutRefsCollection();
+  await collection.insertOne(doc);
+}
+
+export async function getShareEmailCheckoutRefForCheckout(data: {
+  id: string;
+  userId: string;
+  cardId: string;
+}): Promise<ShareEmailCheckoutRef | null> {
+  const objectId = toObjectIdOrNull(data.id);
+  if (!objectId) return null;
+
+  const filter = {
+    _id: objectId,
+    userId: data.userId,
+    cardId: data.cardId,
+  };
+
+  if (useSqliteDb()) {
+    return getSqliteStore().findOne<ShareEmailCheckoutRef>(
+      "share_email_checkout_refs",
+      filter
+    );
+  }
+
+  const collection = await getShareEmailCheckoutRefsCollection();
+  return collection.findOne(filter);
+}
+
+export async function deleteShareEmailCheckoutRefById(
+  id: string
+): Promise<number> {
+  const objectId = toObjectIdOrNull(id);
+  if (!objectId) return 0;
+
+  if (useSqliteDb()) {
+    return getSqliteStore().deleteOne(
+      "share_email_checkout_refs",
+      { _id: objectId }
+    ).deletedCount;
+  }
+
+  const collection = await getShareEmailCheckoutRefsCollection();
+  const result = await collection.deleteOne({ _id: objectId });
+  return result.deletedCount || 0;
 }
 
 function buildSharedLinkDoc(
@@ -106,8 +307,27 @@ function isDuplicateKeyError(err: unknown): boolean {
 export async function createSharedLink(
   data: CreateSharedLinkInput
 ): Promise<SharedLink> {
-  const collection = await getSharedLinksCollection();
   const now = new Date();
+
+  if (useSqliteDb()) {
+    const store = getSqliteStore();
+
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const linkId = generateLinkId();
+      if (store.findOne("shared_links", { linkId })) continue;
+
+      const doc = buildSharedLinkDoc(data, linkId, now);
+      const result = store.insertOne("shared_links", doc as SharedLink);
+      return {
+        ...doc,
+        _id: result.insertedId as ObjectId,
+      } as SharedLink;
+    }
+
+    throw new Error("createSharedLink: failed to generate unique linkId after 3 attempts");
+  }
+
+  const collection = await getSharedLinksCollection();
 
   let lastError: unknown = null;
   for (let attempt = 0; attempt < 3; attempt++) {
@@ -137,6 +357,10 @@ export async function createSharedLink(
 export async function getSharedLinkByLinkId(
   linkId: string
 ): Promise<SharedLink | null> {
+  if (useSqliteDb()) {
+    return getSqliteStore().findOne<SharedLink>("shared_links", { linkId });
+  }
+
   const collection = await getSharedLinksCollection();
   return collection.findOne({ linkId });
 }
@@ -145,6 +369,15 @@ export async function getSharedLinksByOwner(
   userId: string,
   options: { limit?: number; skip?: number } = {}
 ): Promise<SharedLink[]> {
+  if (useSqliteDb()) {
+    const { limit = 500, skip = 0 } = options;
+    return getSqliteStore().findMany<SharedLink>(
+      "shared_links",
+      { ownerUserId: userId },
+      { sort: { createdAt: -1 }, skip, limit }
+    );
+  }
+
   const collection = await getSharedLinksCollection();
   const { limit = 500, skip = 0 } = options;
   return collection
@@ -158,6 +391,14 @@ export async function getSharedLinksByOwner(
 export async function getSharedLinksByBatch(
   batchId: string
 ): Promise<SharedLink[]> {
+  if (useSqliteDb()) {
+    return getSqliteStore().findMany<SharedLink>(
+      "shared_links",
+      { batchId },
+      { sort: { createdAt: -1 } }
+    );
+  }
+
   const collection = await getSharedLinksCollection();
   return collection
     .find({ batchId })
@@ -165,13 +406,88 @@ export async function getSharedLinksByBatch(
     .toArray();
 }
 
+export interface ShareGroupInviteTarget {
+  seed: SharedLink;
+  pending: SharedLink | null;
+}
+
+export async function getShareGroupInviteTarget(
+  code: string,
+  now = new Date()
+): Promise<ShareGroupInviteTarget | null> {
+  if (useSqliteDb()) {
+    const store = getSqliteStore();
+    const seed = store.findOne<SharedLink>("shared_links", { linkId: code });
+    if (!seed || seed.status === "refunded") return null;
+
+    const pending = store.findMany<SharedLink>(
+      "shared_links",
+      {
+        ownerUserId: seed.ownerUserId,
+        batchId: seed.batchId,
+        status: "pending",
+        $or: [
+          { expiresAt: { $exists: false } },
+          { expiresAt: { $gt: now } },
+        ],
+      },
+      { sort: { createdAt: 1 }, limit: 1 }
+    )[0] ?? null;
+
+    return { seed, pending };
+  }
+
+  const collection = await getSharedLinksCollection();
+  const seed = await collection.findOne({ linkId: code });
+  if (!seed || seed.status === "refunded") return null;
+
+  const pending = await collection
+    .find({
+      ownerUserId: seed.ownerUserId,
+      batchId: seed.batchId,
+      status: "pending",
+      $or: [
+        { expiresAt: { $exists: false } },
+        { expiresAt: { $gt: now } },
+      ],
+    })
+    .sort({ createdAt: 1 })
+    .limit(1)
+    .next();
+
+  return { seed, pending };
+}
+
 export async function claimSharedLink(
   linkId: string,
   claimedByUserId: string
 ): Promise<SharedLink | null> {
-  const collection = await getSharedLinksCollection();
   const now = new Date();
 
+  if (useSqliteDb()) {
+    return getSqliteStore().findOneAndUpdate<SharedLink>(
+      "shared_links",
+      {
+        linkId,
+        status: "pending",
+        $or: [
+          { expiresAt: { $exists: false } },
+          { expiresAt: { $gt: now } },
+        ],
+      },
+      {
+        $set: {
+          status: "claimed",
+          claimedByUserId,
+          claimedAt: now,
+          updatedAt: now,
+        },
+      },
+      { returnDocument: "after" }
+    );
+  }
+
+  const collection = await getSharedLinksCollection();
   const result = await collection.findOneAndUpdate(
     {
       linkId,
@@ -195,10 +511,50 @@ export async function claimSharedLink(
   return result;
 }
 
-export async function expireOldLinks(): Promise<number> {
+export async function revertSharedLinkClaim(
+  linkId: string,
+  claimedByUserId: string
+): Promise<boolean> {
+  const now = new Date();
+  const filter = { linkId, claimedByUserId };
+  const update = {
+    $set: { status: "pending" as SharedLinkStatus, updatedAt: now },
+    $unset: { claimedByUserId: "" as const, claimedAt: "" as const },
+  };
+
+  if (useSqliteDb()) {
+    return getSqliteStore().updateOne<SharedLink>(
+      "shared_links",
+      filter,
+      update
+    ).matchedCount > 0;
+  }
+
   const collection = await getSharedLinksCollection();
+  const result = await collection.updateOne(filter, update);
+  return result.matchedCount > 0;
+}
+
+export async function expireOldLinks(): Promise<number> {
   const now = new Date();
 
+  if (useSqliteDb()) {
+    return getSqliteStore().updateMany<SharedLink>(
+      "shared_links",
+      {
+        status: "pending",
+        expiresAt: { $exists: true, $lt: now },
+      },
+      {
+        $set: {
+          status: "expired",
+          updatedAt: now,
+        },
+      }
+    ).modifiedCount;
+  }
+
+  const collection = await getSharedLinksCollection();
   const result = await collection.updateMany(
     {
       status: "pending",
@@ -218,20 +574,142 @@ export async function expireOldLinks(): Promise<number> {
 export async function getSharedLinkByStripeSession(
   sessionId: string
 ): Promise<SharedLink[]> {
+  if (useSqliteDb()) {
+    return getSqliteStore().findMany<SharedLink>("shared_links", { stripeSessionId: sessionId });
+  }
+
   const collection = await getSharedLinksCollection();
   return collection.find({ stripeSessionId: sessionId }).toArray();
+}
+
+export async function countSharedLinksByStripeSession(
+  sessionId: string
+): Promise<number> {
+  if (useSqliteDb()) {
+    return getSqliteStore().count("shared_links", { stripeSessionId: sessionId });
+  }
+
+  const collection = await getSharedLinksCollection();
+  return collection.countDocuments({ stripeSessionId: sessionId });
 }
 
 export async function revokeSharedLinksByStripeSession(
   sessionId: string
 ): Promise<number> {
-  const collection = await getSharedLinksCollection();
   const now = new Date();
+  if (useSqliteDb()) {
+    return getSqliteStore().updateMany<SharedLink>(
+      "shared_links",
+      { stripeSessionId: sessionId },
+      { $set: { status: "refunded", updatedAt: now } }
+    ).modifiedCount;
+  }
+
+  const collection = await getSharedLinksCollection();
   const result = await collection.updateMany(
     { stripeSessionId: sessionId },
     { $set: { status: "refunded", updatedAt: now } }
   );
   return result.modifiedCount;
+}
+
+export async function findExistingSharedLinkIds(
+  linkIds: string[]
+): Promise<string[]> {
+  if (linkIds.length === 0) return [];
+
+  if (useSqliteDb()) {
+    return getSqliteStore()
+      .findMany<Pick<SharedLink, "linkId">>(
+        "shared_links",
+        { linkId: { $in: linkIds } }
+      )
+      .map((link) => link.linkId);
+  }
+
+  const collection = await getSharedLinksCollection();
+  const docs = await collection
+    .find({ linkId: { $in: linkIds } }, { projection: { linkId: 1 } })
+    .toArray();
+  return docs.map((doc) => doc.linkId);
+}
+
+export async function insertPreparedSharedLinks(
+  docs: Array<Omit<SharedLink, "_id">>
+): Promise<PreparedSharedLinkInsertResult> {
+  if (docs.length === 0) {
+    return { insertedIndexes: [], failed: [] };
+  }
+
+  if (useSqliteDb()) {
+    const store = getSqliteStore();
+    const insertedIndexes: number[] = [];
+    const failed: PreparedSharedLinkInsertFailure[] = [];
+
+    for (const [index, doc] of docs.entries()) {
+      try {
+        if (store.findOne("shared_links", { linkId: doc.linkId })) {
+          failed.push({ index, error: "duplicate linkId" });
+          continue;
+        }
+
+        store.insertOne("shared_links", doc as SharedLink);
+        insertedIndexes.push(index);
+      } catch (error) {
+        failed.push({
+          index,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+
+    return { insertedIndexes, failed };
+  }
+
+  const collection = await getSharedLinksCollection();
+
+  try {
+    const result = await collection.insertMany(docs as SharedLink[], {
+      ordered: false,
+    });
+    return {
+      insertedIndexes: Object.keys(result.insertedIds || {})
+        .map((index) => Number(index))
+        .filter((index) => Number.isInteger(index))
+        .sort((left, right) => left - right),
+      failed: [],
+    };
+  } catch (error: any) {
+    const writeErrors: any[] =
+      error?.writeErrors || error?.result?.writeErrors || [];
+
+    if (writeErrors.length === 0) {
+      const message = error?.errmsg || error?.message || String(error);
+      return {
+        insertedIndexes: [],
+        failed: docs.map((_, index) => ({ index, error: message })),
+      };
+    }
+
+    const failedIndexes = new Set<number>(
+      writeErrors
+        .map((writeError: any) => writeError.index)
+        .filter((index: unknown): index is number => typeof index === "number")
+    );
+
+    return {
+      insertedIndexes: docs
+        .map((_, index) => index)
+        .filter((index) => !failedIndexes.has(index)),
+      failed: writeErrors.map((writeError: any) => ({
+        index: typeof writeError.index === "number" ? writeError.index : -1,
+        error:
+          writeError.errmsg ||
+          writeError.message ||
+          "insertMany error",
+      })),
+    };
+  }
 }
 
 // Bulk-create shared links using a single insertMany with unordered writes.
@@ -241,8 +719,35 @@ export async function bulkCreateSharedLinks(
 ): Promise<SharedLink[]> {
   if (links.length === 0) return [];
 
-  const collection = await getSharedLinksCollection();
   const now = new Date();
+
+  if (useSqliteDb()) {
+    const store = getSqliteStore();
+    const created: SharedLink[] = [];
+
+    for (const input of links) {
+      let inserted: SharedLink | null = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const linkId = generateLinkId();
+        if (store.findOne("shared_links", { linkId })) continue;
+
+        const doc = buildSharedLinkDoc(input, linkId, now);
+        const result = store.insertOne("shared_links", doc as SharedLink);
+        inserted = { ...doc, _id: result.insertedId as ObjectId } as SharedLink;
+        break;
+      }
+
+      if (!inserted) {
+        throw new Error("bulkCreateSharedLinks: failed to generate unique linkId after 3 attempts");
+      }
+
+      created.push(inserted);
+    }
+
+    return created;
+  }
+
+  const collection = await getSharedLinksCollection();
 
   const buildDocs = (inputs: CreateSharedLinkInput[]) => {
     const seen = new Set<string>();

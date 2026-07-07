@@ -10,6 +10,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { MongoClient } = require("mongodb");
+const { openSqliteShadowDatabase, useSqliteBackend } = require("./sqlite-shadow-store.cjs");
 
 const APP_DIR = process.env.MYBINGOCARD_APP_DIR || path.resolve(__dirname, "..");
 const APP_URL = (process.env.MYBINGOCARD_APP_URL || "https://mybingocard.com").replace(/\/$/, "");
@@ -200,9 +201,9 @@ function maskEmail(email) {
 
 function isSupportNoise(ticket) {
   const subject = String(ticket.subject || "");
-  const email = String(ticket.email || "").toLowerCase().replace(/[<>]/g, "").trim();
-  return /deliverability status|warmup check|warm-up check|quick inbox check|delivery status notification|undelivered|returned to sender|failure notice|mail delivery|placement note|upload your catalog|creator'?s guide|unlock the full mybingocard experience|beyond the scroll|a\/b test your content|app合作机会|问候|collaboration opportunity|合作机会|csv upload|csv file was uploaded|tips for creating great pins|summer break re:/i.test(subject) ||
-    /@(yourvpn\.ai|yourestimate\.app|demandletterservice\.com|notifications\.pinterest\.com|info\.pinterest\.com|account\.pinterest\.com|pinterest\.com|saashub\.com|douwudao\.com|tnca\.connectionsacademy\.org)$/i.test(email);
+  const email = String(ticket.email || "");
+  return /deliverability status|warmup check|warm-up check|quick inbox check|delivery status notification|undelivered|returned to sender|failure notice|mail delivery/i.test(subject) ||
+    /@(yourvpn\.ai|yourestimate\.app|demandletterservice\.com)$/i.test(email);
 }
 
 function shortenPathLabel(value, max = 86) {
@@ -330,9 +331,18 @@ function topTrackerList(items, labelKey = "pathname", countKey = "events", limit
 
 let mongoClient = null;
 let mongoDb = null;
+let sqliteDb = null;
 let collectionNameCache = null;
 
 async function getDb() {
+  if (useSqliteBackend()) {
+    if (!sqliteDb) {
+      sqliteDb = openSqliteShadowDatabase();
+      mongoDb = sqliteDb;
+    }
+    return sqliteDb;
+  }
+
   if (!mongoClient) {
     mongoClient = new MongoClient(process.env.MONGODB_URI || DEFAULT_MONGODB_URI, {
       serverSelectionTimeoutMS: 10000,
@@ -366,23 +376,29 @@ async function recentCount(db, name, field, since, filter = {}) {
 
 async function activityCounts(db, events, since) {
   if (!(await hasCollection(db, "activity_events"))) return {};
-  const rows = await db.collection("activity_events").aggregate([
-    { $match: { createdAt: { $gte: since }, event: { $in: events } } },
-    { $group: { _id: "$event", count: { $sum: 1 } } },
-  ]).toArray();
-  return Object.fromEntries(rows.map((row) => [row._id, row.count]));
+  const rows = await db.collection("activity_events")
+    .find({ createdAt: { $gte: since }, event: { $in: events } })
+    .toArray();
+  const counts = {};
+  for (const row of rows) counts[row.event] = (counts[row.event] || 0) + 1;
+  return counts;
 }
 
 async function topActivity(db, since, events, limit = 8) {
   if (!(await hasCollection(db, "activity_events"))) return [];
   const match = { createdAt: { $gte: since } };
   if (events?.length) match.event = { $in: events };
-  return db.collection("activity_events").aggregate([
-    { $match: match },
-    { $group: { _id: { event: "$event", pathname: "$pathname" }, count: { $sum: 1 } } },
-    { $sort: { count: -1 } },
-    { $limit: limit },
-  ]).toArray();
+  const rows = await db.collection("activity_events").find(match).toArray();
+  const groups = new Map();
+  for (const row of rows) {
+    const event = row.event || "";
+    const pathname = row.pathname || row.metadata?.page || "";
+    const key = `${event}\0${pathname}`;
+    const current = groups.get(key) || { _id: { event, pathname }, count: 0 };
+    current.count += 1;
+    groups.set(key, current);
+  }
+  return [...groups.values()].sort((a, b) => b.count - a.count).slice(0, limit);
 }
 
 function inferStatus(result) {
@@ -1079,10 +1095,14 @@ async function main() {
 
   if (!options.dryRun) writeJson(STATE_FILE, state);
   if (mongoClient) await mongoClient.close();
+  if (sqliteDb) sqliteDb.close();
 }
 
 main().catch(async (error) => {
   console.error(`[mybingocard-ops-loops] ${error.stack || error.message}`);
   if (mongoClient) await mongoClient.close().catch(() => {});
+  if (sqliteDb) {
+    try { sqliteDb.close(); } catch (_) {}
+  }
   process.exit(1);
 });

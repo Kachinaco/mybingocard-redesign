@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { parseUserAgent } from "@/lib/parse-user-agent";
-import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+import { updateMissingUserSignupContext } from "@/lib/db/users";
 
 /**
  * POST /api/user/update-device
@@ -26,30 +25,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    // Only set fields that are not already present (don't overwrite credentials signup data)
-    const setOnInsert: Record<string, string> = {};
-    if (signupDevice) setOnInsert.signupDevice = signupDevice;
-    if (signupLanguage) setOnInsert.signupLanguage = signupLanguage;
-
-    // Build a conditional update: only set each field if it doesn't exist yet
-    const updatePipeline = [
-      {
-        $set: Object.fromEntries(
-          Object.entries(setOnInsert).map(([key, value]) => [
-            key,
-            { $cond: [{ $ifNull: [`$${key}`, false] }, `$${key}`, value] },
-          ])
-        ),
-      },
-    ];
-
-    await db.collection("users").updateOne(
-      { _id: new ObjectId(session.user.id) },
-      updatePipeline
-    );
+    await updateMissingUserSignupContext(session.user.id, {
+      signupDevice,
+      signupLanguage,
+    });
 
     return NextResponse.json({ ok: true });
   } catch (error) {

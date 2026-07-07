@@ -65,8 +65,8 @@ export function CheckoutReturnBanner() {
             </svg>
           </div>
           <div>
-            <h3 className="font-bold text-emerald-900">Access active</h3>
-            <p className="text-emerald-700 text-sm">Premium features are available for this account.</p>
+            <h3 className="font-bold text-emerald-900">Payment successful</h3>
+            <p className="text-emerald-700 text-sm">Your Premium features are now active.</p>
           </div>
         </div>
       </div>
@@ -82,8 +82,8 @@ export function CheckoutReturnBanner() {
           </svg>
         </div>
         <div>
-          <h3 className="font-bold text-amber-900">Checkout disabled</h3>
-          <p className="text-amber-700 text-sm">Checkout is paused, so included tools open during this period.</p>
+          <h3 className="font-bold text-amber-900">Checkout canceled</h3>
+          <p className="text-amber-700 text-sm">No payment was made. You can upgrade anytime.</p>
         </div>
       </div>
     </div>
@@ -130,7 +130,7 @@ export function PricingCheckoutButton({
     setLoading(true);
 
     try {
-      const price = 0;
+      const price = purchaseType === "monthly" ? 7.99 : 29.99;
       const plan = purchaseType === "monthly" ? "premium" : "lifetime";
 
       if (purchaseType === "monthly") {
@@ -143,7 +143,12 @@ export function PricingCheckoutButton({
         source: "pricing_page",
       });
 
-      router.push("/create?free=1");
+      const { redirectToCheckout } = await import("@/lib/upgrade");
+      if (purchaseType === "lifetime") {
+        await redirectToCheckout({ purchaseType: "lifetime" });
+      } else {
+        await redirectToCheckout();
+      }
     } catch (error) {
       console.error("Upgrade error:", error);
       alert(errorMessage(error));
@@ -162,7 +167,7 @@ export function PricingCheckoutButton({
 
   return (
     <button onClick={handleCheckout} disabled={loading} className={`${className} ${loading ? "opacity-70 cursor-wait" : ""}`}>
-      {loading ? "Opening..." : children}
+      {loading ? "Processing..." : children}
     </button>
   );
 }

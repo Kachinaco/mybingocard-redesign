@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import clientPromise from "@/lib/mongodb";
+import { updateUserLastSeenByEmail } from "@/lib/db/users";
 
 export async function POST() {
   try {
@@ -9,12 +9,7 @@ export async function POST() {
       return NextResponse.json({ ok: false }, { status: 401 });
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-    await db.collection("users").updateOne(
-      { email: session.user.email },
-      { $set: { lastSeen: new Date() } }
-    );
+    await updateUserLastSeenByEmail(session.user.email);
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ ok: false }, { status: 500 });

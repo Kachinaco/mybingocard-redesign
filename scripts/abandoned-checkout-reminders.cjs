@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const nodemailer = require('./smtp-client.cjs');
 const { MongoClient } = require('mongodb');
+const { openSqliteShadowStore, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
 
 const envPath = path.join(__dirname, '..', '.env.local');
 try {
@@ -271,10 +272,174 @@ async function sendReminderEmail(to, subject, html, text) {
   });
 }
 
+function objectIdString(value) {
+  if (value && typeof value === 'object' && typeof value.toHexString === 'function') {
+    return value.toHexString();
+  }
+  if (value && typeof value === 'object' && typeof value.$oid === 'string') {
+    return value.$oid;
+  }
+  return String(value || '');
+}
+
+function dateValue(value) {
+  const date = value instanceof Date ? value : new Date(value || 0);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function sameEmail(documentEmail, normalizedEmail, rawEmail) {
+  const value = String(documentEmail || '').trim();
+  return normalizeEmail(value) === normalizedEmail || value === rawEmail;
+}
+
+function latestCheckoutStarts(activityEvents, earliestCheckout) {
+  const latestByEmail = new Map();
+  for (const event of activityEvents) {
+    if (event.event !== 'checkout_started') continue;
+    const email = normalizeEmail(event.email);
+    if (!email) continue;
+    const createdAt = dateValue(event.createdAt);
+    if (!createdAt || createdAt < earliestCheckout) continue;
+
+    const current = latestByEmail.get(email);
+    if (!current || createdAt > dateValue(current.createdAt)) {
+      latestByEmail.set(email, event);
+    }
+  }
+
+  return Array.from(latestByEmail.values())
+    .sort((a, b) => dateValue(b.createdAt).getTime() - dateValue(a.createdAt).getTime())
+    .map((checkout) => ({ checkout }));
+}
+
+function findByEmail(documents, email, rawEmail) {
+  return documents.find((document) => sameEmail(document.email, email, rawEmail)) || null;
+}
+
+function hasSubscriptionActivationAfter(activityEvents, email, rawEmail, startedAt) {
+  return activityEvents.some((event) => (
+    event.event === 'subscription_activated'
+    && sameEmail(event.email, email, rawEmail)
+    && dateValue(event.createdAt)
+    && dateValue(event.createdAt) > startedAt
+  ));
+}
+
+function hasReminder(reminderLog, email, checkoutSessionId, reminderType) {
+  return reminderLog.some((log) => (
+    normalizeEmail(log.email) === email
+    && objectIdString(log.checkoutSessionId) === objectIdString(checkoutSessionId)
+    && log.reminderType === reminderType
+  ));
+}
+
+async function runSqlite(now, earliestCheckout) {
+  const store = openSqliteShadowStore();
+  let sent = 0;
+  let skipped = 0;
+
+  try {
+    const activityEvents = store.findMany('activity_events').map((row) => row.document);
+    const users = store.findMany('users').map((row) => row.document);
+    const emailPreferences = store.findMany('email_preferences').map((row) => row.document);
+    const reminderLog = store.findMany('checkout_reminder_log').map((row) => row.document);
+    const latestStartedCheckouts = latestCheckoutStarts(activityEvents, earliestCheckout);
+
+    console.log(`Found ${latestStartedCheckouts.length} recent checkout starts since ${earliestCheckout.toISOString()}`);
+
+    for (const row of latestStartedCheckouts) {
+      const checkout = row.checkout;
+      const email = normalizeEmail(checkout?.email);
+      const rawEmail = String(checkout?.email || '').trim();
+      if (!email) {
+        skipped += 1;
+        continue;
+      }
+
+      if (TARGET_EMAIL && email !== TARGET_EMAIL) {
+        skipped += 1;
+        continue;
+      }
+
+      const startedAt = dateValue(checkout.createdAt);
+      if (!startedAt) {
+        skipped += 1;
+        continue;
+      }
+
+      const ageMs = now.getTime() - startedAt.getTime();
+      const reminderType = getReminderToSend(ageMs);
+      if (!reminderType) {
+        skipped += 1;
+        continue;
+      }
+
+      const checkoutSessionId = checkout?.metadata?.checkoutSessionId || objectIdString(checkout._id);
+      if (hasReminder(reminderLog, email, checkoutSessionId, reminderType)) {
+        skipped += 1;
+        continue;
+      }
+
+      const user = findByEmail(users, email, rawEmail);
+      const prefs = findByEmail(emailPreferences, email, rawEmail);
+      const converted = hasSubscriptionActivationAfter(activityEvents, email, rawEmail, startedAt);
+
+      if (prefs?.marketingEmails === false) {
+        console.log(`Skipping ${email}: marketing emails disabled`);
+        skipped += 1;
+        continue;
+      }
+
+      if (converted || isPaidOrInBillingFlow(user)) {
+        console.log(`Skipping ${email}: already converted or currently paid`);
+        skipped += 1;
+        continue;
+      }
+
+      const planType = checkout?.metadata?.planType || 'PREMIUM';
+      const reminder = reminderType === 'two_days'
+        ? buildTwoDayReminder({ email, name: user?.name, planType })
+        : buildTwoHourReminder({ email, name: user?.name, planType });
+
+      if (DRY_RUN) {
+        console.log(`[dry-run] would send ${reminder.reminderType} reminder to ${email} for checkout ${checkoutSessionId}`);
+      } else {
+        await sendReminderEmail(email, reminder.subject, reminder.html, reminder.text);
+        console.log(`Sent ${reminder.reminderType} reminder to ${email}`);
+
+        const userId = checkout.userId || user?._id || null;
+        store.insertOne('checkout_reminder_log', {
+          email,
+          userId,
+          checkoutSessionId,
+          reminderType: reminder.reminderType,
+          campaignId: reminder.campaignId,
+          planType,
+          startedAt,
+          sentAt: now,
+          dryRun: false,
+          createdAt: now,
+        });
+      }
+      sent += 1;
+    }
+
+    console.log(`Abandoned checkout reminders complete. Sent=${sent} Skipped=${skipped} DryRun=${DRY_RUN}`);
+  } finally {
+    store.close();
+  }
+}
+
 async function run() {
-  const client = new MongoClient(MONGODB_URI);
   const now = getNow();
   const earliestCheckout = new Date(now.getTime() - MAX_CHECKOUT_AGE_MS);
+
+  if (useSqliteBackend()) {
+    await runSqlite(now, earliestCheckout);
+    return;
+  }
+
+  const client = new MongoClient(MONGODB_URI);
 
   let sent = 0;
   let skipped = 0;

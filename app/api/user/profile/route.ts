@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getUserByEmail, updateUser } from "@/lib/db/users";
-import clientPromise from "@/lib/mongodb";
+import { getConnectedAuthProviders } from "@/lib/db/auth-data";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 export async function GET() {
@@ -16,17 +16,7 @@ export async function GET() {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Check linked OAuth providers from NextAuth accounts collection
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-    const accounts = await db.collection("accounts").find({
-      $or: [
-        { userId: user._id },
-        { userId: user._id.toString() },
-      ],
-    }).toArray();
-
-    const providers = accounts.map((a: any) => a.provider);
+    const providers = await getConnectedAuthProviders(user._id);
 
     return NextResponse.json({
       name: user.name || "",

@@ -10,7 +10,8 @@
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('./smtp-client.cjs');
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
+const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -42,6 +43,13 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_SERVER_PASSWORD,
   },
 });
+
+function userIdFilter(userId) {
+  const values = [userId];
+  const stringValue = userId && typeof userId.toString === 'function' ? userId.toString() : String(userId || '');
+  if (stringValue && ObjectId.isValid(stringValue)) values.push(new ObjectId(stringValue));
+  return { _id: { $in: values } };
+}
 
 function escapeHtml(value) {
   return String(value || '')
@@ -137,91 +145,97 @@ function buildFollowupEmail(firstName, daysSince) {
 async function main() {
   console.log(DRY_RUN ? '=== DRY RUN ===' : '=== SENDING FOLLOW-UPS ===');
 
-  const client = new MongoClient(MONGODB_URI);
-  await client.connect();
-  const db = client.db('mybingocard');
+  const sqliteDb = useSqliteBackend() ? openSqliteShadowDatabase() : null;
+  const client = sqliteDb ? null : new MongoClient(MONGODB_URI);
+  if (client) await client.connect();
+  const db = sqliteDb || client.db('mybingocard');
 
-  // Find emails that started checkout
-  const checkoutEmails = await db.collection('activity_events').aggregate([
-    { $match: { event: 'checkout_started', email: { $ne: null } } },
-    { $group: { _id: '$email', lastCheckout: { $max: '$createdAt' } } },
-  ]).toArray();
+  try {
+    // Find emails that started checkout
+    const checkoutEmails = await db.collection('activity_events').aggregate([
+      { $match: { event: 'checkout_started', email: { $ne: null } } },
+      { $group: { _id: '$email', lastCheckout: { $max: '$createdAt' } } },
+    ]).toArray();
 
-  // Get subscriber user IDs to exclude
-  const subscriberUserIds = await db.collection('subscriptions').distinct('userId', { status: 'active' });
-  const subscriberUsers = [];
-  for (const uid of subscriberUserIds) {
-    const user = await db.collection('users').findOne({ _id: new (require('mongodb').ObjectId)(uid) });
-    if (user?.email) subscriberUsers.push(user.email.toLowerCase());
-  }
+    // Get subscriber user IDs to exclude
+    const subscriberUserIds = await db.collection('subscriptions').distinct('userId', { status: 'active' });
+    const subscriberUsers = [];
+    for (const uid of subscriberUserIds) {
+      const user = await db.collection('users').findOne(userIdFilter(uid));
+      if (user?.email) subscriberUsers.push(user.email.toLowerCase());
+    }
 
-  // Exclude internal/test emails
-  const excludePatterns = [
-    /@testuser\.dev$/i,
-    /@mybingocard\.com$/i,
-    /^anallacory@/i,
-    /^rank@townranker/i,
-  ];
+    // Exclude internal/test emails
+    const excludePatterns = [
+      /@testuser\.dev$/i,
+      /@mybingocard\.com$/i,
+      /^anallacory@/i,
+      /^rank@townranker/i,
+    ];
 
-  // Filter to follow-up-eligible and already-sent
-  const alreadySent = await db.collection('checkout_followup_log').distinct('email');
-  const alreadySentSet = new Set(alreadySent.map(e => e.toLowerCase()));
+    // Filter to follow-up-eligible and already-sent
+    const alreadySent = await db.collection('checkout_followup_log').distinct('email');
+    const alreadySentSet = new Set(alreadySent.map(e => e.toLowerCase()));
 
-  const eligible = [];
-  for (const entry of checkoutEmails) {
-    const email = entry._id.toLowerCase();
-    if (TARGET_EMAIL && email !== TARGET_EMAIL) continue;
-    if (excludePatterns.some(p => p.test(email))) continue;
-    if (subscriberUsers.includes(email)) continue;
-    if (alreadySentSet.has(email)) continue;
+    const eligible = [];
+    for (const entry of checkoutEmails) {
+      const email = String(entry._id || '').toLowerCase();
+      if (!email) continue;
+      if (TARGET_EMAIL && email !== TARGET_EMAIL) continue;
+      if (excludePatterns.some(p => p.test(email))) continue;
+      if (subscriberUsers.includes(email)) continue;
+      if (alreadySentSet.has(email)) continue;
 
-    const user = await db.collection('users').findOne({ email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } });
-    const daysSince = Math.round((Date.now() - new Date(entry.lastCheckout).getTime()) / (24 * 60 * 60 * 1000));
-    eligible.push({ email, name: user?.name || null, daysSince, lastCheckout: entry.lastCheckout });
-  }
+      const user = await db.collection('users').findOne({ email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } });
+      const daysSince = Math.round((Date.now() - new Date(entry.lastCheckout).getTime()) / (24 * 60 * 60 * 1000));
+      eligible.push({ email, name: user?.name || null, daysSince, lastCheckout: entry.lastCheckout });
+    }
 
-  console.log(`Found ${eligible.length} eligible users:\n`);
+    console.log(`Found ${eligible.length} eligible users:\n`);
 
-  for (const person of eligible) {
-    const firstName = getFirstName(person.name);
-    const emailContent = buildFollowupEmail(firstName, person.daysSince);
-    console.log(`  ${person.email} (${firstName}, ${person.daysSince} days ago)`);
+    for (const person of eligible) {
+      const firstName = getFirstName(person.name);
+      const emailContent = buildFollowupEmail(firstName, person.daysSince);
+      console.log(`  ${person.email} (${firstName}, ${person.daysSince} days ago)`);
 
-    if (!DRY_RUN) {
-      try {
-        const result = await transporter.sendMail({
-          from: FROM_ADDRESS,
-          to: person.email,
-          subject: emailContent.subject,
-          html: emailContent.html,
-          text: emailContent.text,
-          headers: {
-            'List-Unsubscribe': `<${APP_URL}/api/unsubscribe?email=${encodeURIComponent(person.email)}>, <mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(person.email)}>`,
-            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-          },
-        });
-        console.log(`    Sent! MessageId: ${result.messageId}`);
+      if (!DRY_RUN) {
+        try {
+          const result = await transporter.sendMail({
+            from: FROM_ADDRESS,
+            to: person.email,
+            subject: emailContent.subject,
+            html: emailContent.html,
+            text: emailContent.text,
+            headers: {
+              'List-Unsubscribe': `<${APP_URL}/api/unsubscribe?email=${encodeURIComponent(person.email)}>, <mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(person.email)}>`,
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+            },
+          });
+          console.log(`    Sent! MessageId: ${result.messageId}`);
 
-        await db.collection('checkout_followup_log').insertOne({
-          email: person.email,
-          name: person.name,
-          daysSince: person.daysSince,
-          lastCheckout: person.lastCheckout,
-          subject: emailContent.subject,
-          sentAt: new Date(),
-          messageId: result.messageId,
-        });
+          await db.collection('checkout_followup_log').insertOne({
+            email: person.email,
+            name: person.name,
+            daysSince: person.daysSince,
+            lastCheckout: person.lastCheckout,
+            subject: emailContent.subject,
+            sentAt: new Date(),
+            messageId: result.messageId,
+          });
 
-        // 3-second delay between emails (SMTP rate limit)
-        await new Promise(r => setTimeout(r, 3000));
-      } catch (error) {
-        console.error(`    FAILED: ${error.message}`);
+          // 3-second delay between emails (SMTP rate limit)
+          await new Promise(r => setTimeout(r, 3000));
+        } catch (error) {
+          console.error(`    FAILED: ${error.message}`);
+        }
       }
     }
-  }
 
-  console.log('\nDone.');
-  await client.close();
+    console.log('\nDone.');
+  } finally {
+    if (client) await client.close();
+    if (sqliteDb) sqliteDb.close();
+  }
 }
 
 main().catch((err) => {

@@ -1,9 +1,17 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { stripe, STRIPE_CONFIG, getPlanByPriceId, PLANS, getStripe } from "@/lib/stripe/config";
-import { updateUserSubscription, getUserByEmail, createUser } from "@/lib/db/users";
+import {
+  updateUserBillingRecoveryState,
+  updateUserSubscription,
+  getUserByEmail,
+  createUser,
+} from "@/lib/db/users";
 import { getBatchPack, isBatchCount } from "@/lib/batchPacks";
-import { upsertBatchPurchaseFromCheckout } from "@/lib/db/batchPurchases";
+import {
+  getBatchPurchaseById,
+  upsertBatchPurchaseFromCheckout,
+} from "@/lib/db/batchPurchases";
 import {
   sendAbandonedCheckoutEmail,
   sendBillingFailedEmail,
@@ -20,10 +28,29 @@ import {
   PLAN_LIMITS,
   type SubscriptionPlan,
 } from "@/lib/db/subscriptions";
-import { createSharedLink, generateLinkId, type SharedLink } from "@/lib/db/sharedLinks";
-import type { BatchPurchase } from "@/lib/db/batchPurchases";
-import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+import {
+  countSharedLinksByStripeSession,
+  createSharedLink,
+  deleteShareEmailCheckoutRefById,
+  deleteShareLinkCheckoutRefsByIds,
+  findExistingSharedLinkIds,
+  generateLinkId,
+  getShareEmailCheckoutRefForCheckout,
+  getShareLinkCheckoutRefById,
+  insertPreparedSharedLinks,
+  revokeSharedLinksByStripeSession,
+  type SharedLink,
+} from "@/lib/db/sharedLinks";
+import {
+  getCardById,
+  getCardsByBatchIdForUser,
+  getCardTitlesByIds,
+  getOwnedCardIds,
+} from "@/lib/db/cards";
+import {
+  claimStripeWebhookEvent,
+  insertWebhookPartialFailure,
+} from "@/lib/db/stripe-webhooks";
 import type Stripe from "stripe";
 import { trackActivity } from "@/lib/activity";
 import { isUserOnTrial } from "@/lib/subscription-status";
@@ -174,51 +201,7 @@ async function updateBillingRecoveryState(
     nextPaymentAttempt?: Date | null;
   }
 ) {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const now = new Date();
-
-  if (data.status === "failed") {
-    const existing = await db.collection("users").findOne(
-      { email },
-      { projection: { subscriptionStatus: 1, billingPastDueSince: 1 } }
-    );
-
-    await db.collection("users").updateOne(
-      { email },
-      {
-        $set: {
-          billingPastDueSince:
-            existing?.subscriptionStatus === "past_due" && existing?.billingPastDueSince
-              ? existing.billingPastDueSince
-              : now,
-          billingLastPaymentFailedAt: now,
-          billingNextPaymentAttempt: data.nextPaymentAttempt || null,
-          billingFailedAttemptCount: data.attemptCount ?? null,
-          billingLastInvoiceId: data.invoiceId || null,
-          updatedAt: now,
-        },
-      }
-    );
-    return;
-  }
-
-  await db.collection("users").updateOne(
-    { email },
-    {
-      $set: {
-        billingRecoveredAt: data.status === "recovered" ? now : null,
-        updatedAt: now,
-      },
-      $unset: {
-        billingPastDueSince: "",
-        billingLastPaymentFailedAt: "",
-        billingNextPaymentAttempt: "",
-        billingFailedAttemptCount: "",
-        billingLastInvoiceId: "",
-      },
-    }
-  );
+  await updateUserBillingRecoveryState(email, data);
 }
 
 async function findAlternateActiveSubscription(
@@ -296,26 +279,14 @@ export async function POST(request: Request) {
     // Global idempotency — ensures every Stripe event is processed at most once,
     // even across webhook retries. Relies on a unique index on `eventId`.
     try {
-      const client = await clientPromise;
-      const db = client.db("mybingocard");
-      const webhookEvents = db.collection("webhook_events");
-      try {
-        await webhookEvents.createIndex({ eventId: 1 }, { unique: true });
-      } catch (indexErr) {
-        console.error("webhook_events index creation failed:", indexErr);
-      }
-      try {
-        await webhookEvents.insertOne({
-          eventId: event.id,
-          type: event.type,
-          processedAt: new Date(),
-        });
-      } catch (insertErr: any) {
-        if (insertErr?.code === 11000) {
-          console.log("Webhook event already processed:", event.id);
-          return NextResponse.json({ received: true, duplicate: true });
-        }
-        throw insertErr;
+      const claimed = await claimStripeWebhookEvent({
+        eventId: event.id,
+        type: event.type,
+      });
+
+      if (!claimed) {
+        console.log("Webhook event already processed:", event.id);
+        return NextResponse.json({ received: true, duplicate: true });
       }
     } catch (idempotencyErr) {
       console.error("Webhook idempotency check failed:", idempotencyErr);
@@ -613,13 +584,7 @@ export async function POST(request: Request) {
             recipientCount > 0
           ) {
             try {
-              const client = await clientPromise;
-              const db = client.db("mybingocard");
-              const sharedLinksCollection = db.collection<SharedLink>("shared_links");
-
-              const existingLinksForSession = await sharedLinksCollection.countDocuments({
-                stripeSessionId: session.id,
-              });
+              const existingLinksForSession = await countSharedLinksByStripeSession(session.id);
               if (existingLinksForSession > 0) {
                 console.log(
                   `email_share_batch webhook: session ${session.id} already processed (${existingLinksForSession} links exist); skipping`
@@ -627,10 +592,11 @@ export async function POST(request: Request) {
                 break;
               }
 
-              const refObjectId = new ObjectId(refId);
-              const refDoc = await db
-                .collection("share_email_checkout_refs")
-                .findOne({ _id: refObjectId, userId: ownerUserId, cardId });
+              const refDoc = await getShareEmailCheckoutRefForCheckout({
+                id: refId,
+                userId: ownerUserId,
+                cardId,
+              });
 
               const recipientEmails = Array.isArray((refDoc as any)?.emails)
                 ? ((refDoc as any).emails as unknown[]).filter(
@@ -643,8 +609,7 @@ export async function POST(request: Request) {
                 break;
               }
 
-              const cardObjectId = new ObjectId(cardId);
-              const card = await db.collection("cards").findOne({ _id: cardObjectId });
+              const card = await getCardById(cardId);
               const cardOwnerId = (card as any)?.userId?.toString?.() || "";
 
               if (!card || cardOwnerId !== ownerUserId) {
@@ -692,7 +657,7 @@ export async function POST(request: Request) {
                 }
               }
 
-              await db.collection("share_email_checkout_refs").deleteOne({ _id: refObjectId });
+              await deleteShareEmailCheckoutRefById(refId);
 
               await trackActivity({
                 event: "email_share_batch_sent",
@@ -776,16 +741,10 @@ export async function POST(request: Request) {
             count > 0
           ) {
             try {
-              const client = await clientPromise;
-              const db = client.db("mybingocard");
-              const sharedLinksCollection = db.collection<SharedLink>("shared_links");
-
               // BUG #1 — Per-session idempotency. If another webhook retry already
               // created links for this checkout session, skip so we don't double-
               // create links or re-send emails.
-              const existingLinksForSession = await sharedLinksCollection.countDocuments({
-                stripeSessionId: session.id,
-              });
+              const existingLinksForSession = await countSharedLinksByStripeSession(session.id);
               if (existingLinksForSession > 0) {
                 console.log(
                   `share_links webhook: session ${session.id} already processed (${existingLinksForSession} links exist); skipping`
@@ -796,7 +755,7 @@ export async function POST(request: Request) {
               // Prefer cardIds passed directly through metadata. Fall back to
               // a stashed reference, then finally to the legacy batch lookup.
               let generatedCardIds: string[] = [];
-              let cardIdsRefObjectId: ObjectId | null = null;
+              let cardIdsRefId: string | null = null;
 
               if (session.metadata?.cardIds) {
                 try {
@@ -811,10 +770,8 @@ export async function POST(request: Request) {
                 }
               } else if (session.metadata?.cardIdsRef) {
                 try {
-                  cardIdsRefObjectId = new ObjectId(session.metadata.cardIdsRef);
-                  const refDoc = await db
-                    .collection("share_link_checkout_refs")
-                    .findOne({ _id: cardIdsRefObjectId });
+                  cardIdsRefId = session.metadata.cardIdsRef;
+                  const refDoc = await getShareLinkCheckoutRefById(cardIdsRefId);
                   if (refDoc && Array.isArray((refDoc as any).cardIds)) {
                     generatedCardIds = ((refDoc as any).cardIds as unknown[]).filter(
                       (value): value is string => typeof value === "string"
@@ -827,10 +784,9 @@ export async function POST(request: Request) {
 
               if (recipientEmails.length === 0 && session.metadata?.recipientEmailsRef) {
                 try {
-                  const refObjectId = new ObjectId(session.metadata.recipientEmailsRef);
-                  const refDoc = await db
-                    .collection("share_link_checkout_refs")
-                    .findOne({ _id: refObjectId });
+                  const refDoc = await getShareLinkCheckoutRefById(
+                    session.metadata.recipientEmailsRef
+                  );
                   if (refDoc && Array.isArray((refDoc as any).recipientEmails)) {
                     recipientEmails = ((refDoc as any).recipientEmails as unknown[]).filter(
                       (value): value is string => typeof value === "string"
@@ -843,10 +799,9 @@ export async function POST(request: Request) {
 
               if (recipientPhones.length === 0 && session.metadata?.recipientPhonesRef) {
                 try {
-                  const refObjectId = new ObjectId(session.metadata.recipientPhonesRef);
-                  const refDoc = await db
-                    .collection("share_link_checkout_refs")
-                    .findOne({ _id: refObjectId });
+                  const refDoc = await getShareLinkCheckoutRefById(
+                    session.metadata.recipientPhonesRef
+                  );
                   if (refDoc && Array.isArray((refDoc as any).recipientPhones)) {
                     recipientPhones = ((refDoc as any).recipientPhones as unknown[]).filter(
                       (value): value is string => typeof value === "string"
@@ -859,18 +814,7 @@ export async function POST(request: Request) {
 
               // Legacy fallback: resolve via batch_purchases if metadata was missing.
               if (generatedCardIds.length === 0) {
-                let batchObjectId: ObjectId | null = null;
-                try {
-                  batchObjectId = new ObjectId(batchId);
-                } catch {
-                  batchObjectId = null;
-                }
-
-                const batchPurchase = batchObjectId
-                  ? await db
-                      .collection<BatchPurchase>("batch_purchases")
-                      .findOne({ _id: batchObjectId })
-                  : null;
+                const batchPurchase = await getBatchPurchaseById(batchId);
 
                 if (batchPurchase && batchPurchase.userId !== ownerUserId) {
                   console.error(
@@ -882,14 +826,7 @@ export async function POST(request: Request) {
                     : [];
                 } else {
                   generatedCardIds = (
-                    await db
-                      .collection("cards")
-                      .find(
-                        { batchId, userId: ownerUserId },
-                        { projection: { _id: 1 } }
-                      )
-                      .sort({ createdAt: 1 })
-                      .toArray()
+                    await getCardsByBatchIdForUser(ownerUserId, batchId)
                   ).map((card) => card._id.toString());
                 }
               }
@@ -897,34 +834,11 @@ export async function POST(request: Request) {
               // BUG #6 — Defense in depth: verify every cardId in the list
               // actually belongs to the buyer. Never trust metadata alone.
               if (generatedCardIds.length > 0) {
-                const candidateObjectIds: ObjectId[] = [];
-                for (const id of generatedCardIds) {
-                  try {
-                    candidateObjectIds.push(new ObjectId(id));
-                  } catch {
-                    // skip invalid ids
-                  }
-                }
+                const ownedIds = new Set(
+                  await getOwnedCardIds(ownerUserId, generatedCardIds)
+                );
 
-                if (candidateObjectIds.length > 0) {
-                  let ownerUserIdQuery: unknown = ownerUserId;
-                  try {
-                    ownerUserIdQuery = {
-                      $in: [ownerUserId, new ObjectId(ownerUserId)],
-                    };
-                  } catch {
-                    ownerUserIdQuery = ownerUserId;
-                  }
-                  const ownedCards = await db
-                    .collection("cards")
-                    .find(
-                      { _id: { $in: candidateObjectIds }, userId: ownerUserIdQuery },
-                      { projection: { _id: 1 } }
-                    )
-                    .toArray();
-                  const ownedIds = new Set(
-                    ownedCards.map((doc) => doc._id.toString())
-                  );
+                if (ownedIds.size > 0) {
                   const verifiedIds: string[] = [];
                   for (const id of generatedCardIds) {
                     if (ownedIds.has(id)) verifiedIds.push(id);
@@ -963,14 +877,9 @@ export async function POST(request: Request) {
 
                 let candidateLinkIds = generateBatchOfLinkIds(linksToCreate);
                 for (let attempt = 0; attempt < 3; attempt++) {
-                  const conflicts = await sharedLinksCollection
-                    .find(
-                      { linkId: { $in: candidateLinkIds } },
-                      { projection: { linkId: 1 } }
-                    )
-                    .toArray();
+                  const conflicts = await findExistingSharedLinkIds(candidateLinkIds);
                   if (conflicts.length === 0) break;
-                  const conflictSet = new Set(conflicts.map((c) => c.linkId));
+                  const conflictSet = new Set(conflicts);
                   candidateLinkIds = candidateLinkIds.map((id) =>
                     conflictSet.has(id) ? generateLinkId() : id
                   );
@@ -1041,16 +950,16 @@ export async function POST(request: Request) {
 
                 if (docsToInsert.length > 0) {
                   try {
-                    const insertRes = await sharedLinksCollection.insertMany(
-                      docsToInsert as unknown as SharedLink[],
-                      { ordered: false }
+                    const insertRes = await insertPreparedSharedLinks(docsToInsert);
+                    const successfulIndexes = new Set(insertRes.insertedIndexes);
+                    const failedByIndex = new Map(
+                      insertRes.failed.map((failure) => [failure.index, failure.error])
                     );
-                    const insertedCount = insertRes.insertedCount ?? 0;
                     // insertMany with ordered:false commits each doc atomically;
-                    // insertedIds maps the index of the originally submitted array
-                    // to the ObjectId assigned. Anything missing = failed.
+                    // inserted indexes map to the originally submitted array.
+                    // Anything missing = failed.
                     for (let i = 0; i < plannedLinks.length; i++) {
-                      if (insertRes.insertedIds && insertRes.insertedIds[i]) {
+                      if (successfulIndexes.has(i)) {
                         successfulLinks.push(plannedLinks[i]!);
                       } else {
                         failedLinks.push({
@@ -1058,70 +967,41 @@ export async function POST(request: Request) {
                           ...(plannedLinks[i]!.recipientEmail
                             ? { recipientEmail: plannedLinks[i]!.recipientEmail! }
                             : {}),
-                          error: "insertMany did not ack this document",
+                          error:
+                            failedByIndex.get(i) ||
+                            "insertMany did not ack this document",
                         });
                       }
                     }
                     console.log(
-                      `share_links webhook: bulk inserted ${insertedCount}/${docsToInsert.length} links`
+                      `share_links webhook: bulk inserted ${successfulLinks.length}/${docsToInsert.length} links`
                     );
                   } catch (bulkErr: any) {
-                    // With ordered:false, partial success is reported via writeErrors.
-                    const writeErrors: any[] =
-                      bulkErr?.writeErrors || bulkErr?.result?.writeErrors || [];
-                    const failedIndexes = new Set<number>(
-                      writeErrors.map((we: any) => we.index).filter(
-                        (idx: unknown): idx is number => typeof idx === "number"
-                      )
-                    );
                     for (let i = 0; i < plannedLinks.length; i++) {
-                      if (failedIndexes.has(i)) {
-                        const err = writeErrors.find((we: any) => we.index === i);
-                        failedLinks.push({
-                          cardId: plannedLinks[i]!.cardId,
-                          ...(plannedLinks[i]!.recipientEmail
-                            ? { recipientEmail: plannedLinks[i]!.recipientEmail! }
-                            : {}),
-                          error: err?.errmsg || err?.message || "insertMany error",
-                        });
-                      } else {
-                        successfulLinks.push(plannedLinks[i]!);
-                      }
+                      failedLinks.push({
+                        cardId: plannedLinks[i]!.cardId,
+                        ...(plannedLinks[i]!.recipientEmail
+                          ? { recipientEmail: plannedLinks[i]!.recipientEmail! }
+                          : {}),
+                        error:
+                          bulkErr instanceof Error
+                            ? bulkErr.message
+                            : String(bulkErr),
+                      });
                     }
-                    if (successfulLinks.length === 0) {
-                      console.error(
-                        "share_links webhook: bulk insert failed completely:",
-                        bulkErr
-                      );
-                    } else {
-                      console.error(
-                        `share_links webhook: bulk insert partial failure (${successfulLinks.length} ok, ${failedLinks.length} failed)`
-                      );
-                    }
+                    console.error(
+                      "share_links webhook: bulk insert failed completely:",
+                      bulkErr
+                    );
                   }
                 }
 
                 const createdLinks = successfulLinks;
 
                 // Fetch card titles in one query for the email body.
-                const cardObjectIds: ObjectId[] = [];
-                for (const id of createdLinks.map((l) => l.cardId)) {
-                  try {
-                    cardObjectIds.push(new ObjectId(id));
-                  } catch {
-                    // skip invalid ids
-                  }
-                }
-                const cardsById: Record<string, { title?: string }> = {};
-                if (cardObjectIds.length > 0) {
-                  const cardDocs = await db
-                    .collection("cards")
-                    .find({ _id: { $in: cardObjectIds } }, { projection: { title: 1 } })
-                    .toArray();
-                  for (const doc of cardDocs) {
-                    cardsById[doc._id.toString()] = { title: (doc as any).title };
-                  }
-                }
+                const cardsById = await getCardTitlesByIds(
+                  createdLinks.map((link) => link.cardId)
+                );
 
                 const owner = await getUserByEmail(ownerEmail);
                 const ownerName = owner?.name || ownerEmail;
@@ -1165,7 +1045,7 @@ export async function POST(request: Request) {
                 // so we can retry later and alert Discord.
                 if (failedLinks.length > 0) {
                   try {
-                    await db.collection("webhook_partial_failures").insertOne({
+                    await insertWebhookPartialFailure({
                       type: "share_links",
                       stripeSessionId: session.id,
                       ownerUserId,
@@ -1232,8 +1112,8 @@ export async function POST(request: Request) {
 
               // BUG #8 — Clean up the checkout ref doc after successful use.
               const refIdsToDelete = new Set<string>();
-              if (cardIdsRefObjectId) {
-                refIdsToDelete.add(cardIdsRefObjectId.toString());
+              if (cardIdsRefId) {
+                refIdsToDelete.add(cardIdsRefId);
               }
               if (session.metadata?.recipientEmailsRef) {
                 refIdsToDelete.add(session.metadata.recipientEmailsRef);
@@ -1244,16 +1124,7 @@ export async function POST(request: Request) {
 
               if (refIdsToDelete.size > 0) {
                 try {
-                  const refObjectIds = Array.from(refIdsToDelete).flatMap((id) => {
-                    try {
-                      return [new ObjectId(id)];
-                    } catch {
-                      return [];
-                    }
-                  });
-                  await db
-                    .collection("share_link_checkout_refs")
-                    .deleteMany({ _id: { $in: refObjectIds } });
+                  await deleteShareLinkCheckoutRefsByIds(Array.from(refIdsToDelete));
                 } catch (cleanupErr) {
                   console.error(
                     "Failed to delete share_link_checkout_refs doc:",
@@ -1685,15 +1556,7 @@ export async function POST(request: Request) {
               refundedSession &&
               refundedSession.metadata?.purchaseType === "share_links"
             ) {
-              const client = await clientPromise;
-              const db = client.db("mybingocard");
-              const revokeResult = await db
-                .collection("shared_links")
-                .updateMany(
-                  { stripeSessionId: refundedSession.id },
-                  { $set: { status: "refunded", updatedAt: new Date() } }
-                );
-              const revokedCount = revokeResult.modifiedCount ?? 0;
+              const revokedCount = await revokeSharedLinksByStripeSession(refundedSession.id);
               console.log(
                 `share_links refund: revoked ${revokedCount} link(s) for session ${refundedSession.id}`
               );

@@ -1,4 +1,6 @@
 import type { Collection, Db, UpdateResult } from "mongodb";
+import clientPromise from "@/lib/mongodb";
+import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
 
 export interface EmailSubscriber {
   email: string;
@@ -63,4 +65,40 @@ export async function upsertEmailSubscriber(
     email,
     duplicate: result.upsertedCount === 0 && result.matchedCount > 0,
   };
+}
+
+export async function captureEmailSubscriber(
+  rawEmail: string,
+  source: string | undefined,
+  now = new Date()
+): Promise<{ email: string; duplicate: boolean }> {
+  if (useSqliteDb()) {
+    const email = rawEmail.toLowerCase().trim();
+    const normalizedSource = source?.trim() || "popup";
+    const store = getSqliteStore();
+    const existing = store.findOne<EmailSubscriber>("email_subscribers", { email });
+
+    store.updateOne(
+      "email_subscribers",
+      { email },
+      {
+        $setOnInsert: {
+          email,
+          source: normalizedSource,
+          subscribedAt: now,
+          unsubscribedAt: null,
+        },
+        $set: {
+          updatedAt: now,
+        },
+      },
+      { upsert: true }
+    );
+
+    return { email, duplicate: Boolean(existing) };
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
+  return upsertEmailSubscriber(await getEmailSubscribersCollection(db), rawEmail, source, now);
 }

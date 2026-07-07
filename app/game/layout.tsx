@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Join an Online Bingo Game | MyBingoCard",
-  description: "Enter a MyBingoCard room code to join a hosted online bingo game from your phone, tablet, or computer.",
+  title: "Online Bingo Game",
+  description: "Join or host an online bingo game with MyBingoCard.",
   robots: {
     index: false,
     follow: false,

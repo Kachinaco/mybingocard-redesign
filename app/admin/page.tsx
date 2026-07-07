@@ -1,28 +1,14 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import clientPromise from "@/lib/mongodb";
 import Link from "next/link";
 import { isAdminSession } from "@/lib/admin";
-import { getAdminStats as getSharedAdminStats } from "@/lib/db/admin-stats";
+import { getAdminOverviewData } from "@/lib/db/admin-dashboard";
 
 function formatCurrency(amount: number): string {
   return amount.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-}
-
-function formatDurationMinutes(minutes: number | null): string {
-  if (minutes === null) return "n/a";
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  if (hours < 24) {
-    return remainingMinutes ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
-  }
-  const days = Math.floor(hours / 24);
-  const remainingHours = hours % 24;
-  return remainingHours ? `${days}d ${remainingHours}h` : `${days}d`;
 }
 
 const HIGH_VALUE_EVENTS = [
@@ -75,14 +61,6 @@ function formatDeadClickLabel(hotspot: {
   return "Untitled target";
 }
 
-interface ActivityEvent {
-  _id: { toString(): string };
-  event: string;
-  email: string | null;
-  metadata?: Record<string, unknown> | null;
-  createdAt: Date;
-}
-
 const SUBSCRIPTION_STATUSES: {
   key: string;
   label: string;
@@ -98,83 +76,7 @@ const SUBSCRIPTION_STATUSES: {
 ];
 
 async function getPageData() {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const [shared, recentUsers, recentActivity, canceledUsers] = await Promise.all([
-    getSharedAdminStats(),
-    db
-      .collection("users")
-      .find(
-        {},
-        { projection: { name: 1, email: 1, planType: 1, createdAt: 1 } }
-      )
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .toArray(),
-    db
-      .collection("activity_events")
-      .find(
-        { event: { $in: [...HIGH_VALUE_EVENTS] } },
-        { projection: { event: 1, email: 1, metadata: 1, createdAt: 1 } }
-      )
-      .sort({ createdAt: -1 })
-      .limit(15)
-      .toArray() as unknown as Promise<ActivityEvent[]>,
-    db
-      .collection("users")
-      .find(
-        {
-          $or: [
-            { subscriptionStatus: "canceled" },
-            { cancelAtPeriodEnd: true },
-          ],
-        },
-        {
-          projection: {
-            name: 1,
-            email: 1,
-            subscriptionStatus: 1,
-            cancelAtPeriodEnd: 1,
-            cancelAt: 1,
-            cancellationReason: 1,
-            cancellationFeedback: 1,
-            createdAt: 1,
-            updatedAt: 1,
-            totalCardsCreated: 1,
-            totalExports: 1,
-          },
-        }
-      )
-      .sort({ updatedAt: -1 })
-      .limit(5)
-      .toArray(),
-  ]);
-
-  // Derive signup method display data from shared stats
-  const signupMethods = Object.entries(shared.signupsByMethod)
-    .map(([method, count]) => ({ method, count }))
-    .sort((a, b) => b.count - a.count);
-  const signupMethodTotal = signupMethods.reduce((s, r) => s + r.count, 0);
-
-  // Derive UTM source display data from shared stats
-  const utmSources = Object.entries(shared.signupsBySource)
-    .map(([source, count]) => ({ source, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
-  const utmSourceTotal = utmSources.reduce((s, r) => s + r.count, 0);
-
-  return {
-    ...shared,
-    recentUsers,
-    signupMethods,
-    signupMethodTotal,
-    utmSources,
-    utmSourceTotal,
-    recentActivity,
-    canceledUsers,
-    generatedAt: new Date(),
-  };
+  return getAdminOverviewData(HIGH_VALUE_EVENTS);
 }
 
 export default async function AdminOverviewPage() {
@@ -317,49 +219,6 @@ export default async function AdminOverviewPage() {
     minute: "2-digit",
     timeZone: "America/Phoenix",
   });
-  const productMetrics = stats.productMetrics;
-  const productMetricCards = [
-    {
-      label: "Card Activation",
-      value: `${productMetrics.activation.activationRate}%`,
-      detail: `${productMetrics.activation.activatedCreators.toLocaleString()} of ${productMetrics.activation.reportableCreators.toLocaleString()} new creators made a card`,
-    },
-    {
-      label: "Event Ready",
-      value: `${productMetrics.activation.eventReadyRate}%`,
-      detail: `${productMetrics.activation.eventReadyCreators.toLocaleString()} creators exported, shared, batched, or started a live game`,
-    },
-    {
-      label: "Time to Value",
-      value: formatDurationMinutes(productMetrics.activation.medianTimeToEventReadyMinutes),
-      detail: `Median event-ready time; first card median ${formatDurationMinutes(productMetrics.activation.medianTimeToFirstCardMinutes)}`,
-    },
-    {
-      label: "Event Completion",
-      value: `${productMetrics.events.completionRate}%`,
-      detail: `${productMetrics.events.completedEvents.toLocaleString()} completed actions from ${productMetrics.events.eventReadyEvents.toLocaleString()} ready actions`,
-    },
-    {
-      label: "Live Games",
-      value: `${productMetrics.liveGames.playersJoined.toLocaleString()} joins`,
-      detail: `${productMetrics.liveGames.gamesStarted.toLocaleString()} started, ${productMetrics.liveGames.gamesCompleted.toLocaleString()} completed, ${productMetrics.liveGames.averagePlayersPerJoinedRoom} players/room`,
-    },
-    {
-      label: "Revenue per Event",
-      value: `$${formatCurrency(productMetrics.revenue.revenuePerCompletedEvent)}`,
-      detail: `$${formatCurrency(productMetrics.revenue.revenuePerEventReadyCreator)} per event-ready creator in ${productMetrics.windowDays}d`,
-    },
-    {
-      label: "Operators",
-      value: productMetrics.operators.active30d.toLocaleString(),
-      detail: `${productMetrics.operators.repeatCreators30d.toLocaleString()} repeat creators; D30 return ${productMetrics.operators.operatorReturn30dRate}%`,
-    },
-    {
-      label: "Segments",
-      value: productMetrics.segments.operators.toLocaleString(),
-      detail: `${productMetrics.segments.casualCreators.toLocaleString()} casual creators, ${productMetrics.segments.guestPlayers.toLocaleString()} guest players`,
-    },
-  ];
 
   return (
     <div>
@@ -425,60 +284,6 @@ export default async function AdminOverviewPage() {
             <div className="text-sm text-white/80 sm:text-right">
               <p>All-time collected via Stripe</p>
               <p>After coupons and discounts</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Product Health */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
-        <div className="border-b border-slate-100 p-4 sm:p-6">
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">Product Health</h2>
-              <p className="text-sm text-slate-400 mt-0.5">
-                Event-ready activation, live-game participation, operator return, and revenue quality.
-              </p>
-            </div>
-            <p className="text-xs font-medium text-slate-400">
-              Last {productMetrics.windowDays} days
-            </p>
-          </div>
-        </div>
-        <div className="p-4 sm:p-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-            {productMetricCards.map((metric) => (
-              <div key={metric.label} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  {metric.label}
-                </p>
-                <p className="mt-2 text-2xl font-bold text-slate-900">
-                  {metric.value}
-                </p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">
-                  {metric.detail}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4 text-sm">
-            <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-4">
-              <p className="font-semibold text-emerald-900">Seasonal Return</p>
-              <p className="mt-1 text-emerald-700">
-                {productMetrics.operators.seasonalReturnCreators.toLocaleString()} of {productMetrics.operators.seasonalReturnEligible.toLocaleString()} mature operators returned after 45 days ({productMetrics.operators.seasonalReturnRate}%).
-              </p>
-            </div>
-            <div className="rounded-lg border border-sky-100 bg-sky-50 p-4">
-              <p className="font-semibold text-sky-900">Live Game Completion</p>
-              <p className="mt-1 text-sky-700">
-                Joined rooms started at {productMetrics.liveGames.joinedToStartedRate}% and started rooms completed at {productMetrics.liveGames.startedToCompletedRate}%.
-              </p>
-            </div>
-            <div className="rounded-lg border border-amber-100 bg-amber-50 p-4">
-              <p className="font-semibold text-amber-900">Revenue Attribution</p>
-              <p className="mt-1 text-amber-700">
-                ${formatCurrency(productMetrics.revenue.totalRevenue)} collected from {productMetrics.revenue.revenueEvents.toLocaleString()} revenue events in this window.
-              </p>
             </div>
           </div>
         </div>

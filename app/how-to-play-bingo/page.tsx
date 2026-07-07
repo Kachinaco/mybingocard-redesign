@@ -2,16 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "How to Play Bingo: Rules, Cards, Patterns & Caller Guide",
+  title: "How to Play Bingo — Rules, Tips & Custom Cards | MyBingoCard",
   description:
-    "Learn how to play bingo rules with card layout, caller steps, calling sheet, winning patterns, etiquette, hosting tips, and custom cards.",
+    "Learn how to play bingo with our complete guide. Bingo rules explained, game variations, tips for hosting, and custom printable bingo cards. Everything you need for your next bingo game.",
   alternates: {
     canonical: "https://mybingocard.com/how-to-play-bingo",
   },
   openGraph: {
-    title: "How to Play Bingo: Rules, Cards, Patterns & Caller Guide",
+    title: "How to Play Bingo — Rules, Tips & Custom Cards | MyBingoCard",
     description:
-      "Learn bingo rules, caller steps, card layout, winning patterns, game variations, hosting tips, and custom card ideas.",
+      "Learn how to play bingo with our complete guide. Bingo rules, winning patterns, game variations, hosting tips, and custom printable cards.",
     url: "https://mybingocard.com/how-to-play-bingo",
     siteName: "MyBingoCard",
     type: "article",
@@ -32,7 +32,7 @@ const faqItems = [
   {
     question: "How do you win at bingo?",
     answer:
-      "You win by being the first player to complete the required pattern on your card and calling out \"Bingo!\" The most common winning pattern is five in a row, either horizontal, vertical, or diagonal. Other patterns include four corners, blackout (covering every square), and special shapes like X, T, or L.",
+      "You win by being the first player to complete the required pattern on your card and calling out \"Bingo!\" The most common winning pattern is a straight line of five squares — horizontal, vertical, or diagonal. Other patterns include four corners, blackout (covering every square), and special shapes like X, T, or L.",
   },
   {
     question: "Can you play bingo with custom words instead of numbers?",
@@ -52,78 +52,12 @@ const faqItems = [
   {
     question: "What happens if two people call bingo at the same time?",
     answer:
-      "If two players call bingo on the same last number called, the prize is typically split between them or both players are declared winners. In organized bingo halls, the caller follows posted house rules and verifies the winning cards. In casual games, it is common to simply award both players.",
+      "If two players call bingo on the same number, the prize is typically split between them or both players are declared winners. In organized bingo halls, the caller usually verifies the first person who called. In casual games, it is common to simply award both players.",
   },
   {
     question: "Do I need special equipment to play bingo?",
     answer:
-      "All you need are bingo cards and something to mark called numbers, such as daubers, chips, coins, or small candies. You also need a way to draw numbers randomly and a calling sheet or call list for verification. A bingo cage with numbered balls is traditional, but you can use a random number generator app or draw numbers from a hat.",
-  },
-  {
-    question: "What are the basic bingo rules?",
-    answer:
-      "The basic bingo rules are simple: use a valid card, mark only called numbers, complete the announced winning pattern, call bingo clearly, and let the caller verify the card against the calling sheet before the next number is called.",
-  },
-  {
-    question: "What is good bingo etiquette?",
-    answer:
-      "Good bingo etiquette means listening while numbers are called, keeping conversation quiet enough for nearby players to hear, calling bingo loudly and promptly, and accepting the caller's verification or house rules for ties and prizes.",
-  },
-];
-
-const howToSteps = [
-  {
-    name: "Hand out unique bingo cards",
-    text: "Give each player one or more bingo cards. For 75-ball bingo, each card should have a 5 by 5 grid, B-I-N-G-O columns, and a free center square.",
-  },
-  {
-    name: "Announce the winning pattern",
-    text: "Before the round starts, tell players exactly what pattern wins, such as one line, four corners, X, T, L, or blackout.",
-  },
-  {
-    name: "Call each number clearly",
-    text: "Draw one ball or number at a time. Say the letter and number together, repeat it once, and keep a visible calling sheet or call list for verification.",
-  },
-  {
-    name: "Mark matching squares",
-    text: "Players mark a square only when the called letter and number appears on their card. The center free space counts as already marked.",
-  },
-  {
-    name: "Pause when someone calls bingo",
-    text: "When a player calls bingo, pause the round and compare the marked winning pattern against the caller list before awarding the win. Many games require bingo to be called on the last number called.",
-  },
-];
-
-const callerChecklist = [
-  "Announce the game type, card style, and winning pattern before calls begin.",
-  "Show or repeat each called number so players can catch up without arguments.",
-  "Keep a calling sheet or call list in order, especially when prizes or multiple rounds are involved.",
-  "Explain tie rules before the round starts, including whether tied winners split or each receive a prize.",
-  "Verify the winning card against the call list before clearing boards for the next round.",
-  "Set etiquette expectations so players can hear the caller and know when to call bingo.",
-  "For fundraisers or public events, check local house rules before charging entry fees or awarding cash prizes.",
-];
-
-const variantComparison = [
-  {
-    variant: "75-ball bingo",
-    card: "5 by 5 card, B-I-N-G-O columns, center free space",
-    bestFor: "US classrooms, parties, church events, offices, and custom word bingo",
-  },
-  {
-    variant: "90-ball bingo",
-    card: "9 by 3 ticket with 15 numbers and blank spaces",
-    bestFor: "UK-style games with one line, two lines, and full house prizes",
-  },
-  {
-    variant: "Picture bingo",
-    card: "Images instead of numbers or words",
-    bestFor: "Young kids, ESL learners, vocabulary review, and visual classroom games",
-  },
-  {
-    variant: "Themed custom bingo",
-    card: "Words, names, prompts, tasks, or event moments",
-    bestFor: "Baby showers, weddings, family reunions, team building, and holidays",
+      "All you need are bingo cards and something to mark called numbers — daubers, chips, coins, or even small candies work. You also need a way to draw numbers randomly. A bingo cage with numbered balls is traditional, but you can use a random number generator app or draw numbers from a hat.",
   },
 ];
 
@@ -140,66 +74,6 @@ const faqSchema = {
   })),
 };
 
-
-
-const howToSchema = {
-  "@context": "https://schema.org",
-  "@type": "HowTo",
-  name: "How to Play Bingo",
-  description:
-    "A step-by-step guide to playing bingo, including cards, caller duties, patterns, and win verification.",
-  totalTime: "PT10M",
-  supply: [
-    { "@type": "HowToSupply", name: "Unique bingo cards" },
-    { "@type": "HowToSupply", name: "Markers, chips, daubers, or digital marks" },
-    { "@type": "HowToSupply", name: "Random number caller and calling sheet" },
-  ],
-  step: howToSteps.map((step, index) => ({
-    "@type": "HowToStep",
-    position: index + 1,
-    name: step.name,
-    text: step.text,
-  })),
-};
-
-const articleSchema = {
-  "@context": "https://schema.org",
-  "@type": "Article",
-  headline: "How to Play Bingo: Rules, Cards, Patterns & Caller Guide",
-  description:
-    "Clear bingo rules, 75-ball card layout, winning patterns, caller checklist, variations, and hosting guidance for casual games.",
-  mainEntityOfPage: "https://mybingocard.com/how-to-play-bingo",
-  publisher: {
-    "@type": "Organization",
-    name: "MyBingoCard",
-    url: "https://mybingocard.com",
-  },
-};
-
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    {
-      "@type": "ListItem",
-      position: 1,
-      name: "Home",
-      item: "https://mybingocard.com/",
-    },
-    {
-      "@type": "ListItem",
-      position: 2,
-      name: "How to Play Bingo",
-      item: "https://mybingocard.com/how-to-play-bingo",
-    },
-  ],
-};
-
-const schemaGraph = {
-  "@context": "https://schema.org",
-  "@graph": [articleSchema, howToSchema, faqSchema, breadcrumbSchema],
-};
-
 const tocSections = [
   { id: "what-is-bingo", label: "What Is Bingo?" },
   { id: "basic-rules", label: "Basic Rules" },
@@ -207,7 +81,6 @@ const tocSections = [
   { id: "winning-patterns", label: "Winning Patterns" },
   { id: "game-variations", label: "Game Variations" },
   { id: "how-to-host", label: "How to Host" },
-  { id: "caller-checklist", label: "Caller Checklist" },
   { id: "tips-and-strategy", label: "Tips & Strategy" },
   { id: "faq", label: "FAQ" },
 ];
@@ -322,7 +195,7 @@ export default function HowToPlayBingoPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <div className="min-h-screen bg-white selection:bg-indigo-100 selection:text-indigo-900">
         {/* Navbar */}
@@ -508,8 +381,8 @@ export default function HowToPlayBingoPage() {
                     Basic Rules of Bingo
                   </h2>
                   <p className="text-slate-600 leading-relaxed text-[17px] mb-8">
-                    Bingo rules are simple to learn. Here is how a standard
-                    game works from start to finish:
+                    Bingo is simple to learn. Here is how a standard game works
+                    from start to finish:
                   </p>
                   <ol className="space-y-6">
                     {[
@@ -521,22 +394,22 @@ export default function HowToPlayBingoPage() {
                       {
                         step: "Listen for the caller",
                         detail:
-                          "A designated caller randomly draws numbers one at a time and announces them to the group. In traditional bingo, numbers are drawn from a rotating cage of 75 balls. Each ball shows a letter (B, I, N, G, or O) and a number. The caller should also keep a calling sheet or call list.",
+                          "A designated caller randomly draws numbers one at a time and announces them to the group. In traditional bingo, numbers are drawn from a rotating cage of 75 balls. Each ball shows a letter (B, I, N, G, or O) and a number.",
                       },
                       {
                         step: "Mark your card",
                         detail:
-                          "When a called number appears on your card, mark it with a dauber, chip, or pen. Pay attention to the caller and the house rules for missed numbers.",
+                          "When a called number appears on your card, mark it with a dauber, chip, or pen. Pay attention — if you miss a number, you cannot go back.",
                       },
                       {
                         step: 'Call "Bingo!"',
                         detail:
-                          "As soon as you complete the required winning pattern, such as five in a row, four corners, or blackout, shout \"Bingo!\" to alert the caller and stop the game.",
+                          "As soon as you complete the required winning pattern (a line, four corners, blackout, etc.), shout \"Bingo!\" to alert the caller and stop the game.",
                       },
                       {
                         step: "Verify the win",
                         detail:
-                          "The caller checks your marked numbers against the calling sheet. If every marked number is confirmed and the win was called on time, you win the round. If any number is incorrect, the game continues.",
+                          "The caller checks your marked numbers against the numbers that have been called. If every marked number is confirmed, you win the round. If any number is incorrect, the game continues.",
                       },
                     ].map((item, i) => (
                       <li key={i} className="flex gap-4">
@@ -800,42 +673,6 @@ export default function HowToPlayBingoPage() {
                       </p>
                     </div>
                   </div>
-
-                  <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="bg-slate-900 text-white">
-                          <th className="px-4 py-3 text-left font-semibold">
-                            Variation
-                          </th>
-                          <th className="px-4 py-3 text-left font-semibold">
-                            Card Format
-                          </th>
-                          <th className="px-4 py-3 text-left font-semibold">
-                            Best Use
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {variantComparison.map((row, i) => (
-                          <tr
-                            key={row.variant}
-                            className={i % 2 === 0 ? "bg-white" : "bg-slate-50"}
-                          >
-                            <td className="px-4 py-3 font-bold text-slate-900">
-                              {row.variant}
-                            </td>
-                            <td className="px-4 py-3 text-slate-600">
-                              {row.card}
-                            </td>
-                            <td className="px-4 py-3 text-slate-600">
-                              {row.bestFor}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
                 </section>
 
                 {/* How to Host */}
@@ -865,7 +702,7 @@ export default function HowToPlayBingoPage() {
                               href="/create"
                               className="text-indigo-600 hover:text-indigo-700 font-medium underline underline-offset-2"
                             >
-                              Create a draft card, then unlock export or add digital cards
+                              Create a free card, then export for free or add paid digital cards
                             </Link>{" "}
                             on phones and tablets
                           </span>
@@ -906,12 +743,10 @@ export default function HowToPlayBingoPage() {
                       </h3>
                       <p className="text-slate-600 leading-relaxed">
                         Before the first number is called, announce the winning
-                        pattern for the round and any house rules. Let players
-                        know how many rounds you plan to play, whether there are
-                        prizes, whether bingo must be called on the last number
-                        called, and what happens if two people call bingo at the
-                        same time. Clear rules prevent arguments and keep the
-                        energy positive.
+                        pattern for the round. Let players know how many rounds
+                        you plan to play, whether there are prizes, and what
+                        happens if two people call bingo at the same time. Clear
+                        rules prevent arguments and keep the energy positive.
                       </p>
                     </div>
 
@@ -923,9 +758,9 @@ export default function HowToPlayBingoPage() {
                         Speak loudly and repeat each number twice. Say the
                         letter and number together (&ldquo;B-7&rdquo;,
                         &ldquo;N-42&rdquo;) so players can find them quickly.
-                        Keep a consistent pace so the room can hear and mark
-                        each number. Display called numbers on a whiteboard,
-                        screen, calling sheet, or shared call list if possible.
+                        Keep a consistent pace — fast enough to maintain
+                        excitement, slow enough that nobody falls behind. Display
+                        called numbers on a whiteboard or screen if possible.
                       </p>
                     </div>
 
@@ -935,57 +770,13 @@ export default function HowToPlayBingoPage() {
                       </h3>
                       <p className="text-slate-600 leading-relaxed">
                         When someone calls bingo, pause the game and read back
-                        their marked numbers against your calling sheet or call
-                        list. Celebrate the winner, hand out the prize, and
-                        reset for the next round. Mix up the winning patterns
-                        between rounds to keep things fresh. Keep the tone
-                        friendly and make sure players can still hear the caller.
+                        their marked numbers against your call list. Celebrate
+                        the winner, hand out the prize, and reset for the next
+                        round. Mix up the winning patterns between rounds to
+                        keep things fresh. Play upbeat background music between
+                        rounds and encourage friendly trash talk.
                       </p>
                     </div>
-                  </div>
-                </section>
-
-
-
-                {/* Caller Checklist */}
-                <section id="caller-checklist" className="scroll-mt-28 mb-16">
-                  <h2 className="text-3xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                    <span className="w-1.5 h-8 bg-gradient-to-b from-violet-600 to-indigo-600 rounded-full"></span>
-                    Bingo Caller Checklist
-                  </h2>
-                  <p className="text-slate-600 leading-relaxed text-[17px] mb-8">
-                    The caller controls the pace, fairness, and clarity of the
-                    game. A strong caller does more than read numbers. They set
-                    the win condition, track every call, and make verification
-                    easy when someone claims a win.
-                  </p>
-                  <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                    {callerChecklist.map((item, i) => (
-                      <div
-                        key={item}
-                        className={[
-                          "flex gap-4 p-5",
-                          i === callerChecklist.length - 1
-                            ? ""
-                            : "border-b border-slate-100",
-                        ].join(" ")}
-                      >
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-50 text-indigo-700 font-bold flex items-center justify-center text-sm">
-                          {i + 1}
-                        </div>
-                        <p className="text-slate-600 leading-relaxed">{item}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-6 bg-amber-50 rounded-xl p-5 border border-amber-100">
-                    <p className="text-sm text-amber-900 leading-relaxed">
-                      <strong>Hosting note:</strong> Casual family, classroom,
-                      and office games are usually simple social activities. If
-                      you charge entry fees, award cash, sell tickets, or run a
-                      public fundraiser, check the local rules and house rules
-                      where the event is held before advertising or collecting
-                      money.
-                    </p>
                   </div>
                 </section>
 
@@ -1011,7 +802,7 @@ export default function HowToPlayBingoPage() {
                       },
                       {
                         title: "Stay focused",
-                        body: "Missed numbers cost wins. Minimize distractions during play. Good bingo etiquette means keeping conversation quiet enough that you and nearby players can hear every call.",
+                        body: "Missed numbers cost wins. Minimize distractions during play. If you are chatting with friends, make sure you are still listening to every call.",
                       },
                       {
                         title: "Arrive early",
@@ -1023,7 +814,7 @@ export default function HowToPlayBingoPage() {
                       },
                       {
                         title: "Have fun",
-                        body: "Bingo is a social game. Talk to the people around you between calls, enjoy the snacks, and cheer for winners after the caller verifies the card. The best bingo players are the ones having the best time.",
+                        body: "Bingo is a social game. Talk to the people around you, enjoy the snacks, and cheer for winners. The best bingo players are the ones having the best time.",
                       },
                     ].map((tip) => (
                       <div
@@ -1079,7 +870,7 @@ export default function HowToPlayBingoPage() {
                   </h2>
                   <p className="text-slate-300 mb-8 text-lg max-w-xl mx-auto leading-relaxed">
                     Create custom bingo cards for your next game night, party,
-                    or classroom activity. Start with a draft, then activate the account when you need to save or export.
+                    or classroom activity. Start with a draft, then choose Premium when you need to save or export.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Link
@@ -1128,7 +919,7 @@ export default function HowToPlayBingoPage() {
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
                   The easiest way to create custom bingo cards for any occasion.
-                  Online bingo card maker with templates, PDF export, and
+                  Online bingo draft editor with templates, free PDF export, and
                   live multiplayer games.
                 </p>
               </div>

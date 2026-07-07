@@ -7,15 +7,35 @@ describe("checkout funnel guardrails", () => {
   const createPageSource = readFileSync(resolve(process.cwd(), "app/create/page.tsx"), "utf8");
   const dashboardLayoutSource = readFileSync(resolve(process.cwd(), "app/dashboard/layout.tsx"), "utf8");
   const activatePageSource = readFileSync(resolve(process.cwd(), "app/activate/page.tsx"), "utf8");
-  const accountPendingGateSource = readFileSync(resolve(process.cwd(), "components/AccountPendingCheckoutGate.tsx"), "utf8");
-  const embeddedCheckoutRouteSource = readFileSync(resolve(process.cwd(), "app/api/stripe/embedded-checkout/route.ts"), "utf8");
+  const accountPendingGateSource = readFileSync(
+    resolve(process.cwd(), "components/AccountPendingCheckoutGate.tsx"),
+    "utf8"
+  );
+  const embeddedCheckoutRouteSource = readFileSync(
+    resolve(process.cwd(), "app/api/stripe/embedded-checkout/route.ts"),
+    "utf8"
+  );
+  const createCheckoutRouteSource = readFileSync(
+    resolve(process.cwd(), "app/api/stripe/create-checkout-session/route.ts"),
+    "utf8"
+  );
+  const stripeConfigSource = readFileSync(resolve(process.cwd(), "lib/stripe/config.ts"), "utf8");
+  const adminExtendTrialRouteSource = readFileSync(
+    resolve(process.cwd(), "app/api/admin/users/[id]/extend-trial/route.ts"),
+    "utf8"
+  );
+  const adminUserDetailSource = readFileSync(
+    resolve(process.cwd(), "app/admin/users/[id]/page.tsx"),
+    "utf8"
+  );
 
-  it("replaces the embedded checkout modal with a free-access redirect shim", () => {
-    expect(checkoutModalSource).toContain("freeAccessRedirect");
-    expect(checkoutModalSource).toContain("checkout_disabled_free_for_all");
-    expect(checkoutModalSource).toContain('"/dashboard?success=true&free=1"');
-    expect(checkoutModalSource).not.toContain("@stripe/stripe-js");
-    expect(checkoutModalSource).not.toContain("EmbeddedCheckout");
+  it("guards embedded checkout from duplicate opens while a request or session is already active", () => {
+    expect(checkoutModalSource).toContain("const isOpeningRef = useRef(false);");
+    expect(checkoutModalSource).toContain(
+      "if (isOpeningRef.current || state.loading || state.clientSecret) {"
+    );
+    expect(checkoutModalSource).toContain("isOpeningRef.current = true;");
+    expect(checkoutModalSource).toContain("isOpeningRef.current = false;");
   });
 
   it("does not show creator-tool premium checkout on the create page", () => {
@@ -25,33 +45,53 @@ describe("checkout funnel guardrails", () => {
     expect(createPageSource).not.toContain("Start 7-Day Trial");
   });
 
-  it("opens free batch mode from pricing and legacy checkout links", () => {
+  it("opens batch purchase mode from pricing pack links", () => {
     expect(createPageSource).toContain('searchParams.get("batchMode") === "1"');
     expect(createPageSource).toContain('searchParams.get("batchMode") === "true"');
     expect(createPageSource).toContain("setBatchMode(true);");
-    expect(createPageSource).toContain("Generate ${batchCount}-Card Batch Free");
   });
 
-  it("embedded checkout route returns a free redirect and creates no Stripe session", () => {
-    expect(embeddedCheckoutRouteSource).toContain("embedded_checkout_disabled_free_for_all");
-    expect(embeddedCheckoutRouteSource).toContain("purchaseType: purchaseType || \"subscription\"");
-    expect(embeddedCheckoutRouteSource).toContain("free: true");
-    expect(embeddedCheckoutRouteSource).not.toContain("checkout.sessions.create");
-    expect(embeddedCheckoutRouteSource).not.toContain("payment_method_collection");
+  it("tracks purchaseType for standard subscription checkouts", () => {
+    expect(embeddedCheckoutRouteSource).toContain('purchaseType: "subscription"');
+    expect(embeddedCheckoutRouteSource).toContain('payment_method_collection: "always"');
+    expect(embeddedCheckoutRouteSource).not.toContain("trial_period_days");
+    expect(embeddedCheckoutRouteSource).not.toContain("subscription_trial");
+    expect(createCheckoutRouteSource).not.toContain("trial_period_days");
+    expect(createCheckoutRouteSource).not.toContain("subscription_trial");
+    expect(stripeConfigSource).not.toContain("PREMIUM_TRIAL_DAYS");
+    expect(checkoutModalSource).not.toContain('purchaseType === "trial"');
+    expect(checkoutModalSource).not.toContain('purchaseType: "trial"');
   });
 
-  it("sanitizes embedded checkout return paths before redirecting", () => {
+  it("keeps retired trials from being created manually in admin", () => {
+    expect(adminExtendTrialRouteSource).toContain("Trials are retired");
+    expect(adminExtendTrialRouteSource).toContain("{ status: 410 }");
+    expect(adminExtendTrialRouteSource).not.toContain("extendAdminUserTrialById");
+    expect(adminExtendTrialRouteSource).not.toContain("stripe.subscriptions.update");
+    expect(adminUserDetailSource).not.toContain("Extend Trial");
+    expect(adminUserDetailSource).not.toContain("extendTrial");
+  });
+
+  it("loads Stripe.js only after checkout is opened", () => {
+    expect(checkoutModalSource).not.toContain("const stripePromise = loadStripe");
+    expect(checkoutModalSource).toContain('@stripe/stripe-js/pure');
+    expect(checkoutModalSource).toContain("const getStripe = useCallback");
+    expect(checkoutModalSource).toContain("stripePromiseRef.current = loadStripe");
+    expect(checkoutModalSource).toContain("Checkout could not load. Please disable script blockers or try again.");
+  });
+
+  it("sanitizes embedded checkout return paths before passing them to Stripe", () => {
     expect(embeddedCheckoutRouteSource).toContain("function sanitizeReturnPath");
     expect(embeddedCheckoutRouteSource).toContain('path.startsWith("//")');
-    expect(embeddedCheckoutRouteSource).toContain("parsed.origin !== appOrigin");
-    expect(embeddedCheckoutRouteSource).toContain('redirectUrl: sanitizeReturnPath(returnPath, "/dashboard?success=true&free=1")');
+    expect(embeddedCheckoutRouteSource).toContain("function buildReturnUrl");
+    expect(embeddedCheckoutRouteSource).toContain("session_id={CHECKOUT_SESSION_ID}");
   });
 
   it("lets free users open dashboard profile tools without checkout", () => {
     expect(dashboardLayoutSource).not.toContain("hasPremiumAccess(user)");
     expect(dashboardLayoutSource).not.toContain('redirect("/activate?from=dashboard")');
     expect(activatePageSource).toContain("<AccountPendingCheckoutGate");
-    expect(accountPendingGateSource).toContain("Checkout disabled");
+    expect(accountPendingGateSource).toContain("Account pending checkout");
     expect(accountPendingGateSource).toContain('successPath="/dashboard"');
   });
 

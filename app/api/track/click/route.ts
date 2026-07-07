@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
+import { recordEmailClick } from "@/lib/db/email-marketing";
 
 const ALLOWED_DOMAINS = [
   "mybingocard.com",
@@ -36,47 +36,13 @@ export async function GET(req: NextRequest) {
 
   if (email && campaign) {
     try {
-      const client = await clientPromise;
-      const db = client.db("mybingocard");
-      await db.collection("drip_clicks").updateOne(
-        { email: decodeURIComponent(email), campaignId: campaign, url: decodeURIComponent(url) },
-        {
-          $set: { lastClickedAt: new Date() },
-          $inc: { clickCount: 1 },
-          $setOnInsert: {
-            email: decodeURIComponent(email),
-            campaignId: campaign,
-            url: decodeURIComponent(url),
-            linkId: linkId || null,
-            firstClickedAt: new Date(),
-          },
-        },
-        { upsert: true }
-      );
-
-      if (emailId) {
-        await db.collection("email_messages").updateOne(
-          { emailId },
-          {
-            $set: {
-              email: decodeURIComponent(email),
-              campaignId: campaign,
-              status: "clicked",
-              lastClickedAt: new Date(),
-              updatedAt: new Date(),
-              lastClickedUrl: decodeURIComponent(url),
-              lastClickedLinkId: linkId || null,
-            },
-            $inc: { clickCount: 1 },
-            $setOnInsert: {
-              emailId,
-              createdAt: new Date(),
-            },
-            $min: { firstClickedAt: new Date() },
-          },
-          { upsert: true }
-        );
-      }
+      await recordEmailClick({
+        email: decodeURIComponent(email),
+        campaignId: campaign,
+        url: decodedUrl,
+        linkId,
+        emailId,
+      });
     } catch {
       // Don't block redirect on DB errors
     }

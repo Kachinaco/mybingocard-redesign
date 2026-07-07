@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import clientPromise from "@/lib/mongodb";
+import { recordEmailOpen } from "@/lib/db/email-marketing";
 
 // 1x1 transparent PNG
 const PIXEL = Buffer.from(
@@ -21,54 +21,15 @@ export async function GET(req: NextRequest) {
         "";
       const ua = req.headers.get("user-agent") || "";
       const decodedEmail = decodeURIComponent(email);
-      const client = await clientPromise;
-      const db = client.db("mybingocard");
       const openedAt = new Date();
-
-      const update: Record<string, unknown> = {
-        $set: { lastOpenedAt: openedAt, lastHumanOpenAt: openedAt },
-        $inc: { openCount: 1, humanOpenCount: 1 },
-        $setOnInsert: {
-          email: decodedEmail,
-          campaignId: campaign,
-          firstOpenedAt: openedAt,
-          firstHumanOpenAt: openedAt,
-        },
-      };
-
-      await db.collection("drip_opens").updateOne(
-        { email: decodedEmail, campaignId: campaign },
-        update,
-        { upsert: true }
-      );
-
-      if (emailId) {
-        await db.collection("email_messages").updateOne(
-          { emailId },
-          {
-            $set: {
-              email: decodedEmail,
-              campaignId: campaign,
-              status: "opened",
-              lastOpenedAt: openedAt,
-              updatedAt: openedAt,
-              lastOpenIp: ip || null,
-              lastOpenUserAgent: ua || null,
-              lastOpenWasBot: false,
-            },
-            $inc: { openCount: 1, humanOpenCount: 1 },
-            $setOnInsert: {
-              emailId,
-              createdAt: openedAt,
-            },
-            $min: {
-              firstOpenedAt: openedAt,
-              firstHumanOpenAt: openedAt,
-            },
-          },
-          { upsert: true }
-        );
-      }
+      await recordEmailOpen({
+        email: decodedEmail,
+        campaignId: campaign,
+        emailId,
+        ip,
+        userAgent: ua,
+        openedAt,
+      });
     } catch {
       // Don't block pixel response on DB errors
     }

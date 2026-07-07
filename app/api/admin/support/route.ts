@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
 import { getAdminSessionEmail, requireAdmin } from "@/lib/admin";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import {
+  getRecentSupportTickets,
+  updateSupportTicketStatus,
+} from "@/lib/db/support-tickets";
 
 export async function GET(request: Request) {
   try {
@@ -14,15 +16,7 @@ export async function GET(request: Request) {
     const requestContext = getRequestActivityContext(request);
     const adminEmail = getAdminSessionEmail(session);
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    const tickets = await db
-      .collection("support_tickets")
-      .find({})
-      .sort({ receivedAt: -1 })
-      .limit(100)
-      .toArray();
+    const tickets = await getRecentSupportTickets(100);
 
     await trackActivity({
       event: "support_ticket_accessed",
@@ -74,13 +68,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    await db.collection("support_tickets").updateOne(
-      { _id: new ObjectId(ticketId) },
-      { $set: { status, updatedAt: new Date() } }
-    );
+    await updateSupportTicketStatus(ticketId, status);
 
     await trackActivity({
       event: "support_ticket_updated",

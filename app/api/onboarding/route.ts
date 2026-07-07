@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import clientPromise from "@/lib/mongodb";
+import { countUserCards } from "@/lib/db/cards";
+import { hasUserActivityEvent } from "@/lib/db/activity-events";
+import {
+  getUserByEmail,
+  markUserOnboardingStepCompletedByEmail,
+  setUserOnboardingDismissedByEmail,
+} from "@/lib/db/users";
 import { trackActivity } from "@/lib/activity";
 
 const STEPS = ["createAccount", "createCard", "exportCard", "tryGame", "exploreTemplates"] as const;
@@ -12,10 +18,7 @@ export async function GET() {
       return NextResponse.json({ show: false });
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    const user = await db.collection("users").findOne({ email: session.user.email });
+    const user = await getUserByEmail(session.user.email);
     if (!user) return NextResponse.json({ show: false });
 
     // Only show for users in first 7 days
@@ -29,16 +32,13 @@ export async function GET() {
     const onboarding = user.onboardingCompleted || {};
 
     // Auto-detect completions
-    const cardCount = await db.collection("cards").countDocuments({ userId });
+    const cardCount = await countUserCards(userId);
     const hasSharedOrExported = cardCount > 0 ?
-      await db.collection("activity_events").findOne({
-        userId,
-        event: { $in: ["card_exported", "share_link_generated", "share_link_reused"] }
-      }) : null;
-    const hasPlayedGame = await db.collection("activity_events").findOne({
+      await hasUserActivityEvent(userId, ["card_exported", "share_link_generated", "share_link_reused"]) : false;
+    const hasPlayedGame = await hasUserActivityEvent(
       userId,
-      event: { $in: ["game_created", "game_joined"] }
-    });
+      ["game_created", "game_joined"]
+    );
 
     const completed = {
       createAccount: true,
@@ -72,14 +72,8 @@ export async function POST(request: Request) {
 
     const { step, dismiss } = await request.json();
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
     if (dismiss) {
-      await db.collection("users").updateOne(
-        { email: session.user.email },
-        { $set: { onboardingDismissed: true } }
-      );
+      await setUserOnboardingDismissedByEmail(session.user.email, true);
 
       trackActivity({
         event: "onboarding_dismissed",
@@ -94,10 +88,7 @@ export async function POST(request: Request) {
     }
 
     if (step && STEPS.includes(step)) {
-      await db.collection("users").updateOne(
-        { email: session.user.email },
-        { $set: { [`onboardingCompleted.${step}`]: true } }
-      );
+      await markUserOnboardingStepCompletedByEmail(session.user.email, step);
 
       trackActivity({
         event: "onboarding_step_completed",

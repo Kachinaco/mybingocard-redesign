@@ -4,126 +4,36 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Fundraiser Bingo Cards Printable: Charity Night",
+  title: "Fundraiser Bingo Cards — Custom Charity Bingo Night Generator | MyBingoCard",
   description:
-    "Create printable fundraiser bingo cards for charity nights, school events, church halls, tickets, prizes, raffles, sponsors, and 100 guest games.",
+    "Create fundraiser bingo cards for charity events and bingo nights. Bingo fundraiser draft editor with custom squares, bulk printing, and free PDF export. Raise more funds with bingo.",
   alternates: {
     canonical: "https://mybingocard.com/fundraiser-bingo",
   },
 };
 
 const fundraiserSquares = [
-  "Ticket Sale", "Silent Auction", "Raffle Ticket", "Paddle Raise", "FREE",
-  "Sponsor Table", "Door Prize", "Guest Speaker", "Dessert Dash", "Volunteer Hero",
-  "Mission Story", "Matching Gift", "Fund A Need", "Prize Winner", "Four Corners",
-  "Donation Goal", "Thank You Speech", "School Spirit", "Church Hall", "Charity Table",
-  "Bingo Caller", "Bonus Round", "Grand Total", "Full Card", "Final Prize",
+  "Big Donation", "Silent Auction", "Raffle Win", "Paddle Raise", "FREE",
+  "Live Music", "Thank You Speech", "Table Captain", "Door Prize", "Guest Speaker",
+  "Dessert Dash", "Photo Op", "Standing Ovation", "Wine Pull", "Sponsor Shoutout",
+  "First Bid", "Going Once", "Sold!", "Matching Gift", "Fund-A-Need",
+  "Grand Total", "Encore Event", "Social Post", "Volunteer Hero", "Mission Statement",
 ];
 
 const schema = {
   "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebPage",
-      name: "Fundraiser Bingo Cards Printable",
-      url: "https://mybingocard.com/fundraiser-bingo",
-      description:
-        "Create printable fundraiser bingo cards for charity nights, school events, church halls, tickets, prizes, raffles, sponsors, and 100 guest games.",
-    },
-    {
-      "@type": "WebApplication",
-      name: "Fundraiser Bingo Card Generator",
-      url: "https://mybingocard.com/fundraiser-bingo",
-      description:
-        "Custom fundraiser bingo card generator for charity bingo nights, nonprofit galas, school fundraisers, church fundraisers, raffle games, prize tables, sponsor moments, house rules, and donor engagement.",
-      applicationCategory: "GameApplication",
-      operatingSystem: "All",
-      offers: {
-        "@type": "Offer",
-        price: "0",
-        priceCurrency: "USD",
-      },
-    },
-    {
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "How do fundraiser bingo cards help a charity event?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Fundraiser bingo gives guests a simple activity between raffles, auctions, speeches, dinner, and donation moments. It can highlight sponsors, mission stories, prize tables, donation goals, ticket sales, and volunteer wins.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "What should I include on fundraiser bingo cards?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Use squares for raffle tickets, silent auction bids, sponsor tables, paddle raises, mission moments, donation goals, volunteer shoutouts, prize drawings, dessert dashes, ticket sales, and table captain prompts.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Can I print cards for a bingo fundraiser night?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. Create your fundraiser bingo prompts, generate shuffled cards, and export printable PDFs for admission packets, table settings, ticket bundles, or check in handouts.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How many cards do I need for a fundraiser bingo night?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Make one card per player, plus extras for walk ups, sponsor guests, volunteers, and table changes. Many school, church, and charity events plan 50, 100, or 500 guest cards depending on room size.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "What winning patterns work for fundraiser bingo?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Use simple house rules such as one line, four corners, full card, or a final jackpot round. Announce the pattern before each round and check the winning card against the called items before awarding a prize.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Do fundraiser bingo events need rules or permits?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Many charity bingo, raffle, and prize events have local rules. Before selling tickets, raffles, or prize entries, check the rules for your location and keep your house rules clear for players.",
-          },
-        },
-      ],
-    },
-    {
-      "@type": "HowTo",
-      name: "How to make fundraiser bingo cards",
-      step: [
-        {
-          "@type": "HowToStep",
-          name: "List event moments",
-          text: "Add ticket, raffle, auction, donation, sponsor, volunteer, prize, and mission prompts from your fundraiser schedule.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Choose card count and house rules",
-          text: "Plan one card per guest, choose simple winning patterns such as one line or four corners, and decide how prizes will be checked.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Generate unique cards",
-          text: "Create shuffled cards for guests, table teams, volunteers, sponsor tables, or donor groups.",
-        },
-        {
-          "@type": "HowToStep",
-          name: "Print or share",
-          text: "Export PDFs for check in packets, table settings, and ticket bundles, or share online cards for hybrid charity events.",
-        },
-      ],
-    },
-  ],
+  "@type": "WebApplication",
+  name: "Fundraiser Bingo Card Generator",
+  url: "https://mybingocard.com/fundraiser-bingo",
+  description:
+    "Custom fundraiser bingo card generator. Create printable bingo cards for charity events, bingo fundraiser nights, and nonprofit galas — bulk printing, custom squares, and free PDF export.",
+  applicationCategory: "GameApplication",
+  operatingSystem: "All",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -221,7 +131,7 @@ export default function FundraiserBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Create printable fundraiser bingo cards for charity bingo nights, school fundraisers, nonprofit galas, church events, booster clubs, raffles, auctions, and donor appreciation nights. Add sponsor shoutouts, raffle tickets, mission stories, paddle raises, prize drawings, donation goals, volunteer moments, ticket sales, and winning patterns. Generate shuffled guest cards for table settings, admission packets, ticket bundles, or check in handouts, then export PDFs or share online boards for hybrid events.
+                    Boost your next charity event with custom fundraiser bingo cards that keep donors engaged and the energy high. Start with a polished draft for nonprofit galas, school fundraisers, church bingo nights, and community benefit events. Fill squares with event moments, paddle raises, silent auction wins, sponsor shoutouts, or your own fundraising milestones. After checkout, export PDF cards for table settings or share digital links for virtual fundraiser events.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -234,10 +144,10 @@ export default function FundraiserBingoPage() {
                       href="/pricing"
                       className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
                     >
-                      See Activation
+                      View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Draft tools · Premium export · Works for any cause</p>
+                  <p className="text-sm text-slate-400">Free creator tools · free PDF export · Works for any cause</p>
                 </div>
 
                 <div className="relative">
@@ -251,19 +161,19 @@ export default function FundraiserBingoPage() {
           <section className="py-20 bg-white">
             <div className="container mx-auto px-4 lg:px-8">
               <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
-                Fundraiser bingo for charity nights, auctions, raffles, and donor events
+                The fundraising game that raises real money
               </h2>
               <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
-                Give guests a simple game that fits between dinner, speeches, prize drawings, paddle raises, silent auctions, raffle sales, ticket bundles, and mission moments.
+                Bingo keeps donors at their tables, engaged with your mission, and having fun all night long.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
                 {[
-                  { icon: "💰", title: "Donation Moment Prompts", desc: "Build cards around paddle raises, matching gifts, giving goals, table captains, mission stories, ticket sales, and final totals." },
-                  { icon: "📋", title: "Easy Event Setup", desc: "Print 50, 100, or 500 guest cards for admission packets, table settings, volunteer folders, prize tables, or walk up players." },
-                  { icon: "🏆", title: "Prize and Sponsor Squares", desc: "Add prize drawings, raffle tickets, sponsor tables, dessert dashes, live auction moments, door prizes, and 50/50 raffle reminders." },
-                  { icon: "🖨️", title: "Printable PDFs", desc: "Export PDF files for bulk printing at school fundraisers, church halls, nonprofit galas, PTA nights, and community benefits." },
-                  { icon: "❤️", title: "Works for Any Cause", desc: "Use it for schools, churches, nonprofits, hospitals, animal shelters, youth sports, service clubs, booster groups, and local charities." },
-                  { icon: "👨‍👩‍👧", title: "Clear House Rules", desc: "Announce one line, four corners, full card, jackpot, or bonus round rules, then check local permit rules before selling tickets or raffle entries." },
+                  { icon: "💰", title: "Raise More Funds", desc: "Bingo keeps guests engaged longer, which means more bids, more donations, and a higher grand total for your cause." },
+                  { icon: "📋", title: "Easy to Organize", desc: "Create larger card batches for free up to 500 cards. No special equipment needed beyond cards and a caller." },
+                  { icon: "🏆", title: "Custom Prize Squares", desc: "Add prize squares, sponsor logos, and branded messaging to make every card a marketing piece for your organization." },
+                  { icon: "🖨️", title: "Bulk PDF Exports", desc: "Export PDF files for free optimized for bulk printing. Sized for place settings, programs, or handouts." },
+                  { icon: "❤️", title: "Works for Any Cause", desc: "Schools, churches, nonprofits, hospitals, animal shelters — fundraiser bingo works for every organization and mission." },
+                  { icon: "👨‍👩‍👧", title: "Engages All Ages", desc: "From kids to grandparents, bingo is the one game every attendee already knows and loves. Zero learning curve." },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
                     <div className="text-4xl mb-4">{f.icon}</div>
@@ -285,14 +195,14 @@ export default function FundraiserBingoPage() {
                 Turn your next event into a fundraising win
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft fundraiser bingo cards for charity nights, raffles, auctions, donor tables, school events, church halls, ticket bundles, and prize rounds, then print or share when you are ready.
+                Draft fundraiser bingo cards in under 2 minutes, then start checkout to save or export.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-teal-50 transition-all duration-300 shadow-xl">
                   Start a Free Fundraiser Bingo Draft
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
-                  See Activation
+                  See Pricing Plans
                 </Link>
               </div>
             </div>
@@ -314,7 +224,7 @@ export default function FundraiserBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  The bingo card maker for fundraisers, charity events, ticket bundles, prize rounds, and every occasion.
+                  The free bingo draft editor for fundraisers, charity events, and every occasion.
                 </p>
               </div>
               <div>

@@ -1,5 +1,6 @@
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
+import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
 
 export interface GameHistory {
   _id: ObjectId;
@@ -24,6 +25,14 @@ export interface GameStats {
 }
 
 export async function recordGame(data: Omit<GameHistory, "_id">): Promise<string> {
+  if (useSqliteDb()) {
+    const result = getSqliteStore().insertOne("gameHistory", {
+      ...data,
+      completedAt: new Date(),
+    } as GameHistory);
+    return String(result.insertedId);
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   const result = await db.collection("gameHistory").insertOne({
@@ -34,6 +43,18 @@ export async function recordGame(data: Omit<GameHistory, "_id">): Promise<string
 }
 
 export async function getGameHistory(userId: string, limit = 20, offset = 0): Promise<{ games: GameHistory[]; total: number }> {
+  if (useSqliteDb()) {
+    const store = getSqliteStore();
+    const total = store.count("gameHistory", { userId });
+    const games = store.findMany<GameHistory>(
+      "gameHistory",
+      { userId },
+      { sort: { completedAt: -1 }, skip: offset, limit }
+    );
+
+    return { games, total };
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   const collection = db.collection("gameHistory");
@@ -47,6 +68,25 @@ export async function getGameHistory(userId: string, limit = 20, offset = 0): Pr
 }
 
 export async function getRecentlyPlayed(userId: string, limit = 6): Promise<GameHistory[]> {
+  if (useSqliteDb()) {
+    const latestRows = getSqliteStore().findMany<GameHistory>(
+      "gameHistory",
+      { userId },
+      { sort: { completedAt: -1 } }
+    );
+    const seenCardIds = new Set<string>();
+    const recent: GameHistory[] = [];
+
+    for (const row of latestRows) {
+      if (seenCardIds.has(row.cardId)) continue;
+      seenCardIds.add(row.cardId);
+      recent.push(row);
+      if (recent.length >= limit) break;
+    }
+
+    return recent;
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
@@ -63,6 +103,20 @@ export async function getRecentlyPlayed(userId: string, limit = 6): Promise<Game
 }
 
 export async function getGameStats(userId: string): Promise<GameStats> {
+  if (useSqliteDb()) {
+    const rows = getSqliteStore().findMany<GameHistory>("gameHistory", { userId });
+    const wins = rows.filter((row) => row.result === "won");
+    const totalTime = rows.reduce((sum, row) => sum + (row.timePlayedMs || 0), 0);
+
+    return {
+      totalGames: rows.length,
+      wins: wins.length,
+      winRate: rows.length > 0 ? Math.round((wins.length / rows.length) * 100) : 0,
+      avgTimeMs: rows.length > 0 ? totalTime / rows.length : 0,
+      fastestWinMs: wins.length > 0 ? Math.min(...wins.map((row) => row.timePlayedMs)) : null,
+    };
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   const collection = db.collection("gameHistory");
@@ -91,12 +145,20 @@ export async function getGameStats(userId: string): Promise<GameStats> {
 }
 
 export async function getGameCount(userId: string): Promise<number> {
+  if (useSqliteDb()) {
+    return getSqliteStore().count("gameHistory", { userId });
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   return db.collection("gameHistory").countDocuments({ userId });
 }
 
 export async function getWinCount(userId: string): Promise<number> {
+  if (useSqliteDb()) {
+    return getSqliteStore().count("gameHistory", { userId, result: "won" });
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   return db.collection("gameHistory").countDocuments({ userId, result: "won" });

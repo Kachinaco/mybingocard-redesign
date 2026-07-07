@@ -3,33 +3,40 @@ import { readFileSync } from "fs";
 import { resolve } from "path";
 import { getShareEmailPack } from "@/lib/shareEmailPacks";
 
-describe("email share free-access guardrails", () => {
+describe("email share monetization guardrails", () => {
   const socialShareSource = readFileSync(resolve(process.cwd(), "components/SocialShare.tsx"), "utf8");
   const embeddedCheckoutSource = readFileSync(resolve(process.cwd(), "app/api/stripe/embedded-checkout/route.ts"), "utf8");
   const emailShareRouteSource = readFileSync(resolve(process.cwd(), "app/api/cards/[id]/share/email/route.ts"), "utf8");
+  const webhookSource = readFileSync(resolve(process.cwd(), "app/api/stripe/webhook/route.ts"), "utf8");
 
-  test("email share packs are zero-cost while free access is active", () => {
-    expect(getShareEmailPack(3)).toMatchObject({ size: 10, amount: 0, label: "Free" });
-    expect(getShareEmailPack(30)).toMatchObject({ size: 30, amount: 0, label: "Free" });
-    expect(getShareEmailPack(500)).toMatchObject({ size: 500, amount: 0, label: "Free" });
+  test("small email shares use the paid minimum pack", () => {
+    expect(getShareEmailPack(3)).toMatchObject({ size: 10, amount: 199, label: "$1.99" });
+    expect(getShareEmailPack(30)).toMatchObject({ size: 30, amount: 499, label: "$4.99" });
+    expect(getShareEmailPack(500)).toMatchObject({ size: 500, amount: 2999, label: "$29.99" });
     expect(getShareEmailPack(501)).toBeNull();
   });
 
-  test("email sharing sends directly instead of opening checkout", () => {
-    expect(socialShareSource).toContain("const isPremiumUser = true;");
-    expect(socialShareSource).toContain('fetch(`/api/cards/${cardId}/share/email`');
-    expect(socialShareSource).toContain("Free email share");
-    expect(socialShareSource).toContain("Send Emails");
-    expect(socialShareSource).not.toContain('purchaseType: "email_share_batch"');
+  test("free email sharing opens paid checkout instead of sending directly", () => {
+    expect(socialShareSource).toContain('purchaseType: "email_share_batch"');
+    expect(socialShareSource).toContain("Or subscribe and email batches are included");
+    expect(socialShareSource).toContain("Pay ${emailPack?.label || \"\"} & Send");
+    expect(embeddedCheckoutSource).toContain('purchaseType === "email_share_batch"');
+    expect(embeddedCheckoutSource).toContain("insertShareEmailCheckoutRef");
+    expect(embeddedCheckoutSource).toContain("ensureShareEmailCheckoutRefsReady");
+    expect(embeddedCheckoutSource).not.toContain("clientPromise");
+    expect(embeddedCheckoutSource).not.toContain(".collection(");
   });
 
-  test("server and embedded checkout routes do not require payment for email shares", () => {
+  test("server blocks free users from bypassing checkout and webhook sends paid links", () => {
+    expect(emailShareRouteSource).toContain('checkoutRequired: true');
     expect(emailShareRouteSource).toContain("hasPremiumAccess(user)");
     expect(emailShareRouteSource).toContain("createSharedLink");
-    expect(emailShareRouteSource).toContain("checkoutRequired: false");
-    expect(embeddedCheckoutSource).toContain("embedded_checkout_disabled_free_for_all");
-    expect(embeddedCheckoutSource).toContain("free: true");
-    expect(embeddedCheckoutSource).not.toContain("share_email_checkout_refs");
-    expect(embeddedCheckoutSource).not.toContain("checkout.sessions.create");
+    expect(webhookSource).toContain('session.metadata?.purchaseType === "email_share_batch"');
+    expect(webhookSource).toContain("email_share_batch_sent");
+    expect(webhookSource).toContain("sendShareLinkInvitationEmail");
+    expect(webhookSource).toContain("claimStripeWebhookEvent");
+    expect(webhookSource).toContain("insertPreparedSharedLinks");
+    expect(webhookSource).not.toContain("clientPromise");
+    expect(webhookSource).not.toContain(".collection(");
   });
 });

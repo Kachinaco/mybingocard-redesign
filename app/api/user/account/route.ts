@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getUserByEmail } from "@/lib/db/users";
-import clientPromise from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+import { deleteUserAccountData, getUserByEmail } from "@/lib/db/users";
 import Stripe from "stripe";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyAccountDeleted } from "@/lib/discord";
@@ -32,8 +30,6 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
     const userId = user._id.toString();
 
     await trackActivity({
@@ -59,23 +55,7 @@ export async function DELETE(request: Request) {
       }
     }
 
-    // Delete user data (accounts/sessions store userId as ObjectId, others as string)
-    const userOid = new ObjectId(userId);
-    await Promise.all([
-      db.collection("cards").deleteMany({ userId }),
-      db.collection("gameHistory").deleteMany({ userId }),
-      db.collection("game_states").deleteMany({ userId }),
-      db.collection("favorites").deleteMany({ userId }),
-      db.collection("batch_purchases").deleteMany({
-        $or: [{ userId }, { email: user.email }],
-      }),
-      db.collection("accounts").deleteMany({ userId: userOid }),
-      db.collection("sessions").deleteMany({ userId: userOid }),
-      db.collection("email_preferences").deleteOne({ email: user.email }),
-      db.collection("drip_opens").deleteMany({ email: user.email }),
-      db.collection("drip_log").deleteMany({ userId }),
-      db.collection("users").deleteOne({ _id: userOid }),
-    ]);
+    await deleteUserAccountData(user);
 
     notifyAccountDeleted(
       user.name || "",

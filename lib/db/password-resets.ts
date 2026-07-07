@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { ObjectId } from "mongodb";
 import clientPromise from "../mongodb";
+import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
 
 interface PasswordResetToken {
   _id: ObjectId;
@@ -19,12 +20,27 @@ function hashToken(token: string): string {
 }
 
 export async function createPasswordResetToken(email: string): Promise<string> {
+  const token = crypto.randomBytes(32).toString("hex");
+  const now = new Date();
+
+  if (useSqliteDb()) {
+    const store = getSqliteStore();
+    store.deleteMany(COLLECTION, {
+      email,
+      usedAt: { $exists: false },
+    });
+    store.insertOne(COLLECTION, {
+      email,
+      tokenHash: hashToken(token),
+      createdAt: now,
+      expiresAt: new Date(now.getTime() + TOKEN_TTL_MS),
+    } as PasswordResetToken);
+    return token;
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   const collection = db.collection<PasswordResetToken>(COLLECTION);
-
-  const token = crypto.randomBytes(32).toString("hex");
-  const now = new Date();
 
   await collection.deleteMany({
     email,
@@ -42,6 +58,16 @@ export async function createPasswordResetToken(email: string): Promise<string> {
 }
 
 export async function getEmailForValidResetToken(token: string): Promise<string | null> {
+  if (useSqliteDb()) {
+    const record = getSqliteStore().findOne<PasswordResetToken>(COLLECTION, {
+      tokenHash: hashToken(token),
+      expiresAt: { $gt: new Date() },
+      usedAt: { $exists: false },
+    });
+
+    return record?.email || null;
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   const collection = db.collection<PasswordResetToken>(COLLECTION);
@@ -56,6 +82,15 @@ export async function getEmailForValidResetToken(token: string): Promise<string 
 }
 
 export async function markResetTokenUsed(token: string): Promise<void> {
+  if (useSqliteDb()) {
+    getSqliteStore().updateMany<PasswordResetToken>(
+      COLLECTION,
+      { tokenHash: hashToken(token), usedAt: { $exists: false } },
+      { $set: { usedAt: new Date() } }
+    );
+    return;
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
   const collection = db.collection<PasswordResetToken>(COLLECTION);

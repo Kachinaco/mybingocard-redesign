@@ -3,6 +3,7 @@ const path = require('path');
 const Imap = require('imap');
 const { simpleParser } = require('mailparser');
 const { MongoClient } = require('mongodb');
+const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -22,16 +23,32 @@ try {
 
 const WEBHOOK_URL = process.env.MYBINGOCARD_EVENTS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL || '';
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
+const SUPPORT_REPLY_MENTIONS_ENABLED = process.env.MYBINGOCARD_SUPPORT_REPLY_MENTIONS === '1';
 
 let mongoClient = null;
+let sqliteDatabase = null;
 let dbIndexesCreated = false;
 async function getDb() {
+  if (useSqliteBackend()) {
+    if (!sqliteDatabase) {
+      sqliteDatabase = openSqliteShadowDatabase();
+      console.log('[' + new Date().toISOString() + '] Connected to SQLite shadow store');
+    }
+    await ensureDbIndexes(sqliteDatabase);
+    return sqliteDatabase;
+  }
+
   if (!mongoClient) {
     mongoClient = new MongoClient(MONGODB_URI);
     await mongoClient.connect();
     console.log('[' + new Date().toISOString() + '] Connected to MongoDB');
   }
   const db = mongoClient.db('mybingocard');
+  await ensureDbIndexes(db);
+  return db;
+}
+
+async function ensureDbIndexes(db) {
   if (!dbIndexesCreated) {
     dbIndexesCreated = true;
     try {
@@ -39,7 +56,6 @@ async function getDb() {
       await db.collection('email_bounces').createIndex({ detectedAt: 1 });
     } catch (_) { /* indexes may already exist */ }
   }
-  return db;
 }
 
 const IMAP_CONFIG = {
@@ -57,12 +73,17 @@ const IMAP_CONFIG = {
 let imap = null;
 let reconnectTimer = null;
 
+function isLowSignalSupportEmail(from, subject, preview) {
+  const text = [from, subject, preview].filter(Boolean).join(' ').toLowerCase();
+  return /deliverability status|warmup check|warm-up check|quick inbox check|delivery status notification|undelivered|returned to sender|failure notice|mail delivery|mail delivery test|inbox placement|placement note|normal back-and-forth signal|warmup by cory managed seed network|upload your catalog|csv upload|csv file was uploaded|tips for creating great pins|creator'?s guide|unlock the full mybingocard experience|beyond the scroll|a\/b test your content|summer break re:|app合作机会|问候|collaboration opportunity|合作机会|@(yourvpn\.ai|yourestimate\.app|demandletterservice\.com)/.test(text);
+}
+
 async function sendToDiscord(from, subject, preview, date, isReply) {
   if (!WEBHOOK_URL) { console.error('No DISCORD_WEBHOOK_URL set'); return; }
   try {
     const color = isReply ? 0xef4444 : 0xf59e0b;
     const title = isReply ? '🔴 Support Reply - MyBingoCard' : '📧 New Email - MyBingoCard';
-    const content = isReply ? '@here' : '';
+    const content = isReply && SUPPORT_REPLY_MENTIONS_ENABLED ? '@here' : '';
 
     await fetch(WEBHOOK_URL, {
       method: 'POST',
@@ -89,6 +110,114 @@ async function sendToDiscord(from, subject, preview, date, isReply) {
   }
 }
 
+async function handleParsedEmail(parsed) {
+  const from = parsed.from?.text || 'unknown';
+  const subject = parsed.subject || '(no subject)';
+  const preview = parsed.text || '';
+  const date = parsed.date;
+  const isReply = !!(parsed.inReplyTo || (subject && subject.toLowerCase().startsWith('re:')));
+  const threadId = parsed.inReplyTo || parsed.messageId || '';
+
+  // Skip system/bounce emails — not real support tickets
+  const fromLower = from.toLowerCase();
+  const isBounce = fromLower.includes('mailer-daemon') ||
+    fromLower.includes('postmaster') ||
+    (subject && /undelivered|delivery.*(failed|status|notification)|returned to sender|failure notice/i.test(subject));
+
+  if (isBounce) {
+    console.log('[' + new Date().toISOString() + '] Bounce detected: ' + subject);
+
+    // Track bounce in email_bounces collection
+    try {
+      const db = await getDb();
+
+      // Determine bounce type: hard (permanent) vs soft (temporary)
+      const subjectLower = (subject || '').toLowerCase();
+      const previewLower = (preview || '').toLowerCase();
+      const isHard = /unknown user|user unknown|does not exist|no such user|invalid address|address rejected|mailbox not found|recipient rejected|account disabled|account has been disabled/i.test(subjectLower + ' ' + previewLower);
+      const bounceType = isHard ? 'hard' : 'soft';
+
+      // Try to extract the original recipient email from the bounce body
+      const emailMatch = (preview || '').match(/(?:to|recipient|address)[:\s]*<?([^\s<>]+@[^\s<>,>]+)/i)
+        || (preview || '').match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+      const bouncedEmail = emailMatch ? emailMatch[1].toLowerCase().trim() : null;
+
+      // Try to extract campaign ID from bounce body (our emails include campaign id in tracking pixels)
+      const campaignMatch = (preview || '').match(/[?&]c=([a-z0-9_-]+)/i);
+      const originalCampaignId = campaignMatch ? campaignMatch[1] : null;
+      const emailIdMatch = (preview || '').match(/X-MyBingoCard-Email-ID:\s*([0-9a-f-]{36})/i)
+        || (preview || '').match(/[?&]mid=([0-9a-f-]{36})/i);
+      const emailId = emailIdMatch ? emailIdMatch[1] : null;
+
+      // Build a reason string from the subject/preview
+      const reason = (subject || '').substring(0, 200);
+
+      await db.collection('email_bounces').insertOne({
+        emailId,
+        email: bouncedEmail,
+        bounceType,
+        reason,
+        originalCampaignId,
+        rawFrom: from,
+        rawSubject: subject,
+        detectedAt: new Date(),
+      });
+
+      if (emailId) {
+        await db.collection('email_messages').updateOne(
+          { emailId },
+          {
+            $set: {
+              status: 'bounced',
+              bounceType,
+              bounceReason: reason,
+              bouncedAt: new Date(),
+              updatedAt: new Date(),
+            },
+          }
+        );
+      }
+
+      // Log count of recent bounces
+      const recentBounceCount = await db.collection('email_bounces').countDocuments({
+        detectedAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+      });
+      console.log('[' + new Date().toISOString() + '] Bounce recorded (' + bounceType + '): ' + (bouncedEmail || 'unknown') + ' | 24h bounce count: ' + recentBounceCount);
+    } catch (bounceErr) {
+      console.error('[' + new Date().toISOString() + '] Failed to record bounce:', bounceErr.message);
+    }
+
+    return;
+  }
+
+  if (isLowSignalSupportEmail(from, subject, preview)) {
+    console.log('[' + new Date().toISOString() + '] Low-signal support email skipped: ' + subject);
+    return;
+  }
+
+  await sendToDiscord(from, subject, preview, date, isReply);
+
+  // Save to support_tickets collection
+  try {
+    const db = await getDb();
+    await db.collection('support_tickets').insertOne({
+      email: from,
+      subject,
+      preview: (preview || '').substring(0, 500),
+      body: preview || '',
+      bodyHtml: parsed.html || '',
+      messageId: parsed.messageId || '',
+      receivedAt: date || new Date(),
+      status: 'open',
+      threadId,
+      isReply,
+    });
+    console.log('[' + new Date().toISOString() + '] Saved support ticket: ' + subject);
+  } catch (dbErr) {
+    console.error('Failed to save support ticket:', dbErr.message);
+  }
+}
+
 function processEmails(criteria) {
   if (!imap || imap.state !== 'authenticated') return;
 
@@ -107,106 +236,7 @@ function processEmails(criteria) {
       msg.on('body', (stream) => {
         simpleParser(stream, async (err, parsed) => {
           if (err) return;
-          const from = parsed.from?.text || 'unknown';
-          const subject = parsed.subject || '(no subject)';
-          const preview = parsed.text || '';
-          const date = parsed.date;
-          const isReply = !!(parsed.inReplyTo || (subject && subject.toLowerCase().startsWith('re:')));
-          const threadId = parsed.inReplyTo || parsed.messageId || '';
-
-          // Skip system/bounce emails — not real support tickets
-          const fromLower = from.toLowerCase();
-          const isBounce = fromLower.includes('mailer-daemon') ||
-            fromLower.includes('postmaster') ||
-            (subject && /undelivered|delivery.*(failed|status|notification)|returned to sender|failure notice/i.test(subject));
-
-          if (isBounce) {
-            console.log('[' + new Date().toISOString() + '] Bounce detected: ' + subject);
-
-            // Track bounce in email_bounces collection
-            try {
-              const db = await getDb();
-
-              // Determine bounce type: hard (permanent) vs soft (temporary)
-              const subjectLower = (subject || '').toLowerCase();
-              const previewLower = (preview || '').toLowerCase();
-              const isHard = /unknown user|user unknown|does not exist|no such user|invalid address|address rejected|mailbox not found|recipient rejected|account disabled|account has been disabled/i.test(subjectLower + ' ' + previewLower);
-              const bounceType = isHard ? 'hard' : 'soft';
-
-              // Try to extract the original recipient email from the bounce body
-              const emailMatch = (preview || '').match(/(?:to|recipient|address)[:\s]*<?([^\s<>]+@[^\s<>,>]+)/i)
-                || (preview || '').match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-              const bouncedEmail = emailMatch ? emailMatch[1].toLowerCase().trim() : null;
-
-              // Try to extract campaign ID from bounce body (our emails include campaign id in tracking pixels)
-              const campaignMatch = (preview || '').match(/[?&]c=([a-z0-9_-]+)/i);
-              const originalCampaignId = campaignMatch ? campaignMatch[1] : null;
-              const emailIdMatch = (preview || '').match(/X-MyBingoCard-Email-ID:\s*([0-9a-f-]{36})/i)
-                || (preview || '').match(/[?&]mid=([0-9a-f-]{36})/i);
-              const emailId = emailIdMatch ? emailIdMatch[1] : null;
-
-              // Build a reason string from the subject/preview
-              const reason = (subject || '').substring(0, 200);
-
-              await db.collection('email_bounces').insertOne({
-                emailId,
-                email: bouncedEmail,
-                bounceType,
-                reason,
-                originalCampaignId,
-                rawFrom: from,
-                rawSubject: subject,
-                detectedAt: new Date(),
-              });
-
-              if (emailId) {
-                await db.collection('email_messages').updateOne(
-                  { emailId },
-                  {
-                    $set: {
-                      status: 'bounced',
-                      bounceType,
-                      bounceReason: reason,
-                      bouncedAt: new Date(),
-                      updatedAt: new Date(),
-                    },
-                  }
-                );
-              }
-
-              // Log count of recent bounces
-              const recentBounceCount = await db.collection('email_bounces').countDocuments({
-                detectedAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-              });
-              console.log('[' + new Date().toISOString() + '] Bounce recorded (' + bounceType + '): ' + (bouncedEmail || 'unknown') + ' | 24h bounce count: ' + recentBounceCount);
-            } catch (bounceErr) {
-              console.error('[' + new Date().toISOString() + '] Failed to record bounce:', bounceErr.message);
-            }
-
-            return;
-          }
-
-          await sendToDiscord(from, subject, preview, date, isReply);
-
-          // Save to support_tickets collection
-          try {
-            const db = await getDb();
-            await db.collection('support_tickets').insertOne({
-              email: from,
-              subject,
-              preview: (preview || '').substring(0, 500),
-              body: preview || '',
-              bodyHtml: parsed.html || '',
-              messageId: parsed.messageId || '',
-              receivedAt: date || new Date(),
-              status: 'open',
-              threadId,
-              isReply,
-            });
-            console.log('[' + new Date().toISOString() + '] Saved support ticket: ' + subject);
-          } catch (dbErr) {
-            console.error('Failed to save support ticket:', dbErr.message);
-          }
+          await handleParsedEmail(parsed);
         });
       });
     });
@@ -273,19 +303,51 @@ function scheduleReconnect() {
   }, 30000);
 }
 
-process.on('SIGINT', () => {
+async function closeDb() {
+  if (mongoClient) {
+    try { await mongoClient.close(); } catch (e) {}
+    mongoClient = null;
+  }
+  if (sqliteDatabase) {
+    try { sqliteDatabase.close(); } catch (e) {}
+    sqliteDatabase = null;
+  }
+  dbIndexesCreated = false;
+}
+
+function start() {
+  console.log('MyBingoCard Email Monitor started (IDLE mode)');
+  console.log('Using IMAP user:', IMAP_CONFIG.user);
+  console.log('Webhook URL set:', !!WEBHOOK_URL);
+  console.log('Database backend:', useSqliteBackend() ? 'sqlite' : 'mongo');
+  const bulkSendExistingUnread = process.env.MYBINGOCARD_EMAIL_MONITOR_BULK_SEND === '1' &&
+    process.argv.includes('--notify-existing-unread');
+  if (process.argv.includes('--notify-existing-unread') && !bulkSendExistingUnread) {
+    console.log('Existing unread forwarding flag ignored; set MYBINGOCARD_EMAIL_MONITOR_BULK_SEND=1 to enable it');
+  }
+  connect(bulkSendExistingUnread);
+}
+
+process.on('SIGINT', async () => {
   if (imap) try { imap.end(); } catch (e) {}
-  if (mongoClient) try { mongoClient.close(); } catch (e) {}
+  await closeDb();
   process.exit(0);
 });
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   if (imap) try { imap.end(); } catch (e) {}
-  if (mongoClient) try { mongoClient.close(); } catch (e) {}
+  await closeDb();
   process.exit(0);
 });
 
-console.log('MyBingoCard Email Monitor started (IDLE mode)');
-console.log('Using IMAP user:', IMAP_CONFIG.user);
-console.log('Webhook URL set:', !!WEBHOOK_URL);
-// First connect does a bulk send of all emails, subsequent reconnects only unseen
-connect(true);
+if (require.main === module) {
+  start();
+}
+
+module.exports = {
+  closeDb,
+  getDb,
+  handleParsedEmail,
+  isLowSignalSupportEmail,
+  sendToDiscord,
+  start,
+};

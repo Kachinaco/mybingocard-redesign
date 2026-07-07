@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import clientPromise from "@/lib/mongodb";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
+import { getEmailPreferences, updateEmailPreferences } from "@/lib/db/email-marketing";
 
 export async function GET() {
   try {
@@ -10,17 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    const prefs = await db.collection("email_preferences").findOne({
-      email: session.user.email.toLowerCase().trim(),
-    });
-
-    return NextResponse.json({
-      marketingEmails: prefs?.marketingEmails !== false,
-      productUpdates: prefs?.productUpdates !== false,
-    });
+    return NextResponse.json(await getEmailPreferences(session.user.email));
   } catch (error) {
     console.error("Email preferences error:", error);
     return NextResponse.json({ error: "Failed to fetch preferences" }, { status: 500 });
@@ -37,21 +27,11 @@ export async function PUT(request: Request) {
 
     const { marketingEmails, productUpdates } = await request.json();
 
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    await db.collection("email_preferences").updateOne(
-      { email: session.user.email.toLowerCase().trim() },
-      {
-        $set: {
-          email: session.user.email.toLowerCase().trim(),
-          marketingEmails: marketingEmails !== false,
-          productUpdates: productUpdates !== false,
-          updatedAt: new Date(),
-        },
-      },
-      { upsert: true }
-    );
+    await updateEmailPreferences({
+      email: session.user.email,
+      marketingEmails: marketingEmails !== false,
+      productUpdates: productUpdates !== false,
+    });
 
     await trackActivity({
       event: "email_preferences_updated",

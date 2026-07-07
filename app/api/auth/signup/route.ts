@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { createUser, getUserByEmail } from "@/lib/db/users";
+import { createUser, getUserByEmail, updateUser } from "@/lib/db/users";
 import { sendEmailVerificationEmail } from "@/lib/email";
 import { notifySignup, sendDiscordNotification } from "@/lib/discord";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
@@ -11,6 +11,7 @@ import { readJsonObject } from "@/lib/request-json";
 import { sendMetaConversionEvent } from "@/lib/meta-conversions";
 import { evaluateHoneypot } from "@/lib/honeypot";
 import { checkSignupAbuseLimit } from "@/lib/signup-abuse";
+import { createEmailVerificationToken, findActiveSignupBlock } from "@/lib/db/auth-data";
 
 export async function POST(request: Request) {
   try {
@@ -65,12 +66,7 @@ export async function POST(request: Request) {
     if (requestContext.ipAddress) {
       blockFilters.push({ type: "ip", value: requestContext.ipAddress });
     }
-    const { default: clientPromiseBlock } = await import("@/lib/mongodb");
-    const dbBlock = (await clientPromiseBlock).db("mybingocard");
-    const signupBlock = await dbBlock.collection("signup_blocks").findOne({
-      active: { $ne: false },
-      $or: blockFilters,
-    });
+    const signupBlock = await findActiveSignupBlock(blockFilters);
     if (signupBlock) {
       await trackActivity({
         event: "signup_blocked",
@@ -98,7 +94,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const signupLimit = await checkSignupAbuseLimit(dbBlock, {
+    const signupLimit = await checkSignupAbuseLimit({
       email: normalizedEmail,
       ipAddress: requestContext.ipAddress,
       userAgent: requestContext.userAgent,
@@ -173,26 +169,18 @@ export async function POST(request: Request) {
 
     // Store the IP and referrerDomain on the user record
     {
-      const { default: clientPromiseIp } = await import("@/lib/mongodb");
-      const dbIp = (await clientPromiseIp).db("mybingocard");
       const updateFields: Record<string, unknown> = { referrerDomain };
       if (requestContext.ipAddress) {
         updateFields.createdByIp = requestContext.ipAddress;
       }
-      await dbIp.collection("users").updateOne(
-        { _id: user._id },
-        { $set: updateFields }
-      );
+      await updateUser(user._id.toString(), updateFields as any);
     }
 
     // Generate email verification token
     const { randomBytes } = await import("crypto");
     const verifyToken = randomBytes(32).toString("hex");
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    const { default: clientPromise } = await import("@/lib/mongodb");
-    const dbClient = await clientPromise;
-    const db = dbClient.db("mybingocard");
-    await db.collection("email_verification_tokens").insertOne({
+    await createEmailVerificationToken({
       userId: user._id.toString(),
       email,
       token: verifyToken,

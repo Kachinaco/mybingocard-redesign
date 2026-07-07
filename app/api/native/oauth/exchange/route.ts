@@ -4,7 +4,7 @@ import {
   nativeOAuthRedirectUrl,
   normalizeNativeCallback,
 } from "@/lib/native-oauth";
-import clientPromise from "@/lib/mongodb";
+import { consumeNativeOAuthHandoff } from "@/lib/db/auth-data";
 import { encode } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -17,21 +17,9 @@ export async function GET(request: NextRequest) {
   }
 
   const tokenHash = hashNativeOAuthToken(token);
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
   const now = new Date();
 
-  const handoff = await db.collection("native_oauth_handoffs").findOneAndUpdate(
-    {
-      tokenHash,
-      consumedAt: null,
-      expiresAt: { $gt: now },
-    },
-    {
-      $set: { consumedAt: now },
-    },
-    { returnDocument: "before" }
-  );
+  const handoff = await consumeNativeOAuthHandoff(tokenHash, now);
 
   if (!handoff) {
     return NextResponse.redirect(nativeOAuthRedirectUrl("/login?callbackUrl=/dashboard", request.nextUrl));

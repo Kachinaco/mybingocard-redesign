@@ -3,6 +3,7 @@ const path = require('path');
 const crypto = require('node:crypto');
 const nodemailer = require('./smtp-client.cjs');
 const { MongoClient, ObjectId } = require('mongodb');
+const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -34,6 +35,9 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_SERVER_PASSWORD,
   },
 });
+const DRY_RUN = process.env.DRY_RUN === '1'
+  || process.env.MYBINGOCARD_DRIP_DRY_RUN === '1'
+  || process.argv.includes('--dry-run');
 
 // ── Campaign Definitions ──
 
@@ -232,6 +236,11 @@ async function sendVerificationReminder(db, user, reminder, now) {
   });
   if (alreadySent) return false;
 
+  if (DRY_RUN) {
+    console.log(`[DRY_RUN] ${reminder.id} -> ${user.email}`);
+    return 'dry-run';
+  }
+
   const verifyUrl = await createVerificationUrl(db, user);
   const email = buildVerificationReminderEmail(user, verifyUrl, reminder);
   const emailId = crypto.randomUUID();
@@ -425,13 +434,14 @@ function buildWinbackEmail(user) {
 // ── Main Logic ──
 
 async function run() {
-  const client = new MongoClient(MONGODB_URI);
+  const sqliteBackend = useSqliteBackend();
+  const client = sqliteBackend ? openSqliteShadowDatabase() : new MongoClient(MONGODB_URI);
   let sentCount = 0;
   let skippedCount = 0;
 
   try {
-    await client.connect();
-    const db = client.db('mybingocard');
+    if (!sqliteBackend) await client.connect();
+    const db = sqliteBackend ? client : client.db('mybingocard');
 
     // Ensure drip_log collection and index
     await db.collection('drip_log').createIndex({ userId: 1, campaignId: 1 }, { unique: true });
@@ -467,7 +477,9 @@ async function run() {
             const sent = await sendVerificationReminder(db, user, reminder, now);
             if (sent) {
               sentCount++;
-              console.log(`[SENT] ${reminder.id} -> ${user.email}`);
+              if (sent !== 'dry-run') {
+                console.log(`[SENT] ${reminder.id} -> ${user.email}`);
+              }
             }
           } catch (err) {
             console.error(`[FAIL] ${reminder.id} -> ${user.email}: ${err.message}`);
@@ -546,6 +558,12 @@ async function run() {
           .replace(/%%EMAIL%%/g, encodeURIComponent(user.email))
           .replace(/%%CAMPAIGN%%/g, campaign.id)
           .replace(/%%EMAIL_ID%%/g, encodeURIComponent(emailId));
+
+        if (DRY_RUN) {
+          sentCount++;
+          console.log(`[DRY_RUN] ${campaign.id} -> ${user.email}`);
+          continue;
+        }
 
         // Rate limit: wait 3 seconds between emails to avoid Porkbun limits
         await new Promise(resolve => setTimeout(resolve, 3000));

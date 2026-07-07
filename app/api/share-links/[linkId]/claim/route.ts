@@ -2,13 +2,16 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { ObjectId } from "mongodb";
 import { auth } from "@/auth";
-import clientPromise from "@/lib/mongodb";
 import {
   claimSharedLink,
   getSharedLinkByLinkId,
+  revertSharedLinkClaim,
 } from "@/lib/db/sharedLinks";
 import { getCardById } from "@/lib/db/cards";
-import type { User } from "@/lib/db/users";
+import {
+  createGuestShareLinkUser,
+  getActiveGuestClaimUser,
+} from "@/lib/db/users";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 
 function serializeCard(card: NonNullable<Awaited<ReturnType<typeof getCardById>>>) {
@@ -137,45 +140,26 @@ export async function POST(
       }
 
       if (isGuestClaim && !session?.user?.id && existing.claimedByUserId) {
-        const client = await clientPromise;
-        const db = client.db("mybingocard");
+        const guestUser = await getActiveGuestClaimUser(existing.claimedByUserId, now);
 
-        let guestObjectId: ObjectId | null = null;
-        try {
-          guestObjectId = new ObjectId(existing.claimedByUserId);
-        } catch {
-          guestObjectId = null;
-        }
-
-        if (guestObjectId) {
-          const guestUser = await db.collection("users").findOne({
-            _id: guestObjectId,
-            customerType: "guest",
-            guestClaimToken: { $exists: true, $ne: null },
-            guestClaimTokenExpiresAt: { $gt: now },
-          });
-
-          if (guestUser) {
-            const card = await getCardById(existing.cardId);
-            if (!card) {
-              return NextResponse.json(
-                { error: "This share link is no longer valid" },
-                { status: 410 }
-              );
-            }
-
-            return NextResponse.json({
-              ok: true,
-              alreadyClaimed: true,
-              card: serializeCard(card),
-              guestAuth: {
-                userId: existing.claimedByUserId,
-                guestToken: String(
-                  (guestUser as unknown as { guestClaimToken: string }).guestClaimToken
-                ),
-              },
-            });
+        if (guestUser) {
+          const card = await getCardById(existing.cardId);
+          if (!card) {
+            return NextResponse.json(
+              { error: "This share link is no longer valid" },
+              { status: 410 }
+            );
           }
+
+          return NextResponse.json({
+            ok: true,
+            alreadyClaimed: true,
+            card: serializeCard(card),
+            guestAuth: {
+              userId: existing.claimedByUserId,
+              guestToken: String(guestUser.guestClaimToken),
+            },
+          });
         }
       }
 
@@ -187,9 +171,6 @@ export async function POST(
 
     // ------ Guest claim branch ------
     if (isGuestClaim && !session?.user?.id) {
-      const client = await clientPromise;
-      const db = client.db("mybingocard");
-
       // Pre-allocate the user id so we can claim atomically before inserting
       // the guest user document. This prevents orphan guests-with-tokens if
       // anything crashes between the two writes.
@@ -213,37 +194,19 @@ export async function POST(
       const guestToken = crypto.randomBytes(16).toString("hex");
       const guestTokenExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-      const guestUser: Partial<User> & {
-        _id: ObjectId;
-        guestClaimToken?: string;
-        guestClaimTokenExpiresAt?: Date;
-      } = {
-        _id: newUserObjectId,
-        email: guestEmail,
-        name: "Guest Player",
-        planType: "FREE",
-        subscriptionStatus: "inactive",
-        customerType: "guest",
-        signupMethod: "share_link",
-        createdAt: now,
-        updatedAt: now,
-        guestClaimToken: guestToken,
-        guestClaimTokenExpiresAt: guestTokenExpiresAt,
-      };
-
       try {
-        await db.collection("users").insertOne(guestUser as any);
+        await createGuestShareLinkUser({
+          _id: newUserObjectId,
+          email: guestEmail,
+          guestClaimToken: guestToken,
+          guestClaimTokenExpiresAt: guestTokenExpiresAt,
+          now,
+        });
       } catch (insertErr) {
         console.error("Guest user insert failed, reverting claim:", insertErr);
         // Revert the claim so the link can be used again.
         try {
-          await db.collection("shared_links").updateOne(
-            { linkId, claimedByUserId: newUserId },
-            {
-              $set: { status: "pending", updatedAt: new Date() },
-              $unset: { claimedByUserId: "", claimedAt: "" },
-            }
-          );
+          await revertSharedLinkClaim(linkId, newUserId);
         } catch (revertErr) {
           console.error("Failed to revert claim after insert error:", revertErr);
         }
@@ -259,13 +222,7 @@ export async function POST(
         // Card was deleted between claim and fetch — revert the claim so the
         // link returns to a clean state (though the card is gone anyway).
         try {
-          await db.collection("shared_links").updateOne(
-            { linkId, claimedByUserId: newUserId },
-            {
-              $set: { status: "pending", updatedAt: new Date() },
-              $unset: { claimedByUserId: "", claimedAt: "" },
-            }
-          );
+          await revertSharedLinkClaim(linkId, newUserId);
         } catch (revertErr) {
           console.error("Failed to revert claim after missing card:", revertErr);
         }
@@ -323,15 +280,7 @@ export async function POST(
       // Revert the claim so the link isn't left in a broken claimed state
       // pointing at a deleted card.
       try {
-        const client = await clientPromise;
-        const db = client.db("mybingocard");
-        await db.collection("shared_links").updateOne(
-          { linkId, claimedByUserId: signedInUserId },
-          {
-            $set: { status: "pending", updatedAt: new Date() },
-            $unset: { claimedByUserId: "", claimedAt: "" },
-          }
-        );
+        await revertSharedLinkClaim(linkId, signedInUserId);
       } catch (revertErr) {
         console.error("Failed to revert claim after missing card:", revertErr);
       }

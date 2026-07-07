@@ -11,15 +11,12 @@ describe("share batch minimum checkout guardrails", () => {
     expect(modalSource).toContain("if (Number.isNaN(value) || value < MIN_SHARE_LINKS) return MIN_SHARE_LINKS;");
   });
 
-  test("frontend explains the free 5-link floor", () => {
-    expect(modalSource).toContain("PRICE_PER_LINK_CENTS = 0");
-    expect(modalSource).toContain("Free for up to ${MIN_SHARE_LINKS} links");
-    expect(modalSource).not.toContain("Stripe checkout minimum");
+  test("frontend explains the $0.50 minimum via 5-link floor", () => {
+    expect(modalSource).toContain("Minimum 5 links ($0.50) due to Stripe checkout minimum.");
   });
 
-  test("backend rejects share-link batches below the 5-link floor", () => {
+  test("backend rejects share-link checkouts below Stripe minimum", () => {
     expect(routeSource).toContain("const MIN_SHARE_LINKS = 5;");
     expect(routeSource).toContain("count must be at least ${MIN_SHARE_LINKS}");
-    expect(routeSource).toContain("PRICE_PER_LINK_CENTS = 0");
   });
 });

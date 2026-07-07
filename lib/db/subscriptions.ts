@@ -1,6 +1,7 @@
 import clientPromise from "../mongodb";
 import { ObjectId } from "mongodb";
-import { getEffectiveCardLimit, hasPremiumAccess } from "@/lib/subscription-status";
+import { getEffectiveCardLimit, hasPremiumAccess, NEW_FREE_CARD_LIMIT } from "@/lib/subscription-status";
+import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
 
 export type SubscriptionPlan = "free" | "starter" | "pro" | "unlimited";
 
@@ -28,7 +29,7 @@ export interface Subscription {
 // Plan limits configuration
 export const PLAN_LIMITS = {
   free: {
-    maxCards: -1,
+    maxCards: NEW_FREE_CARD_LIMIT,
     maxExports: -1,
     canAccessPremiumTemplates: true,
     canRemoveWatermark: true,
@@ -64,9 +65,6 @@ export async function createSubscription(data: {
   stripeSubscriptionId?: string;
   stripePriceId?: string;
 }): Promise<Subscription> {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
   const subscription: Partial<Subscription> = {
     userId: new ObjectId(data.userId),
     plan: data.plan,
@@ -80,6 +78,16 @@ export async function createSubscription(data: {
     updatedAt: new Date(),
   };
 
+  if (useSqliteDb()) {
+    const result = getSqliteStore().insertOne("subscriptions", subscription as Subscription);
+    return {
+      ...subscription,
+      _id: result.insertedId as ObjectId,
+    } as Subscription;
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
   const result = await db.collection<Subscription>("subscriptions").insertOne(subscription as Subscription);
 
   return {
@@ -89,6 +97,12 @@ export async function createSubscription(data: {
 }
 
 export async function getSubscriptionByUserId(userId: string): Promise<Subscription | null> {
+  if (useSqliteDb()) {
+    return getSqliteStore().findOne<Subscription>("subscriptions", {
+      userId: new ObjectId(userId),
+    });
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
@@ -100,6 +114,10 @@ export async function getSubscriptionByUserId(userId: string): Promise<Subscript
 }
 
 export async function getSubscriptionByStripeId(stripeSubscriptionId: string): Promise<Subscription | null> {
+  if (useSqliteDb()) {
+    return getSqliteStore().findOne<Subscription>("subscriptions", { stripeSubscriptionId });
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
@@ -114,6 +132,20 @@ export async function updateSubscription(
   userId: string,
   data: Partial<Subscription>
 ): Promise<Subscription | null> {
+  if (useSqliteDb()) {
+    return getSqliteStore().findOneAndUpdate<Subscription>(
+      "subscriptions",
+      { userId: new ObjectId(userId) },
+      {
+        $set: {
+          ...data,
+          updatedAt: new Date(),
+        },
+      },
+      { returnDocument: "after" }
+    );
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
@@ -132,6 +164,21 @@ export async function updateSubscription(
 }
 
 export async function upgradePlan(userId: string, newPlan: SubscriptionPlan): Promise<Subscription | null> {
+  if (useSqliteDb()) {
+    return getSqliteStore().findOneAndUpdate<Subscription>(
+      "subscriptions",
+      { userId: new ObjectId(userId) },
+      {
+        $set: {
+          plan: newPlan,
+          limits: PLAN_LIMITS[newPlan],
+          updatedAt: new Date(),
+        },
+      },
+      { returnDocument: "after" }
+    );
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
 
@@ -151,9 +198,6 @@ export async function upgradePlan(userId: string, newPlan: SubscriptionPlan): Pr
 }
 
 export async function cancelSubscription(userId: string, cancelAtPeriodEnd: boolean = true): Promise<Subscription | null> {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
   const updateData: any = {
     cancelAtPeriodEnd,
     updatedAt: new Date(),
@@ -166,6 +210,17 @@ export async function cancelSubscription(userId: string, cancelAtPeriodEnd: bool
     updateData.limits = PLAN_LIMITS.free;
   }
 
+  if (useSqliteDb()) {
+    return getSqliteStore().findOneAndUpdate<Subscription>(
+      "subscriptions",
+      { userId: new ObjectId(userId) },
+      { $set: updateData },
+      { returnDocument: "after" }
+    );
+  }
+
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
   const result = await db.collection<Subscription>("subscriptions").findOneAndUpdate(
     { userId: new ObjectId(userId) },
     { $set: updateData },
@@ -200,21 +255,16 @@ export async function checkUserLimit(userId: string, limitType: keyof Subscripti
 }
 
 export async function getUserCardCount(userId: string): Promise<number> {
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  let objectId: ObjectId | null = null;
-
-  try {
-    objectId = new ObjectId(userId);
-  } catch {
-    // Cards for non-ObjectId users are stored with a string userId only.
+  if (useSqliteDb()) {
+    return getSqliteStore().count("cards", { userId });
   }
 
-  const query = objectId
-    ? { $or: [{ userId }, { userId: objectId }] }
-    : { userId };
+  const client = await clientPromise;
+  const db = client.db("mybingocard");
 
-  const count = await db.collection("cards").countDocuments(query);
+  const count = await db.collection("cards").countDocuments({
+    userId: userId,
+  });
 
   return count;
 }
@@ -224,12 +274,16 @@ export async function canCreateCard(userId: string): Promise<boolean> {
 
   let user: any = null;
   try {
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-    user = await db.collection("users").findOne(
-      { _id: new ObjectId(userId) },
-      { projection: { createdAt: 1, planType: 1, subscriptionStatus: 1, trialEndsAt: 1 } }
-    );
+    if (useSqliteDb()) {
+      user = getSqliteStore().findOne("users", { _id: new ObjectId(userId) });
+    } else {
+      const client = await clientPromise;
+      const db = client.db("mybingocard");
+      user = await db.collection("users").findOne(
+        { _id: new ObjectId(userId) },
+        { projection: { createdAt: 1, planType: 1, subscriptionStatus: 1, trialEndsAt: 1 } }
+      );
+    }
   } catch {
     // userId not a valid ObjectId — fall through to legacy subscription/free checks
   }
@@ -262,6 +316,12 @@ export async function canCreateCard(userId: string): Promise<boolean> {
 }
 
 export async function getAllActiveSubscriptions(): Promise<Subscription[]> {
+  if (useSqliteDb()) {
+    return getSqliteStore().findMany<Subscription>("subscriptions", {
+      status: { $in: ["active", "trialing", "past_due"] },
+    });
+  }
+
   const client = await clientPromise;
   const db = client.db("mybingocard");
 

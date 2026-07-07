@@ -8,6 +8,7 @@ const { execFileSync, spawnSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 const { MongoClient } = require("mongodb");
+const { openSqliteShadowDatabase, useSqliteBackend } = require("./sqlite-shadow-store.cjs");
 
 const APP_DIR = process.env.MYBINGOCARD_APP_DIR || "/var/www/mybingocard.com";
 const APP_URL = (process.env.MYBINGOCARD_APP_URL || "https://mybingocard.com").replace(/\/$/, "");
@@ -257,6 +258,10 @@ function parseAccessLogs(range) {
 }
 
 async function firstPartyActivity(range) {
+  if (useSqliteBackend()) {
+    return firstPartyActivitySqlite(range);
+  }
+
   const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/mybingocard";
   const client = new MongoClient(mongoUri, { serverSelectionTimeoutMS: 5000 });
   const cleanExpr = {
@@ -320,6 +325,83 @@ async function firstPartyActivity(range) {
   }
 }
 
+function isCleanFirstPartyEvent(event) {
+  const userAgent = String(event.userAgent || event.metadata?.userAgent || "");
+  return !BOT_UA_RE.test(userAgent);
+}
+
+function firstPartySource(event) {
+  return event.metadata?.utm_source
+    || event.metadata?.utm?.source
+    || event.metadata?.source
+    || event.metadata?.referrer
+    || "";
+}
+
+async function firstPartyActivitySqlite(range) {
+  const db = openSqliteShadowDatabase();
+  try {
+    const events = await db.collection("activity_events")
+      .find({ createdAt: { $gte: range.startDate, $lte: range.endDate } })
+      .toArray();
+    const byDay = {};
+    const sourceCounts = new Map();
+    const engagementEvents = new Set(["page_engagement", "click", "cta_click", "form_submit", "tab_returned"]);
+    const signupEvents = new Set(["signup_completed", "user_registered"]);
+    const checkoutEvents = new Set(["checkout_started", "checkout_completed", "subscription_created"]);
+
+    for (const event of events) {
+      const createdAt = event.createdAt ? new Date(event.createdAt) : null;
+      if (!createdAt || Number.isNaN(createdAt.getTime())) continue;
+      const day = phoenixDay(createdAt);
+      const row = byDay[day] || {
+        _id: day,
+        total: 0,
+        cleanTotal: 0,
+        pageViews: 0,
+        cleanPageViews: 0,
+        engagements: 0,
+        cards: 0,
+        signups: 0,
+        checkouts: 0,
+        sessions: new Set(),
+      };
+      const clean = isCleanFirstPartyEvent(event);
+      const eventName = String(event.event || "");
+      row.total += 1;
+      if (clean) row.cleanTotal += 1;
+      if (eventName === "page_view") {
+        row.pageViews += 1;
+        if (clean) row.cleanPageViews += 1;
+        const source = firstPartySource(event);
+        if (typeof source === "string" && source) increment(sourceCounts, source);
+      }
+      if (engagementEvents.has(eventName)) row.engagements += 1;
+      if (/(card|game|print|share)/i.test(eventName)) row.cards += 1;
+      if (signupEvents.has(eventName)) row.signups += 1;
+      if (checkoutEvents.has(eventName)) row.checkouts += 1;
+      const session = event.sessionId || event.anonymousId;
+      if (session) row.sessions.add(session);
+      byDay[day] = row;
+    }
+
+    return {
+      available: true,
+      byDay: Object.fromEntries(Object.entries(byDay)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([day, row]) => [day, { ...row, sessions: row.sessions.size }])),
+      sources: [...sourceCounts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 12)
+        .map(([source, count]) => ({ source, count })),
+    };
+  } catch (error) {
+    return { available: false, error: error.message, byDay: {}, sources: [] };
+  } finally {
+    db.close();
+  }
+}
+
 function analyticsMongoUri() {
   if (process.env.ANALYTICS_MONGODB_URI) return process.env.ANALYTICS_MONGODB_URI;
   if (process.env.TOWNRANKER_ANALYTICS_MONGODB_URI) return process.env.TOWNRANKER_ANALYTICS_MONGODB_URI;
@@ -344,6 +426,10 @@ function readEnvMap(filePath) {
 }
 
 async function centralAnalytics(range) {
+  if (process.env.MYBINGOCARD_TRAFFIC_SKIP_CENTRAL_ANALYTICS === "1") {
+    return { available: false, error: "central analytics skipped", byDay: {} };
+  }
+
   const client = new MongoClient(analyticsMongoUri(), { serverSelectionTimeoutMS: 5000 });
   const reportableExpr = {
     $and: [
@@ -382,6 +468,10 @@ async function centralAnalytics(range) {
 }
 
 async function gscAnalytics(range) {
+  if (process.env.MYBINGOCARD_TRAFFIC_SKIP_GSC === "1") {
+    return { available: false, error: "GSC skipped", byDay: {} };
+  }
+
   if (!fs.existsSync(GSC_MODULE_PATH)) {
     return { available: false, error: `GSC module missing at ${GSC_MODULE_PATH}`, byDay: {} };
   }

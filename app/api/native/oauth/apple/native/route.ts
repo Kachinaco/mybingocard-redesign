@@ -1,9 +1,12 @@
-import clientPromise from "@/lib/mongodb";
-import { createUser, getUserByEmail, updateUser } from "@/lib/db/users";
+import {
+  createNativeOAuthHandoff,
+  getUserByAuthAccount,
+  upsertAuthAccountForUser,
+} from "@/lib/db/auth-data";
+import { createUser, getUserByEmail, recordNativeOAuthLogin, updateUser } from "@/lib/db/users";
 import { createNativeOAuthToken, hashNativeOAuthToken, normalizeNativeCallback } from "@/lib/native-oauth";
 import { verifyAppleIdentityToken } from "@/lib/apple-native-auth";
 import { NextRequest, NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
 import crypto from "crypto";
 
 type NativeAppleRequest = {
@@ -57,19 +60,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Apple email is not verified." }, { status: 401 });
   }
 
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const account = await db.collection("accounts").findOne({
-    provider: "apple",
-    providerAccountId: appleUserId,
-  });
-
-  let user = null;
-  if (account?.userId) {
-    const userId = typeof account.userId === "string" ? new ObjectId(account.userId) : account.userId;
-    user = await db.collection("users").findOne({ _id: userId });
-  }
+  let user = await getUserByAuthAccount("apple", appleUserId);
 
   if (!user && appleEmail) {
     user = await getUserByEmail(appleEmail);
@@ -95,57 +86,29 @@ export async function POST(request: NextRequest) {
       loginCount: 1,
     });
   } else {
-    const updates: Record<string, unknown> = {
-      emailVerified: user.emailVerified || now,
-      lastLoginAt: now,
-      updatedAt: now,
-      signupMethod: user.signupMethod || "apple",
-    };
-
-    if (fullName && !user.name) {
-      updates.name = fullName;
-    }
-
-    await db.collection("users").updateOne(
-      { _id: user._id },
-      {
-        $set: updates,
-        $inc: { loginCount: 1 },
-      }
-    );
-
-    user = await db.collection("users").findOne({ _id: user._id });
+    user = await recordNativeOAuthLogin(user, {
+      signupMethod: "apple",
+      name: fullName,
+      now,
+    });
   }
 
   if (!user?._id || !user.email) {
     return NextResponse.json({ error: "Apple sign-in could not create a session." }, { status: 500 });
   }
 
-  await db.collection("accounts").updateOne(
-    {
-      provider: "apple",
-      providerAccountId: appleUserId,
-    },
-    {
-      $setOnInsert: {
-        userId: user._id,
-        type: "oauth",
-        provider: "apple",
-        providerAccountId: appleUserId,
-        createdAt: now,
-      },
-      $set: {
-        updatedAt: now,
-      },
-    },
-    { upsert: true }
-  );
+  await upsertAuthAccountForUser({
+    provider: "apple",
+    providerAccountId: appleUserId,
+    userId: user._id,
+    now,
+  });
 
   const token = createNativeOAuthToken();
   const tokenHash = hashNativeOAuthToken(token);
   const expiresAt = new Date(now.getTime() + 2 * 60 * 1000);
 
-  await db.collection("native_oauth_handoffs").insertOne({
+  await createNativeOAuthHandoff({
     tokenHash,
     userId: user._id.toString(),
     email: user.email,

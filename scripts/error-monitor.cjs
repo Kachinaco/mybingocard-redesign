@@ -9,6 +9,7 @@ const https = require("node:https");
 const fs = require("node:fs");
 const path = require("node:path");
 const { MongoClient } = require("mongodb");
+const { openSqliteShadowDatabase, useSqliteBackend } = require("./sqlite-shadow-store.cjs");
 
 const APP_DIR = "/var/www/mybingocard.com";
 const CHANNEL_ID = "1476666529184616510";
@@ -45,6 +46,12 @@ function getToken() {
 
 function discordPost(content) {
   return new Promise((resolve) => {
+    if (process.env.MYBINGOCARD_ERROR_MONITOR_NO_DISCORD === "1") {
+      console.log("Discord notify disabled by MYBINGOCARD_ERROR_MONITOR_NO_DISCORD");
+      resolve();
+      return;
+    }
+
     const token = getToken();
     if (!token) {
       console.log("No token, skipping Discord notify");
@@ -184,6 +191,84 @@ async function checkStructuredErrors(db) {
   });
 }
 
+function dateMs(value) {
+  const date = value instanceof Date ? value : new Date(value || 0);
+  const time = date.getTime();
+  return Number.isNaN(time) ? 0 : time;
+}
+
+function isUnresolvedStatus(status) {
+  return status == null || !["fixed", "ignored"].includes(status);
+}
+
+function severityRank(severity) {
+  if (severity === "high") return 0;
+  if (severity === "medium") return 1;
+  return 2;
+}
+
+async function checkStructuredErrorsSqlite(db) {
+  const since = new Date(Date.now() - 30 * 60 * 1000);
+  const events = await db.collection("error_events")
+    .find({ createdAt: { $gte: since }, alertSuppressed: { $ne: true } })
+    .toArray();
+  const fingerprints = await db.collection("error_fingerprints").find({}).toArray();
+  const fingerprintById = new Map(fingerprints.map((doc) => [String(doc._id || ""), doc]));
+  const grouped = new Map();
+
+  for (const event of events) {
+    const fingerprint = typeof event.fingerprint === "string" ? event.fingerprint : "";
+    if (!fingerprint) continue;
+    const groupDoc = fingerprintById.get(fingerprint) || {};
+    if (groupDoc.alertSuppressed === true) continue;
+    const group = grouped.get(fingerprint) || {
+      _id: fingerprint,
+      count: 0,
+      sessions: new Set(),
+      latestAt: event.createdAt,
+      latestMessage: event.message,
+      latestPathname: event.pathname,
+      latestPageUrl: event.pageUrl,
+      group: groupDoc,
+    };
+
+    group.count += 1;
+    if (event.sessionId) group.sessions.add(event.sessionId);
+    if (dateMs(event.createdAt) >= dateMs(group.latestAt)) {
+      group.latestAt = event.createdAt;
+      group.latestMessage = event.message;
+      group.latestPathname = event.pathname;
+      group.latestPageUrl = event.pageUrl;
+    }
+    grouped.set(fingerprint, group);
+  }
+
+  return [...grouped.values()]
+    .map((row) => ({
+      _id: row._id,
+      count: row.count,
+      latestAt: row.latestAt,
+      latestMessage: row.latestMessage,
+      latestPathname: row.latestPathname,
+      latestPageUrl: row.latestPageUrl,
+      severity: row.group.severity,
+      status: row.group.status || "open",
+      totalCount: row.group.totalCount,
+      latestBuildId: row.group.latestBuildId,
+      sessionCount: row.sessions.size,
+    }))
+    .filter((group) => isUnresolvedStatus(group.status))
+    .filter((group) => {
+      if (group.severity === "high") return group.count >= 1;
+      if (group.severity === "medium") return group.count >= 2 || group.sessionCount >= 2;
+      return group.count >= 5 && group.sessionCount >= 2;
+    })
+    .sort((a, b) => severityRank(a.severity) - severityRank(b.severity)
+      || b.count - a.count
+      || dateMs(b.latestAt) - dateMs(a.latestAt))
+    .slice(0, 8);
+}
+
 async function checkLegacyActivityErrors(db) {
   const since = new Date(Date.now() - 30 * 60 * 1000);
   return db.collection("activity_events").countDocuments({
@@ -201,15 +286,24 @@ async function main() {
   loadEnvFile(path.join(APP_DIR, ".env.local"));
   const nginx5xx = checkNginx();
   const pm2Errors = checkPM2Errors();
-  const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/mybingocard";
-  const mongo = new MongoClient(mongoUri, { serverSelectionTimeoutMS: 5000 });
   const issues = [];
+  let db = null;
+  let closeDb = async () => {};
+
+  if (useSqliteBackend()) {
+    db = openSqliteShadowDatabase();
+    closeDb = async () => db.close();
+  } else {
+    const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/mybingocard";
+    const mongo = new MongoClient(mongoUri, { serverSelectionTimeoutMS: 5000 });
+    await mongo.connect();
+    db = mongo.db("mybingocard");
+    closeDb = async () => mongo.close().catch(() => {});
+  }
 
   try {
-    await mongo.connect();
-    const db = mongo.db("mybingocard");
     const [structuredErrors, legacyErrors] = await Promise.all([
-      checkStructuredErrors(db),
+      useSqliteBackend() ? checkStructuredErrorsSqlite(db) : checkStructuredErrors(db),
       checkLegacyActivityErrors(db),
     ]);
 
@@ -233,7 +327,7 @@ async function main() {
       issues.push(`Legacy activity error events in last 30 min: ${legacyErrors}`);
     }
   } finally {
-    await mongo.close().catch(() => {});
+    await closeDb();
   }
 
   if (issues.length > 0) {

@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { MongoClient } = require("mongodb");
+const { openSqliteShadowDatabase, useSqliteBackend } = require("./sqlite-shadow-store.cjs");
 
 const APP_ROOT = path.join(__dirname, "..");
 const ENV_PATH = path.join(APP_ROOT, ".env.local");
@@ -203,6 +204,50 @@ function identityExpression() {
   };
 }
 
+const cleanActivityCache = new Map();
+
+function identityValue(doc) {
+  return doc.userId || doc.anonymousId || doc.sessionId || doc.ipAddress || null;
+}
+
+function isCleanActivity(doc) {
+  const userAgent = String(doc.userAgent || "");
+  const metadataUserAgent = String(doc.metadata?.userAgent || "");
+  const email = String(doc.email || "");
+  const event = String(doc.event || "");
+  if (/HeadlessChrome|Playwright|Puppeteer/i.test(userAgent)) return false;
+  if (/HeadlessChrome|Playwright|Puppeteer/i.test(metadataUserAgent)) return false;
+  if (/(^test|testqa|qa|example\.com)/i.test(email)) return false;
+  if (/^admin_/.test(event)) return false;
+  return true;
+}
+
+function isCleanUser(doc) {
+  const email = String(doc.email || "");
+  if (/(^test|testqa|qa|example\.com)/i.test(email)) return false;
+  return doc.customerType !== "test";
+}
+
+async function loadCleanActivityEvents(db, since) {
+  const key = since.toISOString();
+  if (!cleanActivityCache.has(key)) {
+    const rows = await db.collection("activity_events")
+      .find({ createdAt: { $gte: since } })
+      .toArray();
+    cleanActivityCache.set(key, rows.filter(isCleanActivity));
+  }
+  return cleanActivityCache.get(key);
+}
+
+function summarizeEventRows(event, rows) {
+  const visitors = new Set();
+  for (const row of rows) {
+    const identity = identityValue(row);
+    if (identity) visitors.add(String(identity));
+  }
+  return { event, events: rows.length, uniqueVisitors: visitors.size };
+}
+
 function safePct(part, whole) {
   if (!whole) return 0;
   return Math.round((part / whole) * 1000) / 10;
@@ -252,29 +297,25 @@ function formatRows(rows, formatter, empty = "No data") {
 }
 
 async function getFeatureStats(db, since) {
+  const activityEvents = await loadCleanActivityEvents(db, since);
   const stats = [];
   for (const feature of FEATURE_DEFINITIONS) {
-    const [row] = await db
-      .collection("activity_events")
-      .aggregate([
-        { $match: cleanActivityMatch(since, { event: { $in: feature.events } }) },
-        {
-          $group: {
-            _id: null,
-            events: { $sum: 1 },
-            visitors: { $addToSet: identityExpression() },
-            lastSeenAt: { $max: "$createdAt" },
-          },
-        },
-      ])
-      .toArray();
+    const eventSet = new Set(feature.events);
+    const rows = activityEvents.filter((event) => eventSet.has(event.event));
+    const visitors = new Set(rows.map(identityValue).filter(Boolean).map(String));
+    const lastSeenAt = rows.reduce((latest, row) => {
+      const createdAt = row.createdAt ? new Date(row.createdAt) : null;
+      if (!createdAt || Number.isNaN(createdAt.getTime())) return latest;
+      if (!latest || createdAt > latest) return createdAt;
+      return latest;
+    }, null);
 
     stats.push({
       key: feature.key,
       label: feature.label,
-      events: row?.events || 0,
-      uniqueVisitors: (row?.visitors || []).filter(Boolean).length,
-      lastSeenAt: row?.lastSeenAt || null,
+      events: rows.length,
+      uniqueVisitors: visitors.size,
+      lastSeenAt,
       trackedEvents: feature.events,
     });
   }
@@ -282,43 +323,14 @@ async function getFeatureStats(db, since) {
   return stats.sort((a, b) => b.uniqueVisitors - a.uniqueVisitors || b.events - a.events);
 }
 
-async function countUniqueEvent(db, since, event, extra = {}) {
-  const [row] = await db
-    .collection("activity_events")
-    .aggregate([
-      { $match: cleanActivityMatch(since, { event, ...extra }) },
-      {
-        $group: {
-          _id: null,
-          events: { $sum: 1 },
-          visitors: { $addToSet: identityExpression() },
-        },
-      },
-    ])
-    .toArray();
-
-  return {
-    event,
-    events: row?.events || 0,
-    uniqueVisitors: (row?.visitors || []).filter(Boolean).length,
-  };
+async function countUniqueEvent(db, since, event, predicate = () => true) {
+  const activityEvents = await loadCleanActivityEvents(db, since);
+  return summarizeEventRows(event, activityEvents.filter((row) => row.event === event && predicate(row)));
 }
 
 async function getSources(db, since) {
-  const pageViews = await db
-    .collection("activity_events")
-    .find(cleanActivityMatch(since, { event: "page_view" }), {
-      projection: {
-        anonymousId: 1,
-        userId: 1,
-        sessionId: 1,
-        ipAddress: 1,
-        referrer: 1,
-        metadata: 1,
-        pathname: 1,
-      },
-    })
-    .toArray();
+  const activityEvents = await loadCleanActivityEvents(db, since);
+  const pageViews = activityEvents.filter((row) => row.event === "page_view");
 
   const bySource = new Map();
   for (const view of pageViews) {
@@ -330,12 +342,12 @@ async function getSources(db, since) {
     bySource.set(source, current);
   }
 
-  const signupSources = await db
+  const signupSources = (await db
     .collection("users")
-    .find(cleanUserMatch({ createdAt: { $gte: since } }), {
-      projection: { utm_source: 1, utm_medium: 1, referrer: 1 },
+    .find({ createdAt: { $gte: since } }, {
+      projection: { utm_source: 1, utm_medium: 1, referrer: 1, email: 1, customerType: 1 },
     })
-    .toArray();
+    .toArray()).filter(isCleanUser);
 
   const signupSourceMap = new Map();
   for (const user of signupSources) {
@@ -358,76 +370,59 @@ async function getSources(db, since) {
 }
 
 async function getTopPages(db, since) {
-  return db
-    .collection("activity_events")
-    .aggregate([
-      { $match: cleanActivityMatch(since, { event: "page_view" }) },
-      {
-        $group: {
-          _id: { $ifNull: ["$pathname", "$metadata.page"] },
-          pageViews: { $sum: 1 },
-          visitors: { $addToSet: identityExpression() },
-        },
-      },
-      { $sort: { pageViews: -1 } },
-      { $limit: 12 },
-    ])
-    .toArray()
-    .then((rows) =>
-      rows.map((row) => ({
-        path: row._id || "(unknown)",
-        pageViews: row.pageViews,
-        uniqueVisitors: (row.visitors || []).filter(Boolean).length,
-      })),
-    );
+  const activityEvents = await loadCleanActivityEvents(db, since);
+  const byPage = new Map();
+  for (const event of activityEvents.filter((row) => row.event === "page_view")) {
+    const path = event.pathname || event.metadata?.page || "(unknown)";
+    const row = byPage.get(path) || { path, pageViews: 0, visitors: new Set() };
+    row.pageViews += 1;
+    const identity = identityValue(event);
+    if (identity) row.visitors.add(String(identity));
+    byPage.set(path, row);
+  }
+  return [...byPage.values()]
+    .map((row) => ({ path: row.path, pageViews: row.pageViews, uniqueVisitors: row.visitors.size }))
+    .sort((a, b) => b.pageViews - a.pageViews)
+    .slice(0, 12);
 }
 
 async function getHotspots(db, since, event) {
-  return db
-    .collection("activity_events")
-    .aggregate([
-      { $match: cleanActivityMatch(since, { event }) },
-      {
-        $group: {
-          _id: {
-            page: { $ifNull: ["$pathname", "$metadata.page"] },
-            text: { $ifNull: ["$metadata.text", "$metadata.label"] },
-            tag: { $ifNull: ["$metadata.tag", ""] },
-          },
-          count: { $sum: 1 },
-          visitors: { $addToSet: identityExpression() },
-          lastSeenAt: { $max: "$createdAt" },
-        },
-      },
-      { $sort: { count: -1, lastSeenAt: -1 } },
-      { $limit: 8 },
-    ])
-    .toArray()
-    .then((rows) =>
-      rows.map((row) => ({
-        page: row._id.page || "(unknown)",
-        text: row._id.text || row._id.tag || "(no text)",
-        count: row.count,
-        uniqueVisitors: (row.visitors || []).filter(Boolean).length,
-        lastSeenAt: row.lastSeenAt,
-      })),
-    );
+  const activityEvents = await loadCleanActivityEvents(db, since);
+  const byHotspot = new Map();
+  for (const row of activityEvents.filter((item) => item.event === event)) {
+    const page = row.pathname || row.metadata?.page || "(unknown)";
+    const text = row.metadata?.text || row.metadata?.label || row.metadata?.tag || "(no text)";
+    const key = `${page}\0${text}`;
+    const current = byHotspot.get(key) || { page, text, count: 0, visitors: new Set(), lastSeenAt: null };
+    current.count += 1;
+    const identity = identityValue(row);
+    if (identity) current.visitors.add(String(identity));
+    const createdAt = row.createdAt ? new Date(row.createdAt) : null;
+    if (createdAt && !Number.isNaN(createdAt.getTime()) && (!current.lastSeenAt || createdAt > current.lastSeenAt)) {
+      current.lastSeenAt = createdAt;
+    }
+    byHotspot.set(key, current);
+  }
+  return [...byHotspot.values()]
+    .map((row) => ({
+      page: row.page,
+      text: row.text,
+      count: row.count,
+      uniqueVisitors: row.visitors.size,
+      lastSeenAt: row.lastSeenAt,
+    }))
+    .sort((a, b) => b.count - a.count || new Date(b.lastSeenAt || 0) - new Date(a.lastSeenAt || 0))
+    .slice(0, 8);
 }
 
 async function getFunnel(db, since) {
   const pageViews = await countUniqueEvent(db, since, "page_view");
-  const createViews = await db
-    .collection("activity_events")
-    .aggregate([
-      { $match: cleanActivityMatch(since, { event: "page_view", $or: [{ pathname: "/create" }, { "metadata.page": "/create" }] }) },
-      { $group: { _id: null, events: { $sum: 1 }, visitors: { $addToSet: identityExpression() } } },
-    ])
-    .toArray()
-    .then(([row]) => ({
-      event: "create_page_view",
-      events: row?.events || 0,
-      uniqueVisitors: (row?.visitors || []).filter(Boolean).length,
-    }));
+  const createViews = await countUniqueEvent(
+    db,
+    since,
+    "page_view",
+    (row) => row.pathname === "/create" || row.metadata?.page === "/create",
+  ).then((row) => ({ ...row, event: "create_page_view" }));
   const title = await countUniqueEvent(db, since, "card_title_entered");
   const cells = await countUniqueEvent(db, since, "card_cells_added");
   const save = await countUniqueEvent(db, since, "card_save_attempted");
@@ -587,12 +582,13 @@ ${formatRows(report.recommendations, (item) => `- ${item}`, "No recommendations 
 
 async function run() {
   loadEnv();
+  const sqliteDb = useSqliteBackend() ? openSqliteShadowDatabase() : null;
   const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/mybingocard";
-  const client = new MongoClient(uri);
-  await client.connect();
+  const client = sqliteDb ? null : new MongoClient(uri);
+  if (client) await client.connect();
 
   try {
-    const db = client.db("mybingocard");
+    const db = sqliteDb || client.db("mybingocard");
     const now = new Date();
     const since7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const since30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -670,7 +666,11 @@ async function run() {
       ),
     );
   } finally {
-    await client.close();
+    if (client) {
+      await client.close();
+    } else {
+      sqliteDb.close();
+    }
   }
 }
 

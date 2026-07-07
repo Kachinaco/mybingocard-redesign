@@ -1,33 +1,46 @@
-import { MongoClient } from "mongodb";
+import type { MongoClient } from "mongodb";
 
-if (!process.env.MONGODB_URI) {
-  throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
-}
+const sqliteBackendEnabled =
+  process.env.MYBINGOCARD_DB_BACKEND?.toLowerCase() === "sqlite";
 
-const uri = process.env.MONGODB_URI;
-const options = {};
+// When running in SQLite mode, export a promise that never resolves.
+// Every db/* module guards with useSqliteDb() before reaching clientPromise,
+// so this should never be awaited. If it is, we hang rather than crash since
+// an unhandled rejection takes down the SSR render or API route.
+const NEVER = new Promise<never>(() => {});
 
-let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
 
-if (process.env.NODE_ENV === "development") {
-  // In development mode, use a global variable so that the value
-  // is preserved across module reloads caused by HMR (Hot Module Replacement).
-  let globalWithMongo = global as typeof globalThis & {
-    _mongoClientPromise?: Promise<MongoClient>;
-  };
-
-  if (!globalWithMongo._mongoClientPromise) {
-    client = new MongoClient(uri, options);
-    globalWithMongo._mongoClientPromise = client.connect();
-  }
-  clientPromise = globalWithMongo._mongoClientPromise;
+if (sqliteBackendEnabled) {
+  clientPromise = NEVER as unknown as Promise<MongoClient>;
 } else {
-  // In production mode, it's best to not use a global variable.
-  client = new MongoClient(uri, options);
-  clientPromise = client.connect();
+  const uri = process.env.MONGODB_URI;
+  const options = {};
+
+  if (!uri) {
+    throw new Error(
+      "MONGODB_URI is required when MYBINGOCARD_DB_BACKEND is not sqlite"
+    );
+  }
+
+  let client: MongoClient;
+
+  if (process.env.NODE_ENV === "development") {
+    let globalWithMongo = global as typeof globalThis & {
+      _mongoClientPromise?: Promise<MongoClient>;
+    };
+
+    if (!globalWithMongo._mongoClientPromise) {
+      const { MongoClient } = require("mongodb");
+      client = new MongoClient(uri, options);
+      globalWithMongo._mongoClientPromise = client.connect();
+    }
+    clientPromise = globalWithMongo._mongoClientPromise!;
+  } else {
+    const { MongoClient } = require("mongodb");
+    client = new MongoClient(uri, options);
+    clientPromise = client.connect();
+  }
 }
 
-// Export a module-scoped MongoClient promise. By doing this in a
-// separate module, the client can be shared across functions.
 export default clientPromise;
