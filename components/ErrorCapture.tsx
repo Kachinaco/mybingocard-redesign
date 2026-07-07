@@ -229,6 +229,22 @@ function isStaleBuildError(message: string): boolean {
   return STALE_BUILD_PATTERNS.some((re) => re.test(message));
 }
 
+function hasRecentStaleBuildRecoveryBreadcrumb(): boolean {
+  const cutoff = Date.now() - STALE_BUILD_RECOVERY_WINDOW_MS;
+  return breadcrumbs.some((breadcrumb) => (
+    breadcrumb.message === "stale_build_resource_reload" &&
+    Date.parse(breadcrumb.timestamp) >= cutoff
+  ));
+}
+
+function isStaleBuildPromiseRejection(message: string, stack: string | null): boolean {
+  return (
+    isStaleBuildError(message) ||
+    Boolean(stack && isStaleBuildError(stack)) ||
+    (message === "Load failed" && hasRecentStaleBuildRecoveryBreadcrumb())
+  );
+}
+
 function isNextStaticResource(src: string): boolean {
   try {
     const url = new URL(src, window.location.origin);
@@ -236,6 +252,24 @@ function isNextStaticResource(src: string): boolean {
   } catch {
     return src.startsWith("/_next/static/");
   }
+}
+
+function isCriticalNextStaticResource(el: HTMLElement, src: string): boolean {
+  if (!isNextStaticResource(src)) return false;
+
+  const tagName = el.tagName.toLowerCase();
+  if (tagName === "script") return true;
+  if (tagName !== "link") return false;
+
+  const link = el as HTMLLinkElement;
+  const rel = (link.rel || "").toLowerCase();
+  const as = (link.as || "").toLowerCase();
+
+  if (rel === "prefetch" || as === "font" || as === "image") return false;
+  if (rel === "stylesheet" || rel === "modulepreload") return true;
+  if (rel === "preload" && (as === "script" || as === "style")) return true;
+
+  return false;
 }
 
 function isThirdPartyNoiseResource(src: string): boolean {
@@ -288,7 +322,39 @@ function recoverFromStaleBuild() {
   memoryStaleBuildRecoveredAt = now;
   setBrowserStorageItem("sessionStorage", STALE_BUILD_RECOVERY_KEY, String(now));
   setWindowNameRecoveredAt(now);
-  window.location.reload();
+  showStaleBuildRecoveryNotice();
+  window.setTimeout(() => {
+    window.location.reload();
+  }, 180);
+}
+
+function showStaleBuildRecoveryNotice() {
+  try {
+    if (document.getElementById("mbc-stale-build-recovery-notice")) return;
+
+    const notice = document.createElement("div");
+    notice.id = "mbc-stale-build-recovery-notice";
+    notice.textContent = "Refreshing the bingo editor...";
+    notice.setAttribute("role", "status");
+    notice.style.cssText = [
+      "position:fixed",
+      "left:50%",
+      "top:72px",
+      "z-index:9999",
+      "transform:translateX(-50%)",
+      "border:1px solid rgba(0,122,255,0.22)",
+      "border-radius:12px",
+      "background:rgba(255,255,255,0.96)",
+      "box-shadow:0 12px 30px rgba(15,23,42,0.16)",
+      "color:#0f172a",
+      "font:600 13px/1.2 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",
+      "padding:10px 14px",
+      "pointer-events:none",
+    ].join(";");
+    document.body.appendChild(notice);
+  } catch {
+    // The reload still protects users if the notice cannot render.
+  }
 }
 
 export default function ErrorCapture() {
@@ -416,13 +482,19 @@ export default function ErrorCapture() {
             ? reason
             : "Unhandled promise rejection";
 
-      if (isDuplicate(message)) return;
-      if (isNoiseError(message)) return;
-
       const stack =
         reason instanceof Error && reason.stack
           ? String(reason.stack).slice(0, 2000)
           : null;
+
+      if (isStaleBuildPromiseRejection(message, stack)) {
+        if (isStaleBuildError(message) || (stack && isStaleBuildError(stack))) {
+          recoverFromStaleBuild();
+        }
+        return;
+      }
+      if (isDuplicate(message)) return;
+      if (isNoiseError(message)) return;
 
       const user = getUserInfo();
       sendError({
@@ -457,7 +529,7 @@ export default function ErrorCapture() {
 
       if (!src || reportedResources.has(src)) return;
       reportedResources.add(src);
-      if (isNextStaticResource(src)) {
+      if (isCriticalNextStaticResource(el, src)) {
         addBreadcrumb({
           type: "recovery",
           message: "stale_build_resource_reload",

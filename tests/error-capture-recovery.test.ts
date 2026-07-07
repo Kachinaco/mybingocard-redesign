@@ -9,8 +9,14 @@ describe("client error capture recovery", () => {
     expect(source).toContain("ChunkLoadError");
     expect(source).toContain("Failed to load chunk");
     expect(source).toContain("isNextStaticResource(src)");
+    expect(source).toContain("isCriticalNextStaticResource(el, src)");
+    expect(source).toContain('rel === "prefetch"');
     expect(source).toContain("recoverFromStaleBuild()");
+    expect(source).toContain("showStaleBuildRecoveryNotice()");
     expect(source).toContain("window.location.reload()");
+    expect(source).toContain("hasRecentStaleBuildRecoveryBreadcrumb");
+    expect(source).toContain('message === "Load failed"');
+    expect(source).toContain("isStaleBuildPromiseRejection(message, stack)");
   });
 
   test("does not report analytics CDN misses as application errors", () => {

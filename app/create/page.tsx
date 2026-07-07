@@ -1832,9 +1832,9 @@ function CreateCardContent() {
         </div>
       </header>
 
-      <main className="pt-16 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-24 px-4">
+      <main className="pt-16 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-16 px-3 sm:px-4 lg:px-5">
         <div className="container mx-auto max-w-7xl">
-          <div className="mb-3 flex items-center justify-between gap-4">
+          <div className="mb-2 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <h1 className="text-xl font-bold text-gray-900">
                 {isEditingExistingCard ? "Edit Bingo Card" : "Create Bingo Card"}
@@ -1871,28 +1871,8 @@ function CreateCardContent() {
             )}
           </div>
 
-          {/* Sign-in prompt for anonymous users */}
-          {!session?.user && !checkingPermission && (
-            <div className="mb-8 p-4 bg-blue-50 border border-blue-100 rounded-xl text-[#007AFF] flex items-center gap-3">
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-sm">
-                Build your card first. Sign in when you&apos;re ready to save it.{" "}
-                <Link href="/signup?callbackUrl=/create" className="font-semibold underline underline-offset-2 hover:text-[#007AFF]">
-                  Sign up now
-                </Link>{" "}
-                or{" "}
-                <Link href="/login?callbackUrl=/create" className="font-semibold underline underline-offset-2 hover:text-[#007AFF]">
-                  log in
-                </Link>{" "}
-                if you already have an account.
-              </span>
-            </div>
-          )}
-
           {error && (
-            <div className="mb-8 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 flex items-center gap-3">
+            <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 flex items-center gap-3">
               <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -1901,7 +1881,7 @@ function CreateCardContent() {
           )}
 
           {isLoadingCard && (
-            <div className="mb-8 p-4 bg-white border border-gray-200 rounded-xl text-gray-600 flex items-center gap-3">
+            <div className="mb-4 p-4 bg-white border border-gray-200 rounded-xl text-gray-600 flex items-center gap-3">
               <div className="w-5 h-5 border-2 border-gray-300 border-t-[#007AFF] rounded-full animate-spin"></div>
               {t("label.loading")}
             </div>
@@ -1935,44 +1915,54 @@ function CreateCardContent() {
             </div>
           )}
 
-          {/* Ad placement for free users */}
-          {showCreatePageAd && (!permissionStatus?.planType || permissionStatus.planType === "FREE") && (
-            <div className="mb-6">
-              <AdUnit slot="create-page" format="horizontal" className="rounded-xl overflow-hidden" />
-            </div>
-          )}
-
-          {showNewUserTip && !isPremiumGateActive && (
-            <div className="mb-6 bg-gray-50 border border-gray-200 rounded-xl px-5 py-3 flex items-center justify-between gap-4 animate-fade-in-up">
-              <p className="text-sm text-gray-600">
-                First time? Type a title above and fill in the squares, or{" "}
-                <Link href="/templates" className="text-[#007AFF] font-semibold hover:underline">
-                  start from a template
-                </Link>.
-              </p>
-              <button
-                onClick={() => { setShowNewUserTip(false); setBrowserStorageItem("localStorage", "new_user_tip_dismissed", "1"); }}
-                className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
-                title="Dismiss"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          )}
-
           {editorUnlocked && !isLoadingCard && (
-          <div className="grid lg:grid-cols-[minmax(0,240px)_1fr_minmax(0,340px)] gap-4 lg:gap-5 items-start">
+          <>
+          <div className="grid lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)_minmax(0,300px)] xl:grid-cols-[minmax(0,240px)_minmax(500px,520px)_minmax(0,320px)] 2xl:grid-cols-[minmax(0,240px)_minmax(520px,560px)_minmax(0,340px)] gap-3 lg:gap-4 xl:justify-center items-start">
             {/* Left Panel - Card Details */}
-            <div className="order-2 lg:order-1 space-y-5 min-w-0">
+            <div className="order-2 lg:order-1 space-y-4 lg:sticky lg:top-16 lg:max-h-[calc(100vh-11.5rem)] lg:space-y-3 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 min-w-0">
+              {!session?.user && !checkingPermission && (
+                <div className="px-3 py-2.5 bg-blue-50 border border-blue-100 rounded-lg text-[#007AFF] flex items-start gap-2.5">
+                  <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-xs leading-5">
+                    Build first. Sign in when you&apos;re ready to save.{" "}
+                    <Link href="/signup?callbackUrl=/create" className="font-semibold underline underline-offset-2 hover:text-[#007AFF]">
+                      Sign up
+                    </Link>{" "}
+                    or{" "}
+                    <Link href="/login?callbackUrl=/create" className="font-semibold underline underline-offset-2 hover:text-[#007AFF]">
+                      log in
+                    </Link>.
+                  </span>
+                </div>
+              )}
+              {showNewUserTip && !isPremiumGateActive && (
+                <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex items-start justify-between gap-3 animate-fade-in-up">
+                  <p className="text-sm text-gray-600 leading-snug">
+                    First time? Type a title above and fill in the squares, or{" "}
+                    <Link href="/templates" className="text-[#007AFF] font-semibold hover:underline">
+                      start from a template
+                    </Link>.
+                  </p>
+                  <button
+                    onClick={() => { setShowNewUserTip(false); setBrowserStorageItem("localStorage", "new_user_tip_dismissed", "1"); }}
+                    className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                    title="Dismiss"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
               {/* Basic Info */}
-              <div className="bg-white/60 rounded-2xl border border-gray-200/50 p-4">
-                <h2 className="text-base font-bold text-gray-900 mb-3">
+              <div className="bg-white/60 rounded-2xl border border-gray-200/50 p-4 lg:p-3">
+                <h2 className="text-base font-bold text-gray-900 mb-3 lg:mb-2">
                    Card Details
                 </h2>
 
-                <div className="space-y-3">
+                <div className="space-y-3 lg:space-y-2.5">
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">
                       Card Title <span className="text-red-500">*</span>
@@ -2086,7 +2076,7 @@ function CreateCardContent() {
                   </div>
                   )}
 
-                  <div className="space-y-3 pt-2">
+                  <div className="space-y-3 pt-2 lg:space-y-2.5 lg:pt-1">
                     {bingoVariant !== "custom" && (
                       <button
                         type="button"
@@ -2103,7 +2093,7 @@ function CreateCardContent() {
                       </button>
                     )}
                     {bingoVariant === "custom" && (
-                     <label htmlFor="free-space-toggle" className={`flex items-center gap-3 p-3 border border-gray-200 rounded-xl transition-colors ${showPreview ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"}`}>
+                     <label htmlFor="free-space-toggle" className={`flex items-center gap-3 p-3 lg:p-2.5 border border-gray-200 rounded-xl transition-colors ${showPreview ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"}`}>
                       <div className="relative flex items-center">
                         <input
                             id="free-space-toggle"
@@ -2126,7 +2116,7 @@ function CreateCardContent() {
                       type="button"
                       onClick={handleShuffleCells}
                       disabled={showPreview}
-                      className="flex items-center gap-3 p-3 w-full border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-3 p-3 lg:p-2.5 w-full border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <div className="w-5 h-5 flex items-center justify-center text-[#007AFF]">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2137,7 +2127,7 @@ function CreateCardContent() {
                     </button>
                     )}
 
-                    <label htmlFor="public-toggle" className={`flex items-center gap-3 p-3 border border-gray-200 rounded-xl transition-colors ${showPreview ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"}`}>
+                    <label htmlFor="public-toggle" className={`flex items-center gap-3 p-3 lg:p-2.5 border border-gray-200 rounded-xl transition-colors ${showPreview ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"}`}>
                       <div className="relative flex items-center">
                          <input
                             id="public-toggle"
@@ -2160,7 +2150,7 @@ function CreateCardContent() {
             </div>
 
             {/* Right Panel - AI, Style & Batch */}
-            <div className="order-3 lg:order-3 space-y-4 min-w-0">
+            <div className="order-3 lg:order-3 space-y-4 lg:sticky lg:top-16 lg:max-h-[calc(100vh-11.5rem)] lg:space-y-3 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 min-w-0">
               {/* AI Generate */}
               {bingoVariant === "custom" && (
                 <AiGenerateSection
@@ -2178,12 +2168,12 @@ function CreateCardContent() {
               )}
 
               {/* Style Customization */}
-              <div className="bg-white/60 rounded-2xl border border-gray-200/50 p-4">
-                <h2 className="text-base font-bold text-gray-900 mb-3">
+              <div className="bg-white/60 rounded-2xl border border-gray-200/50 p-4 lg:p-3">
+                <h2 className="text-base font-bold text-gray-900 mb-3 lg:mb-2">
                    Style & Colors
                 </h2>
 
-                <div className="space-y-4">
+                <div className="space-y-4 lg:space-y-3">
                   {/* Theme Presets */}
                   <div>
                     <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
@@ -2309,7 +2299,7 @@ function CreateCardContent() {
               </div>
 
               {/* Batch Generation — Always visible, prominent */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-200/60 p-4">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-200/60 p-4 lg:p-3">
                 <h2 className="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
                    <span className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm">
                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2521,8 +2511,8 @@ function CreateCardContent() {
             </div>
 
             {/* Center Panel - Bingo Grid */}
-            <div className="order-1 lg:order-2 lg:sticky lg:top-24 lg:self-start min-w-0">
-              <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200 p-3 lg:p-4 flex flex-col">
+            <div className="order-1 lg:order-2 lg:sticky lg:top-16 lg:self-start min-w-0">
+              <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200 p-3 lg:max-w-[500px] 2xl:max-w-[540px] lg:mx-auto flex flex-col">
                 <div className="flex justify-between items-center mb-3">
                   <h2 className="text-base font-bold text-gray-900">
                     {showPreview ? "Card Preview" : "Edit Content"}
@@ -2535,7 +2525,7 @@ function CreateCardContent() {
                 </div>
 
                 {/* Bingo Grid */}
-                <div className="flex-grow flex items-center justify-center bg-[#f2f2f7] rounded-xl border border-gray-200 p-2 lg:p-4 mb-3">
+                <div className="flex-grow flex items-center justify-center bg-[#f2f2f7] rounded-xl border border-gray-200 p-2 lg:p-3 mb-2">
                    <div className="w-full">
                       {/* Grid Header - matches grid columns */}
                       <div
@@ -2747,6 +2737,12 @@ function CreateCardContent() {
               </div>
             </div>
           </div>
+          {showCreatePageAd && (!permissionStatus?.planType || permissionStatus.planType === "FREE") && (
+            <div className="mt-4 hidden lg:block">
+              <AdUnit slot="create-page" format="horizontal" className="rounded-xl overflow-hidden" />
+            </div>
+          )}
+          </>
           )}
         </div>
 
@@ -2984,26 +2980,95 @@ function CreateCardContent() {
   );
 }
 
-export default function CreateCardPage() {
+function CreatePageSkeleton() {
   return (
-    <Suspense fallback={(
-      <div className="notranslate min-h-screen bg-[#f2f2f7] text-slate-900" translate="no">
-        <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center px-6 py-16">
-          <div className="max-w-5xl">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-[#007AFF]">MyBingoCard Editor</p>
-            <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">Create Bingo Cards Online</h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Build bingo cards for classrooms, baby showers, weddings, parties, and team events. Customize every square, then unlock printable files, share links, or hosted bingo events when needed.</p>
-            <div className="mt-8 flex flex-wrap gap-3 text-sm font-semibold">
-              <Link href="/templates" className="rounded-md bg-[#007AFF] px-4 py-2 text-white">Browse Templates</Link>
-              <Link href="/pricing" className="rounded-md border border-slate-300 px-4 py-2 text-slate-700">See access</Link>
+    <div className="notranslate min-h-screen bg-[#f2f2f7] text-slate-900" translate="no">
+      <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-8 h-14 flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="w-8 h-8 shrink-0 bg-[#007AFF] rounded-lg opacity-90" />
+            <div className="hidden min-[390px]:block h-5 w-32 rounded bg-slate-200" />
+          </div>
+          <div className="flex shrink-0 items-center gap-3">
+            <div className="h-4 w-20 rounded bg-slate-200" />
+            <div className="h-4 w-12 rounded bg-slate-200" />
+          </div>
+        </div>
+      </header>
+
+      <main className="pt-16 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-16 px-3 sm:px-4 lg:px-5">
+        <div className="container mx-auto max-w-7xl">
+          <div className="mb-2 flex items-center justify-between gap-4">
+            <div className="h-7 w-48 rounded bg-slate-200" />
+          </div>
+
+          <div className="grid lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)_minmax(0,300px)] xl:grid-cols-[minmax(0,240px)_minmax(500px,520px)_minmax(0,320px)] 2xl:grid-cols-[minmax(0,240px)_minmax(520px,560px)_minmax(0,340px)] gap-3 lg:gap-4 xl:justify-center items-start">
+            <div className="order-2 lg:order-1 hidden lg:block rounded-2xl border border-gray-200/50 bg-white/60 p-3">
+              <div className="mb-3 h-5 w-28 rounded bg-slate-200" />
+              <div className="space-y-3">
+                <div className="h-10 rounded-xl bg-slate-200/80" />
+                <div className="h-16 rounded-xl bg-slate-200/80" />
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="h-9 rounded-lg bg-blue-100" />
+                  <div className="h-9 rounded-lg bg-slate-200/80" />
+                  <div className="h-9 rounded-lg bg-slate-200/80" />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="h-8 rounded-lg bg-blue-100" />
+                  <div className="h-8 rounded-lg bg-slate-200/80" />
+                  <div className="h-8 rounded-lg bg-slate-200/80" />
+                </div>
+              </div>
+            </div>
+
+            <div className="order-3 lg:order-3 hidden lg:block space-y-3">
+              <div className="rounded-2xl border border-gray-200/50 bg-white/60 p-3">
+                <div className="mb-3 h-5 w-28 rounded bg-slate-200" />
+                <div className="h-10 rounded-xl bg-slate-200/80" />
+                <div className="mt-3 h-10 rounded-xl bg-violet-200" />
+              </div>
+              <div className="rounded-2xl border border-gray-200/50 bg-white/60 p-3">
+                <div className="mb-3 h-5 w-32 rounded bg-slate-200" />
+                <div className="grid grid-cols-4 gap-1.5">
+                  {Array.from({ length: 8 }).map((_, index) => (
+                    <div key={index} className="h-12 rounded-lg bg-slate-200/80" />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="order-1 lg:order-2 min-w-0">
+              <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200 p-3 lg:max-w-[500px] 2xl:max-w-[540px] lg:mx-auto flex flex-col">
+                <div className="flex justify-between items-center mb-3">
+                  <div className="h-5 w-28 rounded bg-slate-200" />
+                  <div className="h-6 w-28 rounded-full bg-slate-100" />
+                </div>
+                <div className="flex-grow bg-[#f2f2f7] rounded-xl border border-gray-200 p-2 lg:p-3 mb-2">
+                  <div className="mb-2 h-7 rounded-md bg-blue-100" />
+                  <div className="grid grid-cols-3 gap-2">
+                    {Array.from({ length: 9 }).map((_, index) => (
+                      <div key={index} className="aspect-square rounded-xl border border-slate-200 bg-white" />
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <CreatePageGeneratorLinkSection className="mt-12" />
-          <CreatePageGuideSection />
-          <CreatePageFaqSection />
-        </main>
+        </div>
+      </main>
+
+      <div className="hidden md:block fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+        <div className="container mx-auto max-w-xl px-4 py-3">
+          <div className="mx-auto h-12 max-w-md rounded-xl bg-[#007AFF]/80" />
+        </div>
       </div>
-    )}>
+    </div>
+  );
+}
+
+export default function CreateCardPage() {
+  return (
+    <Suspense fallback={<CreatePageSkeleton />}>
       <CreateCardContent />
     </Suspense>
   );
