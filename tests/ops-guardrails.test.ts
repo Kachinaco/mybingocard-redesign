@@ -24,6 +24,9 @@ describe("production ops guardrails", () => {
 
   test("production deploy guard restarts PM2 and verifies the live static surface", () => {
     expect(deploySource).toContain("pm2");
+    expect(deploySource).toContain("resolvePm2Command");
+    expect(deploySource).toContain('"sudo"');
+    expect(deploySource).toContain('"-n", "pm2"');
     expect(deploySource).toContain("restart");
     expect(deploySource).toContain("--update-env");
     expect(deploySource).toContain("/_next/static/chunks/");

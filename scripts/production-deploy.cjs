@@ -47,6 +47,35 @@ function output(command, commandArgs, options = {}) {
   });
 }
 
+function readPm2Rows(command, commandArgs) {
+  const raw = output(command, commandArgs);
+  return JSON.parse(raw);
+}
+
+function resolvePm2Command() {
+  const candidates = [
+    { command: "pm2", argsPrefix: [] },
+    { command: "sudo", argsPrefix: ["-n", "pm2"] },
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      const rows = readPm2Rows(candidate.command, [...candidate.argsPrefix, "jlist"]);
+      const proc = rows.find((item) => item.name === PM2_NAME);
+      if (proc) return { ...candidate, proc };
+    } catch {
+      // Try the next PM2 namespace.
+    }
+  }
+
+  throw new Error(`PM2 process not found: ${PM2_NAME}`);
+}
+
+function runPm2(commandArgs) {
+  const pm2 = resolvePm2Command();
+  run(pm2.command, [...pm2.argsPrefix, ...commandArgs]);
+}
+
 async function fetchText(url, options = {}) {
   const res = await fetch(url, {
     method: options.method || "GET",
@@ -241,10 +270,7 @@ function buildApplication() {
 }
 
 function ensurePm2Cwd() {
-  const raw = output("pm2", ["jlist"]);
-  const rows = JSON.parse(raw);
-  const proc = rows.find((item) => item.name === PM2_NAME);
-  if (!proc) throw new Error(`PM2 process not found: ${PM2_NAME}`);
+  const { proc } = resolvePm2Command();
   const cwd = proc.pm2_env?.pm_cwd || proc.pm2_env?.cwd || "";
   const pwd = proc.pm2_env?.env?.PWD || proc.pm2_env?.PWD || "";
   if (cwd !== APP_DIR) {
@@ -333,8 +359,8 @@ async function main() {
   }
 
   if (!skipRestart) {
-    run("pm2", ["restart", PM2_NAME, "--update-env"]);
-    run("pm2", ["save"]);
+    runPm2(["restart", PM2_NAME, "--update-env"]);
+    runPm2(["save"]);
   }
 
   ensurePm2Cwd();
