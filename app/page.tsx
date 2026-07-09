@@ -9,11 +9,11 @@ import { seoLandingPages, type SeoLandingPageData } from "@/lib/seo-landing-page
 import { FACEBOOK_PAGE_URL, IOS_APP_STORE_URL, REDDIT_COMMUNITY_URL } from "@/lib/social-links";
 
 export const metadata: Metadata = {
-  title: "Free Bingo Draft Editor & Bingo Card Maker | MyBingoCard",
+  title: "Bingo Card Maker & Generator for Printable and Online Cards | MyBingoCard",
   description:
-    "Create custom bingo cards online with a free bingo draft editor and bingo card maker. Make printable bingo boards, PDF cards, templates, AI ideas, and Premium live online games.",
+    "Create custom printable and online bingo cards with a free bingo card maker and generator. Add words or images, use templates and AI ideas, then export individual PDFs for free.",
   keywords: [
-    "free bingo draft editor",
+    "free bingo card maker",
     "bingo card generator",
     "printable bingo cards",
     "bingo card maker",
@@ -189,11 +189,11 @@ export default function Home() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
                   </span>
-                  <span className="text-xs font-semibold text-indigo-900 uppercase tracking-wide">Free Bingo Draft Editor</span>
+                  <span className="text-xs font-semibold text-indigo-900 uppercase tracking-wide">Free Bingo Card Maker</span>
                 </div>
                 
                 <h1 className="text-4xl lg:text-6xl font-bold tracking-tight text-slate-900 mb-4 leading-[1.1]">
-                  Free <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Bingo Draft Editor</span> for Printable and Online Cards
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Bingo Card Maker and Generator</span> for Printable and Online Cards
                 </h1>
                 
                 <p className="text-lg text-slate-600 mb-6 leading-relaxed max-w-xl mx-auto lg:mx-0">
@@ -203,7 +203,7 @@ export default function Home() {
                 {/* Primary CTA - prominent above the fold */}
                 <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <HomeStartDraftLink href="/create" trackingSurface="hero" className="group bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3">
-                    Start a Free Draft
+                    Make a Free Bingo Card
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                   </HomeStartDraftLink>
                   <Link href="/bingo-games" className="bg-white text-indigo-600 border-2 border-indigo-200 px-8 py-5 rounded-2xl font-bold text-lg hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-300 flex items-center justify-center gap-2">
@@ -213,7 +213,7 @@ export default function Home() {
 
 
                 <p className="mt-4 text-sm text-slate-500 text-center lg:text-left">
-                  Free to draft. Subscribe monthly or choose lifetime when you are ready to save.
+                  Create, customize, and export your first card free. Paid batches, player links, and live hosting are optional.
                 </p>
 
                 <div className="mt-4 flex flex-col items-center gap-2 lg:items-start">

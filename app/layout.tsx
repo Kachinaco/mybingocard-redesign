@@ -35,9 +35,9 @@ const satisfy = Satisfy({
 export const metadata: Metadata = {
   metadataBase: new URL("https://mybingocard.com"),
   applicationName: "MyBingoCard",
-  title: "Free Bingo Card Maker | Printable Cards & Paid Online Bingo | MyBingoCard",
+  title: "Bingo Card Maker & Generator | Printable Cards & Online Bingo | MyBingoCard",
   description:
-    "Create printable bingo cards for classrooms, baby showers, weddings, team building, holidays, and parties. Save, customize, use templates, AI help, and PDF export for free; pay only for share links and live hosting.",
+    "Create custom printable and online bingo cards for classrooms, parties, showers, weddings, and team events. Make individual PDF cards free, then add paid batches, player links, or live hosting when needed.",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Free Bingo Card Maker | MyBingoCard",
+    title: "Bingo Card Maker & Generator | MyBingoCard",
     description: "Create printable bingo cards for free, with optional paid player share links and live bingo hosting.",
     url: "https://mybingocard.com",
     siteName: "MyBingoCard",
@@ -70,14 +70,14 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "MyBingoCard free bingo draft editor preview",
+        alt: "MyBingoCard bingo card maker and generator preview",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Free Bingo Draft Editor | MyBingoCard",
-    description: "Draft printable and online bingo cards for classrooms, parties, baby showers, weddings, and team building.",
+    title: "Bingo Card Maker & Generator | MyBingoCard",
+    description: "Make custom printable and online bingo cards for classrooms, parties, showers, weddings, and team events.",
     images: ["/opengraph-image"],
   },
   appleWebApp: {
@@ -134,7 +134,7 @@ export default function RootLayout({
                   "@id": "https://mybingocard.com/#organization",
                   "name": "MyBingoCard",
                   "url": "https://mybingocard.com",
-                  "description": "Free bingo draft editor for printable and online bingo games.",
+                  "description": "Bingo card maker and generator for printable cards and optional online bingo games.",
                   "foundingDate": "2026",
                   "sameAs": [
                     FACEBOOK_PAGE_URL,
@@ -223,7 +223,7 @@ export default function RootLayout({
                   "@id": "https://mybingocard.com/#website",
                   "name": "MyBingoCard",
                   "url": "https://mybingocard.com",
-                  "description": "Free bingo draft editor for printable and online bingo games.",
+                  "description": "Bingo card maker and generator for printable cards and optional online bingo games.",
                   "publisher": {
                     "@id": "https://mybingocard.com/#organization"
                   },
