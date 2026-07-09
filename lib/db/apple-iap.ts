@@ -1,6 +1,5 @@
-import { ObjectId } from "mongodb";
-import clientPromise from "@/lib/mongodb";
-import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
+import { ObjectId } from "bson";
+import { getSqliteStore } from "@/lib/db/sqlite";
 import type { BatchCount } from "@/lib/batchPacks";
 
 type AppleIapPurchaseType = "batch_pack" | "premium";
@@ -34,11 +33,6 @@ export type ApplePremiumEntitlementInput = {
   now?: Date;
 };
 
-async function mongoDb() {
-  const client = await clientPromise;
-  return client.db("mybingocard");
-}
-
 export async function upsertAppleIapTransaction(input: AppleIapTransactionInput): Promise<void> {
   const now = input.now || new Date();
   const set: Record<string, unknown> = {
@@ -57,27 +51,13 @@ export async function upsertAppleIapTransaction(input: AppleIapTransactionInput)
   if (typeof input.batchCount !== "undefined") set.batchCount = input.batchCount;
   if (typeof input.batchPurchaseId !== "undefined") set.batchPurchaseId = input.batchPurchaseId;
 
-  const update = {
-    $set: set,
-    $setOnInsert: {
-      createdAt: now,
-    },
-  };
-
-  if (useSqliteDb()) {
-    getSqliteStore().updateOne(
-      "apple_iap_transactions",
-      { transactionId: input.transactionId },
-      update,
-      { upsert: true }
-    );
-    return;
-  }
-
-  const db = await mongoDb();
-  await db.collection("apple_iap_transactions").updateOne(
+  getSqliteStore().updateOne(
+    "apple_iap_transactions",
     { transactionId: input.transactionId },
-    update,
+    {
+      $set: set,
+      $setOnInsert: { createdAt: now },
+    },
     { upsert: true }
   );
 }
@@ -85,7 +65,8 @@ export async function upsertAppleIapTransaction(input: AppleIapTransactionInput)
 export async function applyApplePremiumEntitlement(input: ApplePremiumEntitlementInput): Promise<void> {
   const now = input.now || new Date();
   const userId = input.userId instanceof ObjectId ? input.userId : new ObjectId(input.userId);
-  const update = {
+
+  getSqliteStore().updateOne("users", { _id: userId }, {
     $set: {
       planType: "PREMIUM",
       subscriptionStatus: input.subscriptionStatus,
@@ -100,13 +81,5 @@ export async function applyApplePremiumEntitlement(input: ApplePremiumEntitlemen
       appleEnvironment: input.environment,
       updatedAt: now,
     },
-  };
-
-  if (useSqliteDb()) {
-    getSqliteStore().updateOne("users", { _id: userId }, update);
-    return;
-  }
-
-  const db = await mongoDb();
-  await db.collection("users").updateOne({ _id: userId }, update);
+  });
 }

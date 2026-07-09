@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { MongoClient } = require('mongodb');
-const { openSqliteShadowStore, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
+const { openSqliteShadowStore } = require('./sqlite-shadow-store.cjs');
 
 // Load .env.local (same pattern as expire-trials.cjs)
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -18,8 +17,6 @@ try {
 } catch (e) {
   console.error('Could not load .env.local:', e.message);
 }
-
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 
 function expireSqliteShareLinks(now) {
   const store = openSqliteShadowStore();
@@ -50,34 +47,8 @@ function expireSqliteShareLinks(now) {
 async function run() {
   const now = new Date();
 
-  if (useSqliteBackend()) {
-    const modifiedCount = expireSqliteShareLinks(now);
-    console.log(`[${now.toISOString()}] Expired ${modifiedCount} share links`);
-    return;
-  }
-
-  const client = new MongoClient(MONGODB_URI);
-  try {
-    await client.connect();
-    const db = client.db('mybingocard');
-
-    const result = await db.collection('shared_links').updateMany(
-      {
-        status: 'pending',
-        expiresAt: { $exists: true, $lt: now },
-      },
-      {
-        $set: {
-          status: 'expired',
-          updatedAt: now,
-        },
-      }
-    );
-
-    console.log(`[${now.toISOString()}] Expired ${result.modifiedCount} share links`);
-  } finally {
-    await client.close();
-  }
+  const modifiedCount = expireSqliteShareLinks(now);
+  console.log(`[${now.toISOString()}] Expired ${modifiedCount} share links`);
 }
 
 run().catch(e => {

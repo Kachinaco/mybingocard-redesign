@@ -2,7 +2,6 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-process.env.MONGODB_URI ||= "mongodb://localhost:27017/mybingocard-test";
 const { sanitizeActivityMetadata } = await import("../lib/activity");
 
 const readSource = (path: string) => readFileSync(join(process.cwd(), path), "utf8");
@@ -78,12 +77,11 @@ describe("activity tracking depth", () => {
 
   test("admin user activity feed exposes deep event details for inspection", () => {
     expect(adminUserRouteSource).toContain("getAdminUserDetail");
-    expect(adminUserDbSource).toContain(".limit(100)");
     expect(adminUserDbSource).toContain("limit: 100");
-    expect(adminUserDbSource).toContain("sessionId: 1");
-    expect(adminUserDbSource).toContain("anonymousId: 1");
-    expect(adminUserDbSource).toContain("ipAddress: 1");
-    expect(adminUserDbSource).toContain("userAgent: 1");
+    expect(adminUserDbSource).toContain("sessionId: event.sessionId");
+    expect(adminUserDbSource).toContain("anonymousId: event.anonymousId");
+    expect(adminUserDbSource).toContain("ipAddress: event.ipAddress");
+    expect(adminUserDbSource).toContain("userAgent: event.userAgent");
     expect(adminUserPageSource).toContain("Raw event data");
     expect(adminUserPageSource).toContain("JSON.stringify(details, null, 2)");
   });

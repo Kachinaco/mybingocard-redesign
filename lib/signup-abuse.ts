@@ -1,6 +1,5 @@
 import { createHash } from "crypto";
-import clientPromise from "@/lib/mongodb";
-import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
+import { getSqliteStore } from "@/lib/db/sqlite";
 import type { SqliteFilter } from "@/lib/sqlite-document-store";
 
 type SignupLimitReason = "ip_short_window" | "ip_hourly" | "ip_user_agent" | "user_agent_global";
@@ -28,10 +27,6 @@ type SignupAbusePolicy = {
 
 const ONE_MINUTE_MS = 60 * 1000;
 const ONE_HOUR_MS = 60 * ONE_MINUTE_MS;
-const ONE_DAY_SECONDS = 24 * 60 * 60;
-
-let signupAttemptIndexesReady: Promise<void> | null = null;
-
 type SignupAttemptDocument = {
   ipAddress: string | null;
   email: string | null;
@@ -86,43 +81,12 @@ function cutoff(now: Date, windowMs: number): Date {
   return new Date(now.getTime() - windowMs);
 }
 
-async function ensureSignupAttemptIndexes(): Promise<void> {
-  if (useSqliteDb()) return;
-
-  if (!signupAttemptIndexesReady) {
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-    const collection = db.collection("signup_attempts");
-    signupAttemptIndexesReady = Promise.all([
-      collection.createIndex({ createdAt: 1 }, { expireAfterSeconds: 2 * ONE_DAY_SECONDS, name: "signup_attempts_ttl" }),
-      collection.createIndex({ ipAddress: 1, createdAt: -1 }, { name: "signup_attempts_ip_created" }),
-      collection.createIndex({ ipAddress: 1, userAgentHash: 1, createdAt: -1 }, { name: "signup_attempts_ip_ua_created" }),
-      collection.createIndex({ userAgentHash: 1, createdAt: -1 }, { name: "signup_attempts_ua_created" }),
-    ]).then(() => undefined);
-  }
-
-  await signupAttemptIndexesReady;
-}
-
 async function countSignupAttempts(filter: SqliteFilter): Promise<number> {
-  if (useSqliteDb()) {
-    return getSqliteStore().count("signup_attempts", filter);
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  return db.collection("signup_attempts").countDocuments(filter);
+  return getSqliteStore().count("signup_attempts", filter);
 }
 
 async function recordSignupAttempt(document: SignupAttemptDocument): Promise<void> {
-  if (useSqliteDb()) {
-    getSqliteStore().insertOne("signup_attempts", document);
-    return;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  await db.collection("signup_attempts").insertOne(document);
+  getSqliteStore().insertOne("signup_attempts", document);
 }
 
 export async function checkSignupAbuseLimit(input: {
@@ -136,8 +100,6 @@ export async function checkSignupAbuseLimit(input: {
   const ipAddress = cleanString(input.ipAddress, 100);
   const email = normalizeEmail(input.email);
   const userAgentHash = hashSignupUserAgent(input.userAgent);
-
-  await ensureSignupAttemptIndexes();
 
   let blocked: Exclude<SignupAbuseLimitResult, { allowed: true }> | null = null;
 

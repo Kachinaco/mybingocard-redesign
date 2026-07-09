@@ -3,17 +3,13 @@ const { EJSON, ObjectId } = require("bson");
 
 function openSqliteShadowStore(path = process.env.MYBINGOCARD_SQLITE_PATH) {
   if (!path) {
-    throw new Error("MYBINGOCARD_SQLITE_PATH is required when MYBINGOCARD_DB_BACKEND=sqlite");
+    throw new Error("MYBINGOCARD_SQLITE_PATH is required");
   }
   return new SqliteShadowStore(path);
 }
 
 function openSqliteShadowDatabase(path = process.env.MYBINGOCARD_SQLITE_PATH) {
   return new SqliteShadowDatabase(openSqliteShadowStore(path));
-}
-
-function useSqliteBackend() {
-  return String(process.env.MYBINGOCARD_DB_BACKEND || "").toLowerCase() === "sqlite";
 }
 
 class SqliteShadowStore {
@@ -478,5 +474,4 @@ function distinctKey(value) {
 module.exports = {
   openSqliteShadowDatabase,
   openSqliteShadowStore,
-  useSqliteBackend,
 };

@@ -1,8 +1,7 @@
 import crypto from "crypto";
-import clientPromise from "../mongodb";
-import { type Db, ObjectId } from "mongodb";
+import { ObjectId } from "bson";
 import { trackActivity } from "@/lib/activity";
-import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
+import { getSqliteStore } from "@/lib/db/sqlite";
 import {
   checkWinByGrid,
   createSeededRng,
@@ -125,12 +124,15 @@ function shuffleArray<T>(arr: T[]): T[] {
   return shuffled;
 }
 
-function updateRoomInSqlite(room: GameRoom, data: Partial<GameRoom>): GameRoom | null {
+function updateRoomInSqlite(
+  room: GameRoom,
+  data: Partial<GameRoom>,
+): GameRoom | null {
   return getSqliteStore().findOneAndUpdate<GameRoom>(
     "game_rooms",
     { _id: room._id },
     { $set: data },
-    { returnDocument: "after" }
+    { returnDocument: "after" },
   );
 }
 
@@ -152,7 +154,7 @@ export async function createGameRoom(
     rows?: number;
     columns?: number;
     bingoVariant?: BingoVariant;
-  } = {}
+  } = {},
 ): Promise<GameRoom> {
   const bingoVariant = normalizeBingoVariant(options.bingoVariant);
   const gridShape = getBingoGridShape({
@@ -161,24 +163,23 @@ export async function createGameRoom(
     columns: options.columns,
     bingoVariant,
   });
-  const callPool = getCallPoolForVariant(bingoVariant, wordList.filter(w => w.trim()));
+  const callPool = getCallPoolForVariant(
+    bingoVariant,
+    wordList.filter((w) => w.trim()),
+  );
 
+  const store = getSqliteStore();
   let roomCode = generateRoomCode();
-  // Ensure unique
-  let existing = useSqliteDb()
-    ? getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode, status: { $ne: "finished" } })
-    : null;
-  let db: Db | null = null;
-  if (!useSqliteDb()) {
-    const client = await clientPromise;
-    db = client.db("mybingocard");
-    existing = await db.collection<GameRoom>("game_rooms").findOne({ roomCode, status: { $ne: "finished" } });
-  }
+  let existing = store.findOne<GameRoom>("game_rooms", {
+    roomCode,
+    status: { $ne: "finished" },
+  });
   while (existing) {
     roomCode = generateRoomCode();
-    existing = useSqliteDb()
-      ? getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode, status: { $ne: "finished" } })
-      : await db!.collection<GameRoom>("game_rooms").findOne({ roomCode, status: { $ne: "finished" } });
+    existing = store.findOne<GameRoom>("game_rooms", {
+      roomCode,
+      status: { $ne: "finished" },
+    });
   }
 
   const room: Omit<GameRoom, "_id"> = {
@@ -198,49 +199,27 @@ export async function createGameRoom(
     callHistory: [],
     players: [],
     status: "waiting",
-    settings: { ...DEFAULT_SETTINGS, winCondition: getDefaultWinCondition(bingoVariant) },
+    settings: {
+      ...DEFAULT_SETTINGS,
+      winCondition: getDefaultWinCondition(bingoVariant),
+    },
     winners: [],
     style,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
 
-  if (useSqliteDb()) {
-    const result = getSqliteStore().insertOne("game_rooms", room as GameRoom);
-    return { ...room, _id: result.insertedId as ObjectId } as GameRoom;
-  }
-
-  const result = await db!.collection<GameRoom>("game_rooms").insertOne(room as GameRoom);
-  return { ...room, _id: result.insertedId } as GameRoom;
+  const result = store.insertOne("game_rooms", room as GameRoom);
+  return { ...room, _id: result.insertedId as ObjectId } as GameRoom;
 }
 
 export async function getGameRoom(roomCode: string): Promise<GameRoom | null> {
-  if (useSqliteDb()) {
-    const room = getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode });
+  const room = getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode });
 
-    if (room && room.status !== "finished") {
-      const ageMs = Date.now() - new Date(room.updatedAt).getTime();
-      if (ageMs > 24 * 60 * 60 * 1000) {
-        updateRoomInSqlite(room, { status: "finished", updatedAt: new Date() });
-        return { ...room, status: "finished" };
-      }
-    }
-
-    return room;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const room = await db.collection<GameRoom>("game_rooms").findOne({ roomCode });
-
-  // Auto-expire stale rooms on read
   if (room && room.status !== "finished") {
     const ageMs = Date.now() - new Date(room.updatedAt).getTime();
     if (ageMs > 24 * 60 * 60 * 1000) {
-      await db.collection<GameRoom>("game_rooms").updateOne(
-        { _id: room._id },
-        { $set: { status: "finished", updatedAt: new Date() } }
-      );
+      updateRoomInSqlite(room, { status: "finished", updatedAt: new Date() });
       return { ...room, status: "finished" };
     }
   }
@@ -249,60 +228,24 @@ export async function getGameRoom(roomCode: string): Promise<GameRoom | null> {
 }
 
 export async function cleanupStaleRooms(): Promise<number> {
-  if (useSqliteDb()) {
-    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const staleRooms = getSqliteStore().findMany<GameRoom>("game_rooms", {
-      status: { $in: ["waiting", "active"] },
-      updatedAt: { $lt: cutoff },
-    });
-
-    if (staleRooms.length === 0) return 0;
-
-    const result = getSqliteStore().updateMany<GameRoom>(
-      "game_rooms",
-      { status: { $in: ["waiting", "active"] }, updatedAt: { $lt: cutoff } },
-      { $set: { status: "finished", updatedAt: new Date() } }
-    );
-
-    for (const room of staleRooms) {
-      const inactivityMinutes = Math.round((Date.now() - new Date(room.updatedAt).getTime()) / 60000);
-      trackActivity({
-        event: "game_auto_ended",
-        source: "server",
-        userId: null,
-        email: null,
-        pathname: null,
-        metadata: {
-          roomCode: room.roomCode,
-          playerCount: room.players?.length || 0,
-          calledItemCount: room.calledItems?.length || 0,
-          inactivityMinutes,
-        },
-      }).catch(() => {});
-    }
-
-    return result.modifiedCount;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
-
-  // Fetch stale rooms before updating so we can track each one
-  const staleRooms = await db.collection<GameRoom>("game_rooms")
-    .find({ status: { $in: ["waiting", "active"] }, updatedAt: { $lt: cutoff } })
-    .toArray();
+  const staleRooms = getSqliteStore().findMany<GameRoom>("game_rooms", {
+    status: { $in: ["waiting", "active"] },
+    updatedAt: { $lt: cutoff },
+  });
 
   if (staleRooms.length === 0) return 0;
 
-  const result = await db.collection<GameRoom>("game_rooms").updateMany(
+  const result = getSqliteStore().updateMany<GameRoom>(
+    "game_rooms",
     { status: { $in: ["waiting", "active"] }, updatedAt: { $lt: cutoff } },
-    { $set: { status: "finished", updatedAt: new Date() } }
+    { $set: { status: "finished", updatedAt: new Date() } },
   );
 
-  // Track each auto-ended room
   for (const room of staleRooms) {
-    const inactivityMinutes = Math.round((Date.now() - new Date(room.updatedAt).getTime()) / 60000);
+    const inactivityMinutes = Math.round(
+      (Date.now() - new Date(room.updatedAt).getTime()) / 60000,
+    );
     trackActivity({
       event: "game_auto_ended",
       source: "server",
@@ -321,7 +264,11 @@ export async function cleanupStaleRooms(): Promise<number> {
   return result.modifiedCount;
 }
 
-function generateCardCells(wordList: string[], size: number, freeSpace: boolean): string[] {
+function generateCardCells(
+  wordList: string[],
+  size: number,
+  freeSpace: boolean,
+): string[] {
   const totalCells = size * size;
   const neededCells = freeSpace ? totalCells - 1 : totalCells;
 
@@ -360,118 +307,40 @@ export async function joinGameRoom(
   roomCode: string,
   playerName: string,
   userId?: string,
-  email?: string
+  email?: string,
 ): Promise<{ player: GamePlayer; room: GameRoom; playerToken: string } | null> {
-  if (useSqliteDb()) {
-    const room = getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode });
-    if (!room || room.status === "finished") return null;
-
-    if (userId) {
-      const existingPlayer = room.players.find((player) => player.userId === userId);
-      if (existingPlayer) {
-        const { raw: playerToken, hash: playerTokenHash } = generatePlayerToken();
-        const updatedPlayer: GamePlayer = {
-          ...existingPlayer,
-          playerTokenHash,
-          playerName: playerName.trim() || existingPlayer.playerName,
-          email: email || existingPlayer.email,
-        };
-        const players = room.players.map((player) =>
-          player.playerId === existingPlayer.playerId ? updatedPlayer : player
-        );
-        const updatedRoom = updateRoomInSqlite(room, { players, updatedAt: new Date() });
-        if (!updatedRoom) return null;
-        return { player: updatedPlayer, room: updatedRoom, playerToken };
-      }
-    }
-
-    if (room.players.length >= MAX_PLAYERS_PER_ROOM) return null;
-
-    const existingNames = new Set(room.players.map(p => p.playerName.toLowerCase()));
-    let finalName = playerName.trim();
-    if (existingNames.has(finalName.toLowerCase())) {
-      let counter = 2;
-      while (existingNames.has(`${finalName} ${counter}`.toLowerCase())) {
-        counter++;
-      }
-      finalName = `${finalName} ${counter}`;
-    }
-
-    const gridShape = getBingoGridShape(room);
-    const cells = generatePlayerCells(room);
-    const freeSpaceIndex = getFreeSpaceIndexForGrid({
-      freeSpace: room.freeSpace,
-      rows: gridShape.rows,
-      columns: gridShape.columns,
-      bingoVariant: room.bingoVariant,
-    });
-
-    const playerId = new ObjectId().toString();
-    const { raw: playerToken, hash: playerTokenHash } = generatePlayerToken();
-    const player: GamePlayer = {
-      playerId,
-      playerTokenHash,
-      userId: userId || undefined,
-      email: email || undefined,
-      playerName: finalName,
-      cells,
-      marked: freeSpaceIndex >= 0 ? [freeSpaceIndex] : [],
-      markHistory: [],
-      hasBingo: false,
-      joinedAt: new Date(),
-    };
-
-    const updatedRoom = updateRoomInSqlite(room, {
-      players: [...room.players, player],
-      updatedAt: new Date(),
-    });
-    if (!updatedRoom) return null;
-    return { player, room: updatedRoom, playerToken };
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const room = await db.collection<GameRoom>("game_rooms").findOne({ roomCode });
+  const room = getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode });
   if (!room || room.status === "finished") return null;
 
-  // Reuse an existing signed-in player slot instead of duplicating the same
-  // account in the room. Rotate the token so rejoining refreshes the session.
   if (userId) {
-    const existingPlayer = room.players.find((player) => player.userId === userId);
+    const existingPlayer = room.players.find(
+      (player) => player.userId === userId,
+    );
     if (existingPlayer) {
       const { raw: playerToken, hash: playerTokenHash } = generatePlayerToken();
-      await db.collection<GameRoom>("game_rooms").updateOne(
-        { _id: room._id, "players.playerId": existingPlayer.playerId },
-        {
-          $set: {
-            "players.$.playerTokenHash": playerTokenHash,
-            "players.$.playerName": playerName.trim() || existingPlayer.playerName,
-            "players.$.email": email || existingPlayer.email,
-            updatedAt: new Date(),
-          },
-        }
+      const updatedPlayer: GamePlayer = {
+        ...existingPlayer,
+        playerTokenHash,
+        playerName: playerName.trim() || existingPlayer.playerName,
+        email: email || existingPlayer.email,
+      };
+      const players = room.players.map((player) =>
+        player.playerId === existingPlayer.playerId ? updatedPlayer : player,
       );
-
-      const updatedRoom = await db.collection<GameRoom>("game_rooms").findOne({ _id: room._id });
-      const updatedPlayer =
-        updatedRoom?.players.find((player) => player.playerId === existingPlayer.playerId) ||
-        {
-          ...existingPlayer,
-          playerTokenHash,
-          playerName: playerName.trim() || existingPlayer.playerName,
-          email: email || existingPlayer.email,
-        };
-
-      return { player: updatedPlayer, room: updatedRoom!, playerToken };
+      const updatedRoom = updateRoomInSqlite(room, {
+        players,
+        updatedAt: new Date(),
+      });
+      if (!updatedRoom) return null;
+      return { player: updatedPlayer, room: updatedRoom, playerToken };
     }
   }
 
-  // Enforce player cap
   if (room.players.length >= MAX_PLAYERS_PER_ROOM) return null;
 
-  // Deduplicate player names
-  const existingNames = new Set(room.players.map(p => p.playerName.toLowerCase()));
+  const existingNames = new Set(
+    room.players.map((p) => p.playerName.toLowerCase()),
+  );
   let finalName = playerName.trim();
   if (existingNames.has(finalName.toLowerCase())) {
     let counter = 2;
@@ -505,48 +374,29 @@ export async function joinGameRoom(
     joinedAt: new Date(),
   };
 
-  await db.collection<GameRoom>("game_rooms").updateOne(
-    { _id: room._id },
-    {
-      $push: { players: player } as any,
-      $set: { updatedAt: new Date() },
-    }
-  );
-
-  const updatedRoom = await db.collection<GameRoom>("game_rooms").findOne({ _id: room._id });
-  return { player, room: updatedRoom!, playerToken };
+  const updatedRoom = updateRoomInSqlite(room, {
+    players: [...room.players, player],
+    updatedAt: new Date(),
+  });
+  if (!updatedRoom) return null;
+  return { player, room: updatedRoom, playerToken };
 }
 
 export async function verifyPlayerToken(
   roomCode: string,
   playerId: string,
-  rawToken: string
+  rawToken: string,
 ): Promise<boolean> {
   if (typeof rawToken !== "string" || rawToken.length !== 64) return false;
 
-  if (useSqliteDb()) {
-    const room = getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode });
-    const player = room?.players?.find((entry) => entry.playerId === playerId);
-    if (!player || typeof player.playerTokenHash !== "string") return false;
-
-    const suppliedHash = crypto.createHash("sha256").update(rawToken).digest("hex");
-    const a = Buffer.from(suppliedHash, "hex");
-    const b = Buffer.from(player.playerTokenHash, "hex");
-    if (a.length !== b.length || a.length === 0) return false;
-    return crypto.timingSafeEqual(a, b);
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const room = await db.collection<GameRoom>("game_rooms").findOne(
-    { roomCode, "players.playerId": playerId },
-    { projection: { "players.$": 1 } }
-  );
-  const player = room?.players?.[0];
+  const room = getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode });
+  const player = room?.players?.find((entry) => entry.playerId === playerId);
   if (!player || typeof player.playerTokenHash !== "string") return false;
 
-  const suppliedHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+  const suppliedHash = crypto
+    .createHash("sha256")
+    .update(rawToken)
+    .digest("hex");
   const a = Buffer.from(suppliedHash, "hex");
   const b = Buffer.from(player.playerTokenHash, "hex");
   if (a.length !== b.length || a.length === 0) return false;
@@ -556,63 +406,18 @@ export async function verifyPlayerToken(
 export async function startGame(
   roomCode: string,
   hostUserId: string,
-  hostPlaysAlong?: boolean
+  hostPlaysAlong?: boolean,
 ): Promise<{ started: boolean; hostPlayer?: GamePlayer }> {
-  if (useSqliteDb()) {
-    const room = getSqliteStore().findOne<GameRoom>("game_rooms", {
-      roomCode, hostUserId, status: "waiting",
-    });
-    if (!room) return { started: false };
-
-    const now = new Date();
-    let hostPlayer: GamePlayer | undefined;
-    let players = room.players;
-
-    if (hostPlaysAlong) {
-      const gridShape = getBingoGridShape(room);
-      const cells = generatePlayerCells(room);
-      const freeSpaceIndex = getFreeSpaceIndexForGrid({
-        freeSpace: room.freeSpace,
-        rows: gridShape.rows,
-        columns: gridShape.columns,
-        bingoVariant: room.bingoVariant,
-      });
-      const { hash: hostTokenHash } = generatePlayerToken();
-      hostPlayer = {
-        playerId: new ObjectId().toString(),
-        playerTokenHash: hostTokenHash,
-        userId: hostUserId,
-        email: room.hostEmail || undefined,
-        playerName: (room.hostName || "Host") + " (Host)",
-        cells,
-        marked: freeSpaceIndex >= 0 ? [freeSpaceIndex] : [],
-        markHistory: [],
-        hasBingo: false,
-        joinedAt: now,
-      };
-      players = [...room.players, hostPlayer];
-    }
-
-    const updated = updateRoomInSqlite(room, {
-      status: "active",
-      startedAt: now,
-      updatedAt: now,
-      players,
-    });
-    if (!updated) return { started: false };
-    return { started: true, hostPlayer };
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const room = await db.collection<GameRoom>("game_rooms").findOne({
-    roomCode, hostUserId, status: "waiting",
+  const room = getSqliteStore().findOne<GameRoom>("game_rooms", {
+    roomCode,
+    hostUserId,
+    status: "waiting",
   });
   if (!room) return { started: false };
 
   const now = new Date();
   let hostPlayer: GamePlayer | undefined;
+  let players = room.players;
 
   if (hostPlaysAlong) {
     const gridShape = getBingoGridShape(room);
@@ -636,163 +441,71 @@ export async function startGame(
       hasBingo: false,
       joinedAt: now,
     };
-
-    const result = await db.collection<GameRoom>("game_rooms").updateOne(
-      { _id: room._id, status: "waiting" },
-      {
-        $set: { status: "active", startedAt: now, updatedAt: now },
-        $push: { players: hostPlayer } as any,
-      }
-    );
-    if (result.modifiedCount === 0) return { started: false };
-  } else {
-    const result = await db.collection<GameRoom>("game_rooms").updateOne(
-      { _id: room._id, status: "waiting" },
-      { $set: { status: "active", startedAt: now, updatedAt: now } }
-    );
-    if (result.modifiedCount === 0) return { started: false };
+    players = [...room.players, hostPlayer];
   }
 
+  const updated = updateRoomInSqlite(room, {
+    status: "active",
+    startedAt: now,
+    updatedAt: now,
+    players,
+  });
+  if (!updated) return { started: false };
   return { started: true, hostPlayer };
 }
 
 export async function callItem(
   roomCode: string,
   hostUserId: string,
-  item: string
+  item: string,
 ): Promise<GameRoom | null> {
-  if (useSqliteDb()) {
-    const now = new Date();
-    const room = getSqliteStore().findOne<GameRoom>("game_rooms", {
-      roomCode,
-      hostUserId,
-      status: "active",
-    });
-    if (!room || !room.wordList.includes(item) || room.calledItems.includes(item)) return null;
-
-    return updateRoomInSqlite(room, {
-      calledItems: [...room.calledItems, item],
-      callHistory: [...room.callHistory, { item, calledAt: now }],
-      updatedAt: now,
-    });
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
   const now = new Date();
-
-  const room = await db.collection<GameRoom>("game_rooms").findOne({
+  const room = getSqliteStore().findOne<GameRoom>("game_rooms", {
     roomCode,
     hostUserId,
     status: "active",
   });
-  if (!room || !room.wordList.includes(item) || room.calledItems.includes(item)) return null;
+  if (!room || !room.wordList.includes(item) || room.calledItems.includes(item))
+    return null;
 
-  const result = await db.collection<GameRoom>("game_rooms").findOneAndUpdate(
-    { _id: room._id },
-    {
-      $push: {
-        calledItems: item,
-        callHistory: { item, calledAt: now },
-      } as any,
-      $set: { updatedAt: now },
-    },
-    { returnDocument: "after" }
-  );
-
-  return result;
+  return updateRoomInSqlite(room, {
+    calledItems: [...room.calledItems, item],
+    callHistory: [...room.callHistory, { item, calledAt: now }],
+    updatedAt: now,
+  });
 }
 
 export async function callRandomItem(
   roomCode: string,
-  hostUserId: string
+  hostUserId: string,
 ): Promise<{ item: string; room: GameRoom } | null> {
-  if (useSqliteDb()) {
-    const room = getSqliteStore().findOne<GameRoom>("game_rooms", {
-      roomCode,
-      hostUserId,
-      status: "active",
-    });
-    if (!room) return null;
-
-    const calledSet = new Set(room.calledItems);
-    const uncalled = room.wordList.filter(w => !calledSet.has(w));
-    if (uncalled.length === 0) return null;
-
-    const item = uncalled[Math.floor(Math.random() * uncalled.length)]!;
-    const now = new Date();
-    const updated = updateRoomInSqlite(room, {
-      calledItems: [...room.calledItems, item],
-      callHistory: [...room.callHistory, { item, calledAt: now }],
-      updatedAt: now,
-    });
-
-    return updated ? { item, room: updated } : null;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const room = await db.collection<GameRoom>("game_rooms").findOne({
+  const room = getSqliteStore().findOne<GameRoom>("game_rooms", {
     roomCode,
     hostUserId,
     status: "active",
   });
   if (!room) return null;
 
-  // Find uncalled items
   const calledSet = new Set(room.calledItems);
-  const uncalled = room.wordList.filter(w => !calledSet.has(w));
+  const uncalled = room.wordList.filter((w) => !calledSet.has(w));
   if (uncalled.length === 0) return null;
 
   const item = uncalled[Math.floor(Math.random() * uncalled.length)]!;
-
   const now = new Date();
-  const updated = await db.collection<GameRoom>("game_rooms").findOneAndUpdate(
-    { _id: room._id },
-    {
-      $push: {
-        calledItems: item,
-        callHistory: { item, calledAt: now },
-      } as any,
-      $set: { updatedAt: now },
-    },
-    { returnDocument: "after" }
-  );
+  const updated = updateRoomInSqlite(room, {
+    calledItems: [...room.calledItems, item],
+    callHistory: [...room.callHistory, { item, calledAt: now }],
+    updatedAt: now,
+  });
 
   return updated ? { item, room: updated } : null;
 }
 
 export async function callSequentialItem(
   roomCode: string,
-  hostUserId: string
+  hostUserId: string,
 ): Promise<{ item: string; room: GameRoom } | null> {
-  if (useSqliteDb()) {
-    const room = getSqliteStore().findOne<GameRoom>("game_rooms", {
-      roomCode,
-      hostUserId,
-      status: "active",
-    });
-    if (!room) return null;
-
-    const calledSet = new Set(room.calledItems);
-    const nextItem = room.wordList.find(w => !calledSet.has(w));
-    if (!nextItem) return null;
-
-    const now = new Date();
-    const updated = updateRoomInSqlite(room, {
-      calledItems: [...room.calledItems, nextItem],
-      callHistory: [...room.callHistory, { item: nextItem, calledAt: now }],
-      updatedAt: now,
-    });
-
-    return updated ? { item: nextItem, room: updated } : null;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const room = await db.collection<GameRoom>("game_rooms").findOne({
+  const room = getSqliteStore().findOne<GameRoom>("game_rooms", {
     roomCode,
     hostUserId,
     status: "active",
@@ -800,21 +513,15 @@ export async function callSequentialItem(
   if (!room) return null;
 
   const calledSet = new Set(room.calledItems);
-  const nextItem = room.wordList.find(w => !calledSet.has(w));
+  const nextItem = room.wordList.find((w) => !calledSet.has(w));
   if (!nextItem) return null;
 
   const now = new Date();
-  const updated = await db.collection<GameRoom>("game_rooms").findOneAndUpdate(
-    { _id: room._id },
-    {
-      $push: {
-        calledItems: nextItem,
-        callHistory: { item: nextItem, calledAt: now },
-      } as any,
-      $set: { updatedAt: now },
-    },
-    { returnDocument: "after" }
-  );
+  const updated = updateRoomInSqlite(room, {
+    calledItems: [...room.calledItems, nextItem],
+    callHistory: [...room.callHistory, { item: nextItem, calledAt: now }],
+    updatedAt: now,
+  });
 
   return updated ? { item: nextItem, room: updated } : null;
 }
@@ -822,42 +529,28 @@ export async function callSequentialItem(
 export async function updateGameSettings(
   roomCode: string,
   hostUserId: string,
-  settings: Partial<GameSettings>
+  settings: Partial<GameSettings>,
 ): Promise<boolean> {
-  if (useSqliteDb()) {
-    const room = getSqliteStore().findOne<GameRoom>("game_rooms", {
-      roomCode, hostUserId, status: "waiting",
-    });
-    if (!room) return false;
+  const room = getSqliteStore().findOne<GameRoom>("game_rooms", {
+    roomCode,
+    hostUserId,
+    status: "waiting",
+  });
+  if (!room) return false;
 
-    const nextSettings = { ...room.settings } as Record<string, unknown>;
-    for (const [key, value] of Object.entries(settings)) {
-      if (value !== undefined) {
-        nextSettings[key] = value;
-      }
-    }
-
-    return Boolean(updateRoomInSqlite(room, {
-      settings: nextSettings as unknown as GameSettings,
-      updatedAt: new Date(),
-    }));
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const setFields: Record<string, any> = { updatedAt: new Date() };
+  const nextSettings = { ...room.settings } as Record<string, unknown>;
   for (const [key, value] of Object.entries(settings)) {
     if (value !== undefined) {
-      setFields[`settings.${key}`] = value;
+      nextSettings[key] = value;
     }
   }
 
-  const result = await db.collection<GameRoom>("game_rooms").updateOne(
-    { roomCode, hostUserId, status: "waiting" },
-    { $set: setFields }
+  return Boolean(
+    updateRoomInSqlite(room, {
+      settings: nextSettings as unknown as GameSettings,
+      updatedAt: new Date(),
+    }),
   );
-  return result.modifiedCount > 0;
 }
 
 export async function markCell(
@@ -865,45 +558,33 @@ export async function markCell(
   playerId: string,
   cellIndex: number,
   rawToken: string,
-  bypassTokenCheck = false
+  bypassTokenCheck = false,
 ): Promise<boolean> {
-  if (!bypassTokenCheck && !(await verifyPlayerToken(roomCode, playerId, rawToken))) return false;
+  if (
+    !bypassTokenCheck &&
+    !(await verifyPlayerToken(roomCode, playerId, rawToken))
+  )
+    return false;
 
-  if (useSqliteDb()) {
-    const room = getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode });
-    if (!room) return false;
-    const index = getPlayerIndex(room, playerId);
-    if (index < 0) return false;
+  const room = getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode });
+  if (!room) return false;
+  const index = getPlayerIndex(room, playerId);
+  if (index < 0) return false;
 
-    const now = new Date();
-    const players = room.players.map((player) => {
-      if (player.playerId !== playerId) return player;
-      const marked = player.marked.some((entry) => entry === cellIndex)
-        ? player.marked
-        : [...player.marked, cellIndex];
-      return {
-        ...player,
-        marked,
-        markHistory: [...player.markHistory, { cellIndex, markedAt: now }],
-      };
-    });
-
-    return Boolean(updateRoomInSqlite(room, { players, updatedAt: now }));
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
   const now = new Date();
+  const players = room.players.map((player) => {
+    if (player.playerId !== playerId) return player;
+    const marked = player.marked.some((entry) => entry === cellIndex)
+      ? player.marked
+      : [...player.marked, cellIndex];
+    return {
+      ...player,
+      marked,
+      markHistory: [...player.markHistory, { cellIndex, markedAt: now }],
+    };
+  });
 
-  const result = await db.collection<GameRoom>("game_rooms").updateOne(
-    { roomCode, "players.playerId": playerId },
-    {
-      $addToSet: { "players.$.marked": cellIndex } as any,
-      $push: { "players.$.markHistory": { cellIndex, markedAt: now } } as any,
-      $set: { updatedAt: now },
-    }
-  );
-  return result.modifiedCount > 0;
+  return Boolean(updateRoomInSqlite(room, { players, updatedAt: now }));
 }
 
 export async function unmarkCell(
@@ -911,38 +592,28 @@ export async function unmarkCell(
   playerId: string,
   cellIndex: number,
   rawToken: string,
-  bypassTokenCheck = false
+  bypassTokenCheck = false,
 ): Promise<boolean> {
-  if (!bypassTokenCheck && !(await verifyPlayerToken(roomCode, playerId, rawToken))) return false;
+  if (
+    !bypassTokenCheck &&
+    !(await verifyPlayerToken(roomCode, playerId, rawToken))
+  )
+    return false;
 
-  if (useSqliteDb()) {
-    const room = getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode });
-    if (!room) return false;
-    const index = getPlayerIndex(room, playerId);
-    if (index < 0) return false;
+  const room = getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode });
+  if (!room) return false;
+  const index = getPlayerIndex(room, playerId);
+  if (index < 0) return false;
 
-    const players = room.players.map((player) => {
-      if (player.playerId !== playerId) return player;
-      return {
-        ...player,
-        marked: player.marked.filter((entry) => entry !== cellIndex),
-      };
-    });
+  const players = room.players.map((player) => {
+    if (player.playerId !== playerId) return player;
+    return {
+      ...player,
+      marked: player.marked.filter((entry) => entry !== cellIndex),
+    };
+  });
 
-    return Boolean(updateRoomInSqlite(room, { players, updatedAt: new Date() }));
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const result = await db.collection<GameRoom>("game_rooms").updateOne(
-    { roomCode, "players.playerId": playerId },
-    {
-      $pull: { "players.$.marked": cellIndex } as any,
-      $set: { updatedAt: new Date() },
-    }
-  );
-  return result.modifiedCount > 0;
+  return Boolean(updateRoomInSqlite(room, { players, updatedAt: new Date() }));
 }
 
 export function checkWinByCondition(
@@ -951,7 +622,7 @@ export function checkWinByCondition(
   rows: number,
   columns: number,
   winCondition: WinCondition,
-  variant: BingoVariant = "custom"
+  variant: BingoVariant = "custom",
 ): boolean {
   return checkWinByGrid(marked, cells, rows, columns, winCondition, variant);
 }
@@ -961,14 +632,19 @@ export function detectWinPattern(
   cells: string[],
   rows: number,
   columns: number,
-  variant: BingoVariant = "custom"
+  variant: BingoVariant = "custom",
 ): string | null {
   if (variant === "classic90") {
     const markedSet = new Set(marked);
     const completedRows = Array.from({ length: rows }, (_, row) => {
-      const rowIndices = Array.from({ length: columns }, (_, column) => row * columns + column)
-        .filter((index) => (cells[index] || "").trim());
-      return rowIndices.length > 0 && rowIndices.every((index) => markedSet.has(index));
+      const rowIndices = Array.from(
+        { length: columns },
+        (_, column) => row * columns + column,
+      ).filter((index) => (cells[index] || "").trim());
+      return (
+        rowIndices.length > 0 &&
+        rowIndices.every((index) => markedSet.has(index))
+      );
     }).filter(Boolean).length;
     if (completedRows >= 3) return "full_house";
     if (completedRows >= 2) return "two_lines";
@@ -977,7 +653,7 @@ export function detectWinPattern(
   }
 
   const grid = Array.from({ length: rows }, (_, r) =>
-    Array.from({ length: columns }, (_, c) => marked.includes(r * columns + c))
+    Array.from({ length: columns }, (_, c) => marked.includes(r * columns + c)),
   );
   // Check rows
   for (let r = 0; r < rows; r++) {
@@ -985,12 +661,23 @@ export function detectWinPattern(
   }
   // Check columns
   for (let c = 0; c < columns; c++) {
-    if (grid.map(row => row[c] ?? false).every(Boolean)) return "column";
+    if (grid.map((row) => row[c] ?? false).every(Boolean)) return "column";
   }
   // Check main diagonal (top-left to bottom-right)
-  if (rows === columns && Array.from({ length: rows }, (_, i) => grid[i]?.[i] ?? false).every(Boolean)) return "diagonal";
+  if (
+    rows === columns &&
+    Array.from({ length: rows }, (_, i) => grid[i]?.[i] ?? false).every(Boolean)
+  )
+    return "diagonal";
   // Check anti-diagonal (top-right to bottom-left)
-  if (rows === columns && Array.from({ length: rows }, (_, i) => grid[i]?.[columns - 1 - i] ?? false).every(Boolean)) return "diagonal";
+  if (
+    rows === columns &&
+    Array.from(
+      { length: rows },
+      (_, i) => grid[i]?.[columns - 1 - i] ?? false,
+    ).every(Boolean)
+  )
+    return "diagonal";
   // Check four corners
   if (
     grid[0]?.[0] &&
@@ -1007,94 +694,29 @@ export async function claimBingo(
   roomCode: string,
   playerId: string,
   rawToken: string,
-  bypassTokenCheck = false
-): Promise<{ valid: boolean; playerName?: string; verificationCode?: string; gameEnded?: boolean }> {
-  if (!bypassTokenCheck && !(await verifyPlayerToken(roomCode, playerId, rawToken))) return { valid: false };
+  bypassTokenCheck = false,
+): Promise<{
+  valid: boolean;
+  playerName?: string;
+  verificationCode?: string;
+  gameEnded?: boolean;
+}> {
+  if (
+    !bypassTokenCheck &&
+    !(await verifyPlayerToken(roomCode, playerId, rawToken))
+  )
+    return { valid: false };
 
-  if (useSqliteDb()) {
-    const room = getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode });
-    if (!room || room.status !== "active") return { valid: false };
-
-    const player = room.players.find(p => p.playerId === playerId);
-    if (!player) return { valid: false };
-    if (player.hasBingo) return { valid: false };
-
-    const settings = room.settings ?? DEFAULT_SETTINGS;
-    const variant = normalizeBingoVariant(room.bingoVariant);
-    const gridShape = getBingoGridShape(room);
-    const calledSet = new Set(room.calledItems);
-    const freeIdx = getFreeSpaceIndexForGrid({
-      freeSpace: room.freeSpace,
-      rows: gridShape.rows,
-      columns: gridShape.columns,
-      bingoVariant: variant,
-    });
-
-    for (const idx of player.marked) {
-      if (idx === freeIdx) continue;
-      const cellValue = player.cells[idx]!;
-      if (!cellValue.trim()) continue;
-      if (!calledSet.has(cellValue)) return { valid: false };
-    }
-
-    if (!checkWinByCondition(
-      player.marked,
-      player.cells,
-      gridShape.rows,
-      gridShape.columns,
-      settings.winCondition,
-      variant
-    )) return { valid: false };
-
-    const now = new Date();
-    const verificationCode = generateWinnerVerificationCode();
-    const winner: GameWinner = { playerId, playerName: player.playerName, verificationCode, claimedAt: now };
-    const isFirstWinner = (room.winners ?? []).length === 0;
-    const players = room.players.map((entry) =>
-      entry.playerId === playerId ? { ...entry, hasBingo: true } : entry
-    );
-
-    if (settings.allowMultipleWinners) {
-      updateRoomInSqlite(room, {
-        players,
-        winners: [...(room.winners ?? []), winner],
-        ...(isFirstWinner ? { winnerId: playerId, winnerName: player.playerName } : {}),
-        updatedAt: now,
-      });
-
-      return { valid: true, playerName: player.playerName, verificationCode, gameEnded: false };
-    }
-
-    updateRoomInSqlite(room, {
-      players,
-      status: "finished",
-      endedAt: now,
-      winnerId: playerId,
-      winnerName: player.playerName,
-      winners: [...(room.winners ?? []), winner],
-      updatedAt: now,
-    });
-
-    return { valid: true, playerName: player.playerName, verificationCode, gameEnded: true };
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const room = await db.collection<GameRoom>("game_rooms").findOne({ roomCode });
+  const room = getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode });
   if (!room || room.status !== "active") return { valid: false };
 
-  const player = room.players.find(p => p.playerId === playerId);
+  const player = room.players.find((p) => p.playerId === playerId);
   if (!player) return { valid: false };
-
-  // Don't allow double-claiming
   if (player.hasBingo) return { valid: false };
 
   const settings = room.settings ?? DEFAULT_SETTINGS;
   const variant = normalizeBingoVariant(room.bingoVariant);
   const gridShape = getBingoGridShape(room);
-
-  // Verify that all marked cells correspond to called items or free space
   const calledSet = new Set(room.calledItems);
   const freeIdx = getFreeSpaceIndexForGrid({
     freeSpace: room.freeSpace,
@@ -1110,79 +732,73 @@ export async function claimBingo(
     if (!calledSet.has(cellValue)) return { valid: false };
   }
 
-  // Check win by configured condition
-  if (!checkWinByCondition(
-    player.marked,
-    player.cells,
-    gridShape.rows,
-    gridShape.columns,
-    settings.winCondition,
-    variant
-  )) return { valid: false };
+  if (
+    !checkWinByCondition(
+      player.marked,
+      player.cells,
+      gridShape.rows,
+      gridShape.columns,
+      settings.winCondition,
+      variant,
+    )
+  )
+    return { valid: false };
 
   const now = new Date();
   const verificationCode = generateWinnerVerificationCode();
-  const winner: GameWinner = { playerId, playerName: player.playerName, verificationCode, claimedAt: now };
+  const winner: GameWinner = {
+    playerId,
+    playerName: player.playerName,
+    verificationCode,
+    claimedAt: now,
+  };
   const isFirstWinner = (room.winners ?? []).length === 0;
+  const players = room.players.map((entry) =>
+    entry.playerId === playerId ? { ...entry, hasBingo: true } : entry,
+  );
 
   if (settings.allowMultipleWinners) {
-    // Game continues — mark player as won but don't finish
-    const updateFields: Record<string, any> = {
-      "players.$.hasBingo": true,
+    updateRoomInSqlite(room, {
+      players,
+      winners: [...(room.winners ?? []), winner],
+      ...(isFirstWinner
+        ? { winnerId: playerId, winnerName: player.playerName }
+        : {}),
       updatedAt: now,
-    };
-    // Set winnerId/winnerName for the first winner only
-    if (isFirstWinner) {
-      updateFields.winnerId = playerId;
-      updateFields.winnerName = player.playerName;
-    }
-
-    await db.collection<GameRoom>("game_rooms").updateOne(
-      { _id: room._id, "players.playerId": playerId },
-      {
-        $set: updateFields,
-        $push: { winners: winner } as any,
-      }
-    );
+    });
 
     return { valid: true, playerName: player.playerName, verificationCode, gameEnded: false };
-  } else {
-    // Single winner — end the game
-    await db.collection<GameRoom>("game_rooms").updateOne(
-      { _id: room._id, "players.playerId": playerId },
-      {
-        $set: {
-          "players.$.hasBingo": true,
-          status: "finished",
-          endedAt: now,
-          winnerId: playerId,
-          winnerName: player.playerName,
-          updatedAt: now,
-        },
-        $push: { winners: winner } as any,
-      }
-    );
-
-    return { valid: true, playerName: player.playerName, verificationCode, gameEnded: true };
   }
+
+  updateRoomInSqlite(room, {
+    players,
+    status: "finished",
+    endedAt: now,
+    winnerId: playerId,
+    winnerName: player.playerName,
+    winners: [...(room.winners ?? []), winner],
+    updatedAt: now,
+  });
+
+  return { valid: true, playerName: player.playerName, verificationCode, gameEnded: true };
 }
 
-export async function endGame(roomCode: string, hostUserId: string): Promise<boolean> {
-  if (useSqliteDb()) {
-    const room = getSqliteStore().findOne<GameRoom>("game_rooms", { roomCode, hostUserId });
-    if (!room) return false;
-
-    const now = new Date();
-    return Boolean(updateRoomInSqlite(room, { status: "finished", endedAt: now, updatedAt: now }));
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
+export async function endGame(
+  roomCode: string,
+  hostUserId: string,
+): Promise<boolean> {
+  const room = getSqliteStore().findOne<GameRoom>("game_rooms", {
+    roomCode,
+    hostUserId,
+  });
+  if (!room) return false;
 
   const now = new Date();
-  const result = await db.collection<GameRoom>("game_rooms").updateOne(
-    { roomCode, hostUserId },
-    { $set: { status: "finished", endedAt: now, updatedAt: now } }
+  return Boolean(
+    updateRoomInSqlite(room, {
+      status: "finished",
+      endedAt: now,
+      updatedAt: now,
+    }),
   );
-  return result.modifiedCount > 0;
 }

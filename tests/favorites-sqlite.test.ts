@@ -17,7 +17,6 @@ afterEach(() => {
 function createFixture() {
   const previousBackend = process.env.MYBINGOCARD_DB_BACKEND;
   const previousPath = process.env.MYBINGOCARD_SQLITE_PATH;
-  const previousMongoUri = process.env.MONGODB_URI;
   const dir = mkdtempSync(join(tmpdir(), "mybingocard-sqlite-favorites-"));
   const db = new Database(join(dir, "shadow.sqlite"));
   db.exec(`
@@ -27,7 +26,6 @@ function createFixture() {
 
   const store = new SqliteDocumentStore(db);
   setSqliteStoreForTests(store);
-  delete process.env.MONGODB_URI;
 
   cleanupCallbacks.push(() => {
     closeSqliteStoreForTests();
@@ -35,8 +33,6 @@ function createFixture() {
     else process.env.MYBINGOCARD_DB_BACKEND = previousBackend;
     if (previousPath === undefined) delete process.env.MYBINGOCARD_SQLITE_PATH;
     else process.env.MYBINGOCARD_SQLITE_PATH = previousPath;
-    if (previousMongoUri === undefined) delete process.env.MONGODB_URI;
-    else process.env.MONGODB_URI = previousMongoUri;
     db.close();
     rmSync(dir, { recursive: true, force: true });
   });
@@ -45,7 +41,7 @@ function createFixture() {
 }
 
 describe("SQLite favorites helpers", () => {
-  test("toggles and reads favorites without MongoDB configuration", async () => {
+  test("toggles and reads favorites with SQLite configuration", async () => {
     const { store } = createFixture();
 
     expect(await isFavorited("user-1", "card-1")).toBe(false);

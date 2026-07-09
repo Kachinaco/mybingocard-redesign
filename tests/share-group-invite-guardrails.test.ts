@@ -13,11 +13,9 @@ describe("share group invite guardrails", () => {
 
   test("one public group invite assigns the next pending player link", () => {
     expect(groupRouteSource).toContain("getShareGroupInviteTarget");
-    expect(groupRouteSource).not.toContain("clientPromise");
     expect(sharedLinksDbSource).toContain("getShareGroupInviteTarget");
     expect(sharedLinksDbSource).toContain('status: "pending"');
     expect(sharedLinksDbSource).toContain("sort: { createdAt: 1 }");
-    expect(sharedLinksDbSource).toContain(".sort({ createdAt: 1 })");
     expect(groupRouteSource).toContain('targetPath.searchParams.set("autoJoin", "1")');
     expect(groupRouteSource).toContain('targetPath.searchParams.set("group", code)');
     expect(groupRouteSource).toContain('event: "share_group_invite_opened"');

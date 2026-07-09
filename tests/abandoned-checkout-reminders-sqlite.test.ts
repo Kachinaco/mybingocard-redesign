@@ -117,7 +117,6 @@ describe("abandoned checkout reminder script SQLite backend", () => {
           ...process.env,
           MYBINGOCARD_DB_BACKEND: "sqlite",
           MYBINGOCARD_SQLITE_PATH: dbPath,
-          MONGODB_URI: "mongodb://127.0.0.1:1/nope",
           DRY_RUN: "1",
           NOW_OVERRIDE: now.toISOString(),
           ABANDONED_CHECKOUT_MAX_AGE_DAYS: "7",

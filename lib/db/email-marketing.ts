@@ -1,7 +1,4 @@
-import clientPromise from "@/lib/mongodb";
-import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
-
-const DB_NAME = "mybingocard";
+import { getSqliteStore } from "@/lib/db/sqlite";
 
 type EmailPreferenceDocument = {
   email: string;
@@ -44,11 +41,6 @@ type RecordEmailSentInput = {
   sentAt?: Date;
 };
 
-async function mongoDb() {
-  const client = await clientPromise;
-  return client.db(DB_NAME);
-}
-
 function normalizeEmail(email: string) {
   return email.toLowerCase().trim();
 }
@@ -56,16 +48,7 @@ function normalizeEmail(email: string) {
 export async function getEmailPreferences(email: string): Promise<EmailPreferenceResponse> {
   const normalizedEmail = normalizeEmail(email);
 
-  if (useSqliteDb()) {
-    const prefs = getSqliteStore().findOne<EmailPreferenceDocument>("email_preferences", { email: normalizedEmail });
-    return {
-      marketingEmails: prefs?.marketingEmails !== false,
-      productUpdates: prefs?.productUpdates !== false,
-    };
-  }
-
-  const db = await mongoDb();
-  const prefs = await db.collection<EmailPreferenceDocument>("email_preferences").findOne({ email: normalizedEmail });
+  const prefs = getSqliteStore().findOne<EmailPreferenceDocument>("email_preferences", { email: normalizedEmail });
   return {
     marketingEmails: prefs?.marketingEmails !== false,
     productUpdates: prefs?.productUpdates !== false,
@@ -87,13 +70,7 @@ export async function updateEmailPreferences(input: {
     },
   };
 
-  if (useSqliteDb()) {
-    getSqliteStore().updateOne("email_preferences", { email }, update, { upsert: true });
-    return;
-  }
-
-  const db = await mongoDb();
-  await db.collection("email_preferences").updateOne({ email }, update, { upsert: true });
+  getSqliteStore().updateOne("email_preferences", { email }, update, { upsert: true });
 }
 
 export async function unsubscribeEmail(rawEmail: string): Promise<string> {
@@ -106,13 +83,7 @@ export async function unsubscribeEmail(rawEmail: string): Promise<string> {
     },
   };
 
-  if (useSqliteDb()) {
-    getSqliteStore().updateOne("email_preferences", { email }, update, { upsert: true });
-    return email;
-  }
-
-  const db = await mongoDb();
-  await db.collection("email_preferences").updateOne({ email }, update, { upsert: true });
+  getSqliteStore().updateOne("email_preferences", { email }, update, { upsert: true });
   return email;
 }
 
@@ -130,27 +101,14 @@ export async function recordEmailOpen(input: RecordEmailOpenInput): Promise<void
     },
   };
 
-  if (useSqliteDb()) {
-    const store = getSqliteStore();
-    store.updateOne("drip_opens", { email, campaignId: input.campaignId }, update, { upsert: true });
-    if (input.emailId) {
-      store.updateOne("email_messages", { emailId: input.emailId }, emailMessageOpenUpdate({
-        ...input,
-        email,
-        openedAt,
-      }), { upsert: true });
-    }
-    return;
-  }
-
-  const db = await mongoDb();
-  await db.collection("drip_opens").updateOne({ email, campaignId: input.campaignId }, update, { upsert: true });
+  const store = getSqliteStore();
+  store.updateOne("drip_opens", { email, campaignId: input.campaignId }, update, { upsert: true });
   if (input.emailId) {
-    await db.collection("email_messages").updateOne(
-      { emailId: input.emailId },
-      emailMessageOpenUpdate({ ...input, email, openedAt }),
-      { upsert: true }
-    );
+    store.updateOne("email_messages", { emailId: input.emailId }, emailMessageOpenUpdate({
+      ...input,
+      email,
+      openedAt,
+    }), { upsert: true });
   }
 }
 
@@ -169,27 +127,14 @@ export async function recordEmailClick(input: RecordEmailClickInput): Promise<vo
     },
   };
 
-  if (useSqliteDb()) {
-    const store = getSqliteStore();
-    store.updateOne("drip_clicks", { email, campaignId: input.campaignId, url: input.url }, update, { upsert: true });
-    if (input.emailId) {
-      store.updateOne("email_messages", { emailId: input.emailId }, emailMessageClickUpdate({
-        ...input,
-        email,
-        clickedAt,
-      }), { upsert: true });
-    }
-    return;
-  }
-
-  const db = await mongoDb();
-  await db.collection("drip_clicks").updateOne({ email, campaignId: input.campaignId, url: input.url }, update, { upsert: true });
+  const store = getSqliteStore();
+  store.updateOne("drip_clicks", { email, campaignId: input.campaignId, url: input.url }, update, { upsert: true });
   if (input.emailId) {
-    await db.collection("email_messages").updateOne(
-      { emailId: input.emailId },
-      emailMessageClickUpdate({ ...input, email, clickedAt }),
-      { upsert: true }
-    );
+    store.updateOne("email_messages", { emailId: input.emailId }, emailMessageClickUpdate({
+      ...input,
+      email,
+      clickedAt,
+    }), { upsert: true });
   }
 }
 
@@ -215,13 +160,7 @@ export async function recordEmailMessageSent(input: RecordEmailSentInput): Promi
     },
   };
 
-  if (useSqliteDb()) {
-    getSqliteStore().updateOne("email_messages", { emailId: input.emailId }, update, { upsert: true });
-    return;
-  }
-
-  const db = await mongoDb();
-  await db.collection("email_messages").updateOne({ emailId: input.emailId }, update, { upsert: true });
+  getSqliteStore().updateOne("email_messages", { emailId: input.emailId }, update, { upsert: true });
 }
 
 function emailMessageOpenUpdate(input: RecordEmailOpenInput & { openedAt: Date }) {

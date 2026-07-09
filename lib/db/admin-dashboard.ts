@@ -1,8 +1,5 @@
-import clientPromise from "@/lib/mongodb";
 import { getAdminStats } from "@/lib/db/admin-stats";
-import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
-
-const DB_NAME = "mybingocard";
+import { getSqliteStore } from "@/lib/db/sqlite";
 
 type RenderableId = string | { toString(): string };
 
@@ -45,11 +42,6 @@ export interface AdminCanceledUser {
   totalExports?: number | null;
 }
 
-async function mongoDb() {
-  const client = await clientPromise;
-  return client.db(DB_NAME);
-}
-
 export async function getAdminLayoutBadges(): Promise<AdminLayoutBadges> {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const unresolvedRecentErrorQuery = {
@@ -60,8 +52,6 @@ export async function getAdminLayoutBadges(): Promise<AdminLayoutBadges> {
       { status: { $nin: ["fixed", "ignored"] } },
     ],
   };
-
-  if (useSqliteDb()) {
     const store = getSqliteStore();
     const paidUsers = store.count("users", { subscriptionStatus: "active" });
     return {
@@ -72,23 +62,6 @@ export async function getAdminLayoutBadges(): Promise<AdminLayoutBadges> {
       activeUsers: paidUsers,
     };
   }
-
-  const db = await mongoDb();
-  const [openTickets, pastDueUsers, paidUsers, recentErrorGroups] = await Promise.all([
-    db.collection("support_tickets").countDocuments({ status: "open" }),
-    db.collection("users").countDocuments({ subscriptionStatus: "past_due" }),
-    db.collection("users").countDocuments({ subscriptionStatus: "active" }),
-    db.collection("error_fingerprints").countDocuments(unresolvedRecentErrorQuery as any),
-  ]);
-
-  return {
-    openTickets,
-    pastDueUsers,
-    recentErrorGroups,
-    mrr: paidUsers * 7.99,
-    activeUsers: paidUsers,
-  };
-}
 
 export async function getAdminOverviewData(highValueEvents: readonly string[]) {
   const [shared, recentUsers, recentActivity, canceledUsers] = await Promise.all([
@@ -123,40 +96,17 @@ export async function getAdminOverviewData(highValueEvents: readonly string[]) {
 }
 
 async function getRecentAdminUsers(): Promise<AdminOverviewUser[]> {
-  if (useSqliteDb()) {
     return getSqliteStore()
       .findMany<Record<string, unknown>>("users", {}, { sort: { createdAt: -1 }, limit: 10 })
       .map(toOverviewUser);
   }
 
-  const db = await mongoDb();
-  const users = await db
-    .collection("users")
-    .find({}, { projection: { name: 1, email: 1, planType: 1, createdAt: 1 } })
-    .sort({ createdAt: -1 })
-    .limit(10)
-    .toArray();
-  return users.map(toOverviewUser);
-}
-
 async function getRecentAdminActivity(highValueEvents: readonly string[]): Promise<AdminOverviewActivityEvent[]> {
   const query = { event: { $in: [...highValueEvents] } };
-
-  if (useSqliteDb()) {
     return getSqliteStore()
       .findMany<Record<string, unknown>>("activity_events", query, { sort: { createdAt: -1 }, limit: 15 })
       .map(toOverviewActivity);
   }
-
-  const db = await mongoDb();
-  const events = await db
-    .collection("activity_events")
-    .find(query, { projection: { event: 1, email: 1, metadata: 1, createdAt: 1 } })
-    .sort({ createdAt: -1 })
-    .limit(15)
-    .toArray();
-  return events.map(toOverviewActivity);
-}
 
 async function getCanceledAdminUsers(): Promise<AdminCanceledUser[]> {
   const query = {
@@ -165,36 +115,10 @@ async function getCanceledAdminUsers(): Promise<AdminCanceledUser[]> {
       { cancelAtPeriodEnd: true },
     ],
   };
-
-  if (useSqliteDb()) {
     return getSqliteStore()
       .findMany<Record<string, unknown>>("users", query, { sort: { updatedAt: -1 }, limit: 5 })
       .map(toCanceledUser);
   }
-
-  const db = await mongoDb();
-  const users = await db
-    .collection("users")
-    .find(query, {
-      projection: {
-        name: 1,
-        email: 1,
-        subscriptionStatus: 1,
-        cancelAtPeriodEnd: 1,
-        cancelAt: 1,
-        cancellationReason: 1,
-        cancellationFeedback: 1,
-        createdAt: 1,
-        updatedAt: 1,
-        totalCardsCreated: 1,
-        totalExports: 1,
-      },
-    })
-    .sort({ updatedAt: -1 })
-    .limit(5)
-    .toArray();
-  return users.map(toCanceledUser);
-}
 
 function toOverviewUser(document: Record<string, unknown>): AdminOverviewUser {
   return {

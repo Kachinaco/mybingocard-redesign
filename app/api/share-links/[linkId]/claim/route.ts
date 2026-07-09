@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { ObjectId } from "mongodb";
+import { ObjectId } from "bson";
 import { auth } from "@/auth";
 import {
   claimSharedLink,

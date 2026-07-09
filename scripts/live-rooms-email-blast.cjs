@@ -1,8 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('./smtp-client.cjs');
-const { MongoClient } = require('mongodb');
-const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
+const { openSqliteShadowDatabase } = require('./sqlite-shadow-store.cjs');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -20,7 +19,6 @@ try {
   console.error('Could not load .env.local:', e.message);
 }
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 const WEBHOOK_URL = process.env.MYBINGOCARD_EVENTS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL || '';
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://mybingocard.com').replace(/\/$/, '');
 const fromAddress = process.env.EMAIL_FROM || 'MyBingoCard <support@mybingocard.com>';
@@ -177,15 +175,11 @@ Unsubscribe: ${appUrl}/unsubscribe?email=${encodeURIComponent(user.email)}`;
 const DRY_RUN = process.argv.includes('--dry-run');
 
 async function run() {
-  const sqliteDb = useSqliteBackend() ? openSqliteShadowDatabase() : null;
-  const client = sqliteDb ? null : new MongoClient(MONGODB_URI);
+  const db = openSqliteShadowDatabase();
   let sentCount = 0;
   let skippedCount = 0;
 
   try {
-    if (client) await client.connect();
-    const db = sqliteDb || client.db('mybingocard');
-
     // Check who already got this blast
     const blastId = 'live_rooms_launch';
     await db.collection('email_blasts').createIndex({ email: 1, blastId: 1 }, { unique: true });
@@ -288,8 +282,7 @@ async function run() {
       } catch {}
     }
   } finally {
-    if (client) await client.close();
-    if (sqliteDb) sqliteDb.close();
+    db.close();
   }
 }
 

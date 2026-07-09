@@ -1,5 +1,4 @@
-import clientPromise from "@/lib/mongodb";
-import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
+import { getSqliteStore } from "@/lib/db/sqlite";
 
 export interface ActivityEventRecord {
   event: string;
@@ -16,29 +15,12 @@ export interface ActivityEventRecord {
   createdAt?: Date;
 }
 
-const DB_NAME = "mybingocard";
-
-async function mongoDb() {
-  const client = await clientPromise;
-  return client.db(DB_NAME);
-}
-
 export async function countActivityEvents(filter: Record<string, unknown>): Promise<number> {
-  if (useSqliteDb()) {
-    return getSqliteStore().count("activity_events", filter);
-  }
-
-  const db = await mongoDb();
-  return db.collection("activity_events").countDocuments(filter);
+  return getSqliteStore().count("activity_events", filter);
 }
 
 export async function hasActivityEvent(filter: Record<string, unknown>): Promise<boolean> {
-  if (useSqliteDb()) {
-    return Boolean(getSqliteStore().findOne("activity_events", filter));
-  }
-
-  const db = await mongoDb();
-  return Boolean(await db.collection("activity_events").findOne(filter));
+  return Boolean(getSqliteStore().findOne("activity_events", filter));
 }
 
 export async function countRecentAiGenerations(input: {

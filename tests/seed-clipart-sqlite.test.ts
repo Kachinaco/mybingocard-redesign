@@ -39,7 +39,6 @@ describe("seed clipart script SQLite backend", () => {
           MYBINGOCARD_SQLITE_PATH: dbPath,
           MYBINGOCARD_CLIPART_UPLOAD_BASE: uploadDir,
           MYBINGOCARD_CLIPART_LIMIT: "12",
-          MONGODB_URI: "mongodb://127.0.0.1:1/nope",
         },
         encoding: "utf8",
       });

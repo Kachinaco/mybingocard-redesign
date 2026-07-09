@@ -10,8 +10,8 @@
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('./smtp-client.cjs');
-const { MongoClient, ObjectId } = require('mongodb');
-const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
+const { ObjectId } = require('bson');
+const { openSqliteShadowDatabase } = require('./sqlite-shadow-store.cjs');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -30,7 +30,6 @@ try {
 
 const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://mybingocard.com').replace(/\/$/, '');
 const FROM_ADDRESS = process.env.EMAIL_FROM || 'MyBingoCard <support@mybingocard.com>';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 const DRY_RUN = process.env.DRY_RUN === '1';
 const TARGET_EMAIL = (process.env.TARGET_EMAIL || '').trim().toLowerCase();
 
@@ -145,10 +144,7 @@ function buildFollowupEmail(firstName, daysSince) {
 async function main() {
   console.log(DRY_RUN ? '=== DRY RUN ===' : '=== SENDING FOLLOW-UPS ===');
 
-  const sqliteDb = useSqliteBackend() ? openSqliteShadowDatabase() : null;
-  const client = sqliteDb ? null : new MongoClient(MONGODB_URI);
-  if (client) await client.connect();
-  const db = sqliteDb || client.db('mybingocard');
+  const db = openSqliteShadowDatabase();
 
   try {
     // Find emails that started checkout
@@ -233,8 +229,7 @@ async function main() {
 
     console.log('\nDone.');
   } finally {
-    if (client) await client.close();
-    if (sqliteDb) sqliteDb.close();
+    db.close();
   }
 }
 

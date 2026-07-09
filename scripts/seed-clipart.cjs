@@ -5,13 +5,12 @@
  * Usage: node scripts/seed-clipart.cjs
  */
 
-const { MongoClient, ObjectId } = require('mongodb');
-const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
+const { ObjectId } = require('bson');
+const { openSqliteShadowDatabase } = require('./sqlite-shadow-store.cjs');
 const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 const UPLOAD_BASE = process.env.MYBINGOCARD_CLIPART_UPLOAD_BASE || '/var/www/mybingocard.com/uploads/system/clipart';
 const CLIPART_LIMIT = Number(process.env.MYBINGOCARD_CLIPART_LIMIT || 0);
 const IMG_SIZE = 400; // main image px
@@ -139,13 +138,10 @@ function createEmojiSVG(emoji, bgColor, size) {
 }
 
 async function main() {
-  const sqliteDb = useSqliteBackend() ? openSqliteShadowDatabase() : null;
-  const client = sqliteDb ? null : new MongoClient(MONGODB_URI);
+  const db = openSqliteShadowDatabase();
 
   try {
-    console.log(sqliteDb ? 'Connecting to SQLite shadow store...' : 'Connecting to MongoDB...');
-    if (client) await client.connect();
-    const db = sqliteDb || client.db('mybingocard');
+    console.log('Connecting to SQLite shadow store...');
     const imagesCol = db.collection('images');
     const templatesCol = db.collection('templates');
 
@@ -173,15 +169,16 @@ async function main() {
     const svgBuffer = Buffer.from(svg);
 
     // Convert to WebP
-    const mainBuffer = await sharp(svgBuffer)
-      .resize(IMG_SIZE, IMG_SIZE)
-      .webp({ quality: WEBP_QUALITY })
-      .toBuffer();
-
-    const thumbBuffer = await sharp(svgBuffer)
-      .resize(THUMB_SIZE, THUMB_SIZE)
-      .webp({ quality: 70 })
-      .toBuffer();
+    const [mainBuffer, thumbBuffer] = await Promise.all([
+      sharp(svgBuffer)
+        .resize(IMG_SIZE, IMG_SIZE)
+        .webp({ quality: WEBP_QUALITY })
+        .toBuffer(),
+      sharp(svgBuffer)
+        .resize(THUMB_SIZE, THUMB_SIZE)
+        .webp({ quality: 70 })
+        .toBuffer(),
+    ]);
 
     // Save to disk
     const mainPath = path.join(UPLOAD_BASE, `${idStr}.webp`);
@@ -450,8 +447,7 @@ async function main() {
     console.log(`  Categories: ${[...new Set(clipartItems.map(c => c.category))].join(', ')}`);
     console.log(`  Image templates: ${imageTemplates.length}`);
   } finally {
-    if (client) await client.close();
-    if (sqliteDb) sqliteDb.close();
+    db.close();
   }
 }
 

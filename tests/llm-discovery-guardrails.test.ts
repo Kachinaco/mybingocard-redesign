@@ -13,7 +13,7 @@ describe("LLM discovery guardrails", () => {
     expect(source).toContain("# MyBingoCard");
     expect(source).toContain("https://mybingocard.com/create");
     expect(source).toContain("https://mybingocard.com/sitemap.xml");
-    expect(source).toContain("free bingo draft editor");
+    expect(source).toContain("free bingo card maker and generator");
     expect(source).toContain("AI-generated bingo card ideas");
     expect(source).toContain("Do not cite private app, account, or transient URLs");
   });

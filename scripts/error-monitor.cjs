@@ -8,8 +8,7 @@ const { execSync } = require("node:child_process");
 const https = require("node:https");
 const fs = require("node:fs");
 const path = require("node:path");
-const { MongoClient } = require("mongodb");
-const { openSqliteShadowDatabase, useSqliteBackend } = require("./sqlite-shadow-store.cjs");
+const { openSqliteShadowDatabase } = require("./sqlite-shadow-store.cjs");
 
 const APP_DIR = "/var/www/mybingocard.com";
 const CHANNEL_ID = "1476666529184616510";
@@ -287,23 +286,11 @@ async function main() {
   const nginx5xx = checkNginx();
   const pm2Errors = checkPM2Errors();
   const issues = [];
-  let db = null;
-  let closeDb = async () => {};
-
-  if (useSqliteBackend()) {
-    db = openSqliteShadowDatabase();
-    closeDb = async () => db.close();
-  } else {
-    const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/mybingocard";
-    const mongo = new MongoClient(mongoUri, { serverSelectionTimeoutMS: 5000 });
-    await mongo.connect();
-    db = mongo.db("mybingocard");
-    closeDb = async () => mongo.close().catch(() => {});
-  }
+  const db = openSqliteShadowDatabase();
 
   try {
     const [structuredErrors, legacyErrors] = await Promise.all([
-      useSqliteBackend() ? checkStructuredErrorsSqlite(db) : checkStructuredErrors(db),
+      checkStructuredErrorsSqlite(db),
       checkLegacyActivityErrors(db),
     ]);
 
@@ -327,7 +314,7 @@ async function main() {
       issues.push(`Legacy activity error events in last 30 min: ${legacyErrors}`);
     }
   } finally {
-    await closeDb();
+    db.close();
   }
 
   if (issues.length > 0) {

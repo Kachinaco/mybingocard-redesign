@@ -91,7 +91,7 @@ describe("SqliteDocumentStore", () => {
     expect(byUser[0]?.title).toBe("Migration proof");
   });
 
-  test("supports Mongo-ish filters, regexes, counts, and sorted windows", () => {
+  test("supports document filters, regexes, counts, and sorted windows", () => {
     const { store, insertShadowDocument } = createFixture();
 
     insertShadowDocument("cards", {

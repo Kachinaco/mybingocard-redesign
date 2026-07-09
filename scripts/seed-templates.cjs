@@ -1,7 +1,4 @@
-const { MongoClient } = require('mongodb');
-const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
-
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
+const { openSqliteShadowDatabase } = require('./sqlite-shadow-store.cjs');
 
 const templates = [
   // Baby Shower Templates
@@ -483,14 +480,10 @@ const templates = [
 ];
 
 async function seedTemplates() {
-  const sqliteDb = useSqliteBackend() ? openSqliteShadowDatabase() : null;
-  const client = sqliteDb ? null : new MongoClient(MONGODB_URI);
+  const db = openSqliteShadowDatabase();
 
   try {
-    if (client) await client.connect();
-    console.log(sqliteDb ? 'Connected to SQLite shadow store' : 'Connected to MongoDB');
-
-    const db = sqliteDb || client.db('mybingocard');
+    console.log('Connected to SQLite shadow store');
     const collection = db.collection('templates');
 
     // Check if templates already exist
@@ -521,9 +514,8 @@ async function seedTemplates() {
     console.error('Error seeding templates:', error);
     process.exitCode = 1;
   } finally {
-    if (client) await client.close();
-    if (sqliteDb) sqliteDb.close();
-    console.log(sqliteDb ? 'Disconnected from SQLite shadow store' : 'Disconnected from MongoDB');
+    db.close();
+    console.log('Disconnected from SQLite shadow store');
   }
 }
 

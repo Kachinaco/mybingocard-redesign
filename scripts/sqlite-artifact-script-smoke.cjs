@@ -189,7 +189,6 @@ function main() {
     NODE_ENV: "production",
     NEXT_PUBLIC_APP_URL: "https://mybingocard.com",
     NEXTAUTH_URL: "https://mybingocard.com",
-    MONGODB_URI: "mongodb://127.0.0.1:1/mybingocard-sqlite-script-smoke",
     MYBINGOCARD_DB_BACKEND: "sqlite",
     MYBINGOCARD_SQLITE_PATH: dbPath,
     MYBINGOCARD_EVENTS_WEBHOOK_URL: "",

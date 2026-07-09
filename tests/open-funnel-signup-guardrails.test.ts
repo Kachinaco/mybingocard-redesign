@@ -107,8 +107,8 @@ describe("open-funnel signup guardrails", () => {
     expect(rateLimitIndex).toBeGreaterThan(-1);
     expect(createUserIndex).toBeGreaterThan(rateLimitIndex);
     expect(verificationEmailIndex).toBeGreaterThan(rateLimitIndex);
-    expect(signupAbuseSource).toContain('collection("signup_attempts")');
-    expect(signupAbuseSource).toContain("expireAfterSeconds");
+    expect(signupAbuseSource).toContain('getSqliteStore().count("signup_attempts"');
+    expect(signupAbuseSource).toContain('getSqliteStore().insertOne("signup_attempts"');
     expect(signupAbuseSource).toContain("MBC_SIGNUP_RATE_SHORT_MAX");
   });
 

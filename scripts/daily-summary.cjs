@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { MongoClient } = require('mongodb');
-const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
+const { openSqliteShadowDatabase } = require('./sqlite-shadow-store.cjs');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -20,7 +19,6 @@ try {
 }
 
 const WEBHOOK_URL = process.env.MYBINGOCARD_EVENTS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 
 function getSignupSourceLabel(user) {
   if (user.utm_source) return user.utm_source;
@@ -106,19 +104,13 @@ async function sendDiscord(payload) {
 }
 
 async function run() {
-  const sqliteBackend = useSqliteBackend();
-  const client = sqliteBackend ? openSqliteShadowDatabase() : new MongoClient(MONGODB_URI);
+  const db = openSqliteShadowDatabase();
   try {
-    if (!sqliteBackend) await client.connect();
-    const db = sqliteBackend ? client : client.db('mybingocard');
-
     const now = new Date();
     const yesterday = new Date(now.getTime() - 86400000);
     const lastWeek = new Date(now.getTime() - 7 * 86400000);
     const lastMonth = new Date(now.getTime() - 30 * 86400000);
-    const sqliteActivityEvents = sqliteBackend
-      ? await db.collection('activity_events').find({}).toArray()
-      : null;
+    const sqliteActivityEvents = await db.collection('activity_events').find({}).toArray();
 
     // =============================================
     // EMBED 1: Overview (existing metrics + retention)
@@ -543,7 +535,7 @@ async function run() {
   } catch (err) {
     console.error('Daily summary error:', err);
   } finally {
-    await client.close();
+    db.close();
   }
 }
 

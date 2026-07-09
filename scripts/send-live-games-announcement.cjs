@@ -20,10 +20,7 @@ try {
 } catch (e) { console.error('Could not load .env.local:', e.message); }
 
 const nodemailer = require('./smtp-client.cjs');
-const { MongoClient } = require('mongodb');
-const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
-
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
+const { openSqliteShadowDatabase } = require('./sqlite-shadow-store.cjs');
 const FROM = process.env.EMAIL_FROM || 'support@mybingocard.com';
 const CAMPAIGN_ID = 'live_games_announcement_2026_03_13';
 const DRY_RUN = !process.argv.includes('--send');
@@ -102,10 +99,7 @@ async function main() {
     return;
   }
 
-  const sqliteDb = useSqliteBackend() ? openSqliteShadowDatabase() : null;
-  const client = sqliteDb ? null : new MongoClient(MONGO_URI);
-  if (client) await client.connect();
-  const db = sqliteDb || client.db('mybingocard');
+  const db = openSqliteShadowDatabase();
 
   try {
 
@@ -157,8 +151,7 @@ async function main() {
 
     console.log(`\nDone. Sent: ${sent} | Failed: ${failed}`);
   } finally {
-    if (client) await client.close();
-    if (sqliteDb) sqliteDb.close();
+    db.close();
   }
 }
 

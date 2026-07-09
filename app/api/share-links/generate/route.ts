@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
+import { ObjectId } from "bson";
 import crypto from "crypto";
 import type Stripe from "stripe";
 import { auth } from "@/auth";

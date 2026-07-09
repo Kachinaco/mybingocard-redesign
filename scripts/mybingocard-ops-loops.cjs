@@ -9,8 +9,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { MongoClient } = require("mongodb");
-const { openSqliteShadowDatabase, useSqliteBackend } = require("./sqlite-shadow-store.cjs");
+const { openSqliteShadowDatabase } = require("./sqlite-shadow-store.cjs");
 
 const APP_DIR = process.env.MYBINGOCARD_APP_DIR || path.resolve(__dirname, "..");
 const APP_URL = (process.env.MYBINGOCARD_APP_URL || "https://mybingocard.com").replace(/\/$/, "");
@@ -21,7 +20,6 @@ const DRAFT_DIR = process.env.MYBINGOCARD_OPS_LOOP_DRAFT_DIR || path.join(STATE_
 const TRACKER_BASE =
   process.env.MYBINGOCARD_TRACKER_LIVE_URL ||
   "http://127.0.0.1:3098/api/live/events?domain=mybingocard.com";
-const DEFAULT_MONGODB_URI = "mongodb://localhost:27017/mybingocard";
 
 const MODES = [
   "owner-brief",
@@ -329,28 +327,14 @@ function topTrackerList(items, labelKey = "pathname", countKey = "events", limit
     .join("\n") || "`none`";
 }
 
-let mongoClient = null;
-let mongoDb = null;
 let sqliteDb = null;
 let collectionNameCache = null;
 
 async function getDb() {
-  if (useSqliteBackend()) {
-    if (!sqliteDb) {
-      sqliteDb = openSqliteShadowDatabase();
-      mongoDb = sqliteDb;
-    }
-    return sqliteDb;
+  if (!sqliteDb) {
+    sqliteDb = openSqliteShadowDatabase();
   }
-
-  if (!mongoClient) {
-    mongoClient = new MongoClient(process.env.MONGODB_URI || DEFAULT_MONGODB_URI, {
-      serverSelectionTimeoutMS: 10000,
-    });
-    await mongoClient.connect();
-    mongoDb = mongoClient.db("mybingocard");
-  }
-  return mongoDb;
+  return sqliteDb;
 }
 
 async function collectionNames(db) {
@@ -1094,13 +1078,11 @@ async function main() {
   }
 
   if (!options.dryRun) writeJson(STATE_FILE, state);
-  if (mongoClient) await mongoClient.close();
   if (sqliteDb) sqliteDb.close();
 }
 
 main().catch(async (error) => {
   console.error(`[mybingocard-ops-loops] ${error.stack || error.message}`);
-  if (mongoClient) await mongoClient.close().catch(() => {});
   if (sqliteDb) {
     try { sqliteDb.close(); } catch (_) {}
   }

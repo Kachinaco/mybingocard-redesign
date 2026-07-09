@@ -111,7 +111,6 @@ describe("suppress unengaged script SQLite backend", () => {
           ...process.env,
           MYBINGOCARD_DB_BACKEND: "sqlite",
           MYBINGOCARD_SQLITE_PATH: dbPath,
-          MONGODB_URI: "mongodb://127.0.0.1:1/nope",
           DRY_RUN: "0",
           LOOKBACK_DAYS: "180",
           MIN_SENDS: "3",

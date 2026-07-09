@@ -53,7 +53,7 @@ function createFixture() {
 }
 
 describe("upsertEmailSubscriber", () => {
-  test("creates a normalized Mongo subscriber record for a new capture", async () => {
+  test("creates a normalized subscriber record for a new capture", async () => {
     const now = new Date("2026-04-23T20:30:00.000Z");
     const updateOne = mock(async () => ({ matchedCount: 0, upsertedCount: 1 }));
 
@@ -86,7 +86,7 @@ describe("upsertEmailSubscriber", () => {
     });
   });
 
-  test("treats an existing Mongo subscriber as a duplicate capture", async () => {
+  test("treats an existing subscriber as a duplicate capture", async () => {
     const updateOne = mock(async () => ({ matchedCount: 1, upsertedCount: 0 }));
 
     const result = await upsertEmailSubscriber(

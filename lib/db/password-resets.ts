@@ -1,7 +1,6 @@
 import crypto from "node:crypto";
-import { ObjectId } from "mongodb";
-import clientPromise from "../mongodb";
-import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
+import { ObjectId } from "bson";
+import { getSqliteStore } from "@/lib/db/sqlite";
 
 interface PasswordResetToken {
   _id: ObjectId;
@@ -22,32 +21,13 @@ function hashToken(token: string): string {
 export async function createPasswordResetToken(email: string): Promise<string> {
   const token = crypto.randomBytes(32).toString("hex");
   const now = new Date();
+  const store = getSqliteStore();
 
-  if (useSqliteDb()) {
-    const store = getSqliteStore();
-    store.deleteMany(COLLECTION, {
-      email,
-      usedAt: { $exists: false },
-    });
-    store.insertOne(COLLECTION, {
-      email,
-      tokenHash: hashToken(token),
-      createdAt: now,
-      expiresAt: new Date(now.getTime() + TOKEN_TTL_MS),
-    } as PasswordResetToken);
-    return token;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const collection = db.collection<PasswordResetToken>(COLLECTION);
-
-  await collection.deleteMany({
+  store.deleteMany(COLLECTION, {
     email,
     usedAt: { $exists: false },
   });
-
-  await collection.insertOne({
+  store.insertOne(COLLECTION, {
     email,
     tokenHash: hashToken(token),
     createdAt: now,
@@ -58,21 +38,7 @@ export async function createPasswordResetToken(email: string): Promise<string> {
 }
 
 export async function getEmailForValidResetToken(token: string): Promise<string | null> {
-  if (useSqliteDb()) {
-    const record = getSqliteStore().findOne<PasswordResetToken>(COLLECTION, {
-      tokenHash: hashToken(token),
-      expiresAt: { $gt: new Date() },
-      usedAt: { $exists: false },
-    });
-
-    return record?.email || null;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const collection = db.collection<PasswordResetToken>(COLLECTION);
-
-  const record = await collection.findOne({
+  const record = getSqliteStore().findOne<PasswordResetToken>(COLLECTION, {
     tokenHash: hashToken(token),
     expiresAt: { $gt: new Date() },
     usedAt: { $exists: false },
@@ -82,20 +48,8 @@ export async function getEmailForValidResetToken(token: string): Promise<string 
 }
 
 export async function markResetTokenUsed(token: string): Promise<void> {
-  if (useSqliteDb()) {
-    getSqliteStore().updateMany<PasswordResetToken>(
-      COLLECTION,
-      { tokenHash: hashToken(token), usedAt: { $exists: false } },
-      { $set: { usedAt: new Date() } }
-    );
-    return;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const collection = db.collection<PasswordResetToken>(COLLECTION);
-
-  await collection.updateMany(
+  getSqliteStore().updateMany<PasswordResetToken>(
+    COLLECTION,
     { tokenHash: hashToken(token), usedAt: { $exists: false } },
     { $set: { usedAt: new Date() } }
   );

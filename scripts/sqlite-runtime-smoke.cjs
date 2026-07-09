@@ -355,7 +355,6 @@ async function run() {
     AUTH_GOOGLE_SECRET: "sqlite-runtime-smoke-google-secret",
     AUTH_APPLE_ID: "",
     AUTH_APPLE_SECRET: "",
-    MONGODB_URI: "mongodb://127.0.0.1:1/mybingocard-sqlite-runtime-smoke",
     MYBINGOCARD_DB_BACKEND: "sqlite",
     MYBINGOCARD_SQLITE_PATH: fixture.dbPath,
     STRIPE_SECRET_KEY: "sk_test_sqlite_runtime_smoke",

@@ -88,7 +88,6 @@ describe("traffic truth report SQLite backend", () => {
           ...process.env,
           MYBINGOCARD_DB_BACKEND: "sqlite",
           MYBINGOCARD_SQLITE_PATH: dbPath,
-          MONGODB_URI: "mongodb://127.0.0.1:1/nope",
           MYBINGOCARD_NGINX_LOG_DIR: logDir,
           MYBINGOCARD_TRAFFIC_SKIP_CENTRAL_ANALYTICS: "1",
           MYBINGOCARD_TRAFFIC_SKIP_GSC: "1",
