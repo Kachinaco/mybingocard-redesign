@@ -14,7 +14,8 @@ const HOST = new URL(APP_URL).hostname;
 const REPORT_PATH = process.env.MYBINGOCARD_RECOVERY_REPORT || "/var/log/mybingocard/traffic-recovery-last.json";
 const INDEXNOW_ENDPOINT = process.env.INDEXNOW_ENDPOINT || "https://api.indexnow.org/IndexNow";
 const USER_AGENT = "MyBingoCardTrafficRecovery/1.0";
-const GSC_SUBMIT_SCRIPT = process.env.MYBINGOCARD_GSC_SUBMIT_SCRIPT || "/root/scripts/utils/submit-sitemap-to-gsc.mjs";
+const GSC_SUBMIT_SCRIPT = process.env.MYBINGOCARD_GSC_SUBMIT_SCRIPT
+  || path.join(__dirname, "submit-sitemap-to-gsc.cjs");
 const PRIORITY_PATHS = [
   "/",
   "/create",
@@ -184,10 +185,10 @@ function submitGscSitemap() {
   if (hasArg("--no-gsc")) return { skipped: true, reason: "--no-gsc" };
   if (hasArg("--dry-run")) return { skipped: true, reason: "--dry-run" };
   if (!fs.existsSync(GSC_SUBMIT_SCRIPT)) {
-    return { skipped: true, reason: `${GSC_SUBMIT_SCRIPT} not found` };
+    return { ok: false, reason: `${GSC_SUBMIT_SCRIPT} not found` };
   }
   try {
-    const output = execFileSync("node", [GSC_SUBMIT_SCRIPT, HOST], {
+    const output = execFileSync(process.execPath, [GSC_SUBMIT_SCRIPT, HOST], {
       cwd: APP_DIR,
       encoding: "utf8",
       timeout: 30000,
@@ -235,6 +236,7 @@ async function main() {
   console.log(JSON.stringify(result, null, 2));
   console.log(`Recovery result written: ${outPath}`);
   if (!indexNow.skipped && !indexNow.ok && indexNow.status !== 429) process.exitCode = 1;
+  if (!gsc.skipped && !gsc.ok) process.exitCode = 1;
 }
 
 main().catch((error) => {

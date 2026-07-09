@@ -45,6 +45,7 @@
     "better-sqlite3": "^12.6.2",
     "bson": "^6.10.4",
     "browser-image-compression": "^2.0.2",
+    "googleapis": "^171.4.0",
     "html2canvas": "^1.4.1",
     "imap": "0.8.17",
     "mailparser": "3.9.8",

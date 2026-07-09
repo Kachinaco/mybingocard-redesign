@@ -10,6 +10,7 @@ describe("production ops guardrails", () => {
   const monitorSource = readSource("scripts/ops-regression-monitor.cjs");
   const truthSource = readSource("scripts/traffic-truth-report.cjs");
   const recoverySource = readSource("scripts/traffic-recovery-submit.cjs");
+  const gscSubmitSource = readSource("scripts/submit-sitemap-to-gsc.cjs");
   const cronSource = readSource("scripts/install-ops-cron.cjs");
   const ecosystemSource = readSource("ecosystem.config.cjs");
 
@@ -77,12 +78,22 @@ describe("production ops guardrails", () => {
   test("traffic recovery submits indexing signals without publishing social messages", () => {
     expect(recoverySource).toContain("IndexNow");
     expect(recoverySource).toContain("submit-sitemap-to-gsc");
+    expect(recoverySource).toContain('path.join(__dirname, "submit-sitemap-to-gsc.cjs")');
     expect(recoverySource).toContain("urlList");
     expect(recoverySource).toContain("submittedPublicMessages: false");
     expect(recoverySource).toContain("INDEXNOW_RATE_LIMIT_COOLDOWN_MS");
+    expect(recoverySource).toContain("!gsc.skipped && !gsc.ok");
     expect(recoverySource).not.toContain('"/play"');
     expect(recoverySource).not.toContain("facebook.com");
     expect(recoverySource).not.toContain("pinterest.com");
+  });
+
+  test("the repository-owned GSC helper submits only the canonical sitemap", () => {
+    expect(gscSubmitSource).toContain("MYBINGOCARD_GSC_SERVICE_ACCOUNT_FILE");
+    expect(gscSubmitSource).toContain("https://www.googleapis.com/auth/webmasters");
+    expect(gscSubmitSource).toContain("searchconsole.sitemaps.submit");
+    expect(gscSubmitSource).toContain("https://${DEFAULT_DOMAIN}/sitemap.xml");
+    expect(gscSubmitSource).toContain("only submits the ${DEFAULT_DOMAIN} sitemap");
   });
 
   test("cron installer owns one idempotent guardrail block", () => {
