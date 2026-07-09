@@ -112,7 +112,6 @@ describe("user journey analysis SQLite backend", () => {
           MYBINGOCARD_SQLITE_PATH: dbPath,
           MYBINGOCARD_JOURNEY_OUT_DIR: outDir,
           MYBINGOCARD_JOURNEY_RUN_DATE: "2026-07-03",
-          MONGODB_URI: "mongodb://127.0.0.1:1/nope",
         },
         encoding: "utf8",
       });

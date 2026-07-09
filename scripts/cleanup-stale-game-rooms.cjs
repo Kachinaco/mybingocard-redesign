@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { MongoClient } = require('mongodb');
-const { openSqliteShadowStore, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
+const { openSqliteShadowStore } = require('./sqlite-shadow-store.cjs');
 
 const envPath = path.join(__dirname, '..', '.env.local');
 try {
@@ -17,7 +16,6 @@ try {
   console.error('Could not load .env.local:', error.message);
 }
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 const isDryRun = process.argv.includes('--dry-run');
 
 function objectIdString(value) {
@@ -100,56 +98,8 @@ async function runSqlite() {
   }
 }
 
-async function runMongo() {
-  const client = new MongoClient(MONGODB_URI);
-  try {
-    await client.connect();
-    const db = client.db('mybingocard');
-    const now = new Date();
-    const cutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const filter = staleRoomFilter(cutoff);
-    const staleRooms = await db.collection('game_rooms').find(filter).toArray();
-
-    if (isDryRun) {
-      console.log(`[${now.toISOString()}] Would clean up ${staleRooms.length} stale game rooms`);
-      return;
-    }
-
-    if (staleRooms.length > 0) {
-      await db.collection('game_rooms').updateMany(filter, {
-        $set: {
-          status: 'finished',
-          updatedAt: now,
-        },
-      });
-
-      await db.collection('activity_events').insertMany(
-        staleRooms.map((room) => {
-          const event = gameAutoEndedEvent(room, now);
-          return {
-            ...event,
-            metadata: {
-              ...event.metadata,
-              roomId: objectIdString(room._id),
-            },
-          };
-        })
-      );
-    }
-
-    console.log(`[${now.toISOString()}] Cleaned up ${staleRooms.length} stale game rooms`);
-  } finally {
-    await client.close();
-  }
-}
-
 async function run() {
-  if (useSqliteBackend()) {
-    await runSqlite();
-    return;
-  }
-
-  await runMongo();
+  await runSqlite();
 }
 
 run().catch((error) => {

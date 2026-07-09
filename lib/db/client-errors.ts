@@ -1,7 +1,4 @@
-import clientPromise from "@/lib/mongodb";
-import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
-
-const DB_NAME = "mybingocard";
+import { getSqliteStore } from "@/lib/db/sqlite";
 
 export type ClientErrorSeverity = "low" | "medium" | "high";
 
@@ -145,20 +142,10 @@ export interface AdminErrorPageData {
   selectedGroup: AdminErrorFingerprintDoc | null;
 }
 
-async function mongoDb() {
-  const client = await clientPromise;
-  return client.db(DB_NAME);
-}
-
 export async function insertClientErrorEvent(doc: ClientErrorEventRecord): Promise<void> {
-  if (useSqliteDb()) {
     getSqliteStore().insertOne("error_events", doc);
     return;
   }
-
-  const db = await mongoDb();
-  await db.collection<ClientErrorEventRecord>("error_events").insertOne(doc);
-}
 
 export async function upsertMarketingTrackingFailure(
   doc: MarketingTrackingFailureRecord,
@@ -192,19 +179,9 @@ export async function upsertMarketingTrackingFailure(
       sessionIds: doc.sessionId,
     },
   };
-
-  if (useSqliteDb()) {
     getSqliteStore().updateOne("marketing_tracking_failures", { _id: doc.fingerprint }, update, { upsert: true });
     return;
   }
-
-  const db = await mongoDb();
-  await db.collection<{ _id: string }>("marketing_tracking_failures").updateOne(
-    { _id: doc.fingerprint },
-    update,
-    { upsert: true }
-  );
-}
 
 export async function upsertClientErrorFingerprint(
   doc: ClientErrorEventRecord
@@ -246,8 +223,6 @@ export async function upsertClientErrorFingerprint(
       sessionIds: doc.sessionId,
     },
   };
-
-  if (useSqliteDb()) {
     return getSqliteStore().findOneAndUpdate<ClientErrorFingerprintRecord>(
       "error_fingerprints",
       { _id: doc.fingerprint },
@@ -255,14 +230,6 @@ export async function upsertClientErrorFingerprint(
       { upsert: true, returnDocument: "after" }
     );
   }
-
-  const db = await mongoDb();
-  return db.collection<ClientErrorFingerprintRecord>("error_fingerprints").findOneAndUpdate(
-    { _id: doc.fingerprint },
-    update as any,
-    { upsert: true, returnDocument: "after" }
-  );
-}
 
 export async function reopenFixedClientErrorFingerprint(
   fingerprint: string,
@@ -283,36 +250,17 @@ export async function reopenFixedClientErrorFingerprint(
       },
     },
   };
-
-  if (useSqliteDb()) {
     getSqliteStore().updateOne("error_fingerprints", { _id: fingerprint, status: "fixed" }, update);
     return;
   }
-
-  const db = await mongoDb();
-  await db.collection("error_fingerprints").updateOne(
-    { _id: fingerprint, status: "fixed" } as any,
-    update as any
-  );
-}
 
 export async function getRecentClientErrorStats(
   fingerprint: string,
   since: Date
 ): Promise<ClientErrorRecentStats> {
   const query = { fingerprint, createdAt: { $gte: since } };
-
-  if (useSqliteDb()) {
     return statsFromEvents(getSqliteStore().findMany<Partial<ClientErrorEventRecord>>("error_events", query));
   }
-
-  const db = await mongoDb();
-  const events = await db
-    .collection<Partial<ClientErrorEventRecord>>("error_events")
-    .find(query, { projection: { sessionId: 1 } })
-    .toArray();
-  return statsFromEvents(events);
-}
 
 export async function claimClientErrorSpikeAlert(input: {
   fingerprint: string;
@@ -335,8 +283,6 @@ export async function claimClientErrorSpikeAlert(input: {
       lastAlertRecentSessions: input.recentSessions,
     },
   };
-
-  if (useSqliteDb()) {
     return Boolean(
       getSqliteStore().findOneAndUpdate<ClientErrorFingerprintRecord>(
         "error_fingerprints",
@@ -346,16 +292,6 @@ export async function claimClientErrorSpikeAlert(input: {
       )
     );
   }
-
-  const db = await mongoDb();
-  return Boolean(
-    await db.collection<ClientErrorFingerprintRecord>("error_fingerprints").findOneAndUpdate(
-      query,
-      update,
-      { returnDocument: "after" }
-    )
-  );
-}
 
 export async function claimClientErrorCaptureNotification(input: {
   fingerprint: string;
@@ -374,8 +310,6 @@ export async function claimClientErrorCaptureNotification(input: {
       lastCapturedNotificationAt: input.now,
     },
   };
-
-  if (useSqliteDb()) {
     return Boolean(
       getSqliteStore().findOneAndUpdate<ClientErrorFingerprintRecord>(
         "error_fingerprints",
@@ -385,16 +319,6 @@ export async function claimClientErrorCaptureNotification(input: {
       )
     );
   }
-
-  const db = await mongoDb();
-  return Boolean(
-    await db.collection<ClientErrorFingerprintRecord>("error_fingerprints").findOneAndUpdate(
-      query,
-      update,
-      { returnDocument: "after" }
-    )
-  );
-}
 
 export async function updateAdminErrorFingerprintStatus(input: {
   fingerprint: string;
@@ -417,18 +341,9 @@ export async function updateAdminErrorFingerprintStatus(input: {
       },
     },
   };
-
-  if (useSqliteDb()) {
     getSqliteStore().updateOne("error_fingerprints", { _id: input.fingerprint }, update);
     return;
   }
-
-  const db = await mongoDb();
-  await db.collection("error_fingerprints").updateOne(
-    { _id: input.fingerprint } as any,
-    update as any
-  );
-}
 
 export async function getAdminErrorPageData(input: {
   selectedFingerprint: string | null;
@@ -442,8 +357,6 @@ export async function getAdminErrorPageData(input: {
   const currentBuildCreatedAt = asDate(input.currentBuild.buildCreatedAt);
   const unresolvedQuery = adminErrorStatusQuery("unresolved");
   const activeStatusQuery = adminErrorStatusQuery(input.selectedStatusFilter);
-
-  if (useSqliteDb()) {
     const store = getSqliteStore();
     const groups = store.findMany<AdminErrorFingerprintDoc>(
       "error_fingerprints",
@@ -490,75 +403,6 @@ export async function getAdminErrorPageData(input: {
       selectedGroup,
     };
   }
-
-  const db = await mongoDb();
-  const [
-    groups,
-    groups24h,
-    events24h,
-    currentBuildEvents24h,
-    eventsAfterDeploy,
-    highGroups24h,
-    newSinceDeployGroups,
-    statusCountsRaw,
-    selectedEvents,
-  ] = await Promise.all([
-    db.collection<AdminErrorFingerprintDoc>("error_fingerprints")
-      .find(activeStatusQuery as any)
-      .sort({ lastSeenAt: -1 })
-      .limit(50)
-      .toArray(),
-    db.collection("error_fingerprints").countDocuments(andAdminErrorQuery(
-      unresolvedQuery,
-      { lastSeenAt: { $gte: since24h } }
-    ) as any),
-    db.collection("error_events").countDocuments({ createdAt: { $gte: since24h } }),
-    input.currentBuild.buildId
-      ? db.collection("error_events").countDocuments({ createdAt: { $gte: since24h }, buildId: input.currentBuild.buildId })
-      : Promise.resolve(0),
-    currentBuildCreatedAt
-      ? db.collection("error_events").countDocuments({ createdAt: { $gte: currentBuildCreatedAt } })
-      : Promise.resolve(0),
-    db.collection("error_fingerprints").countDocuments(andAdminErrorQuery(
-      unresolvedQuery,
-      { lastSeenAt: { $gte: since24h }, severity: "high" }
-    ) as any),
-    currentBuildCreatedAt
-      ? db.collection("error_fingerprints").countDocuments(andAdminErrorQuery(
-          unresolvedQuery,
-          { firstSeenAt: { $gte: currentBuildCreatedAt } }
-        ) as any)
-      : Promise.resolve(0),
-    db.collection("error_fingerprints").aggregate<AdminErrorStatusCount>([
-      { $group: { _id: { $ifNull: ["$status", "open"] }, count: { $sum: 1 } } },
-    ]).toArray(),
-    input.selectedFingerprint
-      ? db.collection<AdminErrorEventDoc>("error_events")
-          .find({ fingerprint: input.selectedFingerprint })
-          .sort({ createdAt: -1 })
-          .limit(25)
-          .toArray()
-      : Promise.resolve([]),
-  ]);
-
-  const selectedGroup = input.selectedFingerprint
-    ? groups.find((group) => group._id === input.selectedFingerprint) ||
-      await db.collection<AdminErrorFingerprintDoc>("error_fingerprints").findOne({ _id: input.selectedFingerprint })
-    : null;
-
-  return {
-    groups,
-    groups24h,
-    events24h,
-    currentBuildEvents24h,
-    eventsAfterDeploy,
-    highGroups24h,
-    newSinceDeployGroups,
-    statusCountsRaw,
-    selectedEvents,
-    selectedGroup,
-  };
-}
 
 export function normalizeAdminErrorStatus(status?: string | null): AdminErrorStatus {
   return status === "watching" || status === "fixed" || status === "ignored" ? status : "open";

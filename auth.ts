@@ -92,11 +92,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         try {
-          // Atomic single-use: match the token+expiry and clear it in one op.
-          // The DB query itself encapsulates the token comparison, so there is
-          // no need for a separate timingSafeEqual — MongoDB's equality match
-          // on an indexed field performs the comparison server-side and the
-          // $unset guarantees the token cannot be reused even under races.
+          // Atomic single-use: claim the token+expiry and clear it in one op.
+          // The database operation encapsulates the comparison and update, so
+          // there is no need for a separate timingSafeEqual. Clearing the
+          // token guarantees it cannot be reused even under races.
           const user = await claimGuestUser(credentials.userId as string, credentials.guestToken as string);
           if (!user) return null;
 

@@ -1,5 +1,4 @@
-import { MongoDBAdapter } from "@auth/mongodb-adapter";
-import { ObjectId } from "mongodb";
+import { ObjectId } from "bson";
 import type {
   Adapter,
   AdapterAccount,
@@ -7,14 +6,13 @@ import type {
   AdapterUser,
   VerificationToken,
 } from "next-auth/adapters";
-import clientPromise from "@/lib/mongodb";
-import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
+import { getSqliteStore } from "@/lib/db/sqlite";
 import type { SqliteDocumentStore } from "@/lib/sqlite-document-store";
 
 type AuthDocument = Record<string, unknown>;
 
 export function createMyBingoCardAuthAdapter(): Adapter {
-  return useSqliteDb() ? createSqliteAuthAdapter() : MongoDBAdapter(clientPromise);
+  return createSqliteAuthAdapter();
 }
 
 export function createSqliteAuthAdapter(storeOverride?: SqliteDocumentStore): Adapter {

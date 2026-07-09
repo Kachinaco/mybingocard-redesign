@@ -17,10 +17,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: [
     "better-sqlite3",
     "sharp",
-    "mongodb",
     "bson",
-    "mongodb-connection-string-url",
-    "@mongodb-js/saslprep",
   ],
   transpilePackages: ["@chenglou/pretext"],
   // Source maps are generated for server-side/admin-only symbolication.

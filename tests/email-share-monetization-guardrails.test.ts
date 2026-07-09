@@ -23,7 +23,6 @@ describe("email share monetization guardrails", () => {
     expect(embeddedCheckoutSource).toContain('purchaseType === "email_share_batch"');
     expect(embeddedCheckoutSource).toContain("insertShareEmailCheckoutRef");
     expect(embeddedCheckoutSource).toContain("ensureShareEmailCheckoutRefsReady");
-    expect(embeddedCheckoutSource).not.toContain("clientPromise");
     expect(embeddedCheckoutSource).not.toContain(".collection(");
   });
 
@@ -36,7 +35,6 @@ describe("email share monetization guardrails", () => {
     expect(webhookSource).toContain("sendShareLinkInvitationEmail");
     expect(webhookSource).toContain("claimStripeWebhookEvent");
     expect(webhookSource).toContain("insertPreparedSharedLinks");
-    expect(webhookSource).not.toContain("clientPromise");
     expect(webhookSource).not.toContain(".collection(");
   });
 });

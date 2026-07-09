@@ -3,14 +3,10 @@ import { SqliteDocumentStore } from "@/lib/sqlite-document-store";
 let activeStore: SqliteDocumentStore | null = null;
 let activeStorePath: string | null = null;
 
-export function useSqliteDb() {
-  return process.env.MYBINGOCARD_DB_BACKEND?.toLowerCase() === "sqlite";
-}
-
 export function getSqliteStore() {
   const sqlitePath = process.env.MYBINGOCARD_SQLITE_PATH;
   if (!sqlitePath) {
-    throw new Error("MYBINGOCARD_SQLITE_PATH is required when MYBINGOCARD_DB_BACKEND=sqlite");
+    throw new Error("MYBINGOCARD_SQLITE_PATH is required");
   }
 
   if (!activeStore || activeStorePath !== sqlitePath) {

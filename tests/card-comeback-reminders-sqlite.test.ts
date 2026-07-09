@@ -168,7 +168,6 @@ describe("card comeback reminder script SQLite backend", () => {
           ...process.env,
           MYBINGOCARD_DB_BACKEND: "sqlite",
           MYBINGOCARD_SQLITE_PATH: dbPath,
-          MONGODB_URI: "mongodb://127.0.0.1:1/nope",
           SEND_EMAILS: "0",
           CARD_COMEBACK_MIN_AGE_HOURS: "1",
           CARD_COMEBACK_MAX_AGE_DAYS: "3650",

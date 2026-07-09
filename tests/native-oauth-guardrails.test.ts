@@ -45,7 +45,6 @@ describe("native OAuth guardrails", () => {
     expect(exchangeSource).toContain("response.cookies.set");
 
     for (const source of [googleCompleteSource, appleCompleteSource, appleNativeSource, exchangeSource]) {
-      expect(source).not.toContain("clientPromise");
       expect(source).not.toContain(".collection(");
     }
   });

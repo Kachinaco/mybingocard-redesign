@@ -93,7 +93,6 @@ describe("feature usage insights SQLite backend", () => {
           MYBINGOCARD_SQLITE_PATH: dbPath,
           MYBINGOCARD_INSIGHTS_DIR: outputDir,
           MYBINGOCARD_INSIGHTS_NOTE: obsidianNote,
-          MONGODB_URI: "mongodb://127.0.0.1:1/nope",
         },
         encoding: "utf8",
       });

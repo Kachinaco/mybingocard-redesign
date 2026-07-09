@@ -1,8 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('./smtp-client.cjs');
-const { MongoClient } = require('mongodb');
-const { openSqliteShadowStore, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
+const { openSqliteShadowStore } = require('./sqlite-shadow-store.cjs');
 
 const envPath = path.join(__dirname, '..', '.env.local');
 try {
@@ -21,7 +20,6 @@ try {
 const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://mybingocard.com').replace(/\/$/, '');
 const FROM_ADDRESS = process.env.EMAIL_FROM || 'MyBingoCard <support@mybingocard.com>';
 const SUPPORT_ADDRESS = 'support@mybingocard.com';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 const TWO_HOURS_MS = 2 * 60 * 60 * 1000;
 const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
 const configuredMaxAgeDays = Number(process.env.ABANDONED_CHECKOUT_MAX_AGE_DAYS || 7);
@@ -433,135 +431,7 @@ async function runSqlite(now, earliestCheckout) {
 async function run() {
   const now = getNow();
   const earliestCheckout = new Date(now.getTime() - MAX_CHECKOUT_AGE_MS);
-
-  if (useSqliteBackend()) {
-    await runSqlite(now, earliestCheckout);
-    return;
-  }
-
-  const client = new MongoClient(MONGODB_URI);
-
-  let sent = 0;
-  let skipped = 0;
-
-  try {
-    await client.connect();
-    const db = client.db('mybingocard');
-    const activityEvents = db.collection('activity_events');
-    const users = db.collection('users');
-    const emailPreferences = db.collection('email_preferences');
-    const reminderLog = db.collection('checkout_reminder_log');
-
-    await reminderLog.createIndex(
-      { email: 1, checkoutSessionId: 1, reminderType: 1 },
-      { unique: true }
-    );
-
-    const latestStartedCheckouts = await activityEvents.aggregate([
-      {
-        $match: {
-          event: 'checkout_started',
-          email: { $type: 'string', $ne: '' },
-          createdAt: { $gte: earliestCheckout },
-        },
-      },
-      { $sort: { createdAt: -1 } },
-      {
-        $group: {
-          _id: { $toLower: '$email' },
-          checkout: { $first: '$$ROOT' },
-        },
-      },
-    ]).toArray();
-
-    console.log(`Found ${latestStartedCheckouts.length} recent checkout starts since ${earliestCheckout.toISOString()}`);
-
-    for (const row of latestStartedCheckouts) {
-      const checkout = row.checkout;
-      const email = normalizeEmail(checkout?.email);
-      const rawEmail = String(checkout?.email || '').trim();
-      if (!email) {
-        skipped += 1;
-        continue;
-      }
-
-      if (TARGET_EMAIL && email !== TARGET_EMAIL) {
-        skipped += 1;
-        continue;
-      }
-
-      const startedAt = new Date(checkout.createdAt);
-      const ageMs = now.getTime() - startedAt.getTime();
-      const reminderType = getReminderToSend(ageMs);
-      if (!reminderType) {
-        skipped += 1;
-        continue;
-      }
-
-      const checkoutSessionId = checkout?.metadata?.checkoutSessionId || String(checkout._id);
-      const alreadySent = await reminderLog.findOne({
-        email,
-        checkoutSessionId,
-        reminderType,
-      });
-      if (alreadySent) {
-        skipped += 1;
-        continue;
-      }
-
-      const [user, prefs, converted] = await Promise.all([
-        users.findOne({ email: { $in: [email, rawEmail] } }),
-        emailPreferences.findOne({ email: { $in: [email, rawEmail] } }),
-        activityEvents.findOne({
-          event: 'subscription_activated',
-          email: { $in: [email, rawEmail] },
-          createdAt: { $gt: startedAt },
-        }),
-      ]);
-
-      if (prefs?.marketingEmails === false) {
-        console.log(`Skipping ${email}: marketing emails disabled`);
-        skipped += 1;
-        continue;
-      }
-
-      if (converted || isPaidOrInBillingFlow(user)) {
-        console.log(`Skipping ${email}: already converted or currently paid`);
-        skipped += 1;
-        continue;
-      }
-
-      const planType = checkout?.metadata?.planType || 'PREMIUM';
-      const reminder = reminderType === 'two_days'
-        ? buildTwoDayReminder({ email, name: user?.name, planType })
-        : buildTwoHourReminder({ email, name: user?.name, planType });
-
-      if (DRY_RUN) {
-        console.log(`[dry-run] would send ${reminder.reminderType} reminder to ${email} for checkout ${checkoutSessionId}`);
-      } else {
-        await sendReminderEmail(email, reminder.subject, reminder.html, reminder.text);
-        console.log(`Sent ${reminder.reminderType} reminder to ${email}`);
-
-        await reminderLog.insertOne({
-          email,
-          userId: checkout.userId || user?._id || null,
-          checkoutSessionId,
-          reminderType: reminder.reminderType,
-          campaignId: reminder.campaignId,
-          planType,
-          startedAt,
-          sentAt: now,
-          dryRun: false,
-          createdAt: now,
-        });
-      }
-      sent += 1;
-    }
-
-    console.log(`Abandoned checkout reminders complete. Sent=${sent} Skipped=${skipped} DryRun=${DRY_RUN}`);
-  } finally {
-    await client.close();
-  }
+  await runSqlite(now, earliestCheckout);
 }
 
 run().catch((error) => {

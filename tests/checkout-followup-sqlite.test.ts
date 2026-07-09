@@ -107,7 +107,6 @@ describe("checkout follow-up script SQLite backend", () => {
           ...process.env,
           MYBINGOCARD_DB_BACKEND: "sqlite",
           MYBINGOCARD_SQLITE_PATH: dbPath,
-          MONGODB_URI: "mongodb://127.0.0.1:1/nope",
           DRY_RUN: "1",
           EMAIL_SERVER_USER: "",
           EMAIL_SERVER_PASSWORD: "",

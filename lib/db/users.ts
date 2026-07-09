@@ -1,9 +1,8 @@
-import clientPromise from "../mongodb";
-import { ObjectId } from "mongodb";
+import { ObjectId } from "bson";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import type { PlanType } from "@/lib/stripe/config";
-import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
+import { getSqliteStore } from "@/lib/db/sqlite";
 
 export interface User {
   _id: ObjectId;
@@ -260,78 +259,18 @@ function sqliteCardCountsForUserIds(userIds: string[]) {
   return counts;
 }
 
-async function mongoCardCountsForUserIds(userIds: string[]) {
-  if (userIds.length === 0) return new Map<string, number>();
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const cardCounts = await db
-    .collection("cards")
-    .aggregate([
-      { $match: { userId: { $in: userIds } } },
-      { $group: { _id: "$userId", count: { $sum: 1 } } },
-    ])
-    .toArray();
-
-  return new Map(cardCounts.map((count) => [String(count._id), count.count as number]));
-}
-
 export async function getUserByEmail(email: string): Promise<User | null> {
-  if (useSqliteDb()) {
-    return getSqliteStore().findOne<User>("users", { email });
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const user = await db.collection<User>("users").findOne({ email });
-  return user;
+  return getSqliteStore().findOne<User>("users", { email });
 }
 
 export async function getUserById(id: string): Promise<User | null> {
-  if (useSqliteDb()) {
-    return getSqliteStore().findOne<User>("users", { _id: new ObjectId(id) });
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const user = await db.collection<User>("users").findOne({
-    _id: new ObjectId(id)
-  });
-  return user;
+  return getSqliteStore().findOne<User>("users", { _id: new ObjectId(id) });
 }
 
 export async function getUsersForExport(): Promise<UserExportRow[]> {
-  if (useSqliteDb()) {
-    return getSqliteStore()
-      .findMany<User>("users", {}, { sort: { createdAt: -1 } })
-      .map(toUserExportRow);
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const users = await db
-    .collection<User>("users")
-    .find(
-      {},
-      {
-        projection: {
-          email: 1,
-          name: 1,
-          planType: 1,
-          subscriptionStatus: 1,
-          signupMethod: 1,
-          createdAt: 1,
-          totalCardsCreated: 1,
-          totalExports: 1,
-        },
-      }
-    )
-    .sort({ createdAt: -1 })
-    .toArray();
-
-  return users.map(toUserExportRow);
+  return getSqliteStore()
+    .findMany<User>("users", {}, { sort: { createdAt: -1 } })
+    .map(toUserExportRow);
 }
 
 export async function getAdminUsersPage(options: AdminUserListOptions = {}): Promise<AdminUserListResult> {
@@ -343,118 +282,33 @@ export async function getAdminUsersPage(options: AdminUserListOptions = {}): Pro
   const sortBy = options.sortBy || "newest";
   const filter = buildAdminUserFilter(search, plan);
 
-  if (useSqliteDb()) {
-    const store = getSqliteStore();
-
-    if (sortBy === "most_cards") {
-      const allUsers = store.findMany<User>("users", filter);
-      const allUserIds = allUsers.map((user) => idToString(user._id));
-      const cardCounts = sqliteCardCountsForUserIds(allUserIds);
-      const rows = allUsers
-        .map((user) => toAdminUserListItem(user, cardCounts.get(idToString(user._id)) || 0))
-        .sort((left, right) => right.cardCount - left.cardCount);
-
-      return {
-        users: rows.slice(skip, skip + limit),
-        totalUsers: rows.length,
-        page,
-        limit,
-        totalPages: Math.ceil(rows.length / limit),
-      };
-    }
-
-    const users = store.findMany<User>("users", filter, {
-      sort: buildAdminUserSort(sortBy),
-      skip,
-      limit,
-    });
-    const totalUsers = store.count("users", filter);
-    const userIds = users.map((user) => idToString(user._id));
-    const cardCounts = sqliteCardCountsForUserIds(userIds);
-
-    return {
-      users: users.map((user) => toAdminUserListItem(user, cardCounts.get(idToString(user._id)) || 0)),
-      totalUsers,
-      page,
-      limit,
-      totalPages: Math.ceil(totalUsers / limit),
-    };
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
+  const store = getSqliteStore();
 
   if (sortBy === "most_cards") {
-    const pipeline = [
-      ...(Object.keys(filter).length > 0 ? [{ $match: filter }] : []),
-      {
-        $lookup: {
-          from: "cards",
-          let: { uid: { $toString: "$_id" } },
-          pipeline: [
-            { $match: { $expr: { $eq: ["$userId", "$$uid"] } } },
-            { $count: "count" },
-          ],
-          as: "cardData",
-        },
-      },
-      {
-        $addFields: {
-          cardCount: {
-            $ifNull: [{ $arrayElemAt: ["$cardData.count", 0] }, 0],
-          },
-        },
-      },
-      { $sort: { cardCount: -1 as const } },
-      {
-        $facet: {
-          data: [
-            { $skip: skip },
-            { $limit: limit },
-            {
-              $project: {
-                name: 1, email: 1, planType: 1, subscriptionStatus: 1,
-                createdAt: 1, updatedAt: 1, image: 1, cardCount: 1,
-                trialEndsAt: 1, stripeCustomerId: 1, customerType: 1,
-              },
-            },
-          ],
-          total: [{ $count: "count" }],
-        },
-      },
-    ];
-
-    const results = await db.collection("users").aggregate(pipeline).toArray();
-    const result = results[0] as { data?: Partial<User & { cardCount: number }>[]; total?: { count: number }[] } | undefined;
-    const users = result?.data || [];
-    const totalUsers = result?.total?.[0]?.count || 0;
+    const allUsers = store.findMany<User>("users", filter);
+    const allUserIds = allUsers.map((user) => idToString(user._id));
+    const cardCounts = sqliteCardCountsForUserIds(allUserIds);
+    const rows = allUsers
+      .map((user) => toAdminUserListItem(user, cardCounts.get(idToString(user._id)) || 0))
+      .sort((left, right) => right.cardCount - left.cardCount);
 
     return {
-      users: users.map((user) => toAdminUserListItem(user, user.cardCount || 0)),
-      totalUsers,
+      users: rows.slice(skip, skip + limit),
+      totalUsers: rows.length,
       page,
       limit,
-      totalPages: Math.ceil(totalUsers / limit),
+      totalPages: Math.ceil(rows.length / limit),
     };
   }
 
-  const [users, totalUsers] = await Promise.all([
-    db
-      .collection<User>("users")
-      .find(filter, {
-        projection: {
-          name: 1, email: 1, planType: 1, subscriptionStatus: 1,
-          createdAt: 1, updatedAt: 1, image: 1,
-          trialEndsAt: 1, stripeCustomerId: 1, customerType: 1,
-        },
-      })
-      .sort(buildAdminUserSort(sortBy))
-      .skip(skip)
-      .limit(limit)
-      .toArray(),
-    db.collection("users").countDocuments(filter),
-  ]);
-  const cardCounts = await mongoCardCountsForUserIds(users.map((user) => idToString(user._id)));
+  const users = store.findMany<User>("users", filter, {
+    sort: buildAdminUserSort(sortBy),
+    skip,
+    limit,
+  });
+  const totalUsers = store.count("users", filter);
+  const userIds = users.map((user) => idToString(user._id));
+  const cardCounts = sqliteCardCountsForUserIds(userIds);
 
   return {
     users: users.map((user) => toAdminUserListItem(user, cardCounts.get(idToString(user._id)) || 0)),
@@ -467,78 +321,29 @@ export async function getAdminUsersPage(options: AdminUserListOptions = {}): Pro
 
 export async function getAdminUserDetail(id: string): Promise<AdminUserDetailResult | null> {
   const objectId = new ObjectId(id);
-
-  if (useSqliteDb()) {
-    const store = getSqliteStore();
-    const user = store.findOne<User>("users", { _id: objectId });
-    if (!user) return null;
-
-    const cards = store.findMany<Record<string, unknown>>(
-      "cards",
-      { $or: [{ userId: id }, { userId: objectId }] },
-      { sort: { createdAt: -1 } }
-    );
-    const activityFilter: Record<string, unknown>[] = [{ userId: id }];
-    if (user.email) activityFilter.push({ email: user.email });
-    const activityEvents = store
-      .findMany<Record<string, unknown>>(
-        "activity_events",
-        { $or: activityFilter },
-        { sort: { createdAt: -1 }, limit: 100 }
-      )
-      .map(projectAdminActivityEvent);
-
-    return {
-      user: stripUserPassword(user),
-      cards,
-      activityEvents,
-    };
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const user = await db.collection<User>("users").findOne(
-    { _id: objectId },
-    {
-      projection: {
-        password: 0,
-      },
-    }
-  );
-
+  const store = getSqliteStore();
+  const user = store.findOne<User>("users", { _id: objectId });
   if (!user) return null;
 
-  const cards = await db
-    .collection("cards")
-    .find({ userId: id })
-    .sort({ createdAt: -1 })
-    .toArray();
+  const cards = store.findMany<Record<string, unknown>>(
+    "cards",
+    { $or: [{ userId: id }, { userId: objectId }] },
+    { sort: { createdAt: -1 } }
+  );
   const activityFilter: Record<string, unknown>[] = [{ userId: id }];
   if (user.email) activityFilter.push({ email: user.email });
-  const activityEvents = await db
-    .collection("activity_events")
-    .find({ $or: activityFilter })
-    .sort({ createdAt: -1 })
-    .limit(100)
-    .project({
-      event: 1,
-      source: 1,
-      metadata: 1,
-      pathname: 1,
-      sessionId: 1,
-      anonymousId: 1,
-      domain: 1,
-      ipAddress: 1,
-      userAgent: 1,
-      createdAt: 1,
-    })
-    .toArray();
+  const activityEvents = store
+    .findMany<Record<string, unknown>>(
+      "activity_events",
+      { $or: activityFilter },
+      { sort: { createdAt: -1 }, limit: 100 }
+    )
+    .map(projectAdminActivityEvent);
 
   return {
-    user,
+    user: stripUserPassword(user),
     cards,
-    activityEvents: activityEvents.map(projectAdminActivityEvent),
+    activityEvents,
   };
 }
 
@@ -634,21 +439,11 @@ export async function createUser(data: {
     referralCode: crypto.randomBytes(4).toString("hex"),
   };
 
-  if (useSqliteDb()) {
-    const result = getSqliteStore().insertOne("users", user as User);
-    return {
-      ...user,
-      _id: result.insertedId as ObjectId,
-    } as User;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const result = await db.collection<User>("users").insertOne(user as User);
+  const result = getSqliteStore().insertOne("users", user as User);
 
   return {
     ...user,
-    _id: result.insertedId,
+    _id: result.insertedId as ObjectId,
   } as User;
 }
 
@@ -674,14 +469,7 @@ export async function createGuestShareLinkUser(data: {
     guestClaimTokenExpiresAt: data.guestClaimTokenExpiresAt,
   };
 
-  if (useSqliteDb()) {
-    getSqliteStore().insertOne("users", guestUser);
-    return guestUser;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  await db.collection<User>("users").insertOne(guestUser);
+  getSqliteStore().insertOne("users", guestUser);
   return guestUser;
 }
 
@@ -703,13 +491,7 @@ export async function getActiveGuestClaimUser(
     guestClaimTokenExpiresAt: { $gt: now },
   };
 
-  if (useSqliteDb()) {
-    return getSqliteStore().findOne<User>("users", filter);
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  return db.collection<User>("users").findOne(filter);
+  return getSqliteStore().findOne<User>("users", filter);
 }
 
 function buildMissingAttributionUpdates(
@@ -732,24 +514,8 @@ export async function updateUser(
   id: string,
   data: Partial<User>
 ): Promise<User | null> {
-  if (useSqliteDb()) {
-    return getSqliteStore().findOneAndUpdate<User>(
-      "users",
-      { _id: new ObjectId(id) },
-      {
-        $set: {
-          ...data,
-          updatedAt: new Date()
-        }
-      },
-      { returnDocument: "after" }
-    );
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  const result = await db.collection<User>("users").findOneAndUpdate(
+  return getSqliteStore().findOneAndUpdate<User>(
+    "users",
     { _id: new ObjectId(id) },
     {
       $set: {
@@ -759,8 +525,6 @@ export async function updateUser(
     },
     { returnDocument: "after" }
   );
-
-  return result;
 }
 
 export async function recordNativeOAuthLogin(
@@ -788,19 +552,8 @@ export async function recordNativeOAuthLogin(
     $inc: { loginCount: 1 },
   };
 
-  if (useSqliteDb()) {
-    return getSqliteStore().findOneAndUpdate<User>(
-      "users",
-      { _id: user._id },
-      update,
-      { returnDocument: "after" }
-    );
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-
-  return db.collection<User>("users").findOneAndUpdate(
+  return getSqliteStore().findOneAndUpdate<User>(
+    "users",
     { _id: user._id },
     update,
     { returnDocument: "after" }
@@ -812,39 +565,18 @@ export async function deleteUserAccountData(user: Pick<User, "_id" | "email">): 
   const userOid = new ObjectId(userId);
   const accountUserFilter = { $or: [{ userId: userOid }, { userId }] };
 
-  if (useSqliteDb()) {
-    const store = getSqliteStore();
-    store.deleteMany("cards", { userId });
-    store.deleteMany("gameHistory", { userId });
-    store.deleteMany("game_states", { userId });
-    store.deleteMany("favorites", { userId });
-    store.deleteMany("batch_purchases", { $or: [{ userId }, { email: user.email }] });
-    store.deleteMany("accounts", accountUserFilter);
-    store.deleteMany("sessions", accountUserFilter);
-    store.deleteOne("email_preferences", { email: user.email });
-    store.deleteMany("drip_opens", { email: user.email });
-    store.deleteMany("drip_log", { userId });
-    store.deleteOne("users", { _id: userOid });
-    return;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  await Promise.all([
-    db.collection("cards").deleteMany({ userId }),
-    db.collection("gameHistory").deleteMany({ userId }),
-    db.collection("game_states").deleteMany({ userId }),
-    db.collection("favorites").deleteMany({ userId }),
-    db.collection("batch_purchases").deleteMany({
-      $or: [{ userId }, { email: user.email }],
-    }),
-    db.collection("accounts").deleteMany(accountUserFilter),
-    db.collection("sessions").deleteMany(accountUserFilter),
-    db.collection("email_preferences").deleteOne({ email: user.email }),
-    db.collection("drip_opens").deleteMany({ email: user.email }),
-    db.collection("drip_log").deleteMany({ userId }),
-    db.collection("users").deleteOne({ _id: userOid }),
-  ]);
+  const store = getSqliteStore();
+  store.deleteMany("cards", { userId });
+  store.deleteMany("gameHistory", { userId });
+  store.deleteMany("game_states", { userId });
+  store.deleteMany("favorites", { userId });
+  store.deleteMany("batch_purchases", { $or: [{ userId }, { email: user.email }] });
+  store.deleteMany("accounts", accountUserFilter);
+  store.deleteMany("sessions", accountUserFilter);
+  store.deleteOne("email_preferences", { email: user.email });
+  store.deleteMany("drip_opens", { email: user.email });
+  store.deleteMany("drip_log", { userId });
+  store.deleteOne("users", { _id: userOid });
 }
 
 export async function updateUserLastSeenByEmail(email: string, lastSeen = new Date()): Promise<void> {
@@ -875,14 +607,7 @@ async function updateUserFieldsByEmail(
 ): Promise<void> {
   if (Object.keys(fields).length === 0) return;
 
-  if (useSqliteDb()) {
-    getSqliteStore().updateOne<User>("users", { email }, { $set: fields });
-    return;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  await db.collection<User>("users").updateOne({ email }, { $set: fields } as any);
+  getSqliteStore().updateOne<User>("users", { email }, { $set: fields });
 }
 
 export async function updateMissingUserSignupContext(
@@ -898,41 +623,20 @@ export async function updateMissingUserSignupContext(
 
   if (Object.keys(desired).length === 0) return;
 
-  if (useSqliteDb()) {
-    const objectId = new ObjectId(id);
-    const user = getSqliteStore().findOne<User>("users", { _id: objectId });
-    if (!user) return;
+  const objectId = new ObjectId(id);
+  const user = getSqliteStore().findOne<User>("users", { _id: objectId });
+  if (!user) return;
 
-    const updates: Record<string, string> = {};
-    if (desired.signupDevice && !user.signupDevice) updates.signupDevice = desired.signupDevice;
-    if (desired.signupLanguage && !user.signupLanguage) updates.signupLanguage = desired.signupLanguage;
+  const updates: Record<string, string> = {};
+  if (desired.signupDevice && !user.signupDevice) updates.signupDevice = desired.signupDevice;
+  if (desired.signupLanguage && !user.signupLanguage) updates.signupLanguage = desired.signupLanguage;
 
-    if (Object.keys(updates).length === 0) return;
+  if (Object.keys(updates).length === 0) return;
 
-    getSqliteStore().updateOne<User>(
-      "users",
-      { _id: objectId },
-      { $set: updates }
-    );
-    return;
-  }
-
-  const updatePipeline = [
-    {
-      $set: Object.fromEntries(
-        Object.entries(desired).map(([key, value]) => [
-          key,
-          { $cond: [{ $ifNull: [`$${key}`, false] }, `$${key}`, value] },
-        ])
-      ),
-    },
-  ];
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  await db.collection<User>("users").updateOne(
-    { _id: new ObjectId(id) },
-    updatePipeline as any
+  getSqliteStore().updateOne<User>(
+    "users",
+    { _id: objectId },
+    { $set: updates }
   );
 }
 
@@ -1096,24 +800,12 @@ export async function updateUserSubscription(
     updateData.trialEndsAt = subscriptionData.trialEndsAt;
   }
 
-  if (useSqliteDb()) {
-    return getSqliteStore().findOneAndUpdate<User>(
-      "users",
-      { email },
-      { $set: updateData },
-      { returnDocument: "after" }
-    );
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const result = await db.collection<User>("users").findOneAndUpdate(
+  return getSqliteStore().findOneAndUpdate<User>(
+    "users",
     { email },
     { $set: updateData },
     { returnDocument: "after" }
   );
-
-  return result;
 }
 
 export async function updateUserBillingRecoveryState(
@@ -1128,37 +820,10 @@ export async function updateUserBillingRecoveryState(
   const now = new Date();
 
   if (data.status === "failed") {
-    if (useSqliteDb()) {
-      const store = getSqliteStore();
-      const existing = store.findOne<User>("users", { email });
-      store.updateOne<User>(
-        "users",
-        { email },
-        {
-          $set: {
-            billingPastDueSince:
-              existing?.subscriptionStatus === "past_due" && existing?.billingPastDueSince
-                ? existing.billingPastDueSince
-                : now,
-            billingLastPaymentFailedAt: now,
-            billingNextPaymentAttempt: data.nextPaymentAttempt || null,
-            billingFailedAttemptCount: data.attemptCount ?? null,
-            billingLastInvoiceId: data.invoiceId || null,
-            updatedAt: now,
-          },
-        }
-      );
-      return;
-    }
-
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-    const existing = await db.collection<User>("users").findOne(
-      { email },
-      { projection: { subscriptionStatus: 1, billingPastDueSince: 1 } }
-    );
-
-    await db.collection<User>("users").updateOne(
+    const store = getSqliteStore();
+    const existing = store.findOne<User>("users", { email });
+    store.updateOne<User>(
+      "users",
       { email },
       {
         $set: {
@@ -1191,14 +856,7 @@ export async function updateUserBillingRecoveryState(
     },
   };
 
-  if (useSqliteDb()) {
-    getSqliteStore().updateOne<User>("users", { email }, update);
-    return;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  await db.collection<User>("users").updateOne({ email }, update);
+  getSqliteStore().updateOne<User>("users", { email }, update);
 }
 
 export async function updateUserPassword(
@@ -1207,24 +865,8 @@ export async function updateUserPassword(
 ): Promise<boolean> {
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  if (useSqliteDb()) {
-    const result = getSqliteStore().updateOne<User>(
-      "users",
-      { email },
-      {
-        $set: {
-          password: hashedPassword,
-          updatedAt: new Date(),
-        },
-      }
-    );
-
-    return result.matchedCount > 0;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  const result = await db.collection<User>("users").updateOne(
+  const result = getSqliteStore().updateOne<User>(
+    "users",
     { email },
     {
       $set: {
@@ -1242,24 +884,11 @@ export async function incrementUserCounter(
   field: string,
   value?: number
 ): Promise<void> {
-  if (useSqliteDb()) {
-    getSqliteStore().updateOne<User>(
-      "users",
-      { _id: new ObjectId(userId) },
-      {
-        $inc: { [field]: value || 1 },
-        $set: { updatedAt: new Date() },
-      }
-    );
-    return;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  await db.collection<User>("users").updateOne(
+  getSqliteStore().updateOne<User>(
+    "users",
     { _id: new ObjectId(userId) },
     {
-      $inc: { [field]: value || 1 } as any,
+      $inc: { [field]: value || 1 },
       $set: { updatedAt: new Date() },
     }
   );
@@ -1269,48 +898,22 @@ export async function addFeatureUsed(
   userId: string,
   feature: string
 ): Promise<void> {
-  if (useSqliteDb()) {
-    getSqliteStore().updateOne<User>(
-      "users",
-      { _id: new ObjectId(userId) },
-      {
-        $addToSet: { featuresUsed: feature },
-        $set: { updatedAt: new Date() },
-      }
-    );
-    return;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  await db.collection<User>("users").updateOne(
+  getSqliteStore().updateOne<User>(
+    "users",
     { _id: new ObjectId(userId) },
     {
-      $addToSet: { featuresUsed: feature } as any,
+      $addToSet: { featuresUsed: feature },
       $set: { updatedAt: new Date() },
     }
   );
 }
 
 export async function incrementCardStats(userId: string): Promise<void> {
-  if (useSqliteDb()) {
-    getSqliteStore().updateOne<User>(
-      "users",
-      { _id: new ObjectId(userId) },
-      {
-        $inc: { totalCardsCreated: 1 },
-        $set: { lastCardCreatedAt: new Date(), updatedAt: new Date() },
-      }
-    );
-    return;
-  }
-
-  const client = await clientPromise;
-  const db = client.db("mybingocard");
-  await db.collection<User>("users").updateOne(
+  getSqliteStore().updateOne<User>(
+    "users",
     { _id: new ObjectId(userId) },
     {
-      $inc: { totalCardsCreated: 1 } as any,
+      $inc: { totalCardsCreated: 1 },
       $set: { lastCardCreatedAt: new Date(), updatedAt: new Date() },
     }
   );

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createCard, deleteCard, generateShareLink } from "@/lib/db/cards";
-import { ObjectId } from "mongodb";
+import { ObjectId } from "bson";
 import {
   claimBatchPurchase,
   markBatchPurchaseGenerated,

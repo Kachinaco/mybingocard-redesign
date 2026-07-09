@@ -49,7 +49,7 @@ function createFixture() {
 }
 
 describe("SQLite Auth.js adapter", () => {
-  test("stores users and linked OAuth accounts with Mongo-compatible ObjectId shape", async () => {
+  test("stores users and linked OAuth accounts with ObjectId shape", async () => {
     const { adapter, store } = createFixture();
 
     const createdUser = await adapter.createUser!({

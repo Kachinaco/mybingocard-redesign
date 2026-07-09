@@ -1,7 +1,7 @@
 /**
  * Strip HTML tags and dangerous characters to prevent XSS and abuse.
  * NOTE: Do NOT HTML-encode apostrophes/quotes here — data is stored as plain
- * text in MongoDB and rendered via React (which handles escaping automatically).
+ * text in the application database and rendered via React (which handles escaping automatically).
  * Encoding here causes double-encoding like Oscar&#x27;s Night.
  */
 export function sanitizeText(input: string, maxLength = 200): string {
@@ -25,7 +25,7 @@ export function sanitizeCells(cells: string[]): string[] {
         if (data.label) {
           data.label = sanitizeText(data.label, 100);
         }
-        // Validate imageId looks like a MongoDB ObjectId or system ID
+        // Validate imageId looks like an ObjectId or system ID
         if (!/^[a-zA-Z0-9_-]+$/.test(data.imageId)) {
           return ""; // reject malformed image cell
         }

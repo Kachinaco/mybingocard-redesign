@@ -85,7 +85,6 @@ describe("MyBingoCard ops loops SQLite backend", () => {
           MYBINGOCARD_DB_BACKEND: "sqlite",
           MYBINGOCARD_SQLITE_PATH: dbPath,
           MYBINGOCARD_OPS_LOOP_STATE_ROOT: join(dir, "state"),
-          MONGODB_URI: "mongodb://127.0.0.1:1/nope",
         },
         encoding: "utf8",
       });

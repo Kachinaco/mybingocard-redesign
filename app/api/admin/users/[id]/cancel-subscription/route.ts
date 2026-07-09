@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
+import { ObjectId } from "bson";
 import { getAdminSessionEmail, requireAdmin } from "@/lib/admin";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { getUserById, markAdminUserCancelAtPeriodEndById } from "@/lib/db/users";

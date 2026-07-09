@@ -30,6 +30,5 @@ describe("anonymous visitor tracking", () => {
     expect(adminVisitorsClientSource).toContain("recentEvents");
     expect(adminVisitorsDataSource).toContain("fetchTrackerPayload");
     expect(adminVisitorsDataSource).toContain("getSqliteStore");
-    expect(adminVisitorsDataSource).not.toContain('from "mongodb"');
   });
 });

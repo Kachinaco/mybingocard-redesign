@@ -79,7 +79,6 @@ describe("send live games announcement SQLite backend", () => {
           ...process.env,
           MYBINGOCARD_DB_BACKEND: "sqlite",
           MYBINGOCARD_SQLITE_PATH: dbPath,
-          MONGODB_URI: "mongodb://127.0.0.1:1/nope",
           EMAIL_SERVER_USER: "",
           EMAIL_SERVER_PASSWORD: "",
         },

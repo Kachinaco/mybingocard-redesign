@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
+import { ObjectId } from "bson";
 import { requireAdmin, getAdminSessionEmail } from "@/lib/admin";
 import { getUserById } from "@/lib/db/users";
 import { sendAdminCustomEmail } from "@/lib/email";

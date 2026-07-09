@@ -2,8 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('node:crypto');
 const nodemailer = require('./smtp-client.cjs');
-const { MongoClient, ObjectId } = require('mongodb');
-const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
+const { ObjectId } = require('bson');
+const { openSqliteShadowDatabase } = require('./sqlite-shadow-store.cjs');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -21,7 +21,6 @@ try {
   console.error('Could not load .env.local:', e.message);
 }
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 const WEBHOOK_URL = process.env.MYBINGOCARD_EVENTS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL || '';
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://mybingocard.com').replace(/\/$/, '');
 const fromAddress = process.env.EMAIL_FROM || 'MyBingoCard <support@mybingocard.com>';
@@ -434,15 +433,11 @@ function buildWinbackEmail(user) {
 // ── Main Logic ──
 
 async function run() {
-  const sqliteBackend = useSqliteBackend();
-  const client = sqliteBackend ? openSqliteShadowDatabase() : new MongoClient(MONGODB_URI);
+  const db = openSqliteShadowDatabase();
   let sentCount = 0;
   let skippedCount = 0;
 
   try {
-    if (!sqliteBackend) await client.connect();
-    const db = sqliteBackend ? client : client.db('mybingocard');
-
     // Ensure drip_log collection and index
     await db.collection('drip_log').createIndex({ userId: 1, campaignId: 1 }, { unique: true });
     // Ensure drip_progression collection and index
@@ -746,7 +741,7 @@ async function run() {
   } catch (err) {
     console.error('Drip campaign error:', err);
   } finally {
-    await client.close();
+    db.close();
   }
 }
 

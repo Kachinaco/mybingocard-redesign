@@ -7,8 +7,8 @@
 const { execFileSync, spawnSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
-const { MongoClient } = require("mongodb");
-const { openSqliteShadowDatabase, useSqliteBackend } = require("./sqlite-shadow-store.cjs");
+const Database = require("better-sqlite3");
+const { openSqliteShadowDatabase } = require("./sqlite-shadow-store.cjs");
 
 const APP_DIR = process.env.MYBINGOCARD_APP_DIR || "/var/www/mybingocard.com";
 const APP_URL = (process.env.MYBINGOCARD_APP_URL || "https://mybingocard.com").replace(/\/$/, "");
@@ -16,7 +16,7 @@ const DOMAIN = new URL(APP_URL).hostname;
 const ACCESS_LOG_DIR = process.env.MYBINGOCARD_NGINX_LOG_DIR || "/var/log/nginx";
 const ACCESS_LOG_PREFIX = process.env.MYBINGOCARD_NGINX_ACCESS_PREFIX || "mybingocard.com.access.log";
 const REPORT_DIR = process.env.MYBINGOCARD_TRAFFIC_REPORT_DIR || "/var/log/mybingocard/traffic-truth";
-const ANALYTICS_ENV_PATH = process.env.MYBINGOCARD_ANALYTICS_ENV || "/opt/saas/analytics-tracker/.env";
+const TRACKER_SQLITE_PATH = process.env.MYBINGOCARD_TRACKER_SQLITE_PATH || "/opt/saas/tracker-lite/data/analytics.sqlite";
 const GSC_MODULE_PATH = process.env.MYBINGOCARD_GSC_MODULE || "/opt/saas/analytics-tracker/lib/gsc.js";
 const USER_AGENT = "MyBingoCardTrafficTruth/1.0";
 const PHOENIX_TZ = "America/Phoenix";
@@ -258,71 +258,7 @@ function parseAccessLogs(range) {
 }
 
 async function firstPartyActivity(range) {
-  if (useSqliteBackend()) {
-    return firstPartyActivitySqlite(range);
-  }
-
-  const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/mybingocard";
-  const client = new MongoClient(mongoUri, { serverSelectionTimeoutMS: 5000 });
-  const cleanExpr = {
-    $not: [{
-      $regexMatch: {
-        input: { $ifNull: ["$userAgent", ""] },
-        regex: BOT_UA_RE.source,
-        options: "i",
-      },
-    }],
-  };
-  try {
-    await client.connect();
-    const db = client.db("mybingocard");
-    const rows = await db.collection("activity_events").aggregate([
-      { $match: { createdAt: { $gte: range.startDate, $lte: range.endDate } } },
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: PHOENIX_TZ } },
-          total: { $sum: 1 },
-          cleanTotal: { $sum: { $cond: [cleanExpr, 1, 0] } },
-          pageViews: { $sum: { $cond: [{ $eq: ["$event", "page_view"] }, 1, 0] } },
-          cleanPageViews: { $sum: { $cond: [{ $and: [{ $eq: ["$event", "page_view"] }, cleanExpr] }, 1, 0] } },
-          engagements: { $sum: { $cond: [{ $in: ["$event", ["page_engagement", "click", "cta_click", "form_submit", "tab_returned"]] }, 1, 0] } },
-          cards: { $sum: { $cond: [{ $regexMatch: { input: { $ifNull: ["$event", ""] }, regex: "(card|game|print|share)", options: "i" } }, 1, 0] } },
-          signups: { $sum: { $cond: [{ $in: ["$event", ["signup_completed", "user_registered"]] }, 1, 0] } },
-          checkouts: { $sum: { $cond: [{ $in: ["$event", ["checkout_started", "checkout_completed", "subscription_created"]] }, 1, 0] } },
-          sessions: { $addToSet: { $ifNull: ["$sessionId", "$anonymousId"] } },
-        },
-      },
-      { $sort: { _id: 1 } },
-    ]).toArray();
-
-    const sources = await db.collection("activity_events").aggregate([
-      { $match: { createdAt: { $gte: range.startDate, $lte: range.endDate }, event: "page_view" } },
-      {
-        $project: {
-          source: {
-            $ifNull: [
-              "$metadata.utm_source",
-              { $ifNull: ["$metadata.utm.source", { $ifNull: ["$metadata.source", "$metadata.referrer"] }] },
-            ],
-          },
-        },
-      },
-      { $match: { source: { $type: "string", $ne: "" } } },
-      { $group: { _id: "$source", count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 12 },
-    ]).toArray();
-
-    return {
-      available: true,
-      byDay: Object.fromEntries(rows.map((row) => [row._id, { ...row, sessions: (row.sessions || []).filter(Boolean).length }])),
-      sources: sources.map((row) => ({ source: row._id, count: row.count })),
-    };
-  } catch (error) {
-    return { available: false, error: error.message, byDay: {}, sources: [] };
-  } finally {
-    await client.close().catch(() => {});
-  }
+  return firstPartyActivitySqlite(range);
 }
 
 function isCleanFirstPartyEvent(event) {
@@ -402,68 +338,69 @@ async function firstPartyActivitySqlite(range) {
   }
 }
 
-function analyticsMongoUri() {
-  if (process.env.ANALYTICS_MONGODB_URI) return process.env.ANALYTICS_MONGODB_URI;
-  if (process.env.TOWNRANKER_ANALYTICS_MONGODB_URI) return process.env.TOWNRANKER_ANALYTICS_MONGODB_URI;
-  const env = readEnvMap(ANALYTICS_ENV_PATH);
-  return env.MONGODB_URI || "mongodb://localhost:27017/analytics";
-}
-
-function readEnvMap(filePath) {
-  try {
-    const env = {};
-    for (const line of fs.readFileSync(filePath, "utf8").split(/\r?\n/)) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      const idx = trimmed.indexOf("=");
-      if (idx === -1) continue;
-      env[trimmed.slice(0, idx).trim()] = trimmed.slice(idx + 1).trim().replace(/^['"]|['"]$/g, "");
-    }
-    return env;
-  } catch {
-    return {};
-  }
-}
-
 async function centralAnalytics(range) {
   if (process.env.MYBINGOCARD_TRAFFIC_SKIP_CENTRAL_ANALYTICS === "1") {
     return { available: false, error: "central analytics skipped", byDay: {} };
   }
 
-  const client = new MongoClient(analyticsMongoUri(), { serverSelectionTimeoutMS: 5000 });
-  const reportableExpr = {
-    $and: [
-      { $ne: ["$isHuman", false] },
-      { $not: [{ $in: ["$trafficClass", ["bot", "crawler", "monitor", "internal"]] }] },
-    ],
-  };
   try {
-    await client.connect();
-    const db = client.db();
-    const rows = await db.collection("events").aggregate([
-      { $match: { domain: DOMAIN, createdAt: { $gte: range.startDate, $lte: range.endDate } } },
-      {
-        $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: PHOENIX_TZ } },
-          events: { $sum: 1 },
-          pageViews: { $sum: { $cond: [{ $eq: ["$event", "page_view"] }, 1, 0] } },
-          reportablePageViews: { $sum: { $cond: [{ $and: [{ $eq: ["$event", "page_view"] }, reportableExpr] }, 1, 0] } },
-          serverRequests: { $sum: { $cond: [{ $eq: ["$event", "server_request"] }, 1, 0] } },
-          reportableEvents: { $sum: { $cond: [reportableExpr, 1, 0] } },
-          visitors: { $addToSet: { $ifNull: ["$anonymousId", "$sessionId"] } },
-        },
-      },
-      { $sort: { _id: 1 } },
-    ]).toArray();
+    const db = new Database(TRACKER_SQLITE_PATH, { readonly: true, fileMustExist: true });
+    const rows = db.prepare(`
+      SELECT r.event_type, r.anonymous_id, r.visitor_id, r.session_id,
+             r.user_agent, r.occurred_at, r.received_at
+      FROM raw_events AS r
+      JOIN sites AS s ON s.id = r.site_id
+      WHERE s.domain = ?
+        AND r.received_at >= ?
+        AND r.received_at <= ?
+      ORDER BY r.received_at ASC
+    `).all(DOMAIN, range.startDate.toISOString(), range.endDate.toISOString());
+    const earliest = db.prepare(`
+      SELECT MIN(r.received_at) AS earliest
+      FROM raw_events AS r
+      JOIN sites AS s ON s.id = r.site_id
+      WHERE s.domain = ?
+    `).get(DOMAIN)?.earliest || null;
+    db.close();
+
+    const byDay = {};
+    for (const event of rows) {
+      const at = new Date(event.occurred_at || event.received_at);
+      if (Number.isNaN(at.getTime())) continue;
+      const day = phoenixDay(at);
+      const row = byDay[day] || {
+        _id: day,
+        events: 0,
+        pageViews: 0,
+        reportablePageViews: 0,
+        serverRequests: 0,
+        reportableEvents: 0,
+        visitors: new Set(),
+      };
+      const eventType = String(event.event_type || "");
+      const reportable = !BOT_UA_RE.test(String(event.user_agent || ""));
+      row.events += 1;
+      if (reportable) row.reportableEvents += 1;
+      if (eventType === "pageview" || eventType === "page_view") {
+        row.pageViews += 1;
+        if (reportable) row.reportablePageViews += 1;
+      }
+      if (eventType === "server_request") row.serverRequests += 1;
+      const visitor = event.anonymous_id || event.visitor_id || event.session_id;
+      if (visitor) row.visitors.add(visitor);
+      byDay[day] = row;
+    }
 
     return {
       available: true,
-      byDay: Object.fromEntries(rows.map((row) => [row._id, { ...row, visitors: (row.visitors || []).filter(Boolean).length }])),
+      partial: Boolean(earliest && range.startDate < new Date(earliest)),
+      earliest: earliest || null,
+      byDay: Object.fromEntries(Object.entries(byDay)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([day, row]) => [day, { ...row, visitors: row.visitors.size }])),
     };
   } catch (error) {
     return { available: false, error: error.message, byDay: {} };
-  } finally {
-    await client.close().catch(() => {});
   }
 }
 
@@ -605,7 +542,7 @@ function buildMarkdown(range, access, firstParty, central, gsc) {
   lines.push(`- Nginx requests: ${fmt(sum(range.days, access.byDay, "requests"))}; unique client+UA pairs: ${fmt(sum(range.days, access.byDay, "uniqueClients"))}`);
   lines.push(`- Private source-map 404s: ${fmt(sum(range.days, access.byDay, "sourceMapFailures"))} (tracked separately from JS/CSS chunk delivery failures)`);
   lines.push(`- First-party events: ${firstParty.available ? `${fmt(sum(range.days, firstParty.byDay, "total"))} total, ${fmt(sum(range.days, firstParty.byDay, "engagements"))} engagements, ${fmt(sum(range.days, firstParty.byDay, "cards"))} card/game/share/print events, ${fmt(sum(range.days, firstParty.byDay, "signups"))} signups, ${fmt(sum(range.days, firstParty.byDay, "checkouts"))} checkout events` : "unavailable"}`);
-  lines.push(`- Central analytics events: ${central.available ? `${fmt(sum(range.days, central.byDay, "events"))} total, ${fmt(sum(range.days, central.byDay, "reportableEvents"))} reportable, ${fmt(sum(range.days, central.byDay, "visitors"))} unique visitors` : "unavailable"}`);
+  lines.push(`- Central analytics events: ${central.available ? `${fmt(sum(range.days, central.byDay, "events"))} total, ${fmt(sum(range.days, central.byDay, "reportableEvents"))} reportable, ${fmt(sum(range.days, central.byDay, "visitors"))} unique visitors${central.partial ? `; raw events begin ${central.earliest}` : ""}` : "unavailable"}`);
   lines.push("");
   lines.push("## Top External Referrers");
   lines.push("");
@@ -706,7 +643,6 @@ async function postDiscord(markdown) {
 
 async function main() {
   loadEnvFile(path.join(APP_DIR, ".env.local"));
-  loadEnvFile(ANALYTICS_ENV_PATH);
 
   const range = dateRange(argValue("--days", "14"));
   const [access, firstParty, central, gsc] = await Promise.all([

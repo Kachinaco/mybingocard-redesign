@@ -1,4 +1,4 @@
-import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
+import { getSqliteStore } from "@/lib/db/sqlite";
 
 export type ActivitySource = "client" | "server" | "auth" | "webhook";
 
@@ -113,16 +113,7 @@ export async function trackActivity(input: ActivityInput): Promise<void> {
       createdAt: new Date(),
     };
 
-    if (useSqliteDb()) {
-      getSqliteStore().insertOne("activity_events", document);
-      return;
-    }
-
-    const { default: clientPromise } = await import("./mongodb");
-    const client = await clientPromise;
-    const db = client.db("mybingocard");
-
-    await db.collection("activity_events").insertOne(document);
+    getSqliteStore().insertOne("activity_events", document);
   } catch (error) {
     console.error("Activity tracking failed:", error);
   }

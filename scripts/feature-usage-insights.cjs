@@ -1,7 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { MongoClient } = require("mongodb");
-const { openSqliteShadowDatabase, useSqliteBackend } = require("./sqlite-shadow-store.cjs");
+const { openSqliteShadowDatabase } = require("./sqlite-shadow-store.cjs");
 
 const APP_ROOT = path.join(__dirname, "..");
 const ENV_PATH = path.join(APP_ROOT, ".env.local");
@@ -582,13 +581,9 @@ ${formatRows(report.recommendations, (item) => `- ${item}`, "No recommendations 
 
 async function run() {
   loadEnv();
-  const sqliteDb = useSqliteBackend() ? openSqliteShadowDatabase() : null;
-  const uri = process.env.MONGODB_URI || "mongodb://localhost:27017/mybingocard";
-  const client = sqliteDb ? null : new MongoClient(uri);
-  if (client) await client.connect();
+  const db = openSqliteShadowDatabase();
 
   try {
-    const db = sqliteDb || client.db("mybingocard");
     const now = new Date();
     const since7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const since30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -666,11 +661,7 @@ async function run() {
       ),
     );
   } finally {
-    if (client) {
-      await client.close();
-    } else {
-      sqliteDb.close();
-    }
+    db.close();
   }
 }
 

@@ -1,8 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('./smtp-client.cjs');
-const { MongoClient } = require('mongodb');
-const { openSqliteShadowStore, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
+const { openSqliteShadowStore } = require('./sqlite-shadow-store.cjs');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -20,7 +19,6 @@ try {
   console.error('Could not load .env.local:', e.message);
 }
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 const WEBHOOK_URL = process.env.MYBINGOCARD_EVENTS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL || '';
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://mybingocard.com').replace(/\/$/, '');
 const fromAddress = process.env.EMAIL_FROM || 'MyBingoCard <support@mybingocard.com>';
@@ -377,203 +375,7 @@ async function runSqlite() {
 }
 
 async function run() {
-  if (useSqliteBackend()) {
-    await runSqlite();
-    return;
-  }
-
-  const client = new MongoClient(MONGODB_URI);
-  try {
-    await client.connect();
-    const db = client.db('mybingocard');
-    const users = db.collection('users');
-    const dripLog = db.collection('drip_log');
-    const now = new Date();
-
-    // 1. EXPIRE: Find trial users whose trial has ended
-    const expiredTrials = await users.find({
-      trialEndsAt: { $lte: now },
-      planType: 'PREMIUM',
-      subscriptionStatus: 'trialing',
-    }).toArray();
-
-    let expiredCount = 0;
-    for (const user of expiredTrials) {
-      await users.updateOne(
-        { _id: user._id },
-        {
-          $set: {
-            planType: 'FREE',
-            subscriptionStatus: 'inactive',
-            updatedAt: now,
-          },
-        }
-      );
-
-      // Check if we already sent the expired email
-      const alreadySent = await dripLog.findOne({
-        userId: user._id.toString(),
-        campaignId: 'trial_expired',
-      });
-
-      if (!alreadySent) {
-        try {
-          await sendTrialExpiredEmail(user.email, user.name);
-          await dripLog.insertOne({
-            userId: user._id.toString(),
-            email: user.email,
-            campaignId: 'trial_expired',
-            sentAt: now,
-          });
-          console.log(`Trial expired + email sent: ${user.email}`);
-
-          // Per-user Discord notification
-          const cardCount = await db.collection('cards').countDocuments({ userId: user._id.toString() });
-          await notifyDiscordTrialEvent('🔴 Trial Expired — Downgraded to Free', [
-            { name: 'User', value: `${user.name || 'Unknown'} (${user.email})`, inline: true },
-            { name: 'Cards Created', value: `${cardCount}`, inline: true },
-          ]);
-        } catch (e) {
-          console.error(`Failed to send trial expired email to ${user.email}:`, e.message);
-        }
-      }
-
-      expiredCount++;
-    }
-
-    // 2. WARN: Send "trial ending soon" emails (3 days left and 1 day left)
-    let trialDayEmailsSent = 0;
-    for (const daysLeft of [3, 1]) {
-      const warnDate = new Date(now);
-      warnDate.setDate(warnDate.getDate() + daysLeft);
-      const warnStart = new Date(warnDate);
-      warnStart.setHours(0, 0, 0, 0);
-      const warnEnd = new Date(warnDate);
-      warnEnd.setHours(23, 59, 59, 999);
-
-      const warningUsers = await users.find({
-        trialEndsAt: { $gte: warnStart, $lte: warnEnd },
-        planType: 'PREMIUM',
-        subscriptionStatus: { $nin: ['active', 'lifetime'] },
-      }).toArray();
-
-      const campaignId = `trial_ending_${daysLeft}d`;
-
-      for (const user of warningUsers) {
-        const alreadySent = await dripLog.findOne({
-          userId: user._id.toString(),
-          campaignId,
-        });
-
-        if (!alreadySent) {
-          try {
-            await sendTrialEndingSoonEmail(user.email, user.name, daysLeft);
-            await dripLog.insertOne({
-              userId: user._id.toString(),
-              email: user.email,
-              campaignId,
-              sentAt: now,
-            });
-            trialDayEmailsSent++;
-            console.log(`Trial warning (${daysLeft}d left) sent: ${user.email}`);
-
-            // Per-user Discord notification
-            const cardCount = await db.collection('cards').countDocuments({ userId: user._id.toString() });
-            const urgencyLabel = daysLeft === 1 ? 'Tomorrow' : `${daysLeft} Days`;
-            await notifyDiscordTrialEvent(`⏳ Trial Ending in ${urgencyLabel}`, [
-              { name: 'User', value: `${user.name || 'Unknown'} (${user.email})`, inline: true },
-              { name: 'Days Left', value: `${daysLeft}`, inline: true },
-              { name: 'Cards Created', value: `${cardCount}`, inline: true },
-            ]);
-          } catch (e) {
-            console.error(`Failed to send trial warning to ${user.email}:`, e.message);
-          }
-        }
-      }
-    }
-
-    // 3. CHURN RISK: Flag inactive trial users
-    const fortyEightHoursAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-    const trialUsers = await users.find({
-      planType: 'PREMIUM',
-      trialEndsAt: { $gt: now },
-      subscriptionStatus: { $ne: 'lifetime' },
-    }).toArray();
-
-    let churnFlagged = 0;
-    const activityEvents = db.collection('activity_events');
-
-    for (const user of trialUsers) {
-      if (!user.trialEndsAt) continue;
-
-      const trialStart = new Date(user.trialEndsAt);
-      trialStart.setDate(trialStart.getDate() - 7);
-      const trialDay = Math.max(1, Math.ceil((now - trialStart) / 86400000));
-
-      if (trialDay < 2) continue;
-
-      // Check if already flagged via drip_log
-      const alreadyFlagged = await dripLog.findOne({
-        userId: user._id.toString(),
-        campaignId: 'trial_churn_risk_detected',
-      });
-      if (alreadyFlagged) continue;
-
-      // Check for any activity in the last 48 hours
-      const recentActivity = await activityEvents.findOne({
-        $or: [
-          { userId: user._id.toString() },
-          { email: user.email },
-        ],
-        createdAt: { $gte: fortyEightHoursAgo },
-      });
-
-      if (recentActivity) continue;
-
-      // Calculate days inactive (from last activity event ever, or signup)
-      const lastEvent = await activityEvents.find({
-        $or: [
-          { userId: user._id.toString() },
-          { email: user.email },
-        ],
-      }).sort({ createdAt: -1 }).limit(1).toArray();
-
-      const lastActiveDate = lastEvent[0]?.createdAt || user.createdAt || trialStart;
-      const daysInactive = Math.max(1, Math.floor((now - new Date(lastActiveDate)) / 86400000));
-
-      const cardsCreated = await db.collection('cards').countDocuments({ userId: user._id.toString() });
-
-      // Send Discord alert
-      const userName = user.name || 'Unknown';
-      const msg = `🚨 Trial user **${userName}** (${user.email}) has been inactive for ${daysInactive} day${daysInactive === 1 ? '' : 's'} (trial day ${trialDay} of 7). Cards created: ${cardsCreated}`;
-      await notifyDiscord(msg);
-
-      // Track the activity event
-      await activityEvents.insertOne({
-        event: 'trial_churn_risk_detected',
-        source: 'server',
-        userId: user._id.toString(),
-        email: user.email,
-        metadata: { trialDay, daysInactive, cardsCreated },
-        createdAt: now,
-      });
-
-      // Log to drip_log so we don't flag the same user again
-      await dripLog.insertOne({
-        userId: user._id.toString(),
-        email: user.email,
-        campaignId: 'trial_churn_risk_detected',
-        sentAt: now,
-      });
-
-      churnFlagged++;
-      console.log(`Churn risk flagged: ${user.email} (trial day ${trialDay}, inactive ${daysInactive}d, ${cardsCreated} cards)`);
-    }
-
-    console.log(`Trial check complete: ${expiredCount} expired, ${trialDayEmailsSent} day emails sent, ${churnFlagged} churn risks flagged`);
-  } finally {
-    await client.close();
-  }
+  await runSqlite();
 }
 
 run().catch(e => {

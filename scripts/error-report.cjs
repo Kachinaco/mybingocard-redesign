@@ -10,11 +10,9 @@
 const { execFileSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
-const { MongoClient } = require("mongodb");
-const { openSqliteShadowDatabase, useSqliteBackend } = require("./sqlite-shadow-store.cjs");
+const { openSqliteShadowDatabase } = require("./sqlite-shadow-store.cjs");
 
 const APP_DIR = "/var/www/mybingocard.com";
-const DB_NAME = "mybingocard";
 const UNRESOLVED_STATUS_FILTER = {
   $or: [
     { status: { $exists: false } },
@@ -255,34 +253,16 @@ async function main() {
   const args = parseArgs(process.argv);
   const currentBuild = readCurrentBuild();
 
-  if (useSqliteBackend()) {
-    const db = openSqliteShadowDatabase();
-    try {
-      const report = await loadReport(db, args, currentBuild);
-      if (args.json) {
-        console.log(JSON.stringify(report, null, 2));
-      } else {
-        printReport(report);
-      }
-    } finally {
-      db.close();
-    }
-    return;
-  }
-
-  const mongoUri = process.env.MONGODB_URI || "mongodb://localhost:27017/mybingocard";
-  const client = new MongoClient(mongoUri, { serverSelectionTimeoutMS: 5000 });
-
+  const db = openSqliteShadowDatabase();
   try {
-    await client.connect();
-    const report = await loadReport(client.db(DB_NAME), args, currentBuild);
+    const report = await loadReport(db, args, currentBuild);
     if (args.json) {
       console.log(JSON.stringify(report, null, 2));
     } else {
       printReport(report);
     }
   } finally {
-    await client.close().catch(() => {});
+    db.close();
   }
 }
 

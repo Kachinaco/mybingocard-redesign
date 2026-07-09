@@ -45,7 +45,7 @@ describe("PDF analytics and Discord guardrails", () => {
     expect(batchPdfRouteSource).toContain("hasPremiumBatchAccess");
   });
 
-  test("batch PDF exports send Discord notifications", () => {
+  test("batch PDF exports notify Discord while routine interaction telemetry stays in analytics", () => {
     expect(discordSource).toContain("export async function notifyBatchPdfExported");
     expect(discordSource).toContain("export async function notifyExportButtonClicked");
     expect(discordSource).toContain("export async function notifyBatchButtonClicked");
@@ -53,13 +53,13 @@ describe("PDF analytics and Discord guardrails", () => {
     expect(discordSource).toContain("cardsPerPage");
     expect(batchPdfRouteSource).toContain("notifyBatchPdfExported");
     expect(batchPdfRouteSource).toContain("firstCardTitle");
-    expect(activityRouteSource).toContain('event === "export_button_clicked"');
-    expect(activityRouteSource).toContain('event === "batch_button_clicked"');
-    expect(activityRouteSource).toContain('event === "batch_primary_clicked"');
-    expect(activityRouteSource).toContain('event === "batch_pdf_export_started"');
+    expect(activityRouteSource).toContain("await trackActivity");
+    expect(activityRouteSource).toContain('event === "bingo_achieved"');
+    expect(activityRouteSource).not.toContain("notifyExportButtonClicked");
+    expect(activityRouteSource).not.toContain("notifyBatchButtonClicked");
   });
 
-  test("save-to-checkout funnel clicks send Discord notifications", () => {
+  test("save-to-checkout funnel clicks remain analytics-only", () => {
     expect(discordSource).toContain("export async function notifySaveCheckoutFunnelEvent");
     expect(discordSource).toContain("Save Card Clicked");
     expect(discordSource).toContain("Save Requires Signup");
@@ -68,15 +68,8 @@ describe("PDF analytics and Discord guardrails", () => {
     expect(discordSource).toContain("Checkout Closed");
     expect(discordSource).toContain("Kept Drafting");
     expect(discordSource).toContain("Save checkout funnel");
-    expect(activityRouteSource).toContain("notifySaveCheckoutFunnelEvent");
-    expect(activityRouteSource).toContain('event === "card_save_attempted"');
-    expect(activityRouteSource).toContain('event === "card_save_blocked"');
-    expect(activityRouteSource).toContain('event === "save_blocked_auth_required"');
-    expect(activityRouteSource).toContain('event === "oauth_signup_started"');
-    expect(activityRouteSource).toContain('event === "checkout_auto_started_after_auth"');
-    expect(activityRouteSource).toContain('event === "checkout_loaded"');
-    expect(activityRouteSource).toContain('event === "checkout_cancel_clicked"');
-    expect(activityRouteSource).toContain('event === "premium_gate_keep_drafting_clicked"');
+    expect(activityRouteSource).toContain("await trackActivity");
+    expect(activityRouteSource).not.toContain("notifySaveCheckoutFunnelEvent");
   });
 
   test("admin activity labels include PDF analytics events", () => {

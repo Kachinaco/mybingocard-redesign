@@ -44,7 +44,7 @@ function createFixture() {
 }
 
 describe("admin visitors Tracker Lite adapter", () => {
-  test("uses Tracker Lite events and SQLite visitor profiles without Mongo", async () => {
+  test("uses Tracker Lite events and SQLite visitor profiles", async () => {
     const { store } = createFixture();
     const now = Date.now();
     store.insertOne("visitor_profiles", {
@@ -120,9 +120,8 @@ describe("admin visitors Tracker Lite adapter", () => {
     expect(visitor.recentEvents.map((event) => event.event)).toEqual(["click", "pageview"]);
   });
 
-  test("contains no Mongo runtime dependency", () => {
+  test("contains no legacy database-client dependency", () => {
     const source = readFileSync(join(process.cwd(), "lib/admin-live-visitors.ts"), "utf8");
-    expect(source).not.toContain('from "mongodb"');
     expect(source).toContain("fetchTrackerPayload");
     expect(source).toContain('getSqliteStore().findMany<VisitorProfile>("visitor_profiles"');
   });

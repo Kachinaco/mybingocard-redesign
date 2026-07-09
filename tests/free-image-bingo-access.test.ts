@@ -44,7 +44,7 @@ describe("free image bingo access", () => {
     expect(imageDbSource).toContain("export async function isImageReferencedByPublicCard");
     expect(imageServeRouteSource).toContain("isImageReferencedByPublicCard");
     expect(imageDbSource).toContain("isPublic: true");
-    expect(imageDbSource).toContain("cells: { $elemMatch: { $regex: imageIdPattern } }");
+    expect(imageDbSource).toContain("cells: { $regex: imageIdPattern }");
     expect(imageServeRouteSource).toContain("publicSharedImage");
   });
 });

@@ -1,8 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const nodemailer = require('./smtp-client.cjs');
-const { MongoClient, ObjectId } = require('mongodb');
-const { openSqliteShadowStore, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
+const { openSqliteShadowStore } = require('./sqlite-shadow-store.cjs');
 
 const envPath = path.join(__dirname, '..', '.env.local');
 try {
@@ -20,7 +19,6 @@ try {
 
 const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://mybingocard.com').replace(/\/$/, '');
 const FROM_ADDRESS = process.env.EMAIL_FROM || 'MyBingoCard <support@mybingocard.com>';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 const CAMPAIGN_ID = 'card_comeback_24h';
 const MIN_AGE_HOURS = Number(process.env.CARD_COMEBACK_MIN_AGE_HOURS || 20);
 const MAX_AGE_DAYS = Number(process.env.CARD_COMEBACK_MAX_AGE_DAYS || 7);
@@ -116,16 +114,7 @@ function buildEmail({ email, name, card }) {
   };
 }
 
-function userIdQueries(userId) {
-  const queries = [{ userId: userId.toString() }];
-  try {
-    queries.push({ userId: new ObjectId(userId) });
-  } catch (_) {}
-  return queries;
-}
-
 function objectIdString(value) {
-  if (value instanceof ObjectId) return value.toHexString();
   if (value && typeof value === 'object' && typeof value.toHexString === 'function') {
     return value.toHexString();
   }
@@ -270,104 +259,7 @@ async function mainSqlite() {
 }
 
 async function main() {
-  if (useSqliteBackend()) {
-    await mainSqlite();
-    return;
-  }
-
-  const client = new MongoClient(MONGODB_URI);
-  await client.connect();
-  const db = client.db('mybingocard');
-  try {
-    await db.collection('drip_log').createIndex({ email: 1, campaignId: 1, cardId: 1 });
-
-    const now = Date.now();
-    const newest = new Date(now - MIN_AGE_HOURS * 60 * 60 * 1000);
-    const oldest = new Date(now - MAX_AGE_DAYS * 24 * 60 * 60 * 1000);
-    const unsubscribed = await db.collection('email_preferences').distinct('email', {
-      $or: [{ unsubscribed: true }, { marketingEmails: false }],
-    });
-    const blocked = new Set(unsubscribed.map(normalizeEmail));
-
-    const users = await db.collection('users').find({
-      email: { $exists: true, $nin: Array.from(blocked) },
-      lastCardCreatedAt: { $gte: oldest, $lte: newest },
-      ...(TARGET_EMAIL ? { email: TARGET_EMAIL } : {}),
-      customerType: { $nin: ['admin', 'test', 'guest'] },
-    }).sort({ lastCardCreatedAt: -1 }).limit(LIMIT).toArray();
-
-    let considered = 0;
-    let skipped = 0;
-    let sent = 0;
-    for (const user of users) {
-      considered += 1;
-      const email = normalizeEmail(user.email);
-      if (!email || blocked.has(email)) {
-        skipped += 1;
-        continue;
-      }
-
-      const card = await db.collection('cards').findOne(
-        { $or: userIdQueries(user._id) },
-        { sort: { createdAt: -1 } }
-      );
-      if (!card) {
-        skipped += 1;
-        continue;
-      }
-
-      const cardCreatedAt = new Date(card.createdAt || user.lastCardCreatedAt);
-      const alreadySent = await db.collection('drip_log').findOne({
-        email,
-        campaignId: CAMPAIGN_ID,
-        cardId: card._id.toString(),
-      });
-      if (alreadySent) {
-        skipped += 1;
-        continue;
-      }
-
-      const playedAfterCreate = await db.collection('activity_events').findOne({
-        $or: [{ userId: user._id.toString() }, { email }],
-        event: { $in: ['play_started', 'cell_toggled', 'bingo_achieved'] },
-        createdAt: { $gte: cardCreatedAt },
-      });
-      if (playedAfterCreate) {
-        skipped += 1;
-        continue;
-      }
-
-      const emailPayload = buildEmail({ email, name: user.name, card });
-      console.log(`${SEND_EMAILS ? 'SEND' : 'DRY_RUN'} ${email} card="${card.title}" created=${cardCreatedAt.toISOString()}`);
-
-      if (!SEND_EMAILS) continue;
-
-      await transporter.sendMail({
-        from: FROM_ADDRESS,
-        to: email,
-        subject: emailPayload.subject,
-        html: emailPayload.html,
-        text: emailPayload.text,
-        headers: {
-          'List-Unsubscribe': `<${APP_URL}/api/unsubscribe?email=${encodeURIComponent(email)}>, <mailto:unsubscribe@mybingocard.com?subject=unsubscribe%20${encodeURIComponent(email)}>`,
-          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-        },
-      });
-      await db.collection('drip_log').insertOne({
-        userId: user._id.toString(),
-        email,
-        campaignId: CAMPAIGN_ID,
-        cardId: card._id.toString(),
-        sentAt: new Date(),
-        source: 'card-comeback-reminders',
-      });
-      sent += 1;
-    }
-
-    console.log(`Done. considered=${considered} skipped=${skipped} sent=${sent} dryRun=${!SEND_EMAILS}`);
-  } finally {
-    await client.close();
-  }
+  await mainSqlite();
 }
 
 main().catch((error) => {

@@ -26,8 +26,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { MongoClient } = require('mongodb');
-const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
+const { openSqliteShadowDatabase } = require('./sqlite-shadow-store.cjs');
 
 const envPath = path.join(__dirname, '..', '.env.local');
 try {
@@ -43,7 +42,6 @@ try {
   console.error('Could not load .env.local:', error.message);
 }
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 const LOOKBACK_DAYS = Number(process.env.LOOKBACK_DAYS) || 180;
 const MIN_SENDS = Number(process.env.MIN_SENDS) || 3;
 const GRACE_DAYS = Number(process.env.GRACE_DAYS) || 30;
@@ -52,10 +50,7 @@ const DRY_RUN = process.env.DRY_RUN !== '0'; // dry run by default — pass DRY_
 const REASON = 'engagement_decay';
 
 async function run() {
-  const sqliteDb = useSqliteBackend() ? openSqliteShadowDatabase() : null;
-  const client = sqliteDb ? null : new MongoClient(MONGODB_URI);
-  if (client) await client.connect();
-  const db = sqliteDb || client.db('mybingocard');
+  const db = openSqliteShadowDatabase();
 
   try {
     const now = new Date();
@@ -170,8 +165,7 @@ async function run() {
     console.log('');
     console.log(`=== DONE: suppressed ${suppressed}/${candidates.length} ===`);
   } finally {
-    if (client) await client.close();
-    if (sqliteDb) sqliteDb.close();
+    db.close();
   }
 }
 

@@ -2,8 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const Imap = require('imap');
 const { simpleParser } = require('mailparser');
-const { MongoClient } = require('mongodb');
-const { openSqliteShadowDatabase, useSqliteBackend } = require('./sqlite-shadow-store.cjs');
+const { openSqliteShadowDatabase } = require('./sqlite-shadow-store.cjs');
 
 // Load .env.local
 const envPath = path.join(__dirname, '..', '.env.local');
@@ -22,30 +21,17 @@ try {
 }
 
 const WEBHOOK_URL = process.env.MYBINGOCARD_EVENTS_WEBHOOK_URL || process.env.DISCORD_WEBHOOK_URL || '';
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mybingocard';
 const SUPPORT_REPLY_MENTIONS_ENABLED = process.env.MYBINGOCARD_SUPPORT_REPLY_MENTIONS === '1';
 
-let mongoClient = null;
 let sqliteDatabase = null;
 let dbIndexesCreated = false;
 async function getDb() {
-  if (useSqliteBackend()) {
-    if (!sqliteDatabase) {
-      sqliteDatabase = openSqliteShadowDatabase();
-      console.log('[' + new Date().toISOString() + '] Connected to SQLite shadow store');
-    }
-    await ensureDbIndexes(sqliteDatabase);
-    return sqliteDatabase;
+  if (!sqliteDatabase) {
+    sqliteDatabase = openSqliteShadowDatabase();
+    console.log('[' + new Date().toISOString() + '] Connected to SQLite store');
   }
-
-  if (!mongoClient) {
-    mongoClient = new MongoClient(MONGODB_URI);
-    await mongoClient.connect();
-    console.log('[' + new Date().toISOString() + '] Connected to MongoDB');
-  }
-  const db = mongoClient.db('mybingocard');
-  await ensureDbIndexes(db);
-  return db;
+  await ensureDbIndexes(sqliteDatabase);
+  return sqliteDatabase;
 }
 
 async function ensureDbIndexes(db) {
@@ -304,10 +290,6 @@ function scheduleReconnect() {
 }
 
 async function closeDb() {
-  if (mongoClient) {
-    try { await mongoClient.close(); } catch (e) {}
-    mongoClient = null;
-  }
   if (sqliteDatabase) {
     try { sqliteDatabase.close(); } catch (e) {}
     sqliteDatabase = null;
@@ -319,7 +301,7 @@ function start() {
   console.log('MyBingoCard Email Monitor started (IDLE mode)');
   console.log('Using IMAP user:', IMAP_CONFIG.user);
   console.log('Webhook URL set:', !!WEBHOOK_URL);
-  console.log('Database backend:', useSqliteBackend() ? 'sqlite' : 'mongo');
+  console.log('Database backend: sqlite');
   const bulkSendExistingUnread = process.env.MYBINGOCARD_EMAIL_MONITOR_BULK_SEND === '1' &&
     process.argv.includes('--notify-existing-unread');
   if (process.argv.includes('--notify-existing-unread') && !bulkSendExistingUnread) {

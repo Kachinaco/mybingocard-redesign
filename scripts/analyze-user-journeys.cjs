@@ -1,7 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { MongoClient } = require("mongodb");
-const { openSqliteShadowDatabase, useSqliteBackend } = require("./sqlite-shadow-store.cjs");
+const { openSqliteShadowDatabase } = require("./sqlite-shadow-store.cjs");
 
 const ROOT = path.resolve(__dirname, "..");
 const ENV_PATH = path.join(ROOT, ".env.local");
@@ -30,7 +29,6 @@ try {
   console.error(`Could not load ${ENV_PATH}:`, error.message);
 }
 
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/mybingocard";
 const PHOENIX_TZ = "America/Phoenix";
 
 const PASSIVE_EVENTS = new Set([
@@ -422,10 +420,7 @@ function summarizeJourney({ user, events, cards, games, rooms, subscription, sup
 
 async function run() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
-  const sqliteDb = useSqliteBackend() ? openSqliteShadowDatabase() : null;
-  const client = sqliteDb ? null : new MongoClient(MONGODB_URI);
-  if (client) await client.connect();
-  const db = sqliteDb || client.db("mybingocard");
+  const db = openSqliteShadowDatabase();
 
   const [
     users,
@@ -854,11 +849,7 @@ async function run() {
     noActivation: noActivation.length,
   }, null, 2));
 
-  if (client) {
-    await client.close();
-  } else {
-    sqliteDb.close();
-  }
+  db.close();
 }
 
 run().catch((error) => {

@@ -25,7 +25,6 @@ describe("Apple native IAP batch guardrails", () => {
     expect(nativeAppleIapRoute).toContain('purchaseType: "batch_pack"');
     expect(nativeAppleIapRoute).toContain("batchPurchaseId");
     expect(nativeAppleIapRoute).not.toContain("Apple product is not a MyBingoCard Premium product");
-    expect(nativeAppleIapRoute).not.toContain("clientPromise");
     expect(nativeAppleIapRoute).not.toContain(".collection(");
   });
 

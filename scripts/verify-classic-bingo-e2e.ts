@@ -1,4 +1,4 @@
-import clientPromise from "../lib/mongodb";
+import { getSqliteStore } from "../lib/db/sqlite";
 import {
   callItem,
   claimBingo,
@@ -133,11 +133,7 @@ async function main() {
       room90: room90.roomCode,
     });
   } finally {
-    const client = await clientPromise;
-    await client
-      .db("mybingocard")
-      .collection("game_rooms")
-      .deleteMany({ hostUserId });
+    getSqliteStore().deleteMany("game_rooms", { hostUserId });
   }
 }
 
