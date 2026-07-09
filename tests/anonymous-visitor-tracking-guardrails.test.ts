@@ -28,6 +28,8 @@ describe("anonymous visitor tracking", () => {
     expect(adminVisitorsClientSource).toContain("anonymousId");
     expect(adminVisitorsClientSource).toContain("Raw Visitor Data");
     expect(adminVisitorsClientSource).toContain("recentEvents");
-    expect(adminVisitorsDataSource).toContain("$ifNull");
+    expect(adminVisitorsDataSource).toContain("fetchTrackerPayload");
+    expect(adminVisitorsDataSource).toContain("getSqliteStore");
+    expect(adminVisitorsDataSource).not.toContain('from "mongodb"');
   });
 });

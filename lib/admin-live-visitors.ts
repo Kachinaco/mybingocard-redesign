@@ -1,6 +1,6 @@
-import { MongoClient } from "mongodb";
-import { readFileSync } from "node:fs";
+import { getSqliteStore } from "@/lib/db/sqlite";
 import type {
+  AdminVisitorEvent,
   AdminVisitorSummary,
   AdminVisitorsData,
   AdminVisitorsStats,
@@ -8,73 +8,83 @@ import type {
 
 const DOMAIN = "mybingocard.com";
 const ENGAGED_WINDOW_MS = 30 * 1000;
+const DEFAULT_TRACKER_LIVE_URL = "http://127.0.0.1:3098/api/live/events";
 
-let analyticsClientPromise: Promise<MongoClient> | null = null;
-
-type RawVisitorSummary = Omit<
-  AdminVisitorSummary,
-  "firstSeenAt" | "lastSeenAt" | "recentEvents"
-> & {
-  firstSeenAt: Date;
-  lastSeenAt: Date;
-  lastPresenceAt?: Date | null;
-  lastInteractionAt?: Date | null;
-  recentEvents: Array<{
-    event?: string;
-    pathname?: string | null;
-    createdAt?: Date;
-    sessionId?: string | null;
-    tabId?: string | null;
-    trafficClass?: string | null;
-    isHuman?: boolean | null;
-  }>;
+type VisitorFilters = {
+  anonymousId: string | null;
+  sessionId: string | null;
+  visitorKey: string | null;
 };
 
-function readEnvFile(filePath: string): Record<string, string> {
-  try {
-    const env: Record<string, string> = {};
-    for (const line of readFileSync(filePath, "utf8").split(/\r?\n/)) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      const idx = trimmed.indexOf("=");
-      if (idx === -1) continue;
-      env[trimmed.slice(0, idx)] = trimmed.slice(idx + 1).replace(/^['"]|['"]$/g, "");
-    }
-    return env;
-  } catch {
-    return {};
-  }
-}
+type TrackerEvent = {
+  anonymousId?: unknown;
+  eventGroup?: unknown;
+  eventType?: unknown;
+  isAuthProbe?: unknown;
+  label?: unknown;
+  metadata?: unknown;
+  pathname?: unknown;
+  receivedAt?: unknown;
+  sessionId?: unknown;
+  visitorId?: unknown;
+  visitorName?: unknown;
+};
 
-function getAnalyticsMongoUri(): string {
-  if (process.env.ANALYTICS_MONGODB_URI) return process.env.ANALYTICS_MONGODB_URI;
-  if (process.env.TOWNRANKER_ANALYTICS_MONGODB_URI) return process.env.TOWNRANKER_ANALYTICS_MONGODB_URI;
-  const analyticsEnv = readEnvFile("/opt/saas/analytics-tracker/.env");
-  return analyticsEnv.MONGODB_URI || "mongodb://localhost:27017/analytics";
-}
+type TrackerKnownVisitor = {
+  anonymousId?: unknown;
+  anonymousIds?: unknown;
+  displayName?: unknown;
+  durationSeconds?: unknown;
+  events?: unknown;
+  firstSeenAt?: unknown;
+  lastEventType?: unknown;
+  lastPath?: unknown;
+  lastSeenAt?: unknown;
+  pageviews?: unknown;
+  sessions?: unknown;
+  visitorId?: unknown;
+  visitorKey?: unknown;
+  visitorName?: unknown;
+};
 
-async function getAnalyticsClient(): Promise<MongoClient> {
-  if (!analyticsClientPromise) {
-    analyticsClientPromise = new MongoClient(getAnalyticsMongoUri(), {
-      maxPoolSize: 5,
-      minPoolSize: 0,
-      maxIdleTimeMS: 30000,
-      connectTimeoutMS: 5000,
-      serverSelectionTimeoutMS: 5000,
-    }).connect();
-  }
+type TrackerLivePayload = {
+  events?: unknown;
+  knownVisitors?: unknown;
+  siteSummary?: unknown;
+};
 
-  return analyticsClientPromise;
-}
+type VisitorProfile = {
+  anonymousId?: unknown;
+  domain?: unknown;
+  email?: unknown;
+  myBingoCardUserId?: unknown;
+  name?: unknown;
+  sessionId?: unknown;
+};
+
+type VisitorAggregate = {
+  visitorKey: string;
+  anonymousId: string | null;
+  sessionIds: Set<string>;
+  tabIds: Set<string>;
+  firstSeenAt: Date | null;
+  lastSeenAt: Date | null;
+  lastPresenceAt: Date | null;
+  lastInteractionAt: Date | null;
+  lastPathname: string | null;
+  lastEvent: string | null;
+  eventCount: number;
+  pageViews: number;
+  uniquePages: Set<string>;
+  isVisible: boolean | null;
+  isFocused: boolean | null;
+  trackerName: string | null;
+  recentEvents: AdminVisitorEvent[];
+};
 
 function clampNumber(value: number | undefined, fallback: number, min: number, max: number): number {
   if (!Number.isFinite(value)) return fallback;
   return Math.min(max, Math.max(min, Math.floor(value as number)));
-}
-
-function toIso(value: Date | string | null | undefined): string {
-  if (!value) return new Date(0).toISOString();
-  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
 }
 
 function cleanString(value: unknown, fallback = ""): string {
@@ -82,330 +92,238 @@ function cleanString(value: unknown, fallback = ""): string {
 }
 
 function cleanStringArray(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.map((item) => cleanString(item)).filter(Boolean)
-    : [];
+  return Array.isArray(value) ? value.map((item) => cleanString(item)).filter(Boolean) : [];
 }
 
-function isRecentDate(value: Date | string | null | undefined, sinceMs: number): boolean {
-  if (!value) return false;
-  return new Date(value).getTime() >= sinceMs;
+function numberValue(value: unknown, fallback = 0): number {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? Math.max(0, parsed) : fallback;
 }
 
-function displayNameFor(visitor: {
-  visitorName?: string | null;
-  visitorEmail?: string | null;
-  anonymousId?: string | null;
-  sessionIds?: string[];
-}): string {
-  if (visitor.visitorName && visitor.visitorEmail) {
-    return `${visitor.visitorName} <${visitor.visitorEmail}>`;
-  }
-  if (visitor.visitorName) return visitor.visitorName;
-  if (visitor.visitorEmail) return visitor.visitorEmail;
-  if (visitor.anonymousId) return visitor.anonymousId;
-  return visitor.sessionIds?.[0] || "Unknown visitor";
+function dateValue(value: unknown): Date | null {
+  if (value instanceof Date && Number.isFinite(value.getTime())) return value;
+  if (typeof value !== "string" && typeof value !== "number") return null;
+  const parsed = new Date(value);
+  return Number.isFinite(parsed.getTime()) ? parsed : null;
 }
 
-function sortEvents(events: RawVisitorSummary["recentEvents"]): RawVisitorSummary["recentEvents"] {
-  return [...(events || [])].sort((a, b) => {
-    return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-  });
+function toIso(value: Date | null): string {
+  return (value || new Date(0)).toISOString();
 }
 
-function serializeVisitor(visitor: RawVisitorSummary, activeSince: Date): AdminVisitorSummary {
-  const visitorName = cleanString(visitor.visitorName, "");
-  const visitorEmail = cleanString(visitor.visitorEmail, "");
-  const anonymousId = cleanString(visitor.anonymousId, "");
-  const sessionIds = cleanStringArray(visitor.sessionIds);
-  const tabIds = cleanStringArray(visitor.tabIds);
-  const identityType = visitorName || visitorEmail ? "known" : anonymousId ? "anonymous" : "session";
-  const lastEvent = cleanString(visitor.lastEvent, "");
-  const hasEnded = ["session_end", "tab_hidden"].includes(lastEvent);
-  const lastSeenMs = new Date(visitor.lastSeenAt).getTime();
-  const isActive = Boolean(lastSeenMs >= activeSince.getTime() && !hasEnded && visitor.isVisible !== false);
-  const isEngaged = isActive && isRecentDate(visitor.lastInteractionAt, Date.now() - ENGAGED_WINDOW_MS);
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
 
+function eventName(event: TrackerEvent): string {
+  return cleanString(event.eventType) || cleanString(event.label) || cleanString(event.eventGroup) || "event";
+}
+
+function isPageView(event: string): boolean {
+  return event === "pageview" || event === "page_view";
+}
+
+function isInteraction(event: string): boolean {
+  return !["pageview", "page_view", "session_end", "tab_hidden", "visitor_presence"].includes(event);
+}
+
+function visitorKeyFor(event: TrackerEvent): { visitorKey: string; anonymousId: string | null } | null {
+  const anonymousId = cleanString(event.anonymousId);
+  const visitorKey = anonymousId || cleanString(event.visitorId) || cleanString(event.sessionId);
+  return visitorKey ? { visitorKey, anonymousId: anonymousId || null } : null;
+}
+
+function createAggregate(visitorKey: string, anonymousId: string | null): VisitorAggregate {
   return {
-    ...visitor,
-    identityType,
-    visitorName: visitorName || null,
-    visitorEmail: visitorEmail || null,
-    myBingoCardUserId: cleanString(visitor.myBingoCardUserId, "") || null,
-    anonymousId: anonymousId || null,
-    sessionIds,
-    tabIds,
-    visitorLabel: displayNameFor({
-      visitorName,
-      visitorEmail,
-      anonymousId,
-      sessionIds,
-    }),
-    firstSeenAt: toIso(visitor.firstSeenAt),
-    lastSeenAt: toIso(visitor.lastSeenAt),
-    lastPresenceAt: visitor.lastPresenceAt ? toIso(visitor.lastPresenceAt) : null,
-    lastInteractionAt: visitor.lastInteractionAt ? toIso(visitor.lastInteractionAt) : null,
-    isActive,
-    isEngaged,
-    isVisible: typeof visitor.isVisible === "boolean" ? visitor.isVisible : null,
-    isFocused: typeof visitor.isFocused === "boolean" ? visitor.isFocused : null,
-    recentEvents: sortEvents(visitor.recentEvents).slice(0, 12).map((event) => ({
-      event: cleanString(event.event, "unknown"),
-      pathname: cleanString(event.pathname, "") || null,
-      createdAt: toIso(event.createdAt),
-      sessionId: cleanString(event.sessionId, "") || null,
-      tabId: cleanString(event.tabId, "") || null,
-      trafficClass: cleanString(event.trafficClass, "") || null,
-      isHuman: typeof event.isHuman === "boolean" ? event.isHuman : null,
-    })),
+    visitorKey,
+    anonymousId,
+    sessionIds: new Set(),
+    tabIds: new Set(),
+    firstSeenAt: null,
+    lastSeenAt: null,
+    lastPresenceAt: null,
+    lastInteractionAt: null,
+    lastPathname: null,
+    lastEvent: null,
+    eventCount: 0,
+    pageViews: 0,
+    uniquePages: new Set(),
+    isVisible: null,
+    isFocused: null,
+    trackerName: null,
+    recentEvents: [],
   };
 }
 
-function visitorFilter(options?: {
-  anonymousId?: string | null;
-  sessionId?: string | null;
-  visitorKey?: string | null;
-}) {
-  const anonymousId = cleanString(options?.anonymousId, "");
-  const sessionId = cleanString(options?.sessionId, "");
-  const visitorKey = cleanString(options?.visitorKey, "");
-  const filters = [];
-
-  if (anonymousId) filters.push({ anonymousId });
-  if (sessionId) filters.push({ sessionId });
-  if (sessionId) filters.push({ sessionIds: sessionId });
-  if (visitorKey) filters.push({ visitorKey });
-
-  return filters.length ? { $or: filters } : {};
+function updateRange(aggregate: VisitorAggregate, value: Date) {
+  if (!aggregate.firstSeenAt || value < aggregate.firstSeenAt) aggregate.firstSeenAt = value;
+  if (!aggregate.lastSeenAt || value >= aggregate.lastSeenAt) aggregate.lastSeenAt = value;
 }
 
-async function getProjectedVisitors(
-  db: ReturnType<MongoClient["db"]>,
-  since: Date,
-  activeSince: Date,
-  options?: { anonymousId?: string | null; sessionId?: string | null; visitorKey?: string | null }
-): Promise<AdminVisitorSummary[]> {
-  const docs = await db
-    .collection("live_visitors")
-    .find({
-      domain: DOMAIN,
-      lastSeenAt: { $gte: since },
-      ...visitorFilter(options),
-    })
-    .sort({ lastSeenAt: -1 })
-    .toArray();
+function addTrackerEvent(aggregate: VisitorAggregate, event: TrackerEvent) {
+  const createdAt = dateValue(event.receivedAt);
+  if (!createdAt) return;
 
-  return docs.map((doc) =>
-    serializeVisitor(
-      {
-        visitorKey: cleanString(doc.visitorKey, cleanString(doc.anonymousId, cleanString(doc.sessionId))),
-        identityType: "anonymous",
-        visitorLabel: cleanString(doc.visitorLabel, ""),
-        visitorName: cleanString(doc.visitorName, "") || null,
-        visitorEmail: cleanString(doc.visitorEmail, "") || null,
-        myBingoCardUserId: cleanString(doc.myBingoCardUserId, "") || null,
-        anonymousId: cleanString(doc.anonymousId, "") || null,
-        sessionIds: cleanStringArray(doc.sessionIds).length ? cleanStringArray(doc.sessionIds) : [cleanString(doc.sessionId)].filter(Boolean),
-        tabIds: cleanStringArray(doc.tabIds).length ? cleanStringArray(doc.tabIds) : [cleanString(doc.tabId)].filter(Boolean),
-        firstSeenAt: doc.firstSeenAt || doc.createdAt || doc.lastSeenAt,
-        lastSeenAt: doc.lastSeenAt,
-        lastPresenceAt: doc.lastPresenceAt || null,
-        lastInteractionAt: doc.lastInteractionAt || null,
-        lastPathname: cleanString(doc.currentPathname, "") || null,
-        lastEvent: cleanString(doc.lastEvent, "") || null,
-        eventCount: typeof doc.eventCount === "number" ? doc.eventCount : 0,
-        pageViews: typeof doc.pageViews === "number" ? doc.pageViews : 0,
-        uniquePages: cleanString(doc.currentPathname, "") ? [cleanString(doc.currentPathname)] : [],
-        isActive: false,
-        isEngaged: false,
-        isVisible: typeof doc.visible === "boolean" ? doc.visible : null,
-        isFocused: typeof doc.focused === "boolean" ? doc.focused : null,
-        recentEvents: Array.isArray(doc.recentEvents) ? doc.recentEvents : [],
-      },
-      activeSince
-    )
+  const name = eventName(event);
+  const pathname = cleanString(event.pathname) || null;
+  const sessionId = cleanString(event.sessionId) || null;
+  const metadata = asRecord(event.metadata);
+  const tabId = cleanString(metadata.tabId) || null;
+  const visible = typeof metadata.visible === "boolean" ? metadata.visible : null;
+  const focused = typeof metadata.focused === "boolean" ? metadata.focused : null;
+
+  updateRange(aggregate, createdAt);
+  aggregate.eventCount += 1;
+  if (isPageView(name)) aggregate.pageViews += 1;
+  if (pathname) aggregate.uniquePages.add(pathname);
+  if (sessionId) aggregate.sessionIds.add(sessionId);
+  if (tabId) aggregate.tabIds.add(tabId);
+  if (name === "visitor_presence") aggregate.lastPresenceAt = createdAt;
+  if (isInteraction(name) && (!aggregate.lastInteractionAt || createdAt >= aggregate.lastInteractionAt)) {
+    aggregate.lastInteractionAt = createdAt;
+  }
+
+  if (!aggregate.lastSeenAt || createdAt >= aggregate.lastSeenAt) {
+    aggregate.lastPathname = pathname;
+    aggregate.lastEvent = name;
+    aggregate.isVisible = visible;
+    aggregate.isFocused = focused;
+  }
+
+  aggregate.trackerName = aggregate.trackerName || cleanString(event.visitorName) || null;
+  aggregate.recentEvents.push({
+    event: name,
+    pathname,
+    createdAt: toIso(createdAt),
+    sessionId,
+    tabId,
+    trafficClass: null,
+    isHuman: event.isAuthProbe === true ? false : true,
+  });
+}
+
+function mergeKnownVisitor(aggregate: VisitorAggregate, visitor: TrackerKnownVisitor) {
+  const firstSeenAt = dateValue(visitor.firstSeenAt);
+  const lastSeenAt = dateValue(visitor.lastSeenAt);
+  if (firstSeenAt) updateRange(aggregate, firstSeenAt);
+  if (lastSeenAt) updateRange(aggregate, lastSeenAt);
+  aggregate.eventCount = Math.max(aggregate.eventCount, numberValue(visitor.events));
+  aggregate.pageViews = Math.max(aggregate.pageViews, numberValue(visitor.pageviews));
+  aggregate.trackerName =
+    aggregate.trackerName || cleanString(visitor.visitorName) || cleanString(visitor.displayName) || null;
+  if (lastSeenAt && (!aggregate.lastSeenAt || lastSeenAt >= aggregate.lastSeenAt)) {
+    aggregate.lastPathname = cleanString(visitor.lastPath) || aggregate.lastPathname;
+    aggregate.lastEvent = cleanString(visitor.lastEventType) || aggregate.lastEvent;
+  }
+}
+
+function profileMap(): Map<string, VisitorProfile> {
+  const profiles = getSqliteStore().findMany<VisitorProfile>("visitor_profiles", {});
+  return new Map(
+    profiles
+      .filter((profile) => {
+        const domain = cleanString(profile.domain);
+        return !domain || domain === DOMAIN;
+      })
+      .map((profile) => [cleanString(profile.anonymousId), profile] as const)
+      .filter(([anonymousId]) => Boolean(anonymousId))
   );
 }
 
-async function getRawVisitors(
-  db: ReturnType<MongoClient["db"]>,
-  since: Date,
-  activeSince: Date,
-  options?: { anonymousId?: string | null; sessionId?: string | null; visitorKey?: string | null }
-): Promise<AdminVisitorSummary[]> {
-  const anonymousId = cleanString(options?.anonymousId, "");
-  const sessionId = cleanString(options?.sessionId, "");
-  const visitorKey = cleanString(options?.visitorKey, "");
-  const identityClauses = [];
-  if (anonymousId) identityClauses.push({ anonymousId });
-  if (sessionId) identityClauses.push({ sessionId });
-  if (visitorKey) identityClauses.push({ anonymousId: visitorKey }, { sessionId: visitorKey });
-
-  const visitors = await db
-    .collection("events")
-    .aggregate<RawVisitorSummary>([
-      {
-        $match: {
-          domain: DOMAIN,
-          createdAt: { $gte: since },
-          ...(identityClauses.length ? { $or: identityClauses } : {}),
-        },
-      },
-      { $sort: { createdAt: -1 } },
-      {
-        $addFields: {
-          visitorKey: {
-            $ifNull: ["$anonymousId", "$sessionId"],
-          },
-        },
-      },
-      { $match: { visitorKey: { $type: "string", $ne: "" } } },
-      {
-        $group: {
-          _id: "$visitorKey",
-          visitorKey: { $first: "$visitorKey" },
-          anonymousId: { $first: "$anonymousId" },
-          sessionIds: { $addToSet: "$sessionId" },
-          tabIds: { $addToSet: "$metadata.tabId" },
-          firstSeenAt: { $min: "$createdAt" },
-          lastSeenAt: { $max: "$createdAt" },
-          lastPresenceAt: {
-            $max: {
-              $cond: [{ $eq: ["$event", "visitor_presence"] }, "$createdAt", null],
-            },
-          },
-          lastInteractionAt: {
-            $max: {
-              $cond: [
-                {
-                  $or: [
-                    { $eq: ["$metadata.recentlyInteracted", true] },
-                    { $in: ["$event", ["page_view", "click", "cta_click", "phone_click", "email_click", "form_submit", "tab_returned"]] },
-                  ],
-                },
-                "$createdAt",
-                null,
-              ],
-            },
-          },
-          lastPathname: { $first: "$pathname" },
-          lastEvent: { $first: "$event" },
-          eventCount: { $sum: 1 },
-          pageViews: {
-            $sum: {
-              $cond: [{ $eq: ["$event", "page_view"] }, 1, 0],
-            },
-          },
-          isVisible: { $first: "$metadata.visible" },
-          isFocused: { $first: "$metadata.focused" },
-          uniquePages: { $addToSet: "$pathname" },
-          recentEvents: {
-            $push: {
-              event: "$event",
-              pathname: "$pathname",
-              createdAt: "$createdAt",
-              sessionId: "$sessionId",
-              tabId: "$metadata.tabId",
-              trafficClass: "$trafficClass",
-              isHuman: "$isHuman",
-            },
-          },
-        },
-      },
-      {
-        $lookup: {
-          from: "visitor_profiles",
-          localField: "anonymousId",
-          foreignField: "anonymousId",
-          as: "profiles",
-        },
-      },
-      {
-        $addFields: {
-          profile: { $first: "$profiles" },
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          visitorKey: 1,
-          anonymousId: 1,
-          sessionIds: {
-            $slice: [
-              {
-                $filter: {
-                  input: "$sessionIds",
-                  as: "sessionId",
-                  cond: { $and: [{ $ne: ["$$sessionId", null] }, { $ne: ["$$sessionId", ""] }] },
-                },
-              },
-              20,
-            ],
-          },
-          tabIds: {
-            $slice: [
-              {
-                $filter: {
-                  input: "$tabIds",
-                  as: "tabId",
-                  cond: { $and: [{ $ne: ["$$tabId", null] }, { $ne: ["$$tabId", ""] }] },
-                },
-              },
-              20,
-            ],
-          },
-          visitorName: "$profile.name",
-          visitorEmail: "$profile.email",
-          myBingoCardUserId: "$profile.myBingoCardUserId",
-          firstSeenAt: 1,
-          lastSeenAt: 1,
-          lastPresenceAt: 1,
-          lastInteractionAt: 1,
-          lastPathname: 1,
-          lastEvent: 1,
-          eventCount: 1,
-          pageViews: 1,
-          isVisible: 1,
-          isFocused: 1,
-          uniquePages: {
-            $slice: [
-              {
-                $filter: {
-                  input: "$uniquePages",
-                  as: "page",
-                  cond: { $and: [{ $ne: ["$$page", null] }, { $ne: ["$$page", ""] }] },
-                },
-              },
-              12,
-            ],
-          },
-          recentEvents: { $slice: ["$recentEvents", 12] },
-        },
-      },
-      { $sort: { lastSeenAt: -1 } },
-    ])
-    .toArray();
-
-  return visitors.map((visitor) => serializeVisitor(visitor, activeSince));
+function profileValue(value: unknown): string | null {
+  if (typeof value === "string" && value.trim()) return value.trim();
+  if (value && typeof value === "object" && "toString" in value) {
+    const converted = String(value);
+    return converted && converted !== "[object Object]" ? converted : null;
+  }
+  return null;
 }
 
-function mergeVisitors(projected: AdminVisitorSummary[], raw: AdminVisitorSummary[]): AdminVisitorSummary[] {
-  const merged = new Map<string, AdminVisitorSummary>();
-  for (const visitor of raw) {
-    merged.set(visitor.visitorKey, visitor);
-  }
-  for (const visitor of projected) {
-    merged.set(visitor.visitorKey, {
-      ...(merged.get(visitor.visitorKey) || {}),
-      ...visitor,
-      uniquePages: Array.from(new Set([...visitor.uniquePages, ...(merged.get(visitor.visitorKey)?.uniquePages || [])])).slice(0, 12),
-      recentEvents: visitor.recentEvents.length ? visitor.recentEvents : (merged.get(visitor.visitorKey)?.recentEvents || []),
-    });
-  }
+function displayNameFor(profile: VisitorProfile | undefined, aggregate: VisitorAggregate): string {
+  const name = cleanString(profile?.name);
+  const email = cleanString(profile?.email);
+  if (name && email) return `${name} <${email}>`;
+  if (name) return name;
+  if (email) return email;
+  if (aggregate.trackerName) return aggregate.trackerName;
+  return aggregate.anonymousId || aggregate.sessionIds.values().next().value || aggregate.visitorKey || "Unknown visitor";
+}
 
-  return Array.from(merged.values()).sort((a, b) => {
-    return new Date(b.lastSeenAt).getTime() - new Date(a.lastSeenAt).getTime();
-  });
+function matchesFilters(visitor: AdminVisitorSummary, filters: VisitorFilters): boolean {
+  if (filters.anonymousId && visitor.anonymousId !== filters.anonymousId) return false;
+  if (filters.sessionId && !visitor.sessionIds.includes(filters.sessionId)) return false;
+  if (
+    filters.visitorKey &&
+    visitor.visitorKey !== filters.visitorKey &&
+    visitor.anonymousId !== filters.visitorKey &&
+    !visitor.sessionIds.includes(filters.visitorKey)
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function serializeVisitor(aggregate: VisitorAggregate, profiles: Map<string, VisitorProfile>, activeSince: Date): AdminVisitorSummary {
+  const profile = profiles.get(aggregate.anonymousId || "") || profiles.get(aggregate.visitorKey);
+  const visitorName = cleanString(profile?.name) || aggregate.trackerName || null;
+  const visitorEmail = cleanString(profile?.email) || null;
+  const myBingoCardUserId = profileValue(profile?.myBingoCardUserId);
+  const lastSeenAt = aggregate.lastSeenAt || aggregate.firstSeenAt || new Date(0);
+  const lastEvent = aggregate.lastEvent || "";
+  const isActive =
+    lastSeenAt >= activeSince &&
+    !["session_end", "tab_hidden"].includes(lastEvent) &&
+    aggregate.isVisible !== false;
+  const isEngaged = isActive && Boolean(aggregate.lastInteractionAt && aggregate.lastInteractionAt.getTime() >= Date.now() - ENGAGED_WINDOW_MS);
+
+  return {
+    visitorKey: aggregate.visitorKey,
+    identityType: visitorName || visitorEmail ? "known" : aggregate.anonymousId ? "anonymous" : "session",
+    visitorLabel: displayNameFor(profile, aggregate),
+    visitorName,
+    visitorEmail,
+    myBingoCardUserId,
+    anonymousId: aggregate.anonymousId,
+    sessionIds: Array.from(aggregate.sessionIds).slice(0, 20),
+    tabIds: Array.from(aggregate.tabIds).slice(0, 20),
+    firstSeenAt: toIso(aggregate.firstSeenAt || lastSeenAt),
+    lastSeenAt: toIso(lastSeenAt),
+    lastPresenceAt: aggregate.lastPresenceAt ? toIso(aggregate.lastPresenceAt) : null,
+    lastInteractionAt: aggregate.lastInteractionAt ? toIso(aggregate.lastInteractionAt) : null,
+    lastPathname: aggregate.lastPathname,
+    lastEvent: aggregate.lastEvent,
+    eventCount: aggregate.eventCount,
+    pageViews: aggregate.pageViews,
+    uniquePages: Array.from(aggregate.uniquePages).slice(0, 12),
+    isActive,
+    isEngaged,
+    isVisible: aggregate.isVisible,
+    isFocused: aggregate.isFocused,
+    recentEvents: [...aggregate.recentEvents]
+      .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
+      .slice(0, 12),
+  };
+}
+
+async function fetchTrackerPayload(periodHours: number, limit: number): Promise<TrackerLivePayload> {
+  const url = new URL(process.env.MYBINGOCARD_TRACKER_LIVE_URL || DEFAULT_TRACKER_LIVE_URL);
+  url.searchParams.set("domain", DOMAIN);
+  url.searchParams.set("period_minutes", String(periodHours * 60));
+  url.searchParams.set("limit", String(Math.min(2000, Math.max(250, limit * 12))));
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+  try {
+    const response = await fetch(url, { cache: "no-store", signal: controller.signal });
+    if (!response.ok) throw new Error(`Tracker Lite returned ${response.status}`);
+    return (await response.json()) as TrackerLivePayload;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function summaryCount(payload: TrackerLivePayload, key: "events" | "sessions"): number {
+  return numberValue(asRecord(payload.siteSummary)[key]);
 }
 
 export async function getAdminVisitorsData(options?: {
@@ -419,42 +337,46 @@ export async function getAdminVisitorsData(options?: {
   const liveWindowMinutes = clampNumber(options?.liveWindowMinutes, 5, 1, 60);
   const periodHours = clampNumber(options?.periodHours, 24, 1, 168);
   const limit = clampNumber(options?.limit, 100, 10, 250);
-  const filters = {
-    anonymousId: cleanString(options?.anonymousId, "") || null,
-    sessionId: cleanString(options?.sessionId, "") || null,
-    visitorKey: cleanString(options?.visitorKey, "") || null,
+  const filters: VisitorFilters = {
+    anonymousId: cleanString(options?.anonymousId) || null,
+    sessionId: cleanString(options?.sessionId) || null,
+    visitorKey: cleanString(options?.visitorKey) || null,
   };
   const activeSince = new Date(Date.now() - liveWindowMinutes * 60 * 1000);
-  const since = new Date(Date.now() - periodHours * 60 * 60 * 1000);
+  const payload = await fetchTrackerPayload(periodHours, limit);
+  const profiles = profileMap();
+  const aggregates = new Map<string, VisitorAggregate>();
 
-  const client = await getAnalyticsClient();
-  const db = client.db();
+  for (const rawEvent of Array.isArray(payload.events) ? payload.events : []) {
+    const event = asRecord(rawEvent) as TrackerEvent;
+    if (event.isAuthProbe === true) continue;
+    const identity = visitorKeyFor(event);
+    if (!identity) continue;
+    const aggregate = aggregates.get(identity.visitorKey) || createAggregate(identity.visitorKey, identity.anonymousId);
+    if (!aggregate.anonymousId && identity.anonymousId) aggregate.anonymousId = identity.anonymousId;
+    addTrackerEvent(aggregate, event);
+    aggregates.set(identity.visitorKey, aggregate);
+  }
 
-  const [projectedVisitors, rawVisitors, events24h] = await Promise.all([
-    getProjectedVisitors(db, since, activeSince, filters),
-    getRawVisitors(db, since, activeSince, filters),
-    db.collection("events").countDocuments({
-      domain: DOMAIN,
-      createdAt: { $gte: since },
-      ...(filters.anonymousId || filters.sessionId || filters.visitorKey
-        ? {
-            $or: [
-              ...(filters.anonymousId ? [{ anonymousId: filters.anonymousId }] : []),
-              ...(filters.sessionId ? [{ sessionId: filters.sessionId }] : []),
-              ...(filters.visitorKey ? [{ anonymousId: filters.visitorKey }, { sessionId: filters.visitorKey }] : []),
-            ],
-          }
-        : {}),
-    }),
-  ]);
+  for (const rawKnownVisitor of Array.isArray(payload.knownVisitors) ? payload.knownVisitors : []) {
+    const visitor = asRecord(rawKnownVisitor) as TrackerKnownVisitor;
+    const anonymousIds = cleanStringArray(visitor.anonymousIds);
+    const anonymousId = cleanString(visitor.anonymousId) || anonymousIds[0] || null;
+    const visitorKey = anonymousId || cleanString(visitor.visitorKey) || cleanString(visitor.visitorId);
+    if (!visitorKey) continue;
+    const aggregate = aggregates.get(visitorKey) || createAggregate(visitorKey, anonymousId);
+    if (!aggregate.anonymousId && anonymousId) aggregate.anonymousId = anonymousId;
+    mergeKnownVisitor(aggregate, visitor);
+    aggregates.set(visitorKey, aggregate);
+  }
 
-  const allVisitors = mergeVisitors(projectedVisitors, rawVisitors);
-  const visitors = allVisitors.slice(0, limit);
+  const allVisitors = Array.from(aggregates.values())
+    .map((aggregate) => serializeVisitor(aggregate, profiles, activeSince))
+    .filter((visitor) => matchesFilters(visitor, filters))
+    .sort((left, right) => new Date(right.lastSeenAt).getTime() - new Date(left.lastSeenAt).getTime());
   const activeVisitors = allVisitors.filter((visitor) => visitor.isActive);
-  const knownVisitors24h = allVisitors.filter((visitor) => visitor.identityType === "known").length;
-  const anonymousVisitors24h = allVisitors.filter((visitor) => visitor.identityType !== "known").length;
   const uniqueSessions = new Set(allVisitors.flatMap((visitor) => visitor.sessionIds));
-
+  const knownVisitors24h = allVisitors.filter((visitor) => visitor.identityType === "known").length;
   const stats: AdminVisitorsStats = {
     activeVisitors: activeVisitors.length,
     activeKnownVisitors: activeVisitors.filter((visitor) => visitor.identityType === "known").length,
@@ -463,9 +385,9 @@ export async function getAdminVisitorsData(options?: {
     visibleVisitors: activeVisitors.filter((visitor) => visitor.isVisible === true).length,
     visitors24h: allVisitors.length,
     knownVisitors24h,
-    anonymousVisitors24h,
-    sessions24h: uniqueSessions.size,
-    events24h,
+    anonymousVisitors24h: allVisitors.length - knownVisitors24h,
+    sessions24h: summaryCount(payload, "sessions") || uniqueSessions.size,
+    events24h: summaryCount(payload, "events") || allVisitors.reduce((sum, visitor) => sum + visitor.eventCount, 0),
   };
 
   return {
@@ -476,6 +398,6 @@ export async function getAdminVisitorsData(options?: {
     filters,
     stats,
     activeVisitors,
-    visitors,
+    visitors: allVisitors.slice(0, limit),
   };
 }

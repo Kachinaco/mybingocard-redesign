@@ -1,6 +1,4 @@
-import { MongoClient } from "mongodb";
-import { readFileSync } from "node:fs";
-import { getSqliteStore, useSqliteDb } from "@/lib/db/sqlite";
+import { getSqliteStore } from "@/lib/db/sqlite";
 
 type MatchedRecord = {
   collection: string;
@@ -28,44 +26,6 @@ export type VisitorProfileIdentifyRecord = {
   landingUrl: string;
   now?: Date;
 };
-
-let analyticsClientPromise: Promise<MongoClient> | null = null;
-
-function readEnvFile(filePath: string): Record<string, string> {
-  try {
-    const env: Record<string, string> = {};
-    for (const line of readFileSync(filePath, "utf8").split(/\r?\n/)) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      const idx = trimmed.indexOf("=");
-      if (idx === -1) continue;
-      env[trimmed.slice(0, idx)] = trimmed.slice(idx + 1).replace(/^['"]|['"]$/g, "");
-    }
-    return env;
-  } catch {
-    return {};
-  }
-}
-
-function getAnalyticsMongoUri(): string {
-  if (process.env.ANALYTICS_MONGODB_URI) return process.env.ANALYTICS_MONGODB_URI;
-  if (process.env.TOWNRANKER_ANALYTICS_MONGODB_URI) return process.env.TOWNRANKER_ANALYTICS_MONGODB_URI;
-  const analyticsEnv = readEnvFile("/opt/saas/analytics-tracker/.env");
-  return analyticsEnv.MONGODB_URI || "mongodb://localhost:27017/analytics";
-}
-
-async function getAnalyticsClient(): Promise<MongoClient> {
-  if (!analyticsClientPromise) {
-    analyticsClientPromise = new MongoClient(getAnalyticsMongoUri(), {
-      maxPoolSize: 5,
-      minPoolSize: 0,
-      maxIdleTimeMS: 30000,
-      connectTimeoutMS: 5000,
-      serverSelectionTimeoutMS: 5000,
-    }).connect();
-  }
-  return analyticsClientPromise;
-}
 
 export async function upsertVisitorProfileIdentification(record: VisitorProfileIdentifyRecord): Promise<void> {
   const now = record.now || new Date();
@@ -102,15 +62,5 @@ export async function upsertVisitorProfileIdentification(record: VisitorProfileI
     },
   };
 
-  if (useSqliteDb()) {
-    getSqliteStore().updateOne("visitor_profiles", { anonymousId: record.anonymousId }, update, { upsert: true });
-    return;
-  }
-
-  const analyticsClient = await getAnalyticsClient();
-  await analyticsClient.db().collection("visitor_profiles").updateOne(
-    { anonymousId: record.anonymousId },
-    update,
-    { upsert: true }
-  );
+  getSqliteStore().updateOne("visitor_profiles", { anonymousId: record.anonymousId }, update, { upsert: true });
 }

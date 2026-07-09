@@ -15,13 +15,13 @@ counts = {}
 log_paths = [
     os.environ.get("MYBINGOCARD_NGINX_ACCESS_LOG"),
     "/var/log/nginx/mybingocard.com.access.log",
-    "/var/log/nginx/access.log",
 ]
 
 try:
     log_path = next((path for path in log_paths if path and os.path.exists(path)), None)
     if not log_path:
-        sys.exit(0)
+        print("MyBingoCard dedicated Nginx access log is missing", file=sys.stderr)
+        sys.exit(1)
 
     with open(log_path) as f:
         for line in f:
@@ -40,13 +40,10 @@ try:
                 continue
             url = re.search(r'"\S+ (\S+) ', line)
             target = url.group(1) if url else '?'
-            if log_path.endswith("/access.log"):
-                referer_match = re.search(r'"https?://([^"/]+)', line)
-                if referer_match and "mybingocard.com" not in referer_match.group(1):
-                    continue
             key = code + ' ' + target
             counts[key] = counts.get(key, 0) + 1
     for k, v in sorted(counts.items(), key=lambda x: -x[1])[:10]:
         print(f'{v:>6} {k}')
 except Exception as e:
-    sys.exit(0)
+    print(f"Could not scan MyBingoCard Nginx access log: {e}", file=sys.stderr)
+    sys.exit(1)
