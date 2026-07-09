@@ -26,7 +26,7 @@ const schema = {
   name: "Wedding Bingo Cards Printable Generator",
   url: "https://mybingocard.com/wedding-bingo",
   description:
-    "Create custom printable wedding bingo cards for guests. Custom wedding bingo with free PDF export and digital play options.",
+    "Create custom printable wedding bingo cards for guests with editable reception squares, individual PDF/PNG exports, and paid digital play options.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -106,7 +106,7 @@ export default function WeddingBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Start a Draft
+                Create a Card
               </Link>
             </nav>
           </div>
@@ -131,7 +131,7 @@ export default function WeddingBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Add a fun, interactive twist to your wedding reception with custom printable wedding bingo cards! Our wedding bingo draft editor lets couples and wedding planners create beautiful, personalized bingo cards that guests play throughout the ceremony and reception. Fill squares with classic wedding moments — first kiss, bouquet toss, happy tears, dad jokes during the speech — or add your own personalized touches. Every card is uniquely shuffled so dozens of guests can play simultaneously without identical cards. Export PDF files for free or add paid digital links so guests can play on paper or phones. With elegant design themes, custom color palettes to match your wedding colors, and a free space you can personalize, you can create polished wedding bingo cards that fit the style of your event. Start for free, then pay only when you need player links or live hosting.
+                    Add an interactive twist to a wedding reception with editable bingo cards for the first kiss, bouquet toss, happy tears, speeches, and more. Match the colors to the event, save one card, and export an individual PDF or PNG for free. Use a paid batch pack when every guest needs a unique printable card, or add paid player links for phone play.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function WeddingBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Elegant themes · free PDF export</p>
+                  <p className="text-sm text-slate-400">1 free saved card · Elegant themes · Individual PDF/PNG export</p>
                 </div>
 
                 <div className="relative">
@@ -170,7 +170,7 @@ export default function WeddingBingoPage() {
                 {[
                   { icon: "💌", title: "Elegant Designs", desc: "Beautiful wedding-themed templates with floral motifs, gold accents, and classic typography." },
                   { icon: "🎨", title: "Match Your Colors", desc: "Customize card colors to perfectly match your wedding palette — blush, navy, sage, or any shade." },
-                  { icon: "🖨️", title: "PDF Exports", desc: "Export for free with sizing for place cards, table inserts, or full sheets." },
+                  { icon: "🖨️", title: "Individual Exports", desc: "Export one PDF or PNG card for free with sizing for place cards, table inserts, or full sheets." },
                   { icon: "📱", title: "Digital Cards", desc: "Skip printing with paid links — share a link and guests play on their phones. Great for outdoor venues." },
                   { icon: "👨‍👩‍👧", title: "All-Age Fun", desc: "Wedding bingo is easy to explain for mixed-age tables, from kids to grandparents." },
                   { icon: "🎁", title: "Winner Prizes", desc: "Add a prize square — first to yell BINGO wins a centerpiece, wine bottle, or gift card!" },
@@ -195,11 +195,11 @@ export default function WeddingBingoPage() {
                 Give your guests something to cheer about
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft beautiful printable wedding bingo cards in under 2 minutes, then start checkout to save or export.
+                Make wedding bingo cards in under 2 minutes, then add a paid batch pack when every guest needs a unique printable card.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-violet-50 transition-all duration-300 shadow-xl">
-                  Start a Free Wedding Bingo Draft
+                  Create Wedding Bingo Cards
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
                   See Pricing Plans

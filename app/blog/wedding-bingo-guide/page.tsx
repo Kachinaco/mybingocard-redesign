@@ -21,9 +21,15 @@ export const metadata: Metadata = {
 const schema = {
   "@context": "https://schema.org",
   "@type": "Article",
+  "@id": "https://mybingocard.com/blog/wedding-bingo-guide#article",
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": "https://mybingocard.com/blog/wedding-bingo-guide",
+  },
   headline: "The Ultimate Wedding Bingo Guide for 2026",
   description: "Everything you need to know about wedding reception bingo.",
   datePublished: "2026-02-10",
+  dateModified: "2026-07-09",
   author: { "@type": "Organization", name: "MyBingoCard" },
   publisher: { "@type": "Organization", name: "MyBingoCard", url: "https://mybingocard.com" },
 };
@@ -97,7 +103,7 @@ export default function WeddingBingoGuide() {
         <h2>How to Set Up Wedding Bingo</h2>
         <h3>Cards</h3>
         <p>
-          Print one card per guest. Place them at each seat with a small pen or marker. Use our <Link href="/wedding-bingo">wedding bingo draft editor</Link> to create beautiful cards that match your wedding colors. Each card is uniquely shuffled automatically.
+          Print one card per guest. Place them at each seat with a small pen or marker. Use our <Link href="/wedding-bingo">wedding bingo card maker</Link> to create cards that match your wedding colors. Each card is uniquely shuffled automatically.
         </p>
 
         <h3>Timing</h3>
@@ -130,7 +136,7 @@ export default function WeddingBingoGuide() {
 
         <h2>Create Your Wedding Bingo Cards</h2>
         <p>
-          Ready to add wedding bingo to your reception? Our <Link href="/wedding-bingo">wedding bingo draft editor</Link> creates elegant cards you can export individually for free that match your wedding style. Larger printable batches use one-time batch packs up to 500 cards.
+          Ready to add wedding bingo to your reception? Start with <Link href="/wedding-reception-bingo">wedding reception bingo</Link> for an event-moment game, or choose <Link href="/bridal-shower-gift-bingo">bridal shower gift bingo</Link> for gift opening. Both give you editable square ideas and cards you can export individually for free. Larger printable batches use one-time batch packs up to 500 cards.
         </p>
       </BlogLayout>
     </>

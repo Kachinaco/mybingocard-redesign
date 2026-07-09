@@ -26,7 +26,7 @@ const schema = {
   name: "Halloween Bingo Cards Printable Generator",
   url: "https://mybingocard.com/halloween-bingo",
   description:
-    "Create custom printable Halloween bingo cards. Spooky squares, free PDF export for kids, classrooms, and parties.",
+    "Create custom printable Halloween bingo cards with spooky squares and individual PDF/PNG exports for kids, classrooms, and parties.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
@@ -93,7 +93,7 @@ export default function HalloweenBingoPage() {
                 Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-purple-600">Halloween Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                The perfect spooky party game! Create unique Halloween bingo cards for kids, classrooms, and adult parties. Export for free or play digitally.
+                The perfect spooky party game! Make an editable Halloween bingo card for kids, classrooms, or adult parties, export an individual PDF or PNG for free, then add paid group tools when needed.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/create" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-500 to-purple-600 text-white rounded-xl font-bold text-lg hover:opacity-90 shadow-lg">
@@ -108,7 +108,7 @@ export default function HalloweenBingoPage() {
 
           <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-6 mb-20">
             {[
-              { icon: "👻", title: "Kids Love It", desc: "Perfect for classroom Halloween parties. Print a unique card for every student." },
+              { icon: "👻", title: "Kids Love It", desc: "Perfect for classroom Halloween parties. Use a paid batch pack when each student needs a unique printable card." },
               { icon: "🎃", title: "Movie Night", desc: "Play during a Halloween movie marathon — mark squares as spooky moments happen." },
               { icon: "🕸️", title: "Trick or Treat", desc: "Hand out bingo cards with candy. First to get bingo wins the prize bag!" },
             ].map((f) => (
@@ -122,7 +122,7 @@ export default function HalloweenBingoPage() {
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-orange-500 to-purple-600 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">BOO! Ready to Play? 👻</h2>
-            <p className="text-orange-100 text-lg mb-8">Create spooky bingo cards in minutes. Save, export, use templates, and add image cells for free; pay only for player links or live hosting.</p>
+            <p className="text-orange-100 text-lg mb-8">Create spooky bingo cards in minutes. Save one card, use templates and image cells, and export an individual PDF or PNG for free; paid batches, player links, and hosting support group play.</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-orange-600 rounded-xl font-bold text-lg hover:bg-orange-50 transition-colors shadow-lg">Create Halloween Bingo</Link>
           </div>
 

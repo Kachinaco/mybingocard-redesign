@@ -33,7 +33,7 @@ export default function BlogLayout({ children, title, date, readTime, category, 
             <div className="w-px h-4 bg-slate-200"></div>
             <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
             <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-              Start a Draft
+              Create a Card
             </Link>
           </nav>
         </div>
@@ -76,10 +76,10 @@ export default function BlogLayout({ children, title, date, readTime, category, 
             <div className="mt-16 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl p-8 lg:p-12 border border-indigo-100 text-center">
               <h3 className="text-2xl font-bold text-slate-900 mb-3">Ready to create your bingo cards?</h3>
               <p className="text-slate-600 mb-6 max-w-md mx-auto">
-                Put these ideas into action — draft custom bingo cards in under 2 minutes.
+                Put these ideas into action — make custom bingo cards in under 2 minutes.
               </p>
               <Link href="/create" className="inline-flex bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-6 py-3 rounded-xl font-bold text-base shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300">
-                Start a Draft
+                Create a Card
               </Link>
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function BlogLayout({ children, title, date, readTime, category, 
                 <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
               </Link>
               <p className="text-slate-500 max-w-sm leading-relaxed">
-                Free bingo draft editor for printable and online games, from classrooms to parties and weddings.
+                Bingo card maker for printable and online games, from classrooms to parties and weddings. Save one card and export individual PDFs or PNGs for free.
               </p>
             </div>
             <div>

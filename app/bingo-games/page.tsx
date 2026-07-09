@@ -209,7 +209,7 @@ export default function BingoGamesPage() {
               href="/create"
               className="inline-flex rounded-xl bg-white px-7 py-3 text-base font-bold text-slate-900 transition-colors hover:bg-indigo-50"
             >
-              Start a Free Draft
+              Create a Card
             </Link>
           </div>
         </section>

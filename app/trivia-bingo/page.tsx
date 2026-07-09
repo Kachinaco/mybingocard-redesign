@@ -25,7 +25,7 @@ const schema = {
   name: "Trivia Bingo Cards Generator",
   url: "https://mybingocard.com/trivia-bingo",
   description:
-    "Custom trivia bingo draft generator. Create, customize, and print bingo cards for trivia nights, pub quizzes, and game nights in minutes.",
+    "Custom trivia bingo card maker with editable pub-quiz squares and individual printable exports.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -96,7 +96,7 @@ export default function TriviaBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Start a Draft
+                Create a Card
               </Link>
             </nav>
           </div>
@@ -121,7 +121,7 @@ export default function TriviaBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Add an extra layer of excitement to your trivia night with custom trivia bingo cards that keep every team engaged from the first question to the final answer. Our pub quiz bingo draft editor creates unique cards filled with those classic trivia night moments everyone knows and loves. Each card is randomly shuffled so every table gets a different layout, adding a fun side game to your regular trivia competition. Export crisp PDFs for free or add paid digital cards for bar, restaurant, and virtual trivia nights. Whether you&apos;re a trivia host looking to spice up your weekly event or planning a one-time game night, create your trivia bingo cards in minutes with zero design work.
+                    Add a side game to trivia night with editable bingo cards for classic pub-quiz moments, categories, and team traditions. Save one card and export an individual PDF or PNG for free. Use a paid batch pack for unique printable cards at every table, or add paid player links for virtual trivia nights.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -137,7 +137,7 @@ export default function TriviaBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
+                  <p className="text-sm text-slate-400">1 free saved card · Individual PDF/PNG export · Paid group options</p>
                 </div>
 
                 <div className="relative">
@@ -169,13 +169,13 @@ export default function TriviaBingoPage() {
                   },
                   {
                     icon: "🖨️",
-                    title: "PDF Exports",
-                    desc: "Clean PDFs sized for bar tables, restaurant events, or take-home trivia party handouts.",
+                    title: "Individual Exports",
+                    desc: "Export one clean PDF or PNG card for free for a bar table, restaurant event, or take-home handout.",
                   },
                   {
                     icon: "🔀",
-                    title: "Unique Every Card",
-                    desc: "Every team or player gets a randomly shuffled card, so the whole venue can play without duplicate winners.",
+                    title: "Paid Group Batches",
+                    desc: "Use a paid batch pack when every team or player needs a different shuffled printable card.",
                   },
                   {
                     icon: "📱",
@@ -189,8 +189,8 @@ export default function TriviaBingoPage() {
                   },
                   {
                     icon: "💸",
-                    title: "Free for Hosts",
-                    desc: "Create trivia bingo cards for free. Save, export, and batch cards without a budget; pay only for player links or live hosting.",
+                    title: "Free Individual Card",
+                    desc: "Save one card and export it as a PDF or PNG for free. Paid batches, player links, and hosted games support venue-wide play.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -213,7 +213,7 @@ export default function TriviaBingoPage() {
                 Ready to level up trivia night?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft your trivia bingo cards in under 2 minutes, then start checkout to save or export — the perfect side game for any pub quiz or game night.
+                Make a trivia bingo card in under 2 minutes, then choose a paid batch pack or player links when the venue needs its own cards.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-purple-50 transition-all duration-300 shadow-xl">

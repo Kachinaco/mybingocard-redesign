@@ -128,10 +128,10 @@ export default function PricingPage() {
 
         <section className="text-center mb-16">
           <div className="inline-block px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-bold uppercase tracking-wide mb-6">
-            Creator Tools Are Free
+            Free: One Saved Card
           </div>
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-tight">
-            Pay only for batches, sharing, and hosted bingo events
+            Clear pricing for individual cards, group batches, and online play
           </h1>
           <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
             Create, customize, use templates, export individual printable cards, and save your first card for free. Premium unlocks unlimited saved cards plus printable batches, player links, and live bingo hosting.
@@ -293,10 +293,10 @@ export default function PricingPage() {
                 Make your first card now.
               </h2>
               <p className="text-indigo-200 text-base mb-6 max-w-2xl mx-auto">
-                Start with the free editor, then pay only when you need player share links or hosted bingo events.
+                Start with one free saved card and individual PDF/PNG exports, then add paid batch packs, player share links, or hosted bingo events when needed.
               </p>
               <Link href="/create" className="inline-block px-8 py-4 bg-white text-slate-900 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-colors shadow-lg shadow-white/10">
-                Start Your First Draft
+                Create Your First Card
               </Link>
             </div>
           </div>

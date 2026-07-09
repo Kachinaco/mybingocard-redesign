@@ -6,7 +6,7 @@ import SeoSupportBlock from "@/components/SeoSupportBlock";
 export const metadata: Metadata = {
   title: "Movie Bingo Cards — Custom Movie Night Bingo Generator | MyBingoCard",
   description:
-    "Create movie bingo cards for your next movie night or watch party. Custom film bingo generator with tropes, cliches, and custom squares. Printable movie night bingo cards with free PDF export.",
+    "Create movie bingo cards for your next movie night or watch party. Customize film tropes, cliches, and square ideas, then export an individual PDF or PNG for free.",
   alternates: {
     canonical: "https://mybingocard.com/movie-bingo",
   },
@@ -106,7 +106,7 @@ export default function MovieBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Start a Draft
+                Create a Card
               </Link>
             </nav>
           </div>
@@ -131,7 +131,7 @@ export default function MovieBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Make every movie night unforgettable with custom movie bingo cards! Our film bingo draft editor lets you create printable bingo cards packed with classic movie tropes, cliches, and moments — from plot twists and jump scares to villain monologues and post-credit scenes. Every card is uniquely shuffled so the whole watch party can play along without duplicates. Perfect for family movie nights, Oscar watch parties, horror marathons, or date night at home. Export printable PDF cards for free or add paid digital links so everyone can play on their phones. With genre-specific templates for action, comedy, romance, horror, and sci-fi, you can customize cards to match any film. A movie night bingo draft editor that is easy to customize for your watch party.
+                    Make movie night more interactive with editable bingo cards full of film tropes, cliches, and memorable moments. Customize a card for action, comedy, romance, horror, or sci-fi, save one card, and export an individual PDF or PNG for free. Use a paid batch pack for unique printable watch-party cards or paid player links for phones.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function MovieBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Works with any film · free PDF export</p>
+                  <p className="text-sm text-slate-400">1 free saved card · Works with any film · Individual PDF/PNG export</p>
                 </div>
 
                 <div className="relative">
@@ -171,7 +171,7 @@ export default function MovieBingoPage() {
                   { icon: "🎬", title: "Movie Tropes", desc: "Pre-loaded with the best film cliches — plot twists, jump scares, villain speeches, and dramatic rain scenes." },
                   { icon: "✏️", title: "Custom Word Lists", desc: "Add your own squares for specific movies, franchises, or directors. Make bingo cards for Marvel, Star Wars, or any series." },
                   { icon: "🎥", title: "Works with Any Film", desc: "Action, comedy, horror, romance, sci-fi — movie bingo cards work with every genre and any movie you watch." },
-                  { icon: "🖨️", title: "PDF Exports", desc: "Export clean PDF cards for free, sized for movie night and crisp printing." },
+                  { icon: "🖨️", title: "Individual Exports", desc: "Export one clean PDF or PNG card for free, sized for movie night and crisp printing." },
                   { icon: "🍿", title: "Great for Watch Parties", desc: "Oscar nights, horror marathons, franchise binges — movie bingo keeps the whole group engaged and laughing." },
                   { icon: "🎞️", title: "Fun for Movie Buffs", desc: "Film nerds and casual viewers alike love spotting tropes. The perfect game for cinephiles of all levels." },
                 ].map((f) => (
@@ -195,11 +195,11 @@ export default function MovieBingoPage() {
                 Lights, camera, bingo!
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft movie bingo cards in under 2 minutes, then start checkout to save or export.
+                Make a movie bingo card in under 2 minutes, then add a paid batch pack when the watch party needs unique printable cards.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-amber-50 transition-all duration-300 shadow-xl">
-                  Start a Free Movie Bingo Draft
+                  Create Movie Bingo Cards
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
                   See Pricing Plans
@@ -224,7 +224,7 @@ export default function MovieBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  The free bingo draft editor for movie nights, watch parties, and every occasion.
+                  A bingo card maker for movie nights, watch parties, and every occasion.
                 </p>
               </div>
               <div>

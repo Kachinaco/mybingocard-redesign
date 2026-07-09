@@ -32,7 +32,7 @@ export default function AccountPendingCheckoutGate({ email }: { email: string })
               Paid checkout is only for batches, sharing, and hosting
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-600">
-              You are signed in{email ? ` as ${email}` : ""}. Creator tools are free; paid checkout is only needed for printable batches, share links, or hosted live games.
+              You are signed in{email ? ` as ${email}` : ""}. The free plan includes one saved card and individual PDF/PNG exports; paid checkout adds printable batches, share links, or hosted live games.
             </p>
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
               <PremiumCheckoutButton

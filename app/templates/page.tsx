@@ -289,6 +289,19 @@ export default function TemplatesPage() {
   const [showSignInModal, setShowSignInModal] = useState(false);
   const hasFiredPageView = useRef(false);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const searchFromUrl = params.get("search")?.trim() || "";
+    const categoryFromUrl = params.get("category") || "all";
+
+    setSearchQuery(searchFromUrl);
+    setSelectedCategory(
+      CATEGORIES.some((category) => category.id === categoryFromUrl)
+        ? categoryFromUrl
+        : "all"
+    );
+  }, []);
+
   // Track templates page viewed (fire once)
   useEffect(() => {
     if (!hasFiredPageView.current) {
@@ -531,7 +544,7 @@ export default function TemplatesPage() {
                   href="/create"
                   className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20"
                 >
-                  Start a Draft
+                  Create a Card
                 </Link>
               </>
             )}

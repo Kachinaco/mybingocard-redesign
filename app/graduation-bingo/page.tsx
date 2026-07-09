@@ -21,14 +21,49 @@ const graduationSquares = [
 
 const schema = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Graduation Bingo Cards Printable Generator",
-  url: "https://mybingocard.com/graduation-bingo",
-  description:
-    "Create custom printable graduation bingo cards. Custom squares, PDF export for any graduation ceremony.",
-  applicationCategory: "GameApplication",
-  operatingSystem: "All",
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://mybingocard.com/graduation-bingo#app",
+      name: "Graduation Bingo Cards Printable Generator",
+      url: "https://mybingocard.com/graduation-bingo",
+      description:
+        "Create custom printable graduation bingo cards with editable ceremony and party square ideas.",
+      applicationCategory: "GameApplication",
+      operatingSystem: "All",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://mybingocard.com/graduation-bingo#faq",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What should go on graduation bingo cards?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Use ceremony moments, family photos, speeches, diplomas, tassels, and party details that match the actual schedule.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How can graduation bingo work during a ceremony?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Use quiet, observable moments and set the rule that guests mark cards silently. A host can verify winners after a break or at the end.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How many graduation bingo cards should I make?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Make one card per guest plus a few extras. Use a paid batch pack when you need many unique printable cards for a larger party.",
+          },
+        },
+      ],
+    },
+  ],
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -92,7 +127,7 @@ export default function GraduationBingoPage() {
                 Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Graduation Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                Make the long ceremony fly by! Create fun graduation bingo cards for family and friends to play while watching their grad walk the stage.
+                Make the ceremony and celebration more engaging with editable graduation bingo cards for family and friends. Use moments that fit the real schedule, then export an individual PDF for free.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/create" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-lg hover:opacity-90 shadow-lg">
@@ -107,9 +142,58 @@ export default function GraduationBingoPage() {
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">Survive the Ceremony in Style 🎓</h2>
-            <p className="text-blue-100 text-lg mb-8">Print unique bingo cards for every family member and turn 3 hours of names into a game!</p>
+            <p className="text-blue-100 text-lg mb-8">Turn ceremony moments, photos, and party traditions into a game guests can play quietly and verify together after a break.</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-indigo-600 rounded-xl font-bold text-lg hover:bg-blue-50 transition-colors shadow-lg">Create Graduation Bingo</Link>
           </div>
+
+          <section className="max-w-5xl mx-auto mb-20">
+            <div className="grid lg:grid-cols-2 gap-8">
+              <article className="bg-white rounded-2xl border border-blue-100 p-8 shadow-sm">
+                <h2 className="text-2xl font-bold text-slate-900 mb-4">How to make graduation bingo work</h2>
+                <p className="text-slate-600 leading-relaxed mb-5">
+                  Graduation bingo works best as a quiet observation game. Build around moments that are likely to happen, then choose a rule that does not distract from the graduates or the ceremony.
+                </p>
+                <ol className="space-y-3 text-slate-600 list-decimal list-inside">
+                  <li>Use the ceremony schedule to identify certain moments and likely ones.</li>
+                  <li>Keep square text positive, readable, and respectful to every graduate.</li>
+                  <li>Choose a 3x3 or 4x4 card for a short ceremony, or 5x5 for ceremony plus party.</li>
+                  <li>Verify winners during a break or after the final procession.</li>
+                </ol>
+              </article>
+              <article className="bg-white rounded-2xl border border-blue-100 p-8 shadow-sm">
+                <h2 className="text-2xl font-bold text-slate-900 mb-4">Graduation square ideas</h2>
+                <p className="text-slate-600 leading-relaxed mb-5">
+                  Start with ceremony moments, then add details from the graduate&apos;s school or party. Remove any square that depends on someone being embarrassed or singled out.
+                </p>
+                <div className="grid sm:grid-cols-2 gap-3 text-sm font-medium text-slate-700">
+                  {["Diploma moment", "Tassel turn", "Class photo", "Proud family member", "Standing ovation", "School song", "Handshake", "Speech applause", "Cake cutting", "After-party photo"].map((idea) => (
+                    <div key={idea} className="rounded-xl bg-blue-50 px-4 py-3">{idea}</div>
+                  ))}
+                </div>
+              </article>
+            </div>
+
+            <div className="mt-8 bg-white rounded-2xl border border-blue-100 p-8 shadow-sm">
+              <h2 className="text-2xl font-bold text-slate-900 mb-5">Graduation bingo FAQs</h2>
+              <div className="grid md:grid-cols-3 gap-6 text-slate-600 leading-relaxed">
+                <div>
+                  <h3 className="font-bold text-slate-900 mb-2">What belongs on the cards?</h3>
+                  <p>Use ceremony moments, diplomas, songs, applause, photos, and party traditions that match the event schedule.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 mb-2">Can guests play during the ceremony?</h3>
+                  <p>Yes, when the game is quiet and respectful. Save calls, prizes, and winner verification for a break or the end.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 mb-2">How many cards should I make?</h3>
+                  <p>Make one per guest plus a few extras. Use a paid batch pack when you need many unique printable cards for a larger party.</p>
+                </div>
+              </div>
+              <p className="mt-6 text-slate-600">
+                For a school-year memory game, try <Link href="/end-of-year-bingo" className="font-semibold text-indigo-600 hover:text-indigo-700">end-of-year bingo</Link>. For a general celebration, browse <Link href="/party-bingo" className="font-semibold text-indigo-600 hover:text-indigo-700">party bingo cards</Link>.
+              </p>
+            </div>
+          </section>
 
           <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl font-bold text-slate-900 text-center mb-8">More Event Bingo Cards</h2>

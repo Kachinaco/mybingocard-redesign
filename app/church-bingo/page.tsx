@@ -26,7 +26,7 @@ const schema = {
   name: "Church Bingo Cards Generator",
   url: "https://mybingocard.com/church-bingo",
   description:
-    "Custom church bingo draft generator. Create, customize, and print bingo cards for church fundraisers, Sunday school, and religious events in minutes.",
+    "Custom church bingo card maker with editable faith-themed squares and individual printable exports.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -97,7 +97,7 @@ export default function ChurchBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Start a Draft
+                Create a Card
               </Link>
             </nav>
           </div>
@@ -122,7 +122,7 @@ export default function ChurchBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Bring your congregation together with custom church bingo cards perfect for fundraisers, fellowship nights, and Sunday school activities. Our church bingo draft editor makes it easy to create faith-themed cards with familiar church moments everyone will recognize. Each card is uniquely shuffled so every member gets a different layout, keeping the game exciting for all ages. Export clean PDFs for free or add paid digital cards for in-person events and virtual gatherings. Whether you&apos;re planning a youth group activity, a potluck icebreaker, or a church fundraiser bingo night, create your religious bingo cards in minutes with no design skills needed.
+                    Bring the congregation together with editable church bingo cards for fundraisers, fellowship nights, and Sunday school. Start with familiar faith-themed squares, save one card, and export an individual PDF or PNG for free. Use a paid batch pack for unique printable cards across the group, or add paid player links for virtual gatherings.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -138,7 +138,7 @@ export default function ChurchBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
+                  <p className="text-sm text-slate-400">1 free saved card · Individual PDF/PNG export · Paid group options</p>
                 </div>
 
                 <div className="relative">
@@ -171,12 +171,12 @@ export default function ChurchBingoPage() {
                   {
                     icon: "🖨️",
                     title: "PDF Exports",
-                    desc: "free PDF export sized for church bulletins, tables, or take-home handouts.",
+                    desc: "Export one PDF or PNG card for church bulletins, tables, or take-home handouts at no cost.",
                   },
                   {
                     icon: "🔀",
-                    title: "Unique Every Card",
-                    desc: "Every member gets a randomly shuffled card so the whole congregation can play without duplicate winners.",
+                    title: "Paid Group Batches",
+                    desc: "Use a paid batch pack when every member needs a different shuffled printable card.",
                   },
                   {
                     icon: "📱",
@@ -190,8 +190,8 @@ export default function ChurchBingoPage() {
                   },
                   {
                     icon: "💸",
-                    title: "Free for Fundraisers",
-                    desc: "Create church bingo cards for free. Save, export, and batch cards without a budget; pay only for player links or live hosting.",
+                    title: "Free Individual Card",
+                    desc: "Save one card and export it as a PDF or PNG for free. Paid batches, player links, and hosted games support larger events.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -214,7 +214,7 @@ export default function ChurchBingoPage() {
                 Ready to liven up fellowship night?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft your church bingo cards in under 2 minutes, then start checkout to save or export — perfect for fundraisers, youth groups, and potlucks.
+                Make a church bingo card in under 2 minutes, then choose a paid batch pack or player links when the full group needs its own cards.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-amber-50 transition-all duration-300 shadow-xl">

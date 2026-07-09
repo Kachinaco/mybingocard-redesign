@@ -119,12 +119,12 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
   const reasonContent = {
     card_limit: {
       title: "Paid Batches, Sharing, and Hosting",
-      description: "Creator tools are free. Premium is for printable batches, direct player sharing, and hosted live bingo events.",
+      description: "The free plan includes one saved card and individual PDF/PNG exports. Premium is for printable batches, direct player sharing, and hosted live bingo events.",
       features: ["Printable batches up to 500 cards", "Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer"],
     },
     premium_template: {
       title: "Paid Batches, Sharing, and Hosting",
-      description: "All templates are free. Premium is only needed for printable batches, direct player sharing, and hosted live bingo events.",
+      description: "All templates are free, and the free plan includes one saved card plus individual PDF/PNG exports. Premium adds printable batches, direct player sharing, and hosted live bingo events.",
       features: ["Printable batches up to 500 cards", "Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer"],
     },
     ai_generate: {
@@ -139,7 +139,7 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
     },
     modal: {
       title: "Paid Batches, Sharing, and Hosting",
-      description: "Creation, saving, exports, templates, images, and AI are free. Premium is for batches, direct sharing, and hosted bingo events.",
+      description: "The free plan includes templates, images, AI ideas, one saved card, and individual PDF/PNG exports. Premium adds batches, direct sharing, and hosted bingo events.",
       features: ["Printable batches up to 500 cards", "Live bingo event rooms", "Direct player links and email sharing", "Unique shuffled card per viewer"],
     },
   }[reason];

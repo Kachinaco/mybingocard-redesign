@@ -6,7 +6,7 @@ import SeoSupportBlock from "@/components/SeoSupportBlock";
 export const metadata: Metadata = {
   title: "Fundraiser Bingo Cards — Custom Charity Bingo Night Generator | MyBingoCard",
   description:
-    "Create fundraiser bingo cards for charity events and bingo nights. Bingo fundraiser draft editor with custom squares, bulk printing, and free PDF export. Raise more funds with bingo.",
+    "Create fundraiser bingo cards for charity events and bingo nights. Customize squares, export an individual PDF or PNG for free, then use paid batch packs for larger printable sets.",
   alternates: {
     canonical: "https://mybingocard.com/fundraiser-bingo",
   },
@@ -26,7 +26,7 @@ const schema = {
   name: "Fundraiser Bingo Card Generator",
   url: "https://mybingocard.com/fundraiser-bingo",
   description:
-    "Custom fundraiser bingo card generator. Create printable bingo cards for charity events, bingo fundraiser nights, and nonprofit galas — bulk printing, custom squares, and free PDF export.",
+    "Custom fundraiser bingo card maker for charity events, bingo nights, and nonprofit galas with editable squares, individual printable exports, and paid batch packs.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -106,7 +106,7 @@ export default function FundraiserBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Start a Draft
+                Create a Card
               </Link>
             </nav>
           </div>
@@ -131,7 +131,7 @@ export default function FundraiserBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Boost your next charity event with custom fundraiser bingo cards that keep donors engaged and the energy high. Start with a polished draft for nonprofit galas, school fundraisers, church bingo nights, and community benefit events. Fill squares with event moments, paddle raises, silent auction wins, sponsor shoutouts, or your own fundraising milestones. After checkout, export PDF cards for table settings or share digital links for virtual fundraiser events.
+                    Boost your next charity event with editable fundraiser bingo cards for galas, school fundraisers, church nights, and benefit events. Add event moments, paddle raises, silent-auction wins, sponsor shoutouts, or your own milestones, then save one card and export an individual PDF or PNG for free. Use a paid printable batch pack for table settings or paid player links for virtual events.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function FundraiserBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · free PDF export · Works for any cause</p>
+                  <p className="text-sm text-slate-400">1 free saved card · Individual PDF/PNG export · Paid batch packs</p>
                 </div>
 
                 <div className="relative">
@@ -169,9 +169,9 @@ export default function FundraiserBingoPage() {
               <div className="grid md:grid-cols-3 gap-8">
                 {[
                   { icon: "💰", title: "Raise More Funds", desc: "Bingo keeps guests engaged longer, which means more bids, more donations, and a higher grand total for your cause." },
-                  { icon: "📋", title: "Easy to Organize", desc: "Create larger card batches for free up to 500 cards. No special equipment needed beyond cards and a caller." },
+                  { icon: "📋", title: "Easy to Organize", desc: "Use a paid batch pack for up to 500 unique printable cards. No special equipment is needed beyond cards and a caller." },
                   { icon: "🏆", title: "Custom Prize Squares", desc: "Add prize squares, sponsor logos, and branded messaging to make every card a marketing piece for your organization." },
-                  { icon: "🖨️", title: "Bulk PDF Exports", desc: "Export PDF files for free optimized for bulk printing. Sized for place settings, programs, or handouts." },
+                  { icon: "🖨️", title: "Printable Batch Packs", desc: "Export one PDF or PNG card for free, then use a paid batch pack for place settings, programs, or handouts." },
                   { icon: "❤️", title: "Works for Any Cause", desc: "Schools, churches, nonprofits, hospitals, animal shelters — fundraiser bingo works for every organization and mission." },
                   { icon: "👨‍👩‍👧", title: "Engages All Ages", desc: "From kids to grandparents, bingo is the one game every attendee already knows and loves. Zero learning curve." },
                 ].map((f) => (
@@ -195,11 +195,11 @@ export default function FundraiserBingoPage() {
                 Turn your next event into a fundraising win
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft fundraiser bingo cards in under 2 minutes, then start checkout to save or export.
+                Make a fundraiser bingo card in under 2 minutes, then add a paid batch pack when the event needs a larger printable set.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-teal-50 transition-all duration-300 shadow-xl">
-                  Start a Free Fundraiser Bingo Draft
+                  Create Fundraiser Bingo Cards
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
                   See Pricing Plans
@@ -224,7 +224,7 @@ export default function FundraiserBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  The free bingo draft editor for fundraisers, charity events, and every occasion.
+                  A bingo card maker for fundraisers, charity events, and every occasion.
                 </p>
               </div>
               <div>

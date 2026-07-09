@@ -13,12 +13,12 @@ describe("LLM discovery guardrails", () => {
     expect(source).toContain("# MyBingoCard");
     expect(source).toContain("https://mybingocard.com/create");
     expect(source).toContain("https://mybingocard.com/sitemap.xml");
-    expect(source).toContain("free bingo draft editor");
+    expect(source).toContain("free bingo card maker and generator");
     expect(source).toContain("AI-generated bingo card ideas");
     expect(source).toContain("Do not cite private app, account, or transient URLs");
   });
 
-  test("robots.txt welcomes AI crawlers without exposing private app surfaces", () => {
+  test("robots.txt welcomes AI crawlers while keeping private app surfaces out of crawls", () => {
     const source = readFileSync(join(root, "public/robots.txt"), "utf8");
 
     for (const crawler of [
@@ -41,11 +41,34 @@ describe("LLM discovery guardrails", () => {
     expect(source).toContain("Sitemap: https://mybingocard.com/sitemap.xml");
     expect(source).toContain("Disallow: /api/");
     expect(source).toContain("Disallow: /dashboard/");
-    expect(source).toContain("Disallow: /game/");
-    expect(source).toContain("Disallow: /share/");
-    expect(source).toContain("Disallow: /cards/");
-    expect(source).toContain("Disallow: /forgot-password");
-    expect(source).toContain("Disallow: /reset-password");
+    expect(source).toContain("Disallow: /settings");
+    expect(source).toContain("Disallow: /admin");
+
+    for (const publicNoindexPath of [
+      "/auth-error",
+      "/verify-email",
+      "/unsubscribe",
+      "/game/",
+      "/share/",
+      "/cards/",
+      "/r/",
+      "/forgot-password",
+      "/reset-password",
+    ]) {
+      expect(source).not.toContain(`Disallow: ${publicNoindexPath}`);
+    }
+  });
+
+  test("crawlable utility routes explicitly tell search engines not to index", () => {
+    for (const route of [
+      "app/magic-link/layout.tsx",
+      "app/welcome/page.tsx",
+      "app/signup/layout.tsx",
+    ]) {
+      const source = readFileSync(join(root, route), "utf8");
+      expect(source).toContain("index: false");
+      expect(source).toContain("follow: false");
+    }
   });
 
   test("global schema identifies the app, website search target, and recommended use cases", () => {
@@ -67,6 +90,7 @@ describe("LLM discovery guardrails", () => {
       "",
       "/create",
       "/templates",
+      "/bingo-games",
       "/bingo-card-maker",
       "/printable-bingo-cards",
       "/online-bingo-card-generator",

@@ -6,12 +6,12 @@ import BlogPostTracker from "../BlogPostTracker";
 export const metadata: Metadata = {
   title: "How to Make Custom Bingo Cards in 5 Minutes — Step-by-Step Guide",
   description:
-    "Learn how to make custom bingo cards online from a free draft. Step-by-step guide to creating personalized, printable bingo cards for any event using MyBingoCard.",
-  keywords: ["how to make bingo cards", "custom bingo cards", "bingo card maker", "create bingo cards", "printable bingo cards", "free bingo draft editor"],
+    "Learn how to make custom bingo cards online with a free bingo card maker. Step-by-step guidance for personalized, printable bingo cards for any event using MyBingoCard.",
+  keywords: ["how to make bingo cards", "custom bingo cards", "bingo card maker", "create bingo cards", "printable bingo cards", "free bingo card maker"],
   alternates: { canonical: "https://mybingocard.com/blog/how-to-make-custom-bingo-cards" },
   openGraph: {
     title: "How to Make Custom Bingo Cards in 5 Minutes",
-    description: "Step-by-step guide to creating custom bingo card drafts for any event.",
+    description: "Step-by-step guide to creating custom bingo cards for any event.",
     url: "https://mybingocard.com/blog/how-to-make-custom-bingo-cards",
     type: "article",
     publishedTime: "2026-03-01",
@@ -21,9 +21,15 @@ export const metadata: Metadata = {
 const schema = {
   "@context": "https://schema.org",
   "@type": "Article",
+  "@id": "https://mybingocard.com/blog/how-to-make-custom-bingo-cards#article",
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": "https://mybingocard.com/blog/how-to-make-custom-bingo-cards",
+  },
   headline: "How to Make Custom Bingo Cards in 5 Minutes",
   description: "A complete step-by-step guide to creating personalized bingo cards for any event.",
   datePublished: "2026-03-01",
+  dateModified: "2026-07-09",
   author: { "@type": "Organization", name: "MyBingoCard" },
   publisher: { "@type": "Organization", name: "MyBingoCard", url: "https://mybingocard.com" },
 };
@@ -77,7 +83,7 @@ export default function HowToMakeCustomBingoCards() {
 
         <h2>Step 3: Design Your Card</h2>
         <p>
-          With <Link href="/create">MyBingoCard&apos;s free draft editor</Link>, you can customize every aspect of your card:
+          With <Link href="/bingo-card-maker">MyBingoCard&apos;s free bingo card maker</Link>, you can customize every aspect of your card:
         </p>
         <ul>
           <li><strong>Colors</strong> — Match your event&apos;s color palette</li>
@@ -113,7 +119,7 @@ export default function HowToMakeCustomBingoCards() {
 
         <h2>Start Creating Your Bingo Cards Now</h2>
         <p>
-          Ready to make your own custom bingo cards? Head to our <Link href="/create">bingo card creator</Link>, build your card in under 5 minutes, and save, customize, generate, and export for free. Pay only if you want player share links or hosted live bingo.
+          Ready to make your own custom bingo cards? Choose a starting point from the <Link href="/templates">template library</Link> or head to the <Link href="/bingo-card-maker">bingo card maker</Link>, build your card in under 5 minutes, and save, customize, generate, and export for free. Pay only if you want player share links or hosted live bingo.
         </p>
       </BlogLayout>
     </>

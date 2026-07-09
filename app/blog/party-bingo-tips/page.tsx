@@ -21,9 +21,15 @@ export const metadata: Metadata = {
 const schema = {
   "@context": "https://schema.org",
   "@type": "Article",
+  "@id": "https://mybingocard.com/blog/party-bingo-tips#article",
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": "https://mybingocard.com/blog/party-bingo-tips",
+  },
   headline: "How to Run the Perfect Bingo Game at Any Party",
   description: "Pro tips for hosting bingo at birthday parties, game nights, and celebrations.",
   datePublished: "2026-01-27",
+  dateModified: "2026-07-09",
   author: { "@type": "Organization", name: "MyBingoCard" },
   publisher: { "@type": "Organization", name: "MyBingoCard", url: "https://mybingocard.com" },
 };
@@ -57,7 +63,7 @@ export default function PartyBingoTips() {
 
         <h3>Create Your Cards</h3>
         <p>
-          Use <Link href="/create">MyBingoCard&apos;s free draft editor</Link> to create custom cards. A few key tips:
+          Use <Link href="/bingo-card-maker">MyBingoCard&apos;s free bingo card maker</Link> to create custom cards. A few key tips:
         </p>
         <ul>
           <li>Use 30-40 unique items even though only 24 fit per card — this ensures variety</li>
@@ -144,7 +150,7 @@ export default function PartyBingoTips() {
 
         <h2>Create Your Party Bingo Cards</h2>
         <p>
-          Ready to host the best party bingo game? Use our <Link href="/party-bingo">party bingo draft editor</Link> to create beautiful, customized cards in minutes. Every card can be uniquely shuffled, with free print export available.
+          Ready to host the best party bingo game? Start with <Link href="/party-bingo">party bingo cards</Link>, use <Link href="/birthday-bingo">birthday bingo</Link> for a celebration, or try <Link href="/icebreaker-bingo">icebreaker bingo</Link> when guests do not know each other. Every card can be uniquely shuffled, with free PDF export available.
         </p>
       </BlogLayout>
     </>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Bingo Card Generator Pricing - Free Creator Tools & Paid Batches",
+  title: "Bingo Card Generator Pricing - Free Individual Cards & Paid Batches",
   description:
     "Compare MyBingoCard pricing: one saved card, templates, AI ideas, image cells, PDF and PNG exports, plus paid printable batch packs, share links, and live bingo hosting.",
   alternates: {

@@ -108,7 +108,7 @@ export default function ThanksgivingBingoPage() {
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">Give Thanks & Play Bingo! 🦃</h2>
-            <p className="text-amber-100 text-lg mb-8">A bingo card for every chair at the table. Free to draft, easy to play, free to love.</p>
+            <p className="text-amber-100 text-lg mb-8">Make one Thanksgiving bingo card for free, then use a paid batch pack when every chair at the table needs a unique printable layout.</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-orange-600 rounded-xl font-bold text-lg hover:bg-amber-50 transition-colors shadow-lg">Create Thanksgiving Bingo</Link>
           </div>
 

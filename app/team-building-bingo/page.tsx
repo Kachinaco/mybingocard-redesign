@@ -26,7 +26,7 @@ const schema = {
   name: "Team Building Bingo Cards Generator",
   url: "https://mybingocard.com/team-building-bingo",
   description:
-    "Custom team building bingo draft generator. Create, customize, and print bingo cards for corporate icebreakers, offsites, and workplace team bonding in minutes.",
+    "Custom team building bingo card maker with editable workplace squares and individual printable exports.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -97,7 +97,7 @@ export default function TeamBuildingBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Start a Draft
+                Create a Card
               </Link>
             </nav>
           </div>
@@ -122,7 +122,7 @@ export default function TeamBuildingBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Kick off your next corporate event with custom team building bingo cards that turn awkward icebreakers into genuinely fun group activities. Our workplace bingo draft editor creates unique cards filled with team bonding moments that encourage collaboration and laughter. Every card is randomly shuffled so each team member gets a different layout, sparking conversation and friendly competition across departments. Export clean PDFs for free or add paid digital cards for in-person offsites, retreats, and remote teams on video calls. Whether you&apos;re onboarding new hires, planning a company retreat, or running a weekly team meeting icebreaker, create your corporate bingo cards in minutes.
+                    Kick off a corporate event with editable team-building bingo cards that turn icebreakers into useful group activities. Add workplace moments, team challenges, and company values, save one card, and export an individual PDF or PNG for free. Use a paid batch pack for unique printable cards across departments, or add paid player links for remote teams.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -138,7 +138,7 @@ export default function TeamBuildingBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
+                  <p className="text-sm text-slate-400">1 free saved card · Individual PDF/PNG export · Paid group options</p>
                 </div>
 
                 <div className="relative">
@@ -170,13 +170,13 @@ export default function TeamBuildingBingoPage() {
                   },
                   {
                     icon: "🖨️",
-                    title: "PDF Exports",
-                    desc: "Export clean PDFs for free for conference rooms, offsite packets, or desk handouts.",
+                    title: "Individual Exports",
+                    desc: "Export one clean PDF or PNG card for free for a conference room, offsite packet, or desk handout.",
                   },
                   {
                     icon: "🔀",
-                    title: "Unique Every Card",
-                    desc: "Every team member gets a different shuffled card, so the whole department can play without duplicate winners.",
+                    title: "Paid Group Batches",
+                    desc: "Use a paid batch pack when every team member needs a different shuffled printable card.",
                   },
                   {
                     icon: "💻",
@@ -190,8 +190,8 @@ export default function TeamBuildingBingoPage() {
                   },
                   {
                     icon: "💸",
-                    title: "Free Drafts for Your Team",
-                    desc: "Create team building bingo cards for free. Save, export, and batch cards without budget approval; pay only for player links or live hosting.",
+                    title: "Free Individual Card",
+                    desc: "Save one card and export it as a PDF or PNG for free. Paid batches, player links, and hosted games support team-wide play.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -214,7 +214,7 @@ export default function TeamBuildingBingoPage() {
                 Ready to energize your next team event?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft your team building bingo cards in under 2 minutes, then start checkout to save or export — works for in-person offsites and remote teams alike.
+                Make a team-building bingo card in under 2 minutes, then choose a paid batch pack or player links when the team needs its own cards.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-blue-50 transition-all duration-300 shadow-xl">

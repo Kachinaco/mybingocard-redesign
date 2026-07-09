@@ -301,8 +301,8 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<boolea
   const subject = "Welcome to MyBingoCard!";
   const bodyHtml = `
     ${renderPanel(renderBulletList([
-      "Draft themed bingo cards in minutes.",
-      "Save, customize, and export individual cards for free.",
+      "Make themed bingo cards in minutes.",
+      "Save one card, customize it, and export an individual PDF or PNG for free.",
       "Use printable batch packs, paid sharing, or Premium hosting when you need larger sets or live games."
     ]), "violet")}
     <p style="margin:0;font-size:15px;color:#334155;">You are all set, ${escapeHtml(firstName)}. Start with your first card, then add paid batches, sharing, or hosting only when you need it.</p>
@@ -313,17 +313,17 @@ export async function sendWelcomeEmail(to: string, name: string): Promise<boolea
     subject,
     html: renderLayout({
       theme: "violet",
-      preheader: "Welcome to MyBingoCard - start drafting your first bingo card.",
+      preheader: "Welcome to MyBingoCard - create your first bingo card.",
       headline: `Welcome, ${firstName}`,
       intro: "Thanks for joining MyBingoCard. We built this to make fun, custom bingo experiences fast and easy.",
       bodyHtml,
-      ctaLabel: "Start Your First Draft",
+      ctaLabel: "Create Your First Card",
       ctaUrl: trackableUrl(`${appUrl}/create`, to, "welcome", "main_cta"),
       ctaHint: "Takes about 2 minutes to set up.",
       email: to,
       campaignId: "welcome",
     }),
-    text: `Welcome, ${firstName}!\n\nThanks for joining MyBingoCard.\n\nYou can now:\n- Draft themed bingo cards in minutes\n- Save, customize, and export individual cards for free\n- Use printable batch packs, paid sharing, or Premium hosting when you need larger sets or live games\n\nStart here: ${appUrl}/create\n\nNeed help? Reply to this email.`,
+    text: `Welcome, ${firstName}!\n\nThanks for joining MyBingoCard.\n\nYou can now:\n- Make themed bingo cards in minutes\n- Save one card, customize it, and export an individual PDF or PNG for free\n- Use printable batch packs, paid sharing, or Premium hosting when you need larger sets or live games\n\nStart here: ${appUrl}/create\n\nNeed help? Reply to this email.`,
     marketing: true,
   });
 }

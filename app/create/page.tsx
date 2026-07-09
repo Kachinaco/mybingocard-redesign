@@ -1661,9 +1661,16 @@ function CreateCardContent() {
         <div className="container mx-auto max-w-7xl">
           <div className="mb-2 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-gray-900">
-                {isEditingExistingCard ? "Edit Bingo Card" : "Create Bingo Card"}
-              </h1>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">
+                  {isEditingExistingCard ? "Edit Bingo Card" : "Create Bingo Cards Online"}
+                </h1>
+                {!isEditingExistingCard ? (
+                  <p className="hidden text-xs text-gray-500 sm:block">
+                    Customize a printable bingo card, start from a template, or prepare an online game.
+                  </p>
+                ) : null}
+              </div>
               <span className="text-xs text-gray-400" title={autoSaveLabel}>
                 {autoSaveState === "saving" ? "Saving..." : autoSaveState === "saved" ? "\u2713 Saved" : ""}
               </span>
@@ -1720,7 +1727,7 @@ function CreateCardContent() {
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to keep creating</h2>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                Saving, exports, templates, images, and AI are free. Printable batch packs, share links, and hosted bingo events are optional paid tools.
+                The free plan includes one saved card, templates, images, AI ideas, and individual PDF/PNG exports. Printable batch packs, share links, and hosted bingo events are paid tools.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <button
@@ -2914,8 +2921,11 @@ function CreatePageSkeleton() {
 
       <main className="pt-16 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-16 px-3 sm:px-4 lg:px-5">
         <div className="container mx-auto max-w-7xl">
-          <div className="mb-2 flex items-center justify-between gap-4">
-            <div className="h-7 w-48 rounded bg-slate-200" />
+          <div className="mb-2">
+            <h1 className="text-xl font-bold text-gray-900">Create Bingo Cards Online</h1>
+            <p className="mt-1 text-xs text-gray-500">
+              Customize a printable bingo card, start from a template, or prepare an online game.
+            </p>
           </div>
 
           <div className="grid lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)_minmax(0,300px)] xl:grid-cols-[minmax(0,240px)_minmax(500px,520px)_minmax(0,320px)] 2xl:grid-cols-[minmax(0,240px)_minmax(520px,560px)_minmax(0,340px)] gap-3 lg:gap-4 xl:justify-center items-start">

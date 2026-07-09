@@ -3,10 +3,13 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Welcome - Create Your Bingo Card | MyBingoCard",
-  description: "Create custom bingo cards in seconds, then save and export for free. Paid sharing and hosted bingo are optional.",
+  description: "Create custom bingo cards in seconds, save one card, and export an individual PDF or PNG for free. Paid batch packs, sharing, and hosted bingo are optional.",
+  alternates: {
+    canonical: "https://mybingocard.com/welcome",
+  },
   robots: {
-    index: true,
-    follow: true,
+    index: false,
+    follow: false,
   },
 };
 
@@ -68,7 +71,7 @@ export default function WelcomePage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            Free creator tools
+            1 free saved card
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
@@ -79,7 +82,7 @@ export default function WelcomePage() {
           </h1>
 
           <p className="text-xl text-slate-600 mb-8 max-w-xl mx-auto">
-            Add your own words, phrases, or images. Save and export for free, then add paid sharing or hosted play when needed.
+            Add your own words, phrases, or images. Save one card and export an individual PDF or PNG for free, then add paid batches, sharing, or hosted play when needed.
           </p>
 
           {/* Main CTA */}
@@ -94,7 +97,7 @@ export default function WelcomePage() {
           </Link>
 
           <p className="text-sm text-slate-500 mt-4">
-            Free to draft. Checkout unlocks saving and exports.
+            Save one card and export an individual PDF or PNG for free. Paid group tools are available when you need them.
           </p>
           </div>
 
@@ -123,7 +126,7 @@ export default function WelcomePage() {
               </svg>
             </div>
             <h3 className="font-semibold text-slate-900 mb-2">PDF Export</h3>
-            <p className="text-sm text-slate-600">Export PDFs for free or add paid online play</p>
+            <p className="text-sm text-slate-600">Export one PDF or PNG card for free or add paid online play</p>
           </div>
 
           <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-100 text-center">

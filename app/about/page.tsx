@@ -48,9 +48,9 @@ export default function AboutPage() {
                 <ul className="space-y-2 list-disc list-inside">
                   <li className="text-slate-600">A simple card editor that anyone can use in minutes</li>
                   <li className="text-slate-600">Included templates for common bingo occasions</li>
-                  <li className="text-slate-600">Live multiplayer bingo rooms for real-time games</li>
-                  <li className="text-slate-600">PDF and PNG exports for printing or sharing digitally</li>
-                  <li className="text-slate-600">Batch generation for creating up to 100 unique cards at once</li>
+                  <li className="text-slate-600">Paid live multiplayer bingo rooms for real-time games</li>
+                  <li className="text-slate-600">One saved card and individual PDF and PNG exports on the free plan</li>
+                  <li className="text-slate-600">Paid batch generation for up to 500 unique printable cards at once</li>
                 </ul>
               </div>
 
@@ -63,7 +63,7 @@ export default function AboutPage() {
 
               <div>
                 <h2 className="text-xl font-bold text-slate-900 mb-3">Get Started</h2>
-                <p className="text-slate-600 leading-relaxed">Start your first draft for free at <Link href="/create" className="text-indigo-600 hover:text-indigo-700 font-medium underline">mybingocard.com/create</Link> or browse our templates at <Link href="/templates" className="text-indigo-600 hover:text-indigo-700 font-medium underline">mybingocard.com/templates</Link>.</p>
+                <p className="text-slate-600 leading-relaxed">Create your first card at <Link href="/create" className="text-indigo-600 hover:text-indigo-700 font-medium underline">mybingocard.com/create</Link> or browse our templates at <Link href="/templates" className="text-indigo-600 hover:text-indigo-700 font-medium underline">mybingocard.com/templates</Link>. The free plan includes one saved card and individual PDF/PNG exports.</p>
               </div>
 
           </div>

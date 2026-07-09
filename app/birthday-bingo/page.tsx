@@ -26,7 +26,7 @@ const schema = {
   name: "Birthday Bingo Cards Printable Generator",
   url: "https://mybingocard.com/birthday-bingo",
   description:
-    "Create custom printable birthday bingo cards for guests. Custom birthday bingo with free PDF export and digital play options.",
+    "Create custom printable birthday bingo cards for guests with editable party squares, individual PDF/PNG exports, and paid digital play options.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -118,7 +118,7 @@ export default function BirthdayBingoPage() {
                 Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-orange-500">Birthday Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                Make any birthday party unforgettable with custom bingo cards. Generate unique cards for every guest, export as PDF for free, and play in minutes.
+                Make any birthday party more interactive with editable bingo cards. Save one card and export an individual PDF or PNG for free, then use a paid batch pack when every guest needs a unique printable layout.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
@@ -147,7 +147,7 @@ export default function BirthdayBingoPage() {
             <div className="grid md:grid-cols-3 gap-8">
               {[
                 { icon: "🎈", title: "Keeps Guests Engaged", desc: "No more awkward silences. Bingo gets everyone involved from kids to grandparents." },
-                { icon: "🖨️", title: "PDF Export", desc: "Generate unique card drafts, then export a PDF for free." },
+                { icon: "🖨️", title: "Individual Export", desc: "Export one PDF or PNG card for free, then use a paid batch pack for unique cards across the guest list." },
                 { icon: "✨", title: "Fully Customizable", desc: "Add inside jokes, personalized squares, and custom themes to match any party." },
               ].map((f) => (
                 <div key={f.title} className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 text-center">
@@ -162,7 +162,7 @@ export default function BirthdayBingoPage() {
           {/* CTA Banner */}
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-yellow-500 to-orange-500 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">Ready to Party? 🎉</h2>
-            <p className="text-yellow-100 text-lg mb-8">Draft your custom birthday bingo cards in under 2 minutes, then start checkout to save.</p>
+            <p className="text-yellow-100 text-lg mb-8">Make a custom birthday bingo card in under 2 minutes, then add a paid batch pack when every guest needs a unique printable card.</p>
             <Link
               href="/create"
               className="inline-block px-8 py-4 bg-white text-orange-600 rounded-xl font-bold text-lg hover:bg-yellow-50 transition-colors shadow-lg"

@@ -36,7 +36,7 @@ export default function TermsPage() {
       <main className="container mx-auto px-4 py-12 max-w-3xl">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 md:p-12">
           <h1 className="text-3xl font-black text-slate-900 mb-2">Terms of Service</h1>
-            <p className="text-sm text-slate-400">Last updated: March 8, 2026</p>
+            <p className="text-sm text-slate-400">Last updated: July 9, 2026</p>
 
           <div className="mt-8 space-y-8">
 
@@ -62,7 +62,8 @@ export default function TermsPage() {
               <div>
                 <h2 className="text-xl font-bold text-slate-900 mb-3">Free and Premium Plans</h2>
                 <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-slate-600">Free access lets you draft and preview bingo cards before checkout, but saving, exporting, sharing, dashboard access, and live games require Premium access</li>
+                  <li className="text-slate-600">The free plan includes one saved bingo card, all templates, AI ideas, image cells, and individual PDF and PNG exports</li>
+                  <li className="text-slate-600">Additional saved cards, printable batch packs, player sharing, and hosted live games are paid tools</li>
                   <li className="text-slate-600">Premium subscriptions are billed monthly at $7.99/month through Stripe starting at checkout</li>
                   <li className="text-slate-600">Lifetime Premium is available as a one-time payment where offered on the site</li>
                   <li className="text-slate-600">You can cancel your subscription anytime from your Settings page</li>

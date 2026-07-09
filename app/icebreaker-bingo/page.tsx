@@ -26,7 +26,7 @@ const schema = {
   name: "Icebreaker Bingo Card Generator",
   url: "https://mybingocard.com/icebreaker-bingo",
   description:
-    "Custom icebreaker bingo card generator. Create printable people bingo cards for team meetings, classrooms, onboarding, and networking events — get to know you bingo with custom questions and free PDF export.",
+    "Custom icebreaker bingo card maker for team meetings, classrooms, onboarding, and networking events with editable get-to-know-you questions and individual printable exports.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -106,7 +106,7 @@ export default function IcebreakerBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Start a Draft
+                Create a Card
               </Link>
             </nav>
           </div>
@@ -131,7 +131,7 @@ export default function IcebreakerBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Break the ice and get people talking with custom icebreaker bingo cards — an easy get to know you activity for groups! Our people bingo draft editor makes it easy to create human bingo cards where players mingle, ask questions, and find someone who matches each square. Perfect for first-day-of-school activities, new employee onboarding, corporate team building, networking events, and conference mixers. Each card is uniquely shuffled so every participant gets a different layout, encouraging everyone to talk to as many people as possible. Export printable PDF cards for free or add paid digital links for in-person events and remote teams. With customizable questions, group-size flexibility, and templates for classrooms, offices, and social gatherings, our icebreaker bingo generator turns awkward introductions into genuine connections.
+                    Break the ice with editable people bingo cards that get groups talking, asking questions, and finding someone who matches each square. Use them for a first day of school, onboarding, team building, networking, or a conference mixer. Save one card and export an individual PDF or PNG for free, then use a paid batch pack for unique printable cards or paid player links for remote teams.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function IcebreakerBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Any group size · free PDF export</p>
+                  <p className="text-sm text-slate-400">1 free saved card · Individual PDF/PNG export · Paid group options</p>
                 </div>
 
                 <div className="relative">
@@ -170,8 +170,8 @@ export default function IcebreakerBingoPage() {
                 {[
                   { icon: "🤝", title: "Break the Ice Fast", desc: "Skip the awkward introductions. People bingo gets everyone mingling and discovering shared interests in minutes." },
                   { icon: "✏️", title: "Custom Questions", desc: "Add your own get-to-know-you prompts — hobbies, experiences, fun facts, or industry-specific icebreakers." },
-                  { icon: "👥", title: "Works for Any Group Size", desc: "From small teams of 10 to conferences of 500 — icebreaker bingo scales effortlessly to any audience." },
-                  { icon: "🖨️", title: "Print or Digital", desc: "Export PDF cards for free or add paid digital links for remote and hybrid teams." },
+                  { icon: "👥", title: "Built for Groups", desc: "Use a paid batch pack for groups that need a different shuffled printable card for each participant." },
+                  { icon: "🖨️", title: "Print or Digital", desc: "Export one PDF or PNG card for free, or add paid player links for remote and hybrid teams." },
                   { icon: "💼", title: "Perfect for Onboarding", desc: "New hire orientation, first day of class, or team kickoff — human bingo makes everyone feel welcome fast." },
                   { icon: "🎓", title: "Great for Classrooms", desc: "Teachers love people bingo for back-to-school activities. Students learn names and build friendships through play." },
                 ].map((f) => (
@@ -195,11 +195,11 @@ export default function IcebreakerBingoPage() {
                 Turn strangers into friends in five minutes
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft icebreaker bingo cards in under 2 minutes, then start checkout to save or export.
+                Make an icebreaker bingo card in under 2 minutes, then choose a paid batch pack or player links when the group needs its own cards.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-sky-50 transition-all duration-300 shadow-xl">
-                  Start a Free Icebreaker Bingo Draft
+                  Create Icebreaker Bingo Cards
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
                   See Pricing Plans
@@ -224,7 +224,7 @@ export default function IcebreakerBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  The free bingo draft editor for icebreakers, team building, classrooms, and every occasion.
+                  A bingo card maker for icebreakers, team building, classrooms, and every occasion.
                 </p>
               </div>
               <div>

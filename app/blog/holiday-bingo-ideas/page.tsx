@@ -6,7 +6,7 @@ import BlogPostTracker from "../BlogPostTracker";
 export const metadata: Metadata = {
   title: "20+ Holiday Bingo Ideas for Christmas & Beyond (2026)",
   description:
-    "Creative holiday bingo card ideas for Christmas parties, Hanukkah celebrations, New Year gatherings, and winter events. Draft custom cards, then save and export for free.",
+    "Creative holiday bingo card ideas for Christmas parties, Hanukkah celebrations, New Year gatherings, and winter events. Make custom cards, then save and export for free.",
   keywords: ["holiday bingo", "Christmas bingo", "holiday bingo cards", "Christmas party games", "holiday party ideas", "printable holiday bingo"],
   alternates: { canonical: "https://mybingocard.com/blog/holiday-bingo-ideas" },
   openGraph: {
@@ -21,9 +21,15 @@ export const metadata: Metadata = {
 const schema = {
   "@context": "https://schema.org",
   "@type": "Article",
+  "@id": "https://mybingocard.com/blog/holiday-bingo-ideas#article",
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": "https://mybingocard.com/blog/holiday-bingo-ideas",
+  },
   headline: "20+ Holiday Bingo Ideas for Christmas & Beyond",
   description: "Creative holiday bingo card ideas for every winter celebration.",
   datePublished: "2026-02-03",
+  dateModified: "2026-07-09",
   author: { "@type": "Organization", name: "MyBingoCard" },
   publisher: { "@type": "Organization", name: "MyBingoCard", url: "https://mybingocard.com" },
 };
@@ -151,7 +157,7 @@ export default function HolidayBingoIdeas() {
 
         <h2>Create Your Holiday Bingo Cards</h2>
         <p>
-          Ready to bring holiday bingo to your next gathering? Our <Link href="/holiday-bingo">holiday bingo draft editor</Link> lets you create festive, printable cards in minutes. Choose from holiday themes, customize your squares, and generate unique cards for every guest.
+          Ready to bring holiday bingo to your next gathering? Use <Link href="/holiday-bingo">holiday bingo cards</Link> for a flexible starting point, <Link href="/christmas-party-bingo">Christmas party bingo</Link> for a ready-made party list, or <Link href="/office-party-bingo">office party bingo</Link> for a workplace event. Customize the squares, then generate unique cards for every guest.
         </p>
       </BlogLayout>
     </>

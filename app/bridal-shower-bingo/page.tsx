@@ -21,14 +21,49 @@ const bridalSquares = [
 
 const schema = {
   "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Bridal Shower Bingo Cards Printable Generator",
-  url: "https://mybingocard.com/bridal-shower-bingo",
-  description:
-    "Create custom printable bridal shower bingo cards. Custom squares, free PDF export, and digital play.",
-  applicationCategory: "GameApplication",
-  operatingSystem: "All",
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://mybingocard.com/bridal-shower-bingo#app",
+      name: "Bridal Shower Bingo Cards Printable Generator",
+      url: "https://mybingocard.com/bridal-shower-bingo",
+      description:
+        "Create custom printable bridal shower bingo cards with editable square ideas and individual PDF export.",
+      applicationCategory: "GameApplication",
+      operatingSystem: "All",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://mybingocard.com/bridal-shower-bingo#faq",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "What should go on bridal shower bingo cards?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Use a mix of gift categories, wedding details, and shower moments that guests can spot while the bride opens presents.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How many bridal shower bingo cards should I make?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Make one card per guest plus a few extras. Use a larger shuffled batch when you need a unique card for each guest.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "How do guests win bridal shower bingo?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Decide before gift opening whether a winning card needs one line, four corners, or a full blackout, then verify each marked square against the gifts or moments that occurred.",
+          },
+        },
+      ],
+    },
+  ],
 };
 
 function BingoGrid({ squares }: { squares: string[] }) {
@@ -92,7 +127,7 @@ export default function BridalShowerBingoPage() {
                 Custom Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-500">Bridal Shower Bingo</span> Cards
               </h1>
               <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-                Turn gift opening into a party game! Create unique bingo cards for every guest, export for free, and celebrate the bride-to-be in style.
+                Turn gift opening into a party game with editable bingo cards for guests. Start with familiar shower moments, export an individual PDF for free, and add paid batches or online sharing only if the event needs them.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/create" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl font-bold text-lg hover:opacity-90 shadow-lg shadow-pink-500/30">
@@ -107,9 +142,58 @@ export default function BridalShowerBingoPage() {
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-rose-500 to-pink-500 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">She Said Yes! Now Make It Fun 💍</h2>
-            <p className="text-rose-100 text-lg mb-8">Bridal shower bingo is the #1 party game that keeps every guest engaged. Free to draft, then upgrade when you need to save or export.</p>
+            <p className="text-rose-100 text-lg mb-8">Bridal shower bingo gives guests something to follow while gifts are opened. Build an editable card, export an individual PDF for free, then choose a paid batch or online sharing if you need it.</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-rose-600 rounded-xl font-bold text-lg hover:bg-rose-50 transition-colors shadow-lg">Create Bridal Shower Bingo</Link>
           </div>
+
+          <section className="max-w-5xl mx-auto mb-20">
+            <div className="grid lg:grid-cols-2 gap-8">
+              <article className="bg-white rounded-2xl border border-rose-100 p-8 shadow-sm">
+                <h2 className="text-2xl font-bold text-slate-900 mb-4">How to set up bridal shower gift bingo</h2>
+                <p className="text-slate-600 leading-relaxed mb-5">
+                  The easiest format is a quiet table game: guests mark a square when the bride opens a matching gift or when a planned shower moment happens. Start with broad categories so the game does not reveal registry surprises.
+                </p>
+                <ol className="space-y-3 text-slate-600 list-decimal list-inside">
+                  <li>Use gift categories, wedding details, and a few light shower moments.</li>
+                  <li>Make more than 24 prompts so shuffled cards do not all look alike.</li>
+                  <li>Choose one winning pattern before the first present is opened.</li>
+                  <li>Keep a short list of opened gifts so a winning card is easy to verify.</li>
+                </ol>
+              </article>
+              <article className="bg-white rounded-2xl border border-rose-100 p-8 shadow-sm">
+                <h2 className="text-2xl font-bold text-slate-900 mb-4">Square ideas that feel personal</h2>
+                <p className="text-slate-600 leading-relaxed mb-5">
+                  Mix dependable gift categories with details that fit the couple. Avoid exact brand names or overly specific gifts, then edit the list once you know the shower plan.
+                </p>
+                <div className="grid sm:grid-cols-2 gap-3 text-sm font-medium text-slate-700">
+                  {["Cookware", "Bath towels", "Serving tray", "Gift card", "Wedding date", "Honeymoon hint", "Something blue", "Advice card", "Champagne toast", "Group photo"].map((idea) => (
+                    <div key={idea} className="rounded-xl bg-rose-50 px-4 py-3">{idea}</div>
+                  ))}
+                </div>
+              </article>
+            </div>
+
+            <div className="mt-8 bg-white rounded-2xl border border-rose-100 p-8 shadow-sm">
+              <h2 className="text-2xl font-bold text-slate-900 mb-5">Bridal shower bingo FAQs</h2>
+              <div className="grid md:grid-cols-3 gap-6 text-slate-600 leading-relaxed">
+                <div>
+                  <h3 className="font-bold text-slate-900 mb-2">What should go on the cards?</h3>
+                  <p>Use a mix of gift categories, wedding details, and shower moments guests can recognize without interrupting gift opening.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 mb-2">How many cards do I need?</h3>
+                  <p>Make one per guest plus a few extras. Use a larger shuffled batch when every guest needs a different printable card.</p>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 mb-2">How do guests win?</h3>
+                  <p>Choose one line, four corners, or blackout before play begins, then verify every marked square against the gifts or moments that occurred.</p>
+                </div>
+              </div>
+              <p className="mt-6 text-slate-600">
+                For a gift-only list, start with <Link href="/bridal-shower-gift-bingo" className="font-semibold text-rose-600 hover:text-rose-700">bridal shower gift bingo</Link>. For reception moments, use <Link href="/wedding-reception-bingo" className="font-semibold text-rose-600 hover:text-rose-700">wedding reception bingo</Link>.
+              </p>
+            </div>
+          </section>
 
           <div className="max-w-5xl mx-auto">
             <h2 className="text-2xl font-bold text-slate-900 text-center mb-8">More Event Bingo Cards</h2>

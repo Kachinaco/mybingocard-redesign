@@ -40,6 +40,35 @@ const accentStyles = {
   },
 } as const;
 
+type RelatedPageLink = Pick<SeoLandingPageData, "slug" | "eyebrow" | "lead">;
+
+const relatedPublicPages: Record<string, RelatedPageLink> = {
+  "classroom-bingo": {
+    slug: "classroom-bingo",
+    eyebrow: "Classroom bingo",
+    lead: "Turn vocabulary, math facts, and subject review into an active classroom game.",
+  },
+  "icebreaker-bingo": {
+    slug: "icebreaker-bingo",
+    eyebrow: "Icebreaker bingo",
+    lead: "Give groups easy conversation prompts for introductions, networking, and first-day activities.",
+  },
+  "team-building-bingo": {
+    slug: "team-building-bingo",
+    eyebrow: "Team building bingo",
+    lead: "Use friendly prompts for offsites, onboarding, meetings, and team events.",
+  },
+  "graduation-bingo": {
+    slug: "graduation-bingo",
+    eyebrow: "Graduation bingo",
+    lead: "Make a respectful bingo card for a graduation ceremony or celebration.",
+  },
+};
+
+function resolveRelatedPage(slug: string): RelatedPageLink | undefined {
+  return seoLandingPages[slug] || relatedPublicPages[slug];
+}
+
 function uniqueIdeas(page: SeoLandingPageData): string[] {
   const seen = new Set<string>();
   return [...page.sampleSquares, ...page.ideas]
@@ -77,7 +106,7 @@ function buildUseThisListHref(page: SeoLandingPageData): string {
   return `/create?${params.toString()}`;
 }
 
-function Header() {
+function Header({ createHref }: { createHref: string }) {
   return (
     <header className="fixed top-0 w-full z-50 bg-white/85 backdrop-blur-md border-b border-slate-200/70">
       <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
@@ -95,8 +124,8 @@ function Header() {
           <Link href="/blog" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Blog</Link>
           <div className="w-px h-4 bg-slate-200"></div>
           <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
-          <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-            Start a Draft
+          <Link href={createHref} className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
+            Create a Card
           </Link>
         </nav>
       </div>
@@ -191,6 +220,29 @@ function JsonLd({ page }: { page: SeoLandingPageData }) {
         text: step,
       })),
     },
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: "https://mybingocard.com/",
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Bingo Games",
+          item: "https://mybingocard.com/bingo-games",
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: page.eyebrow,
+          item: url,
+        },
+      ],
+    },
   ];
 
   return (
@@ -210,19 +262,26 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
   const accent = accentStyles[page.accent];
   const useThisListHref = buildUseThisListHref(page);
   const relatedPages = page.related
-    .map((slug) => seoLandingPages[slug])
-    .filter((related): related is SeoLandingPageData => Boolean(related));
+    .map(resolveRelatedPage)
+    .filter((related): related is RelatedPageLink => Boolean(related));
 
   return (
     <>
       <LandingPageTracker templateCategory={page.slug} />
       <JsonLd page={page} />
       <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
-        <Header />
+        <Header createHref={useThisListHref} />
 
         <main className="pt-16">
           <section className="relative overflow-hidden pt-8 pb-16 lg:pt-12 lg:pb-20">
             <div className="container mx-auto px-4 lg:px-8 relative">
+              <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center justify-center gap-2 text-sm text-slate-500 lg:justify-start">
+                <Link href="/" className="hover:text-indigo-700">Home</Link>
+                <span aria-hidden="true" className="text-slate-300">/</span>
+                <Link href="/bingo-games" className="hover:text-indigo-700">Bingo Games</Link>
+                <span aria-hidden="true" className="text-slate-300">/</span>
+                <span aria-current="page" className="font-medium text-slate-700">{page.eyebrow}</span>
+              </nav>
               <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
                 <div className="text-center lg:text-left">
                   <div className={`inline-flex items-center gap-2 ${accent.soft} ${accent.text} border rounded-full px-4 py-1.5 mb-4`}>
@@ -248,7 +307,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
                       Browse Templates
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-500">Free to create, save, customize, and export. Paid batches, sharing, and hosting are optional.</p>
+                  <p className="text-sm text-slate-500">Save one card and export an individual PDF or PNG for free. Paid batch packs, sharing, and hosting support group play.</p>
                 </div>
                 <BingoPreview page={page} />
               </div>
@@ -267,7 +326,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
                 <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
                   <h3 className="text-lg font-bold text-slate-900 mb-4">What you can make</h3>
                   <ul className="space-y-3 text-sm text-slate-600">
-                    <li className="flex gap-3"><span className={accent.text}>✓</span><span>Free PDF exports for in-person games</span></li>
+                    <li className="flex gap-3"><span className={accent.text}>✓</span><span>Free individual PDF and PNG exports for in-person games</span></li>
                     <li className="flex gap-3"><span className={accent.text}>✓</span><span>Paid online play links for phones or laptops</span></li>
                     <li className="flex gap-3"><span className={accent.text}>✓</span><span>Unique shuffled cards for groups and classes</span></li>
                     <li className="flex gap-3"><span className={accent.text}>✓</span><span>Reusable card themes you can edit later</span></li>
@@ -432,7 +491,7 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
                   <div className="space-y-5 text-slate-200">
                     <div>
                       <h3 className="font-bold text-white mb-1">Before the game</h3>
-                      <p>Build the card, remove weak squares, choose free export or paid online play, and make enough unique cards for the group.</p>
+                      <p>Build the card, remove weak squares, export one PDF or PNG for free, then use a paid batch pack or paid online play when the group needs its own cards.</p>
                     </div>
                     <div>
                       <h3 className="font-bold text-white mb-1">During the game</h3>
@@ -466,7 +525,9 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
             <div className="container mx-auto px-4 lg:px-8">
               <div className="text-center max-w-3xl mx-auto mb-10">
                 <h2 className="text-3xl font-bold text-slate-900 mb-4">Related bingo generators</h2>
-                <p className="text-slate-600">Build out your game from nearby tools and use cases.</p>
+                <p className="text-slate-600">
+                  Build out your game from nearby tools and use cases. Need help running it? Read our <Link href="/how-to-play-bingo" className="font-medium text-indigo-700 hover:text-indigo-800 hover:underline">how to play bingo guide</Link> or browse <Link href="/bingo-games" className="font-medium text-indigo-700 hover:text-indigo-800 hover:underline">bingo game ideas</Link>.
+                </p>
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
                 {relatedPages.map((related) => (
@@ -487,13 +548,13 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
             <div className="container mx-auto px-4 max-w-3xl">
               <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to make your card?</h2>
               <p className="text-slate-300 text-lg mb-8">
-                Start with a blank bingo card, customize the content, export it for free, then add paid batches, sharing, or hosted play when needed.
+                Start with a blank bingo card, customize the content, save one card and export an individual PDF or PNG for free, then add paid batches, sharing, or hosted play when needed.
               </p>
               <Link
                 href={useThisListHref}
                 className="inline-flex bg-white text-slate-900 px-9 py-4 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-colors"
               >
-                Start a Free Draft
+                Create a Free Card
               </Link>
             </div>
           </section>

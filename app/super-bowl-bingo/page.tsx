@@ -26,7 +26,7 @@ const schema = {
   name: "Super Bowl Bingo Cards Printable Generator",
   url: "https://mybingocard.com/super-bowl-bingo",
   description:
-    "Create custom printable Super Bowl bingo cards for your watch party. Custom squares, free PDF export.",
+    "Create custom printable Super Bowl bingo cards for your watch party with editable squares and individual PDF/PNG exports.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
@@ -110,7 +110,7 @@ export default function SuperBowlBingoPage() {
             {[
               { icon: "📺", title: "For Every Fan", desc: "Football fans play by game action. Non-fans play by commercials and halftime moments." },
               { icon: "🏆", title: "Party Prizes", desc: "Set prizes for BINGO winners. A simple prize plan gives players another reason to follow along." },
-              { icon: "🍕", title: "Print for Everyone", desc: "Generate unique cards for each guest so everyone has a different layout." },
+              { icon: "🍕", title: "Print for Everyone", desc: "Use a paid batch pack when each guest needs a different shuffled printable card." },
             ].map((f) => (
               <div key={f.title} className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 text-center">
                 <div className="text-4xl mb-4">{f.icon}</div>
@@ -122,7 +122,7 @@ export default function SuperBowlBingoPage() {
 
           <div className="max-w-3xl mx-auto bg-gradient-to-r from-green-600 to-emerald-600 rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">Touchdown! Time to Play 🏈</h2>
-            <p className="text-green-100 text-lg mb-8">Draft a unique card for every guest at your Super Bowl party, then start checkout to save.</p>
+            <p className="text-green-100 text-lg mb-8">Make a Super Bowl bingo card in minutes, then add a paid batch pack when every guest needs a unique printable card.</p>
             <Link href="/create" className="inline-block px-8 py-4 bg-white text-green-700 rounded-xl font-bold text-lg hover:bg-green-50 transition-colors shadow-lg">Create Super Bowl Bingo</Link>
           </div>
 

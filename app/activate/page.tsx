@@ -8,6 +8,9 @@ import { hasPremiumAccess } from "@/lib/subscription-status";
 export const metadata: Metadata = {
   title: "Activate Account",
   description: "Choose Free or Premium access for your MyBingoCard account.",
+  alternates: {
+    canonical: "https://mybingocard.com/activate",
+  },
   robots: {
     index: false,
     follow: false,

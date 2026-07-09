@@ -106,7 +106,7 @@ export default function ClassroomBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Start a Draft
+                Create a Card
               </Link>
             </nav>
           </div>
@@ -131,7 +131,7 @@ export default function ClassroomBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Transform any lesson into an engaging classroom bingo game! Our free bingo draft editor for teachers makes it simple to create educational bingo cards for vocabulary practice, math facts, spelling words, science terms, or any subject you teach. Each printable card is automatically randomized so every student gets a unique layout, eliminating copying. Perfect for end-of-unit reviews, brain breaks, holiday learning, or reward activities. Export PDF files for free or add paid digital cards for the whole class or remote learning. With grade-level templates ranging from kindergarten to high school, you can customize card size, add images, and brand cards with your classroom theme. The bingo draft editor teachers trust — try it today and use it for a more interactive review activity.
+                    Turn any lesson into an engaging classroom bingo game with editable cards for vocabulary, math facts, spelling, science, and more. Start with a subject-specific list, save one card, and export an individual PDF or PNG for free. For a full class of unique printable cards, use a paid batch pack; paid player links support remote learning.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -147,7 +147,7 @@ export default function ClassroomBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
+                  <p className="text-sm text-slate-400">1 free saved card · Individual PDF/PNG export · Paid class sets</p>
                 </div>
 
                 <div className="relative">
@@ -195,11 +195,11 @@ export default function ClassroomBingoPage() {
                 Make learning a game your students love
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft classroom bingo cards in under 2 minutes, then subscribe when you are ready to save more.
+                Make a classroom bingo card in under 2 minutes, then use a paid batch pack when each student needs a unique printable card.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-blue-50 transition-all duration-300 shadow-xl">
-                  Start a Free Classroom Bingo Draft
+                  Create Classroom Bingo Cards
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
                   See Pricing Plans
@@ -224,7 +224,7 @@ export default function ClassroomBingoPage() {
                   <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
                 </Link>
                 <p className="text-slate-500 max-w-sm leading-relaxed">
-                  A bingo draft editor for teachers, tutors, homeschool families, and classroom activity planners.
+                  A bingo card maker for teachers, tutors, homeschool families, and classroom activity planners.
                 </p>
               </div>
               <div>

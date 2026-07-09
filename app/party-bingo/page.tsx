@@ -4,9 +4,9 @@ import LandingPageTracker from "@/components/LandingPageTracker";
 import SeoSupportBlock from "@/components/SeoSupportBlock";
 
 export const metadata: Metadata = {
-  title: "Party Bingo Cards — Free Bingo Draft Editor for Any Party",
+  title: "Party Bingo Cards — Custom Bingo Card Maker for Any Party",
   description:
-    "Create custom printable party bingo cards for birthdays, game nights, dinner parties, and celebrations. The best party bingo card generator with free PDF export and digital play.",
+    "Create custom printable party bingo cards for birthdays, game nights, dinner parties, and celebrations. Customize the squares, then export an individual PDF or PNG for free or add paid online play.",
   keywords: [
     "party bingo cards",
     "birthday bingo",
@@ -21,9 +21,9 @@ export const metadata: Metadata = {
     canonical: "https://mybingocard.com/party-bingo",
   },
   openGraph: {
-    title: "Party Bingo Cards — Free Bingo Draft Editor for Any Party",
+    title: "Party Bingo Cards — Custom Bingo Card Maker for Any Party",
     description:
-      "Create custom bingo card drafts for birthdays, game nights, dinner parties, and any celebration. PDF export & digital play.",
+      "Create custom bingo cards for birthdays, game nights, dinner parties, and any celebration. Individual PDF/PNG export and paid digital play.",
     url: "https://mybingocard.com/party-bingo",
     type: "website",
   },
@@ -123,7 +123,7 @@ export default function PartyBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Start a Draft
+                Create a Card
               </Link>
             </nav>
           </div>
@@ -148,7 +148,7 @@ export default function PartyBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Turn any party into an unforgettable event with custom bingo cards! Whether you&apos;re hosting a birthday bash, game night, dinner party, housewarming, or backyard BBQ, our party bingo draft editor creates stunning cards that keep guests entertained all night. Fill squares with party moments like &quot;dance-off,&quot; &quot;cake time,&quot; &quot;surprise guest,&quot; and &quot;group selfie&quot; — or write your own custom squares with inside jokes and personal touches. Every card is uniquely shuffled so each guest plays a different layout, and you can generate as many as you need. Export PDF files for free, add paid digital links, or project on a TV. From intimate dinner parties to blowout birthday celebrations, party bingo is the easiest way to break the ice and create memories. Start drafting your party bingo cards today!
+                    Turn any party into an interactive event with editable bingo cards for birthdays, game nights, dinner parties, housewarmings, and backyard BBQs. Add dance-offs, cake time, surprise guests, group selfies, or your own inside jokes, then save one card and export an individual PDF or PNG for free. Use a paid batch pack for a unique printable card per guest, or add paid player links for phone play.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -164,7 +164,7 @@ export default function PartyBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
+                  <p className="text-sm text-slate-400">1 free saved card · Individual PDF/PNG export · Paid group options</p>
                 </div>
 
                 <div className="relative">
@@ -236,11 +236,11 @@ export default function PartyBingoPage() {
                 Make your next party the one everyone remembers
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft custom party bingo cards in under 2 minutes, then start checkout to save or export.
+                Make custom party bingo cards in under 2 minutes, then add a paid batch pack when every guest needs a unique printable card.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-emerald-50 transition-all duration-300 shadow-xl">
-                  Start a Free Party Bingo Draft
+                  Create Party Bingo Cards
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
                   See Pricing Plans

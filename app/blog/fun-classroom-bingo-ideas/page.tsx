@@ -21,9 +21,15 @@ export const metadata: Metadata = {
 const schema = {
   "@context": "https://schema.org",
   "@type": "Article",
+  "@id": "https://mybingocard.com/blog/fun-classroom-bingo-ideas#article",
+  mainEntityOfPage: {
+    "@type": "WebPage",
+    "@id": "https://mybingocard.com/blog/fun-classroom-bingo-ideas",
+  },
   headline: "15 Fun Classroom Bingo Ideas Students Love",
   description: "Engaging classroom bingo ideas for vocabulary, math, science, and more.",
   datePublished: "2026-02-18",
+  dateModified: "2026-07-09",
   author: { "@type": "Organization", name: "MyBingoCard" },
   publisher: { "@type": "Organization", name: "MyBingoCard", url: "https://mybingocard.com" },
 };
@@ -140,7 +146,7 @@ export default function FunClassroomBingoIdeas() {
 
         <h2>Create Your Classroom Bingo Cards</h2>
         <p>
-          Ready to gamify your next lesson? Use our <Link href="/classroom-bingo">classroom bingo draft editor</Link> to create custom educational bingo cards in minutes. Each card is automatically shuffled, and you can export a full class set for free.
+          Ready to gamify your next lesson? Start with <Link href="/classroom-bingo">classroom bingo</Link>, then use a focused list for <Link href="/vocabulary-bingo-generator">vocabulary</Link>, <Link href="/multiplication-bingo-cards">multiplication facts</Link>, or <Link href="/state-capitals-bingo">state capitals</Link>. Each list is editable, can be shuffled into unique cards, and supports free PDF export.
         </p>
       </BlogLayout>
     </>

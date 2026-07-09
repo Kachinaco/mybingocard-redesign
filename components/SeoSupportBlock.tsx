@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type SeoSupportContent = {
   label: string;
   audience: string;
@@ -5,6 +7,10 @@ type SeoSupportContent = {
   examples: string[];
   tip: string;
   related: string;
+  coreResource?: {
+    href: string;
+    label: string;
+  };
 };
 
 const supportContent: Record<string, SeoSupportContent> = {
@@ -15,6 +21,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["custom square lists", "PDF exports", "mobile play links", "template starting points"],
     tip: "Start with the format your players will actually use, then choose styling and exports after the card content feels right.",
     related: "the card maker, templates, pricing, printable cards, and online bingo generator pages",
+    coreResource: { href: "/bingo-card-maker", label: "bingo card maker" },
   },
   supplies: {
     label: "bingo supplies",
@@ -23,6 +30,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["daubers", "chips", "card holders", "small winner prizes"],
     tip: "Match the supplies to the group: kids usually need washable markers, seniors benefit from large-print cards, and parties work best with lightweight prizes.",
     related: "printable bingo cards, party bingo, classroom bingo, and holiday bingo ideas",
+    coreResource: { href: "/printable-bingo-cards", label: "printable bingo cards" },
   },
   about: {
     label: "MyBingoCard",
@@ -31,6 +39,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["included templates", "custom text squares", "image cards", "paid online sharing"],
     tip: "The product is designed around a simple workflow: choose an idea, customize the squares, then print or share the finished card.",
     related: "the template library, card creator, pricing page, and bingo idea guides",
+    coreResource: { href: "/bingo-card-maker", label: "bingo card maker" },
   },
   contact: {
     label: "MyBingoCard support",
@@ -38,7 +47,8 @@ const supportContent: Record<string, SeoSupportContent> = {
     setting: "support questions before an event, classroom activity, subscription change, or large batch export",
     examples: ["PDF export issues", "premium plan questions", "live game setup", "template feedback"],
     tip: "Include the card title, account email, browser, device, and what you were trying to do so support can reproduce the issue quickly.",
-    related: "pricing, settings, the card editor, live game tools, and the template pages",
+    related: "pricing, settings, the bingo card maker, live game tools, and the template pages",
+    coreResource: { href: "/bingo-card-maker", label: "bingo card maker" },
   },
   blog: {
     label: "bingo card guides",
@@ -47,6 +57,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["baby shower gift bingo", "wedding reception bingo", "classroom review games", "holiday party cards"],
     tip: "Use the guides to choose the game format first, then open the card maker with a focused list of prompts.",
     related: "occasion pages, printable card guides, online play tips, and the template library",
+    coreResource: { href: "/bingo-games", label: "bingo game ideas" },
   },
   "wedding-bingo": {
     label: "wedding bingo",
@@ -55,6 +66,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["first dance", "toast moment", "photo booth", "guest from out of town"],
     tip: "Mix predictable reception moments with personal details so guests can play naturally without interrupting the schedule.",
     related: "bridal shower bingo, wedding reception bingo, and bridal shower gift bingo",
+    coreResource: { href: "/custom-bingo-card-maker", label: "custom bingo card maker" },
   },
   "baby-shower-bingo": {
     label: "baby shower bingo",
@@ -63,6 +75,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["tiny socks", "diapers", "storybook", "baby blanket"],
     tip: "Use a mix of common gifts and family-specific prompts so the game stays easy for guests who do not know every registry item.",
     related: "baby shower gift bingo, baby prediction bingo, and printable bingo cards",
+    coreResource: { href: "/printable-bingo-cards", label: "printable bingo cards" },
   },
   "classroom-bingo": {
     label: "classroom bingo",
@@ -71,6 +84,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["vocabulary word", "math fact", "science term", "classmate clue"],
     tip: "Keep square wording short enough for students to scan quickly, especially when you are using the game for review or assessment.",
     related: "vocabulary bingo, sight word bingo, math bingo, and back-to-school bingo",
+    coreResource: { href: "/bingo-card-maker", label: "bingo card maker" },
   },
   "party-bingo": {
     label: "party bingo",
@@ -79,6 +93,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["someone dances", "group photo", "snack refill", "funny story"],
     tip: "Choose squares people can notice during the party instead of tasks that force guests to stop socializing.",
     related: "birthday bingo, icebreaker bingo, music bingo, and movie bingo",
+    coreResource: { href: "/printable-bingo-cards", label: "printable bingo cards" },
   },
   "office-party-bingo": {
     label: "office party bingo",
@@ -87,6 +102,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["mentions Q4", "team photo", "awkward toast", "someone talks about snacks"],
     tip: "Keep prompts friendly and inclusive, especially when the event includes new employees or cross-functional teams.",
     related: "team-building bingo, office meeting bingo, onboarding bingo, and remote meeting bingo",
+    coreResource: { href: "/online-bingo-card-generator", label: "online bingo card generator" },
   },
   "birthday-bingo": {
     label: "birthday bingo",
@@ -95,6 +111,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["candles blown", "birthday song", "present opened", "cake photo"],
     tip: "For mixed-age parties, make the squares visual and simple so younger players and grandparents can follow along.",
     related: "party bingo, family reunion bingo, music bingo, and holiday bingo",
+    coreResource: { href: "/printable-bingo-cards", label: "printable bingo cards" },
   },
   "halloween-bingo": {
     label: "Halloween bingo",
@@ -103,6 +120,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["witch hat", "pumpkin", "spider web", "candy corn"],
     tip: "Balance spooky prompts with kid-friendly squares when the game is for classrooms or family events.",
     related: "holiday bingo, Thanksgiving bingo, Christmas party bingo, and classroom bingo",
+    coreResource: { href: "/printable-bingo-cards", label: "printable bingo cards" },
   },
   "thanksgiving-bingo": {
     label: "Thanksgiving bingo",
@@ -111,6 +129,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["pumpkin pie", "turkey", "gratitude", "leftovers"],
     tip: "Use the card to keep guests engaged before dinner or between courses, not as a replacement for conversation.",
     related: "holiday bingo, family reunion bingo, classroom bingo, and printable bingo cards",
+    coreResource: { href: "/printable-bingo-cards", label: "printable bingo cards" },
   },
   "super-bowl-bingo": {
     label: "Super Bowl bingo",
@@ -119,6 +138,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["touchdown", "flag on play", "funny commercial", "halftime song"],
     tip: "Mix game action with commercials and party moments so casual fans can enjoy the card too.",
     related: "party bingo, office party bingo, music bingo, and printable bingo cards",
+    coreResource: { href: "/online-bingo-card-generator", label: "online bingo card generator" },
   },
   "church-bingo": {
     label: "church bingo",
@@ -127,6 +147,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["welcome table", "favorite hymn", "prayer request", "new visitor"],
     tip: "Keep prompts respectful, welcoming, and easy to understand for guests who may be new to the group.",
     related: "fundraiser bingo, icebreaker bingo, family reunion bingo, and printable bingo cards",
+    coreResource: { href: "/printable-bingo-cards", label: "printable bingo cards" },
   },
   "family-reunion-bingo": {
     label: "family reunion bingo",
@@ -135,6 +156,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["shares old photo", "favorite recipe", "family nickname", "cousin selfie"],
     tip: "Use prompts that help relatives talk to each other instead of only marking squares silently.",
     related: "icebreaker bingo, party bingo, birthday bingo, and family-friendly templates",
+    coreResource: { href: "/custom-bingo-card-maker", label: "custom bingo card maker" },
   },
   "team-building-bingo": {
     label: "team-building bingo",
@@ -143,6 +165,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["uses keyboard shortcut", "has a pet", "worked in another industry", "shares a win"],
     tip: "Choose prompts that create useful conversation without putting anyone on the spot.",
     related: "office meeting bingo, onboarding bingo, training bingo, and conference bingo",
+    coreResource: { href: "/online-bingo-card-generator", label: "online bingo card generator" },
   },
   "music-bingo": {
     label: "music bingo",
@@ -151,6 +174,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["80s hit", "guitar solo", "movie soundtrack", "song everyone sings"],
     tip: "Build the card around recognizable categories or song moments so players do not need expert music knowledge.",
     related: "party bingo, movie bingo, birthday bingo, and fundraiser bingo",
+    coreResource: { href: "/custom-bingo-card-maker", label: "custom bingo card maker" },
   },
   "movie-bingo": {
     label: "movie bingo",
@@ -159,6 +183,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["dramatic music", "plot twist", "funny sidekick", "someone says the title"],
     tip: "Use prompts that happen on screen and can be spotted without pausing the movie.",
     related: "music bingo, party bingo, Halloween bingo, and holiday bingo",
+    coreResource: { href: "/custom-bingo-card-maker", label: "custom bingo card maker" },
   },
   "fundraiser-bingo": {
     label: "fundraiser bingo",
@@ -167,6 +192,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["raffle ticket", "donation table", "local sponsor", "winner photo"],
     tip: "Plan cards, prizes, and calling rules before the event so volunteers can focus on guests and donations.",
     related: "church bingo, party bingo, printable bingo cards, and supplies",
+    coreResource: { href: "/printable-bingo-cards", label: "printable bingo cards" },
   },
   "icebreaker-bingo": {
     label: "icebreaker bingo",
@@ -175,6 +201,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["has a sibling", "speaks another language", "loves coffee", "visited another country"],
     tip: "Use low-pressure prompts that help people start conversations without asking for anything too personal.",
     related: "team-building bingo, onboarding bingo, classroom bingo, and conference bingo",
+    coreResource: { href: "/online-bingo-card-generator", label: "online bingo card generator" },
   },
 };
 
@@ -211,7 +238,12 @@ export default function SeoSupportBlock({ slug }: { slug: string }) {
       </div>
       <p className="mt-8 text-sm leading-7 text-slate-600 md:text-base">
         Before you publish or print, scan the card as if you were one of the players. Remove inside jokes that only one person understands, clarify any square that could be read two ways, and make sure the free space fits the tone of the event. If you need more ideas, compare this page with {content.related}; those pages can help you adapt the same bingo format for a different group, season, or playing style.
-        A final review also helps with practical details: confirm the card title, check spelling, decide whether duplicate cards are acceptable, and choose the export or sharing method before guests arrive. That small planning step makes the game easier to explain and keeps the host from fixing card issues during the event.
+        {content.coreResource ? (
+          <>
+            {" "}When you are ready to make it, start with our <Link href={content.coreResource.href} className="font-medium text-indigo-700 hover:text-indigo-800 hover:underline">{content.coreResource.label}</Link>.
+          </>
+        ) : null}
+        {" "}A final review also helps with practical details: confirm the card title, check spelling, decide whether duplicate cards are acceptable, and choose the export or sharing method before guests arrive. That small planning step makes the game easier to explain and keeps the host from fixing card issues during the event.
       </p>
     </section>
   );

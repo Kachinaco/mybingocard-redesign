@@ -135,7 +135,7 @@ export default function FeaturesPage() {
               href="/create"
               className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold px-8 py-4 rounded-2xl hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-0.5"
             >
-              Start a Draft
+              Create a Card
             </Link>
             <Link
               href="/pricing"
@@ -151,7 +151,7 @@ export default function FeaturesPage() {
       <section className="py-12 px-4 border-y border-slate-100 bg-white">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
-            { value: "Free", label: "Creator Tools" },
+            { value: "1", label: "Free Saved Card" },
             { value: "3x3-5x5", label: "Grid Sizes" },
             { value: "PDF", label: "Print Exports" },
             { value: "Paid", label: "Online Play" },
@@ -203,7 +203,7 @@ export default function FeaturesPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-black text-slate-900 mb-4">Built for every occasion</h2>
-            <p className="text-slate-500 text-lg">Create, save, batch, and export for free. Pay only for player share links or hosted live games.</p>
+            <p className="text-slate-500 text-lg">Create, save your first card, and export individual cards for free. Add paid batches, player links, or hosted live games when needed.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {useCases.map((uc) => (
@@ -222,12 +222,12 @@ export default function FeaturesPage() {
         <div className="max-w-2xl mx-auto text-center">
           <div className="bg-gradient-to-br from-violet-600 to-indigo-600 rounded-3xl p-12 text-white shadow-2xl shadow-indigo-500/25">
             <h2 className="text-3xl font-black mb-4">Ready to create your first card?</h2>
-            <p className="text-indigo-100 mb-8 text-lg">Create, save, and export for free. Add paid batches, sharing, or hosting when your game needs it.</p>
+            <p className="text-indigo-100 mb-8 text-lg">Create, save your first card, and export individual cards for free. Add paid batches, sharing, or hosting when your game needs it.</p>
             <Link
               href="/create"
               className="inline-flex items-center gap-2 bg-white text-indigo-700 font-bold px-8 py-4 rounded-2xl hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"
             >
-              Start Your First Draft →
+              Create Your First Card →
             </Link>
           </div>
         </div>

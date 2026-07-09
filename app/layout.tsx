@@ -155,7 +155,7 @@ export default function RootLayout({
                   "operatingSystem": "Web",
                   "browserRequirements": "Requires JavaScript and a modern web browser.",
                   "isAccessibleForFree": true,
-                  "description": "Create printable bingo cards for classrooms, parties, baby showers, weddings, team building, holidays, and more. Creator tools are free; batch packs, player links, and live hosting are paid.",
+                  "description": "Create printable bingo cards for classrooms, parties, baby showers, weddings, team building, holidays, and more. The free plan includes one saved card and individual PDF/PNG exports; batch packs, player links, and live hosting are paid.",
                   "featureList": [
                     "Printable bingo card PDFs",
                     "Online bingo card sharing",

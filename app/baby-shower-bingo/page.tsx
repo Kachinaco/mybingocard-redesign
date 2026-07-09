@@ -26,7 +26,7 @@ const schema = {
   name: "Baby Shower Bingo Cards Generator",
   url: "https://mybingocard.com/baby-shower-bingo",
   description:
-    "Custom baby shower bingo draft generator. Create, customize, and print bingo cards for your baby shower party in minutes.",
+    "Custom baby shower bingo card maker with editable gift-opening squares and individual printable exports.",
   applicationCategory: "GameApplication",
   operatingSystem: "All",
   offers: {
@@ -97,7 +97,7 @@ export default function BabyShowerBingoPage() {
               <div className="w-px h-4 bg-slate-200"></div>
               <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
               <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
-                Start a Draft
+                Create a Card
               </Link>
             </nav>
           </div>
@@ -122,7 +122,7 @@ export default function BabyShowerBingoPage() {
                     </span>
                   </h1>
                   <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Make your baby shower unforgettable with custom printable bingo cards! Our baby shower bingo draft editor lets you create unique, personalized cards in minutes — no design skills needed. Simply enter your gift list or let our suggestions fill the squares automatically. Each card is randomized so every guest gets a different layout, keeping the excitement alive during gift opening. Export clean PDF files for free, add paid digital cards, or project on a screen. With adorable themes, pastel color palettes, and customizable free spaces, you'll have the perfect baby shower game ready before the guests arrive. Try the baby shower bingo draft editor today!
+                    Make your baby shower memorable with editable bingo cards built around the gift list and shower moments. Add your own squares or start with suggestions, save one card, and export an individual PDF or PNG for free. When every guest needs a different printable layout, choose a paid batch pack; paid player links support online play.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
@@ -138,7 +138,7 @@ export default function BabyShowerBingoPage() {
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">Free creator tools · Save included · free PDF export</p>
+                  <p className="text-sm text-slate-400">1 free saved card · Individual PDF/PNG export · Paid group options</p>
                 </div>
 
                 <div className="relative">
@@ -171,12 +171,12 @@ export default function BabyShowerBingoPage() {
                   {
                     icon: "🖨️",
                     title: "PDF Exports",
-                    desc: "free PDF export for home printing or a local print shop.",
+                    desc: "Export one PDF or PNG card for home printing or a local print shop at no cost.",
                   },
                   {
                     icon: "🔀",
-                    title: "Unique Every Card",
-                    desc: "Every guest gets a randomly shuffled card, so multiple people can't win at the same moment.",
+                    title: "Paid Group Batches",
+                    desc: "Use a paid batch pack when every guest needs a different shuffled printable card.",
                   },
                   {
                     icon: "📱",
@@ -190,8 +190,8 @@ export default function BabyShowerBingoPage() {
                   },
                   {
                     icon: "💸",
-                    title: "Free to Draft",
-                    desc: "Build baby shower bingo cards for free. Save, export, use templates, AI, images, and batches; pay only for player links or live hosting.",
+                    title: "Free Individual Card",
+                    desc: "Save one card and export it as a PDF or PNG for free. Paid batch packs, player links, and hosted bingo cover group play.",
                   },
                 ].map((f) => (
                   <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
@@ -214,7 +214,7 @@ export default function BabyShowerBingoPage() {
                 Ready to wow the mom-to-be?
               </h2>
               <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-                Draft your baby shower bingo cards in under 2 minutes, then subscribe when you are ready to save more.
+                Make a baby shower card in under 2 minutes, then add a paid batch pack when the whole guest list needs unique printable cards.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-pink-50 transition-all duration-300 shadow-xl">
