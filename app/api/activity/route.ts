@@ -1,14 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
-import {
-  notifyBatchButtonClicked,
-  notifyBatchSelected,
-  notifyBingoAchieved,
-  notifyExportButtonClicked,
-  notifySaveCheckoutFunnelEvent,
-  notifyUpgradeDismissed,
-} from "@/lib/discord";
+import { notifyBingoAchieved } from "@/lib/discord";
 import { readJsonObject } from "@/lib/request-json";
 
 export async function POST(request: Request) {
@@ -42,88 +35,14 @@ export async function POST(request: Request) {
       metadata,
     });
 
-    // Fire Discord notifications for high-signal client events
+    // Keep raw product telemetry in analytics. Discord is reserved for actual
+    // outcomes and exceptions, not every save/checkout/export interaction.
     if (event === "bingo_achieved") {
       notifyBingoAchieved(
         metadata.cardTitle || "Untitled",
         metadata.gridSize || 5,
         metadata.timeToBingoSeconds || 0,
         metadata.context || "unknown"
-      ).catch(() => {});
-    }
-
-    if (event === "upgrade_dismissed") {
-      notifyUpgradeDismissed(
-        session?.user?.email || null,
-        metadata.source || "unknown",
-        metadata
-      ).catch(() => {});
-    }
-
-    if (event === "batch_tier_selected") {
-      notifyBatchSelected(
-        session?.user?.email || null,
-        metadata.batch_count || 0,
-        metadata.price || "$0",
-        metadata.plan_type || "GUEST",
-        !session?.user
-      ).catch(() => {});
-    }
-
-    if (event === "export_button_clicked") {
-      notifyExportButtonClicked(
-        session?.user?.email || null,
-        {
-          source: String(metadata.source || "unknown"),
-          exportType: String(metadata.export_type || metadata.exportType || "unknown"),
-          cardTitle: typeof metadata.title === "string" ? metadata.title : typeof metadata.cardTitle === "string" ? metadata.cardTitle : null,
-          planType: typeof metadata.plan_type === "string" ? metadata.plan_type : typeof metadata.planType === "string" ? metadata.planType : null,
-          batchCount: typeof metadata.batch_count === "number" ? metadata.batch_count : typeof metadata.batchCount === "number" ? metadata.batchCount : null,
-          isGuest: !session?.user,
-        }
-      ).catch(() => {});
-    }
-
-    if (
-      event === "batch_button_clicked" ||
-      event === "batch_primary_clicked" ||
-      event === "batch_pdf_export_started"
-    ) {
-      notifyBatchButtonClicked(
-        session?.user?.email || null,
-        {
-          action: String(metadata.action || event),
-          source: String(metadata.source || "unknown"),
-          batchCount: typeof metadata.batch_count === "number" ? metadata.batch_count : typeof metadata.batchCount === "number" ? metadata.batchCount : null,
-          price: typeof metadata.price === "string" ? metadata.price : null,
-          planType: typeof metadata.plan_type === "string" ? metadata.plan_type : typeof metadata.planType === "string" ? metadata.planType : null,
-          cardsPerPage: typeof metadata.cardsPerPage === "number" ? metadata.cardsPerPage : null,
-          grayscale: typeof metadata.grayscale === "boolean" ? metadata.grayscale : undefined,
-          isGuest: !session?.user,
-        }
-      ).catch(() => {});
-    }
-
-    if (
-      event === "card_save_attempted" ||
-      event === "card_save_blocked" ||
-      event === "save_blocked_auth_required" ||
-      event === "oauth_signup_started" ||
-      event === "checkout_auto_started_after_auth" ||
-      event === "checkout_loaded" ||
-      event === "checkout_cancel_clicked" ||
-      event === "premium_gate_keep_drafting_clicked"
-    ) {
-      notifySaveCheckoutFunnelEvent(
-        session?.user?.email || null,
-        event,
-        {
-          pathname: typeof body.data.pathname === "string" ? body.data.pathname : requestContext.pathname,
-          sessionId: typeof body.data.sessionId === "string" ? body.data.sessionId : null,
-          anonymousId: typeof body.data.anonymousId === "string" ? body.data.anonymousId : null,
-          metadata,
-          isGuest: !session?.user,
-        }
       ).catch(() => {});
     }
 

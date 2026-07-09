@@ -392,21 +392,21 @@ export async function POST(request: Request) {
                   sendSubscriptionActivatedEmail(recipient, user?.name || recipient, planName),
                   `sendSubscriptionActivatedEmail(${recipient})`
                 );
-                notifyCheckoutActivated(
-                  recipient,
-                  user?.name || recipient,
-                  "subscription",
-                  planName,
-                  session.amount_total,
-                  session.currency,
-                  session.id
-                ).catch(console.error);
-
                 if (subscription.trial_end) {
                   notifyTrialStarted(
                     user?.name || recipient,
                     recipient,
                     toDate(subscription.trial_end)
+                  ).catch(console.error);
+                } else {
+                  notifyCheckoutActivated(
+                    recipient,
+                    user?.name || recipient,
+                    "subscription",
+                    planName,
+                    session.amount_total,
+                    session.currency,
+                    session.id
                   ).catch(console.error);
                 }
               }

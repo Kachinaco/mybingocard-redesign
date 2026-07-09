@@ -3,6 +3,40 @@ import { getSignupSourceLabel, type AttributionData } from "./attribution";
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 type DiscordNotificationChannel = "signups" | "visitors" | "events" | "errors";
 
+const LOW_SIGNAL_DISCORD_TITLES = new Set([
+  "🔑 User Signed In",
+  "✉️ Magic Link Requested",
+  "🎴 New Bingo Card Created",
+  "🛒 Stripe Checkout Started",
+  "⌛ Stripe Checkout Expired",
+  "💰 Checkout Completed",
+  "🧾 Batch Cards Generated",
+  "📦 Batch Size Selected",
+  "📥 Export Button Clicked",
+  "📦 Batch Button Clicked",
+  "💾 Save Card Clicked",
+  "🔒 Save Card Blocked",
+  "🔐 Save Requires Signup",
+  "🔑 OAuth Signup Clicked",
+  "🛒 Checkout Auto-Started",
+  "🧾 Checkout Loaded",
+  "↩️ Checkout Closed",
+  "✏️ Kept Drafting",
+  "🤖 First AI Generation!",
+  "👋 Upgrade Dismissed",
+]);
+
+function isLowSignalDiscordEmbed(embeds?: any[]) {
+  if (process.env.MYBINGOCARD_DISCORD_LOW_SIGNAL_ALERTS === "1") return false;
+  return (embeds || []).some((embed) => {
+    const title = typeof embed?.title === "string" ? embed.title : "";
+    return LOW_SIGNAL_DISCORD_TITLES.has(title) ||
+      title.startsWith("📥 Card Exported as ") ||
+      title.startsWith("📄 Batch PDF Exported") ||
+      title.startsWith("👀 Shared card hit ");
+  });
+}
+
 function webhookUrlFor(channel: DiscordNotificationChannel = "events") {
   if (channel === "signups") return process.env.MYBINGOCARD_SIGNUPS_WEBHOOK_URL || WEBHOOK_URL;
   if (channel === "visitors") return process.env.MYBINGOCARD_VISITORS_WEBHOOK_URL || WEBHOOK_URL;
@@ -15,6 +49,7 @@ export async function sendDiscordNotification(
   embeds?: any[],
   channel: DiscordNotificationChannel = "events"
 ) {
+  if (isLowSignalDiscordEmbed(embeds)) return;
   const webhookUrl = webhookUrlFor(channel);
   if (!webhookUrl) {
     console.warn("Discord notification skipped: DISCORD_WEBHOOK_URL not set");
@@ -27,6 +62,7 @@ export async function sendDiscordNotification(
       body: JSON.stringify({
         ...(content ? { content } : {}),
         ...(embeds ? { embeds } : {}),
+        allowed_mentions: { parse: [] },
       }),
     });
     if (!res.ok) {

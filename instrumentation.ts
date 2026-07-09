@@ -4,6 +4,14 @@ import { notifyServerErrorCaptured } from "@/lib/discord";
 declare global {
   // eslint-disable-next-line no-var
   var __myBingoCardServerErrorListenersRegistered: boolean | undefined;
+  // eslint-disable-next-line no-var
+  var __myBingoCardServerErrorAlertState: Map<string, { sentAt: number; suppressed: number }> | undefined;
+}
+
+const SERVER_ERROR_ALERT_COOLDOWN_MS = 30 * 60 * 1000;
+
+function normalizeAlertPath(value: unknown) {
+  return (String(value || "").split("?")[0] || "").slice(0, 300);
 }
 
 function getErrorDetails(error: unknown) {
@@ -41,13 +49,35 @@ function reportServerError(
   context: Partial<Parameters<typeof notifyServerErrorCaptured>[0]> = {}
 ) {
   const details = getErrorDetails(error);
+  const path = normalizeAlertPath(context.path);
+  const routePath = normalizeAlertPath(context.routePath);
+  const key = [
+    type,
+    details.message.replace(/\s+/g, " ").slice(0, 300),
+    path,
+    routePath,
+  ].join("|");
+  const state = globalThis.__myBingoCardServerErrorAlertState ||= new Map();
+  const now = Date.now();
+  const previous = state.get(key);
+  if (previous && now - previous.sentAt < SERVER_ERROR_ALERT_COOLDOWN_MS) {
+    previous.suppressed += 1;
+    return;
+  }
+  const suppressed = previous?.suppressed || 0;
+  state.set(key, { sentAt: now, suppressed: 0 });
+
   notifyServerErrorCaptured({
     type,
-    message: details.message,
+    message: suppressed > 0
+      ? `${details.message} (${suppressed} duplicate occurrence${suppressed === 1 ? "" : "s"} suppressed in the prior 30 minutes)`
+      : details.message,
     stack: details.stack,
     digest: details.digest,
     buildId: process.env.NEXT_PUBLIC_APP_BUILD_ID || process.env.BUILD_ID || process.env.GIT_SHA || null,
     ...context,
+    path,
+    routePath,
   }).catch((notifyError) => {
     console.error("Server error Discord notification failed:", notifyError);
   });
