@@ -293,6 +293,24 @@ export async function claimClientErrorSpikeAlert(input: {
     );
   }
 
+export async function releaseClientErrorSpikeAlert(input: {
+  fingerprint: string;
+  claimedAt: Date;
+}): Promise<boolean> {
+  const result = getSqliteStore().updateOne(
+    "error_fingerprints",
+    { _id: input.fingerprint, lastAlertedAt: input.claimedAt },
+    {
+      $unset: {
+        lastAlertedAt: "",
+        lastAlertRecentCount: "",
+        lastAlertRecentSessions: "",
+      },
+    }
+  );
+  return result.modifiedCount > 0;
+}
+
 export async function claimClientErrorCaptureNotification(input: {
   fingerprint: string;
   cooldownBefore: Date;
@@ -319,6 +337,18 @@ export async function claimClientErrorCaptureNotification(input: {
       )
     );
   }
+
+export async function releaseClientErrorCaptureNotification(input: {
+  fingerprint: string;
+  claimedAt: Date;
+}): Promise<boolean> {
+  const result = getSqliteStore().updateOne(
+    "error_fingerprints",
+    { _id: input.fingerprint, lastCapturedNotificationAt: input.claimedAt },
+    { $unset: { lastCapturedNotificationAt: "" } }
+  );
+  return result.modifiedCount > 0;
+}
 
 export async function updateAdminErrorFingerprintStatus(input: {
   fingerprint: string;

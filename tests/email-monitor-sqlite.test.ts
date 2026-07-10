@@ -68,14 +68,16 @@ user unknown`)},
             date: new Date(),
             messageId: "<bounce@example.com>",
           });
-          await monitor.handleParsedEmail({
+          const supportEmail = {
             from: { text: "Customer <customer@example.com>" },
             subject: "Need help with my bingo card",
             text: "The link is not opening for my classroom bingo card.",
             html: "<p>The link is not opening for my classroom bingo card.</p>",
             date: new Date(),
             messageId: "<support@example.com>",
-          });
+          };
+          await monitor.handleParsedEmail(supportEmail, { imapUid: 123 });
+          await monitor.handleParsedEmail(supportEmail, { imapUid: 123 });
           await monitor.closeDb();
         })().catch((error) => {
           console.error(error && error.stack ? error.stack : error);
@@ -112,6 +114,7 @@ user unknown`)},
       const bounce = docs.find((row) => row.collection === "email_bounces")?.document;
       const message = docs.find((row) => row.collection === "email_messages")?.document;
       const ticket = docs.find((row) => row.collection === "support_tickets")?.document;
+      const tickets = docs.filter((row) => row.collection === "support_tickets");
 
       expect(bounce).toMatchObject({
         emailId,
@@ -132,6 +135,7 @@ user unknown`)},
         status: "open",
         isReply: false,
       });
+      expect(tickets).toHaveLength(1);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

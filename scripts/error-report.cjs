@@ -31,7 +31,9 @@ function loadEnvFile(filePath) {
       if (idx === -1) continue;
       const key = trimmed.slice(0, idx);
       if (process.env[key]) continue;
-      process.env[key] = trimmed.slice(idx + 1).replace(/^['"]|['"]$/g, "");
+      if (!Object.prototype.hasOwnProperty.call(process.env, key)) {
+        process.env[key] = trimmed.slice(idx + 1).replace(/^['"]|['"]$/g, "");
+      }
     }
   } catch {
     // .env.local is optional for local reports.

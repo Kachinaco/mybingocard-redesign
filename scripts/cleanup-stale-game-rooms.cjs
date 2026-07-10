@@ -10,7 +10,7 @@ try {
     if (!match) return;
     const key = match[1].trim();
     const val = match[2].trim();
-    if (!process.env[key]) process.env[key] = val;
+    if (!Object.prototype.hasOwnProperty.call(process.env, key)) process.env[key] = val;
   });
 } catch (error) {
   console.error('Could not load .env.local:', error.message);

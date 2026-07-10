@@ -125,7 +125,7 @@ function loadEnv() {
       if (!match) continue;
       const key = match[1].trim();
       const value = match[2].trim().replace(/^['"]|['"]$/g, "");
-      if (!process.env[key]) process.env[key] = value;
+      if (!Object.prototype.hasOwnProperty.call(process.env, key)) process.env[key] = value;
     }
   } catch (error) {
     console.warn(`Could not load ${ENV_PATH}: ${error.message}`);

@@ -3,6 +3,118 @@ import { getSignupSourceLabel, type AttributionData } from "./attribution";
 const WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL;
 type DiscordNotificationChannel = "signups" | "visitors" | "events" | "errors";
 
+const DISCORD_LIMITS = {
+  content: 2000,
+  embeds: 10,
+  embedTextTotal: 6000,
+  title: 256,
+  description: 4096,
+  fields: 25,
+  fieldName: 256,
+  fieldValue: 1024,
+  footer: 2048,
+  author: 256,
+} as const;
+
+function truncateDiscordText(value: unknown, max: number, fallback = "") {
+  const text = typeof value === "string" ? value : value == null ? fallback : String(value);
+  if (!text) return fallback;
+  return text.length > max ? `${text.slice(0, Math.max(0, max - 1))}…` : text;
+}
+
+function sanitizeDiscordEmbed(embed: any) {
+  const sanitized: Record<string, unknown> = { ...embed };
+  if ("title" in sanitized) sanitized.title = truncateDiscordText(sanitized.title, DISCORD_LIMITS.title);
+  if ("description" in sanitized) sanitized.description = truncateDiscordText(sanitized.description, DISCORD_LIMITS.description);
+  if (Array.isArray(embed?.fields)) {
+    sanitized.fields = embed.fields.slice(0, DISCORD_LIMITS.fields).map((field: any) => ({
+      ...field,
+      name: truncateDiscordText(field?.name, DISCORD_LIMITS.fieldName, "Field"),
+      value: truncateDiscordText(field?.value, DISCORD_LIMITS.fieldValue, "Unknown"),
+    }));
+  }
+  if (embed?.footer) {
+    sanitized.footer = {
+      ...embed.footer,
+      text: truncateDiscordText(embed.footer.text, DISCORD_LIMITS.footer),
+    };
+  }
+  if (embed?.author) {
+    sanitized.author = {
+      ...embed.author,
+      name: truncateDiscordText(embed.author.name, DISCORD_LIMITS.author, "MyBingoCard"),
+    };
+  }
+  return sanitized;
+}
+
+function fitDiscordEmbedsToTotalLimit(embeds: any[]) {
+  let remaining = DISCORD_LIMITS.embedTextTotal;
+  const fitted: any[] = [];
+
+  const take = (value: unknown) => {
+    if (remaining <= 0 || value == null) return "";
+    const text = String(value);
+    const next = text.slice(0, remaining);
+    remaining -= next.length;
+    return next;
+  };
+
+  for (const embed of embeds) {
+    if (remaining <= 0) break;
+    const next: any = { ...embed };
+    delete next.title;
+    delete next.description;
+    delete next.fields;
+    delete next.footer;
+    delete next.author;
+
+    if (embed.title) next.title = take(embed.title);
+    if (embed.description && remaining > 0) next.description = take(embed.description);
+
+    if (Array.isArray(embed.fields) && remaining >= 2) {
+      next.fields = [];
+      for (const field of embed.fields) {
+        if (remaining < 2) break;
+        const nameBudget = Math.min(String(field.name).length, Math.max(1, remaining - 1));
+        const name = take(String(field.name).slice(0, nameBudget));
+        const value = take(field.value);
+        if (!name || !value) break;
+        next.fields.push({ ...field, name, value });
+      }
+      if (next.fields.length === 0) delete next.fields;
+    }
+
+    if (embed.footer?.text && remaining > 0) {
+      const text = take(embed.footer.text);
+      if (text) next.footer = { ...embed.footer, text };
+    }
+    if (embed.author?.name && remaining > 0) {
+      const name = take(embed.author.name);
+      if (name) next.author = { ...embed.author, name };
+    }
+    fitted.push(next);
+  }
+
+  return fitted;
+}
+
+function retryDelayMs(response: Response | null, attempt: number) {
+  const headerSeconds = Number(response?.headers.get("retry-after"));
+  if (Number.isFinite(headerSeconds) && headerSeconds >= 0) {
+    return Math.min(2_000, Math.ceil(headerSeconds * 1_000));
+  }
+  return Math.min(2_000, 250 * (2 ** attempt));
+}
+
+function shouldRetryDiscord(status: number) {
+  return status === 408 || status === 429 || status >= 500;
+}
+
+async function waitForRetry(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 const LOW_SIGNAL_DISCORD_TITLES = new Set([
   "🔑 User Signed In",
   "✉️ Magic Link Requested",
@@ -48,29 +160,49 @@ export async function sendDiscordNotification(
   content: string,
   embeds?: any[],
   channel: DiscordNotificationChannel = "events"
-) {
-  if (isLowSignalDiscordEmbed(embeds)) return;
+): Promise<boolean> {
+  if (isLowSignalDiscordEmbed(embeds)) return false;
   const webhookUrl = webhookUrlFor(channel);
   if (!webhookUrl) {
     console.warn("Discord notification skipped: DISCORD_WEBHOOK_URL not set");
-    return;
+    return false;
   }
-  try {
-    const res = await fetch(webhookUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...(content ? { content } : {}),
-        ...(embeds ? { embeds } : {}),
-        allowed_mentions: { parse: [] },
-      }),
-    });
-    if (!res.ok) {
-      console.error(`Discord webhook returned ${res.status}: ${await res.text().catch(() => "")}`);
+
+  const payload = {
+    ...(content ? { content: truncateDiscordText(content, DISCORD_LIMITS.content) } : {}),
+    ...(embeds ? {
+      embeds: fitDiscordEmbedsToTotalLimit(
+        embeds.slice(0, DISCORD_LIMITS.embeds).map(sanitizeDiscordEmbed)
+      ),
+    } : {}),
+    allowed_mentions: { parse: [] },
+  };
+  const attempts = Math.max(1, Math.min(3, Number(process.env.MYBINGOCARD_DISCORD_MAX_ATTEMPTS) || 3));
+  const timeoutMs = Math.max(500, Math.min(15_000, Number(process.env.MYBINGOCARD_DISCORD_TIMEOUT_MS) || 5_000));
+
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    let response: Response | null = null;
+    try {
+      response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(timeoutMs),
+      });
+      if (response.ok) return true;
+
+      const responseBody = truncateDiscordText(await response.text().catch(() => ""), 500);
+      console.error(`Discord webhook returned ${response.status}: ${responseBody}`);
+      if (!shouldRetryDiscord(response.status) || attempt === attempts - 1) return false;
+    } catch (error) {
+      console.error(`Discord webhook attempt ${attempt + 1}/${attempts} failed:`, error);
+      if (attempt === attempts - 1) return false;
     }
-  } catch (err) {
-    console.error("Discord webhook failed:", err);
+
+    await waitForRetry(retryDelayMs(response, attempt));
   }
+
+  return false;
 }
 
 function formatMoney(amount: number | null | undefined, currency: string | null | undefined) {
@@ -83,8 +215,7 @@ function formatSessionId(sessionId: string) {
 }
 
 function truncateDiscordField(value: string | null | undefined, max = 1000) {
-  const text = value || "Unknown";
-  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+  return truncateDiscordText(value, Math.min(max, DISCORD_LIMITS.fieldValue), "Unknown");
 }
 
 function getCheckoutTypeLabel(checkoutType: "subscription" | "one_time") {
@@ -98,7 +229,7 @@ async function sendStripeEventEmbed(
   fields: Array<{ name: string; value: string; inline?: boolean }>,
   channel: DiscordNotificationChannel = "events"
 ) {
-  await sendDiscordNotification("", [{
+  return sendDiscordNotification("", [{
     title,
     color,
     fields,
@@ -269,6 +400,35 @@ export async function notifyCheckoutActivated(
       { name: "Session ID", value: formatSessionId(sessionId), inline: false },
     ],
     "signups"
+  );
+}
+
+export async function notifyCheckoutFulfillmentFailure(options: {
+  email: string;
+  name: string;
+  product: string;
+  requestedCount: number;
+  successfulCount: number;
+  failedCount: number;
+  sessionId: string;
+  detail?: string | null;
+}) {
+  return sendStripeEventEmbed(
+    "🚨 Paid Checkout Fulfillment Incomplete",
+    "Payment succeeded, but downstream fulfillment was incomplete.",
+    0xdc2626,
+    [
+      { name: "User", value: options.name || "Unknown", inline: true },
+      { name: "Email", value: options.email || "Unknown", inline: true },
+      { name: "Product", value: options.product, inline: true },
+      { name: "Requested", value: String(options.requestedCount), inline: true },
+      { name: "Succeeded", value: String(options.successfulCount), inline: true },
+      { name: "Failed", value: String(options.failedCount), inline: true },
+      { name: "Status", value: "Payment received / fulfillment incomplete", inline: false },
+      ...(options.detail ? [{ name: "Failure", value: options.detail, inline: false }] : []),
+      { name: "Session ID", value: formatSessionId(options.sessionId), inline: false },
+    ],
+    "errors"
   );
 }
 
@@ -910,7 +1070,7 @@ export async function notifyClientErrorSpike(options: {
     .filter(Boolean)
     .join("\n");
 
-  await sendDiscordNotification("", [{
+  return sendDiscordNotification("", [{
     title: options.severity === "high" ? "MyBingoCard High-Impact Error" : "MyBingoCard Error Spike",
     color: options.severity === "high" ? 0xef4444 : 0xf59e0b,
     fields: [
@@ -950,7 +1110,7 @@ export async function notifyClientErrorCaptured(options: {
     .filter(Boolean)
     .join(" -> ");
 
-  await sendDiscordNotification("", [{
+  return sendDiscordNotification("", [{
     title: "MyBingoCard Error Captured",
     color: options.severity === "high" ? 0xef4444 : options.severity === "medium" ? 0xf59e0b : 0x64748b,
     fields: [
@@ -996,7 +1156,7 @@ export async function notifyServerErrorCaptured(options: {
     ...(options.stack ? [{ name: "Stack", value: truncateDiscordField(options.stack, 1000), inline: false }] : []),
   ];
 
-  await sendDiscordNotification("", [{
+  return sendDiscordNotification("", [{
     title: "MyBingoCard Server Error",
     color: 0xdc2626,
     fields,

@@ -9,7 +9,7 @@ envFile.split('\n').forEach(line => {
   const match = line.match(/^([^#=]+)=(.*)$/);
   if (match) {
     const key = match[1].trim(); const val = match[2].trim();
-    if (!process.env[key]) process.env[key] = val;
+    if (!Object.prototype.hasOwnProperty.call(process.env, key)) process.env[key] = val;
   }
 });
 

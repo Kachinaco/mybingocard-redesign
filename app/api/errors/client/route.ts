@@ -9,6 +9,8 @@ import {
   getRecentClientErrorStats,
   insertClientErrorEvent,
   reopenFixedClientErrorFingerprint,
+  releaseClientErrorCaptureNotification,
+  releaseClientErrorSpikeAlert,
   upsertClientErrorFingerprint,
   upsertMarketingTrackingFailure,
 } from "@/lib/db/client-errors";
@@ -222,7 +224,7 @@ async function maybeAlertForFingerprint(
 
   if (!claimed) return;
 
-  notifyClientErrorSpike({
+  void notifyClientErrorSpike({
     fingerprint: doc.fingerprint,
     type: doc.type,
     message: doc.message,
@@ -234,7 +236,17 @@ async function maybeAlertForFingerprint(
     totalCount,
     severity: doc.severity,
     breadcrumbs: doc.breadcrumbs,
-  }).catch(() => {});
+  }).then((delivered) => {
+    if (delivered) return undefined;
+    return releaseClientErrorSpikeAlert({ fingerprint: doc.fingerprint, claimedAt: now });
+  }).catch(async (error) => {
+    console.error("Failed to deliver or release client error spike alert:", error);
+    try {
+      await releaseClientErrorSpikeAlert({ fingerprint: doc.fingerprint, claimedAt: now });
+    } catch (releaseError) {
+      console.error("Failed to release client error spike alert claim:", releaseError);
+    }
+  });
 }
 
 async function maybeNotifyClientErrorCaptured(
@@ -265,7 +277,7 @@ async function maybeNotifyClientErrorCaptured(
 
   if (!claimed) return;
 
-  notifyClientErrorCaptured({
+  void notifyClientErrorCaptured({
     fingerprint: doc.fingerprint,
     type: doc.type,
     message: doc.message,
@@ -276,7 +288,17 @@ async function maybeNotifyClientErrorCaptured(
     anonymousId: doc.anonymousId,
     severity: doc.severity,
     breadcrumbs: doc.breadcrumbs,
-  }).catch(() => {});
+  }).then((delivered) => {
+    if (delivered) return undefined;
+    return releaseClientErrorCaptureNotification({ fingerprint: doc.fingerprint, claimedAt: now });
+  }).catch(async (error) => {
+    console.error("Failed to deliver or release client error capture notification:", error);
+    try {
+      await releaseClientErrorCaptureNotification({ fingerprint: doc.fingerprint, claimedAt: now });
+    } catch (releaseError) {
+      console.error("Failed to release client error capture claim:", releaseError);
+    }
+  });
 }
 
 // ---------------------------------------------------------------------------

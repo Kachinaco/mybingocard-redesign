@@ -15,7 +15,10 @@ const envPath = path.join(__dirname, '..', '.env.local');
 try {
   fs.readFileSync(envPath, 'utf8').split('\n').forEach(line => {
     const match = line.match(/^([^#=]+)=(.*)$/);
-    if (match && !process.env[match[1].trim()]) process.env[match[1].trim()] = match[2].trim();
+    if (match) {
+      const key = match[1].trim();
+      if (!Object.prototype.hasOwnProperty.call(process.env, key)) process.env[key] = match[2].trim();
+    }
   });
 } catch (e) { console.error('Could not load .env.local:', e.message); }
 

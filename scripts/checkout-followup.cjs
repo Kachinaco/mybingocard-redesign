@@ -22,7 +22,7 @@ try {
     if (!match) return;
     const key = match[1].trim();
     const value = match[2].trim();
-    if (!process.env[key]) process.env[key] = value;
+    if (!Object.prototype.hasOwnProperty.call(process.env, key)) process.env[key] = value;
   });
 } catch (error) {
   console.error('Could not load .env.local:', error.message);

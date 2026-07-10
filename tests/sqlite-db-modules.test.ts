@@ -59,6 +59,8 @@ import { getCardTitlesByIds, getOwnedCardIds } from "@/lib/db/cards";
 import { updateUserBillingRecoveryState } from "@/lib/db/users";
 import {
   claimStripeWebhookEvent,
+  completeStripeWebhookEvent,
+  failStripeWebhookEvent,
   insertWebhookPartialFailure,
 } from "@/lib/db/stripe-webhooks";
 import {
@@ -91,11 +93,14 @@ import {
   getRecentClientErrorStats,
   insertClientErrorEvent,
   reopenFixedClientErrorFingerprint,
+  releaseClientErrorCaptureNotification,
+  releaseClientErrorSpikeAlert,
   updateAdminErrorFingerprintStatus,
   upsertClientErrorFingerprint,
   upsertMarketingTrackingFailure,
   type ClientErrorEventRecord,
 } from "@/lib/db/client-errors";
+import { notifyClientErrorCaptured } from "@/lib/discord";
 import {
   getAdminLayoutBadges,
   getAdminOverviewData,
@@ -428,8 +433,20 @@ describe("SQLite-backed DB modules", () => {
   test("Stripe webhook helpers claim events and persist partial failures through SQLite", async () => {
     const { store } = createFixture();
 
-    expect(await claimStripeWebhookEvent({ eventId: "evt_test_1", type: "checkout.session.completed" })).toBe(true);
-    expect(await claimStripeWebhookEvent({ eventId: "evt_test_1", type: "checkout.session.completed" })).toBe(false);
+    expect(await claimStripeWebhookEvent({ eventId: "evt_test_1", type: "checkout.session.completed" })).toBe("claimed");
+    expect(await claimStripeWebhookEvent({ eventId: "evt_test_1", type: "checkout.session.completed" })).toBe("processing");
+
+    await failStripeWebhookEvent("evt_test_1", new Error("temporary database outage"));
+    expect(await claimStripeWebhookEvent({ eventId: "evt_test_1", type: "checkout.session.completed" })).toBe("claimed");
+
+    await completeStripeWebhookEvent("evt_test_1");
+    expect(await claimStripeWebhookEvent({ eventId: "evt_test_1", type: "checkout.session.completed" })).toBe("completed");
+
+    expect(await claimStripeWebhookEvent({ eventId: "evt_stale", type: "checkout.session.completed" })).toBe("claimed");
+    store.updateOne("webhook_events", { eventId: "evt_stale" }, {
+      $set: { claimedAt: new Date(Date.now() - 11 * 60 * 1000) },
+    });
+    expect(await claimStripeWebhookEvent({ eventId: "evt_stale", type: "checkout.session.completed" })).toBe("claimed");
 
     await insertWebhookPartialFailure({
       type: "share_links",
@@ -944,11 +961,69 @@ describe("SQLite-backed DB modules", () => {
       cooldownBefore: new Date("2026-07-02T21:00:00.000Z"),
       now: new Date("2026-07-02T21:33:00.000Z"),
     })).toBe(false);
+    expect(await releaseClientErrorCaptureNotification({
+      fingerprint,
+      claimedAt: new Date("2026-07-02T21:31:59.000Z"),
+    })).toBe(false);
+    expect(await releaseClientErrorCaptureNotification({ fingerprint, claimedAt: capturedAt })).toBe(true);
 
+    const retryCapturedAt = new Date("2026-07-02T21:33:00.000Z");
+    expect(await claimClientErrorCaptureNotification({
+      fingerprint,
+      cooldownBefore: new Date("2026-07-02T21:00:00.000Z"),
+      now: retryCapturedAt,
+    })).toBe(true);
+
+    process.env.MYBINGOCARD_ERRORS_WEBHOOK_URL = "https://discord.invalid/no-send-test";
+    process.env.MYBINGOCARD_DISCORD_MAX_ATTEMPTS = "1";
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async () => new Response("failed", { status: 500 })) as typeof fetch;
+    try {
+      const delivered = await notifyClientErrorCaptured({
+        fingerprint,
+        type: doc.type,
+        message: doc.message,
+        pageUrl: doc.pageUrl,
+        source: doc.source,
+        buildId: doc.buildId,
+        sessionId: doc.sessionId,
+        anonymousId: doc.anonymousId,
+        severity: doc.severity,
+        breadcrumbs: doc.breadcrumbs,
+      });
+      expect(delivered).toBe(false);
+      expect(await releaseClientErrorCaptureNotification({
+        fingerprint,
+        claimedAt: retryCapturedAt,
+      })).toBe(true);
+      expect(await claimClientErrorCaptureNotification({
+        fingerprint,
+        cooldownBefore: new Date("2026-07-02T21:00:00.000Z"),
+        now: new Date("2026-07-02T21:34:00.000Z"),
+      })).toBe(true);
+    } finally {
+      globalThis.fetch = originalFetch;
+      delete process.env.MYBINGOCARD_ERRORS_WEBHOOK_URL;
+      delete process.env.MYBINGOCARD_DISCORD_MAX_ATTEMPTS;
+    }
+
+    const spikeClaimedAt = new Date("2026-07-02T21:34:00.000Z");
     expect(await claimClientErrorSpikeAlert({
       fingerprint,
       cooldownBefore: new Date("2026-07-02T21:00:00.000Z"),
-      now: new Date("2026-07-02T21:34:00.000Z"),
+      now: spikeClaimedAt,
+      recentCount: 3,
+      recentSessions: 2,
+    })).toBe(true);
+    expect(await releaseClientErrorSpikeAlert({
+      fingerprint,
+      claimedAt: new Date("2026-07-02T21:33:59.000Z"),
+    })).toBe(false);
+    expect(await releaseClientErrorSpikeAlert({ fingerprint, claimedAt: spikeClaimedAt })).toBe(true);
+    expect(await claimClientErrorSpikeAlert({
+      fingerprint,
+      cooldownBefore: new Date("2026-07-02T21:00:00.000Z"),
+      now: new Date("2026-07-02T21:34:30.000Z"),
       recentCount: 3,
       recentSessions: 2,
     })).toBe(true);

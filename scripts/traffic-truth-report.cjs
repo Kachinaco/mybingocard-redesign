@@ -40,7 +40,7 @@ function loadEnvFile(filePath) {
       const idx = trimmed.indexOf("=");
       if (idx === -1) continue;
       const key = trimmed.slice(0, idx).trim();
-      if (!process.env[key]) {
+      if (!Object.prototype.hasOwnProperty.call(process.env, key)) {
         process.env[key] = trimmed.slice(idx + 1).trim().replace(/^['"]|['"]$/g, "");
       }
     }

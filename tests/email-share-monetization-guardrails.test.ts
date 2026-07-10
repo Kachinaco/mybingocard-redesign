@@ -37,4 +37,17 @@ describe("email share monetization guardrails", () => {
     expect(webhookSource).toContain("insertPreparedSharedLinks");
     expect(webhookSource).not.toContain(".collection(");
   });
+
+  test("webhook idempotency acknowledges completed work but retries active or failed work", () => {
+    expect(webhookSource).toContain('claimResult === "completed"');
+    expect(webhookSource).toContain('claimResult === "processing"');
+    expect(webhookSource).toContain('{ status: 503, headers: { "Retry-After": "30" } }');
+    expect(webhookSource).toContain("completeStripeWebhookEvent(event.id)");
+    expect(webhookSource).toContain("failStripeWebhookEvent(event.id, error)");
+  });
+
+  test("partial and failed paid fulfillment uses a dedicated red Discord alert", () => {
+    expect(webhookSource).toContain("notifyCheckoutFulfillmentFailure");
+    expect(webhookSource).not.toContain("PARTIAL FAILURE: Share Links");
+  });
 });

@@ -78,6 +78,13 @@ describe("debugging and alerting guardrails", () => {
     expect(errorRouteSource).toContain("getRecentClientErrorStats");
     expect(errorRouteSource).toContain("CAPTURE_ALERT_COOLDOWN_MS");
     expect(errorRouteSource).toContain("recentSessions >= 2");
+    expect(errorRouteSource).toContain("releaseClientErrorCaptureNotification");
+    expect(errorRouteSource).toContain("releaseClientErrorSpikeAlert");
+    expect(errorRouteSource).toContain("if (delivered) return undefined");
+    expect(errorRouteSource).not.toContain("await notifyClientErrorSpike(");
+    expect(errorRouteSource).not.toContain("await notifyClientErrorCaptured(");
+    expect(clientErrorsDbSource).toContain("lastCapturedNotificationAt: input.claimedAt");
+    expect(clientErrorsDbSource).toContain("lastAlertedAt: input.claimedAt");
   });
 
   test("Discord and admin surfaces expose grouped error debugging", () => {

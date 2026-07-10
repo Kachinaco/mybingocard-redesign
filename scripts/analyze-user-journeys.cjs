@@ -23,7 +23,7 @@ try {
     ) {
       value = value.slice(1, -1);
     }
-    if (!process.env[key]) process.env[key] = value;
+    if (!Object.prototype.hasOwnProperty.call(process.env, key)) process.env[key] = value;
   }
 } catch (error) {
   console.error(`Could not load ${ENV_PATH}:`, error.message);

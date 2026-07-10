@@ -49,6 +49,8 @@ import {
 } from "@/lib/db/cards";
 import {
   claimStripeWebhookEvent,
+  completeStripeWebhookEvent,
+  failStripeWebhookEvent,
   insertWebhookPartialFailure,
 } from "@/lib/db/stripe-webhooks";
 import type Stripe from "stripe";
@@ -58,6 +60,7 @@ import {
   notifyCheckoutActivated,
   notifyCheckoutCompleted,
   notifyCheckoutExpired,
+  notifyCheckoutFulfillmentFailure,
   notifyDisputeUpdate,
   notifyRefundIssued,
   notifyRenewalFailed,
@@ -279,14 +282,21 @@ export async function POST(request: Request) {
     // Global idempotency — ensures every Stripe event is processed at most once,
     // even across webhook retries. Relies on a unique index on `eventId`.
     try {
-      const claimed = await claimStripeWebhookEvent({
+      const claimResult = await claimStripeWebhookEvent({
         eventId: event.id,
         type: event.type,
       });
 
-      if (!claimed) {
+      if (claimResult === "completed") {
         console.log("Webhook event already processed:", event.id);
         return NextResponse.json({ received: true, duplicate: true });
+      }
+      if (claimResult === "processing") {
+        console.warn("Webhook event is already being processed:", event.id);
+        return NextResponse.json(
+          { received: false, retry: true, reason: "processing" },
+          { status: 503, headers: { "Retry-After": "30" } }
+        );
       }
     } catch (idempotencyErr) {
       console.error("Webhook idempotency check failed:", idempotencyErr);
@@ -606,7 +616,7 @@ export async function POST(request: Request) {
 
               if (!refDoc || recipientEmails.length === 0) {
                 console.error(`email_share_batch webhook: missing checkout ref ${refId}`);
-                break;
+                throw new Error(`Missing or empty email-share checkout reference ${refId}`);
               }
 
               const card = await getCardById(cardId);
@@ -614,7 +624,7 @@ export async function POST(request: Request) {
 
               if (!card || cardOwnerId !== ownerUserId) {
                 console.error(`email_share_batch webhook: card ${cardId} owner mismatch`);
-                break;
+                throw new Error(`Email-share card ${cardId} missing or owner mismatch`);
               }
 
               const owner = await getUserByEmail(ownerEmail);
@@ -675,21 +685,45 @@ export async function POST(request: Request) {
                 },
               });
 
-              notifyCheckoutActivated(
-                ownerEmail,
-                ownerName,
-                "one_time",
-                `Email Share Pack (${sent.length}/${recipientEmails.length} sent)`,
-                session.amount_total,
-                session.currency || "usd",
-                session.id
-              ).catch(console.error);
+              if (failed.length > 0) {
+                await notifyCheckoutFulfillmentFailure({
+                  email: ownerEmail,
+                  name: ownerName,
+                  product: "Email Share Pack",
+                  requestedCount: recipientEmails.length,
+                  successfulCount: sent.length,
+                  failedCount: failed.length,
+                  sessionId: session.id,
+                  detail: `Invitation delivery failed for ${failed.slice(0, 5).join(", ")}`,
+                });
+              } else {
+                notifyCheckoutActivated(
+                  ownerEmail,
+                  ownerName,
+                  "one_time",
+                  `Email Share Pack (${sent.length}/${recipientEmails.length} sent)`,
+                  session.amount_total,
+                  session.currency || "usd",
+                  session.id
+                ).catch(console.error);
+              }
 
               console.log(
                 `Email share batch sent for user ${ownerEmail}: ${sent.length}/${recipientEmails.length} emails`
               );
             } catch (shareEmailErr) {
               console.error("Failed to send email share batch after checkout:", shareEmailErr);
+              await notifyCheckoutFulfillmentFailure({
+                email: ownerEmail,
+                name: ownerEmail,
+                product: "Email Share Pack",
+                requestedCount: Number.isFinite(recipientCount) ? recipientCount : 0,
+                successfulCount: 0,
+                failedCount: Number.isFinite(recipientCount) ? recipientCount : 0,
+                sessionId: session.id,
+                detail: shareEmailErr instanceof Error ? shareEmailErr.message : String(shareEmailErr),
+              });
+              throw shareEmailErr;
             }
           }
         } else if (
@@ -860,6 +894,7 @@ export async function POST(request: Request) {
                 console.error(
                   `share_links webhook: batch ${batchId} has no cards to attach; skipping link creation`
                 );
+                throw new Error(`Share-link batch ${batchId} has no buyer-owned cards`);
               } else {
                 const linksToCreate = Math.min(count, generatedCardIds.length);
                 const expiresAt =
@@ -1064,15 +1099,16 @@ export async function POST(request: Request) {
                     );
                   }
 
-                  notifyCheckoutActivated(
-                    ownerEmail,
-                    ownerName,
-                    "one_time",
-                    `PARTIAL FAILURE: Share Links (${createdLinks.length}/${count})`,
-                    session.amount_total || pricePerLinkCents * createdLinks.length,
-                    session.currency || "usd",
-                    session.id
-                  ).catch(console.error);
+                  await notifyCheckoutFulfillmentFailure({
+                    email: ownerEmail,
+                    name: ownerName,
+                    product: "Share Links",
+                    requestedCount: count,
+                    successfulCount: createdLinks.length,
+                    failedCount: failedLinks.length,
+                    sessionId: session.id,
+                    detail: failedLinks.slice(0, 3).map((failure) => failure.error).join("; "),
+                  });
                 }
 
                 await trackActivity({
@@ -1134,6 +1170,17 @@ export async function POST(request: Request) {
               }
             } catch (shareErr) {
               console.error("Failed to create share links after checkout:", shareErr);
+              await notifyCheckoutFulfillmentFailure({
+                email: ownerEmail,
+                name: ownerEmail,
+                product: "Share Links",
+                requestedCount: Number.isFinite(count) ? count : 0,
+                successfulCount: 0,
+                failedCount: Number.isFinite(count) ? count : 0,
+                sessionId: session.id,
+                detail: shareErr instanceof Error ? shareErr.message : String(shareErr),
+              });
+              throw shareErr;
             }
           }
         }
@@ -1677,9 +1724,15 @@ export async function POST(request: Request) {
         console.log(`Unhandled event type: ${event.type}`);
     }
 
+    await completeStripeWebhookEvent(event.id);
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Webhook handler error:", error);
+    try {
+      await failStripeWebhookEvent(event.id, error);
+    } catch (stateError) {
+      console.error("Failed to record webhook failure state:", stateError);
+    }
     return NextResponse.json(
       { error: "Webhook handler failed" },
       { status: 500 }
