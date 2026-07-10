@@ -77,4 +77,31 @@ describe("email monitor Discord guardrails", () => {
     const output = JSON.parse(result.stdout.trim().split("\n").at(-1) || "{}");
     expect(output).toEqual({ delivered: true, calls: 2, from: 1024, subject: 1024, preview: 1024 });
   });
+
+  test("PM2 module loading starts IMAP while an ordinary require stays inert", () => {
+    const runner = `
+      const Imap = require('imap');
+      let connects = 0;
+      Imap.prototype.connect = function () { connects += 1; };
+      require('./scripts/email-monitor.cjs');
+      setImmediate(() => console.log(JSON.stringify({ connects })));
+    `;
+    const run = (pmId?: string) => spawnSync("node", ["-e", runner], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        MYBINGOCARD_EVENTS_WEBHOOK_URL: "",
+        DISCORD_WEBHOOK_URL: "",
+        ...(pmId ? { pm_id: pmId } : {}),
+      },
+      encoding: "utf8",
+    });
+
+    const ordinary = run();
+    const pm2 = run("31");
+    expect(ordinary.status).toBe(0);
+    expect(pm2.status).toBe(0);
+    expect(JSON.parse(ordinary.stdout.trim().split("\n").at(-1) || "{}")).toEqual({ connects: 0 });
+    expect(JSON.parse(pm2.stdout.trim().split("\n").at(-1) || "{}")).toEqual({ connects: 1 });
+  });
 });

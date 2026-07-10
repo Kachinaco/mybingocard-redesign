@@ -428,7 +428,11 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-if (require.main === module) {
+function shouldStartEmailMonitor() {
+  return require.main === module || Object.prototype.hasOwnProperty.call(process.env, 'pm_id');
+}
+
+if (shouldStartEmailMonitor()) {
   start();
 }
 
@@ -439,5 +443,6 @@ module.exports = {
   isLowSignalSupportEmail,
   messageKeyFor,
   sendToDiscord,
+  shouldStartEmailMonitor,
   start,
 };
