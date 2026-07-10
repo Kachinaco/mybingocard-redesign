@@ -394,6 +394,50 @@ export default function SeoLandingPage({ page }: { page: SeoLandingPageData }) {
             </div>
           </section>
 
+          {page.planningGuide ? (
+            <section className="border-y border-slate-100 bg-indigo-50/50 py-14">
+              <div className="container mx-auto max-w-6xl px-4 lg:px-8">
+                <div className="mb-10 max-w-3xl">
+                  <div className={`mb-3 text-sm font-bold uppercase tracking-wide ${accent.text}`}>
+                    Event planning field guide
+                  </div>
+                  <h2 className="mb-4 text-3xl font-bold text-slate-900 md:text-4xl">
+                    {page.planningGuide.title}
+                  </h2>
+                  <p className="text-lg leading-relaxed text-slate-600">{page.planningGuide.intro}</p>
+                </div>
+
+                <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+                  <div className="grid gap-5 md:grid-cols-3 lg:grid-cols-1">
+                    {page.planningGuide.tracks.map((track) => (
+                      <article key={track.title} className="rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm">
+                        <h3 className="mb-2 text-xl font-bold text-slate-900">{track.title}</h3>
+                        <p className="mb-4 leading-relaxed text-slate-600">{track.description}</p>
+                        <Link href={track.href} className="font-semibold text-indigo-700 hover:text-indigo-800 hover:underline">
+                          {track.linkLabel}
+                        </Link>
+                      </article>
+                    ))}
+                  </div>
+
+                  <div className="rounded-2xl bg-slate-900 p-7 text-white">
+                    <h3 className="mb-5 text-2xl font-bold">Pre-publish checklist</h3>
+                    <ul className="space-y-4">
+                      {page.planningGuide.checklist.map((item) => (
+                        <li key={item} className="flex gap-3 text-slate-200">
+                          <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">
+                            ✓
+                          </span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
           <section className="py-14 bg-slate-50 border-y border-slate-100">
             <div className="container mx-auto px-4 lg:px-8">
               <div className="grid lg:grid-cols-[0.85fr_1.15fr] gap-12 max-w-6xl mx-auto items-start">

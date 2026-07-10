@@ -19,6 +19,17 @@ export type SeoLandingPageData = {
   ideas: string[];
   faqs: Array<{ question: string; answer: string }>;
   related: string[];
+  planningGuide?: {
+    title: string;
+    intro: string;
+    tracks: Array<{
+      title: string;
+      description: string;
+      href: string;
+      linkLabel: string;
+    }>;
+    checklist: string[];
+  };
 };
 
 type LongTailPageInput = {
@@ -39,7 +50,8 @@ type LongTailPageInput = {
   related: string[];
 };
 
-type LongTailPageDetails = Pick<SeoLandingPageData, "benefits" | "steps" | "faqs">;
+type LongTailPageDetails = Pick<SeoLandingPageData, "benefits" | "steps" | "faqs"> &
+  Pick<SeoLandingPageData, "planningGuide">;
 
 const longTailPageDetails: Record<string, LongTailPageDetails> = {
   "multiplication-bingo-cards": {
@@ -275,6 +287,42 @@ const longTailPageDetails: Record<string, LongTailPageDetails> = {
       { question: "How can organizers verify a bingo?", answer: "Use a staffed prize desk, a simple signature or sticker rule, or a digital check-in process that matches the event's privacy expectations." },
       { question: "Can this work for a virtual conference?", answer: "Yes. Adapt squares for chat participation, sessions watched, resource downloads, virtual booths, and online introductions." },
     ],
+    planningGuide: {
+      title: "Plan the conference game around one clear outcome",
+      intro:
+        "A useful conference card should help attendees navigate the event, not send them through a random task list. Choose the outcome first, then write only squares that support it.",
+      tracks: [
+        {
+          title: "Networking",
+          description:
+            "Use voluntary conversation prompts about roles, interests, or session takeaways. Avoid requiring phone numbers, employer details, or other private information.",
+          href: "/icebreaker-bingo",
+          linkLabel: "Compare icebreaker bingo",
+        },
+        {
+          title: "Learning and sessions",
+          description:
+            "Tie squares to agenda topics, questions, demonstrations, and resources so each mark reinforces something the attendee can use after the event.",
+          href: "/training-bingo",
+          linkLabel: "Compare training bingo",
+        },
+        {
+          title: "Expo and sponsors",
+          description:
+            "Confirm every booth action with the exhibitor, keep participation optional, and reward useful conversations or demos rather than purchases.",
+          href: "/bingo-games",
+          linkLabel: "Browse event game formats",
+        },
+      ],
+      checklist: [
+        "Choose one primary goal and, at most, one supporting goal.",
+        "Remove any task that pressures an attendee to disclose personal information.",
+        "Confirm sponsor, exhibitor, and prize-desk actions before publishing the card.",
+        "Offer a printable path when attendees may not want to use a phone.",
+        "Name the winning pattern and verification method before the first card is shared.",
+        "Test one printed card and one shared link before event day.",
+      ],
+    },
   },
   "remote-meeting-bingo": {
     benefits: [
@@ -359,6 +407,7 @@ function makeLongTailPage(input: LongTailPageInput): SeoLandingPageData {
           "Yes. You can export one card for in-person play for free, then add paid online cards that players mark from a phone, tablet, or laptop browser.",
       },
     ],
+    planningGuide: details?.planningGuide,
   };
 }
 

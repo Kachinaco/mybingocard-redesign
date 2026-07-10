@@ -439,7 +439,11 @@ export default function Home() {
                   Pick a game idea and build from there
                 </h2>
                 <p className="text-lg text-slate-600">
-                  Browse ready-to-edit bingo game pages for showers, weddings, classrooms, holidays, fundraisers, and team events.
+                  Browse ready-to-edit bingo game pages for showers, weddings, classrooms, holidays, fundraisers, and team events. Planning a professional event? Start with the{" "}
+                  <Link href="/conference-bingo" className="font-semibold text-indigo-700 hover:text-indigo-800 hover:underline">
+                    conference bingo planning guide
+                  </Link>
+                  .
                 </p>
               </div>
               <Link href="/bingo-games" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">

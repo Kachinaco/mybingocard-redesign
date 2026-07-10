@@ -14,6 +14,45 @@ export const metadata: Metadata = {
 
 const categoryGroups = getBingoGamesByCategory();
 
+const playModes = [
+  {
+    title: "Listen for called items",
+    description: "Best when one host controls the pace and players mark words, facts, songs, or numbers.",
+    links: [
+      { href: "/how-to-play-bingo", label: "Classic bingo rules" },
+      { href: "/classroom-bingo", label: "Classroom bingo" },
+      { href: "/music-bingo", label: "Music bingo" },
+    ],
+  },
+  {
+    title: "Notice moments during an event",
+    description: "Best for conferences, weddings, sports, and parties where the card follows what happens naturally.",
+    links: [
+      { href: "/conference-bingo", label: "Conference bingo" },
+      { href: "/wedding-bingo", label: "Wedding bingo" },
+      { href: "/super-bowl-bingo", label: "Super Bowl bingo" },
+    ],
+  },
+  {
+    title: "Start useful conversations",
+    description: "Best for introductions and group connection when every prompt can be answered voluntarily.",
+    links: [
+      { href: "/icebreaker-bingo", label: "Icebreaker bingo" },
+      { href: "/team-building-bingo", label: "Team-building bingo" },
+      { href: "/family-reunion-bingo", label: "Family reunion bingo" },
+    ],
+  },
+  {
+    title: "Review what people are learning",
+    description: "Best when each marked square reinforces a real objective, term, example, or answer.",
+    links: [
+      { href: "/training-bingo", label: "Training bingo" },
+      { href: "/vocabulary-bingo-generator", label: "Vocabulary bingo" },
+      { href: "/math-bingo-generator", label: "Math bingo" },
+    ],
+  },
+];
+
 function BingoGamesJsonLd() {
   const url = "https://mybingocard.com/bingo-games";
   const graph = [
@@ -144,6 +183,34 @@ export default function BingoGamesPage() {
                   </Link>
                 ))}
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-y border-slate-200 bg-indigo-50/40 py-12">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="mb-8 max-w-3xl">
+              <h2 className="text-2xl font-bold text-slate-900 md:text-3xl">Choose a game by how people will play</h2>
+              <p className="mt-3 leading-relaxed text-slate-600">
+                Start with the activity, not the theme. Pick the play style that fits the room, then open a focused guide with square ideas and setup advice.
+              </p>
+            </div>
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {playModes.map((mode) => (
+                <article key={mode.title} className="rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm">
+                  <h3 className="mb-2 text-lg font-bold text-slate-900">{mode.title}</h3>
+                  <p className="mb-5 text-sm leading-relaxed text-slate-600">{mode.description}</p>
+                  <ul className="space-y-2 text-sm">
+                    {mode.links.map((link) => (
+                      <li key={link.href}>
+                        <Link href={link.href} className="font-semibold text-indigo-700 hover:text-indigo-800 hover:underline">
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </article>
+              ))}
             </div>
           </div>
         </section>
