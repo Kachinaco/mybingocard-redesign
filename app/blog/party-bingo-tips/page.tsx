@@ -63,7 +63,7 @@ export default function PartyBingoTips() {
 
         <h3>Create Your Cards</h3>
         <p>
-          Use <Link href="/bingo-card-maker">MyBingoCard&apos;s free bingo card maker</Link> to create custom cards. A few key tips:
+          Use <Link href="/">MyBingoCard&apos;s free bingo card maker</Link> to create custom cards. A few key tips:
         </p>
         <ul>
           <li>Use 30-40 unique items even though only 24 fit per card — this ensures variety</li>

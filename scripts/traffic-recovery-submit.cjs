@@ -20,7 +20,6 @@ const PRIORITY_PATHS = [
   "/",
   "/create",
   "/templates",
-  "/bingo-card-maker",
   "/printable-bingo-cards",
   "/online-bingo-card-generator",
   "/ai-bingo-card-generator",

@@ -363,96 +363,6 @@ function makeLongTailPage(input: LongTailPageInput): SeoLandingPageData {
 }
 
 export const seoLandingPages: Record<string, SeoLandingPageData> = {
-  "bingo-card-maker": {
-    slug: "bingo-card-maker",
-    metaTitle: "Bingo Card Maker and Generator - Create Printable Cards",
-    metaDescription:
-      "Make custom printable bingo cards with words, images, templates, and shuffled layouts. Export individual PDFs free or add paid sharing and hosting.",
-    eyebrow: "Bingo card maker",
-    h1: "Bingo Card Maker and Generator for Printable Games",
-    lead:
-      "Create custom bingo cards in minutes with a bingo card maker that exports individual printable cards for free and supports paid batch packs or online cards.",
-    accent: "indigo",
-    sampleLabel: "Custom Bingo Card",
-    primaryCta: "Make a Bingo Card",
-    audience: "hosts, teachers, event planners, and team leaders",
-    intro:
-      "MyBingoCard gives you a fast bingo card maker that handles the full workflow: add your own words or images, choose a grid size, export one clean PDF or PNG card for free, then add paid online sharing or hosted games without complicated setup.",
-    sampleSquares: [
-      "Welcome",
-      "Prize",
-      "Guest",
-      "Music",
-      "FREE",
-      "Photo",
-      "Laugh",
-      "Snack",
-      "Winner",
-      "Round Two",
-      "Team",
-      "Question",
-      "Bonus",
-      "Share",
-      "Play",
-      "Friend",
-      "Host",
-      "Theme",
-      "Card",
-      "Bingo",
-      "Marker",
-      "Table",
-      "Caller",
-      "Gift",
-      "Finish",
-    ],
-    benefits: [
-      {
-        title: "Built for real events",
-        description:
-          "Make cards that are ready for a classroom, reception, office party, fundraiser, or remote game instead of a one-off worksheet.",
-      },
-      {
-        title: "Printable and online",
-        description:
-          "Export a PDF or add paid online card sharing when players are using phones, tablets, or laptops.",
-      },
-      {
-        title: "Flexible card content",
-        description:
-          "Use text, images, templates, AI suggestions, and shuffled layouts so each game feels tailored to your group.",
-      },
-    ],
-    useCases: [
-      { title: "Classroom review", description: "Turn vocabulary, math facts, or lesson terms into an interactive review game." },
-      { title: "Party activities", description: "Create cards for birthdays, holidays, showers, weddings, and family gatherings." },
-      { title: "Work events", description: "Make icebreakers, team-building activities, onboarding games, or meeting bingo cards." },
-    ],
-    steps: [
-      "Choose a blank card or start from a template.",
-      "Add your own words, prompts, numbers, or images.",
-      "Pick a 3x3, 4x4, or 5x5 grid and customize the style.",
-      "Export an individual PDF for free, then add paid batch packs, share links, or hosted play when needed.",
-    ],
-    ideas: ["Custom event prompts", "Team member names", "Party moments", "Vocabulary terms", "Gift predictions", "Icebreaker questions"],
-    faqs: [
-      {
-        question: "Is this bingo card maker free?",
-        answer:
-          "Yes. You can create, save, customize, use templates, and export individual PDFs for free. Printable batch packs, paid sharing, and hosted games are optional.",
-      },
-      {
-        question: "Can I make multiple unique bingo cards?",
-        answer:
-          "Yes. MyBingoCard can shuffle cards so players do not all receive the same layout, which is useful for classrooms and events.",
-      },
-      {
-        question: "Can players use the cards online?",
-        answer:
-          "Yes. Paid share links and hosted live games let players mark cards on their devices for remote or in-person play.",
-      },
-    ],
-    related: ["bingo-board-generator", "printable-bingo-cards", "online-bingo-card-generator", "custom-bingo-card-maker"],
-  },
   "bingo-board-generator": {
     slug: "bingo-board-generator",
     metaTitle: "Bingo Board Generator - Make Printable Bingo Boards Online",
@@ -541,7 +451,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
           "Yes. After checkout, you can share online cards or host a live game so players mark their boards from a phone, tablet, or laptop.",
       },
     ],
-    related: ["bingo-card-maker", "printable-bingo-cards", "online-bingo-card-generator", "custom-bingo-card-maker"],
+    related: ["printable-bingo-cards", "online-bingo-card-generator", "custom-bingo-card-maker", "ai-bingo-card-generator"],
   },
   "printable-bingo-cards": {
     slug: "printable-bingo-cards",
@@ -619,7 +529,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
           "You can include or remove the free space depending on the type of bingo card you want to run.",
       },
     ],
-    related: ["bingo-card-maker", "bingo-board-generator", "custom-bingo-card-maker", "online-bingo-card-generator"],
+    related: ["bingo-board-generator", "custom-bingo-card-maker", "online-bingo-card-generator", "number-bingo-card-generator"],
   },
   "online-bingo-card-generator": {
     slug: "online-bingo-card-generator",
@@ -697,7 +607,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
           "Yes. You can use the same card content for online sharing and printable free PDF exports.",
       },
     ],
-    related: ["bingo-card-maker", "printable-bingo-cards", "custom-bingo-card-maker", "ai-bingo-card-generator"],
+    related: ["printable-bingo-cards", "custom-bingo-card-maker", "ai-bingo-card-generator", "bingo-board-generator"],
   },
   "custom-bingo-card-maker": {
     slug: "custom-bingo-card-maker",
@@ -775,7 +685,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
           "Yes. Saved cards can be reused and adapted for future games.",
       },
     ],
-    related: ["bingo-card-maker", "printable-bingo-cards", "online-bingo-card-generator", "ai-bingo-card-generator"],
+    related: ["printable-bingo-cards", "online-bingo-card-generator", "ai-bingo-card-generator", "image-bingo-card-generator"],
   },
   "ai-bingo-card-generator": {
     slug: "ai-bingo-card-generator",
@@ -853,7 +763,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
           "Yes. After reviewing the card, you can export it as a printable PDF for free or add paid online sharing.",
       },
     ],
-    related: ["bingo-card-maker", "custom-bingo-card-maker", "printable-bingo-cards", "online-bingo-card-generator"],
+    related: ["custom-bingo-card-maker", "printable-bingo-cards", "online-bingo-card-generator", "image-bingo-card-generator"],
   },
   "image-bingo-card-generator": {
     slug: "image-bingo-card-generator",
@@ -1087,7 +997,7 @@ export const seoLandingPages: Record<string, SeoLandingPageData> = {
           "Yes. Bulk card options help create unique number cards for larger events.",
       },
     ],
-    related: ["math-bingo-generator", "printable-bingo-cards", "bingo-card-maker", "custom-bingo-card-maker"],
+    related: ["math-bingo-generator", "printable-bingo-cards", "word-bingo-generator", "custom-bingo-card-maker"],
   },
   "vocabulary-bingo-generator": {
     slug: "vocabulary-bingo-generator",

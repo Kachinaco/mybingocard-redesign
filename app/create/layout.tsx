@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Create Bingo Cards Online | Free Bingo Card Maker",
+  title: "Create a Bingo Card Online | MyBingoCard",
   description: "Create printable and online-ready bingo cards in minutes. Save one card, customize it with templates, images, and AI ideas, then export an individual PDF or PNG for free.",
   other: {
     google: "notranslate",

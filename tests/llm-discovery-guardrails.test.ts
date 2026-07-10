@@ -12,6 +12,7 @@ describe("LLM discovery guardrails", () => {
     const source = readFileSync(llmsPath, "utf8");
     expect(source).toContain("# MyBingoCard");
     expect(source).toContain("https://mybingocard.com/create");
+    expect(source).toContain("- Free bingo card maker: https://mybingocard.com/");
     expect(source).toContain("https://mybingocard.com/sitemap.xml");
     expect(source).toContain("free bingo card maker and generator");
     expect(source).toContain("AI-generated bingo card ideas");
@@ -91,7 +92,6 @@ describe("LLM discovery guardrails", () => {
       "/create",
       "/templates",
       "/bingo-games",
-      "/bingo-card-maker",
       "/printable-bingo-cards",
       "/online-bingo-card-generator",
       "/custom-bingo-card-maker",

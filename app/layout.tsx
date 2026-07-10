@@ -210,10 +210,6 @@ export default function RootLayout({
                     "url": "https://mybingocard.com/create"
                   },
                   "sameAs": [
-                    "https://mybingocard.com/bingo-card-maker",
-                    "https://mybingocard.com/printable-bingo-cards",
-                    "https://mybingocard.com/online-bingo-card-generator",
-                    "https://mybingocard.com/ai-bingo-card-generator",
                     FACEBOOK_PAGE_URL,
                     REDDIT_COMMUNITY_URL
                   ]

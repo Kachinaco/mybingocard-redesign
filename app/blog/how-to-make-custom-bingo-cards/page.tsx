@@ -83,7 +83,7 @@ export default function HowToMakeCustomBingoCards() {
 
         <h2>Step 3: Design Your Card</h2>
         <p>
-          With <Link href="/bingo-card-maker">MyBingoCard&apos;s free bingo card maker</Link>, you can customize every aspect of your card:
+          With <Link href="/">MyBingoCard&apos;s free bingo card maker</Link>, you can customize every aspect of your card:
         </p>
         <ul>
           <li><strong>Colors</strong> — Match your event&apos;s color palette</li>
@@ -119,7 +119,7 @@ export default function HowToMakeCustomBingoCards() {
 
         <h2>Start Creating Your Bingo Cards Now</h2>
         <p>
-          Ready to make your own custom bingo cards? Choose a starting point from the <Link href="/templates">template library</Link> or head to the <Link href="/bingo-card-maker">bingo card maker</Link>, build your card in under 5 minutes, and save, customize, generate, and export for free. Pay only if you want player share links or hosted live bingo.
+          Ready to make your own custom bingo cards? Choose a starting point from the <Link href="/templates">template library</Link> or head to the <Link href="/create">card creator</Link>, build your card in under 5 minutes, and save, customize, generate, and export for free. Pay only if you want player share links or hosted live bingo.
         </p>
       </BlogLayout>
     </>

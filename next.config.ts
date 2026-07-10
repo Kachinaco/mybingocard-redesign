@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_APP_BUILD_ID: appBuildId,
   },
   generateBuildId: async () => appBuildId,
+  redirects: async () => [
+    {
+      source: "/bingo-card-maker",
+      destination: "/",
+      permanent: true,
+    },
+  ],
   serverExternalPackages: [
     "better-sqlite3",
     "sharp",

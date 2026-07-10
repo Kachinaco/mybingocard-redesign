@@ -64,7 +64,6 @@ const faqItems = [
 ];
 
 const generatorFooterLinks = [
-  "bingo-card-maker",
   "printable-bingo-cards",
   "online-bingo-card-generator",
   "bingo-board-generator",

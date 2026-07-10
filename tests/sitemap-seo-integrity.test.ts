@@ -16,7 +16,7 @@ describe("SEO sitemap integrity", () => {
   test("contains one valid entry for every public URL", () => {
     const urls = [...sitemap.matchAll(/<loc>(https:\/\/mybingocard\.com[^<]*)<\/loc>/g)].map((match) => match[1]);
 
-    expect(urls.length).toBe(66);
+    expect(urls.length).toBe(65);
     expect(new Set(urls).size).toBe(urls.length);
     expect(sitemap).toMatch(/^<\?xml version="1\.0" encoding="UTF-8"\?>/);
     expect(sitemap).toMatch(/<urlset xmlns="http:\/\/www\.sitemaps\.org\/schemas\/sitemap\/0\.9">/);
@@ -33,7 +33,6 @@ describe("SEO sitemap integrity", () => {
       "/create",
       "/templates",
       "/bingo-games",
-      "/bingo-card-maker",
       "/printable-bingo-cards",
       "/multiplication-bingo-cards",
       "/bridal-shower-bingo",

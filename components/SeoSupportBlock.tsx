@@ -21,7 +21,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["custom square lists", "PDF exports", "mobile play links", "template starting points"],
     tip: "Start with the format your players will actually use, then choose styling and exports after the card content feels right.",
     related: "the card maker, templates, pricing, printable cards, and online bingo generator pages",
-    coreResource: { href: "/bingo-card-maker", label: "bingo card maker" },
+    coreResource: { href: "/", label: "bingo card maker" },
   },
   supplies: {
     label: "bingo supplies",
@@ -39,7 +39,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["included templates", "custom text squares", "image cards", "paid online sharing"],
     tip: "The product is designed around a simple workflow: choose an idea, customize the squares, then print or share the finished card.",
     related: "the template library, card creator, pricing page, and bingo idea guides",
-    coreResource: { href: "/bingo-card-maker", label: "bingo card maker" },
+    coreResource: { href: "/", label: "bingo card maker" },
   },
   contact: {
     label: "MyBingoCard support",
@@ -48,7 +48,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["PDF export issues", "premium plan questions", "live game setup", "template feedback"],
     tip: "Include the card title, account email, browser, device, and what you were trying to do so support can reproduce the issue quickly.",
     related: "pricing, settings, the bingo card maker, live game tools, and the template pages",
-    coreResource: { href: "/bingo-card-maker", label: "bingo card maker" },
+    coreResource: { href: "/", label: "bingo card maker" },
   },
   blog: {
     label: "bingo card guides",
@@ -84,7 +84,7 @@ const supportContent: Record<string, SeoSupportContent> = {
     examples: ["vocabulary word", "math fact", "science term", "classmate clue"],
     tip: "Keep square wording short enough for students to scan quickly, especially when you are using the game for review or assessment.",
     related: "vocabulary bingo, sight word bingo, math bingo, and back-to-school bingo",
-    coreResource: { href: "/bingo-card-maker", label: "bingo card maker" },
+    coreResource: { href: "/", label: "bingo card maker" },
   },
   "party-bingo": {
     label: "party bingo",
