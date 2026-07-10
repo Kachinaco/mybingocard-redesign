@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://mybingocard.com/contact",
   },
+  robots: {
+    index: false,
+    follow: true,
+  },
 };
 
 export default function ContactPage() {
