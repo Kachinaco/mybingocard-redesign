@@ -1,0 +1,75 @@
+[Unit]
+Description=MyBingoCard production web application
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=exec
+User=mybingocard-svc
+Group=mybingocard-svc
+WorkingDirectory=/var/www/mybingocard.com
+ExecStartPre=/usr/bin/test -r /var/www/mybingocard.com/.next/BUILD_ID
+ExecStartPre=/usr/bin/install -d -m 0700 /var/cache/mybingocard/chromium /var/cache/mybingocard/chromium/config /var/cache/mybingocard/chromium/cache /var/cache/mybingocard/chromium/data /var/cache/mybingocard/tmp
+ExecStart=/usr/bin/node /var/www/mybingocard.com/node_modules/next/dist/bin/next start -H 127.0.0.1 -p 4000
+
+Environment=HOME=/var/cache/mybingocard/chromium
+Environment=USER=mybingocard-svc
+Environment=LOGNAME=mybingocard-svc
+Environment=XDG_CONFIG_HOME=/var/cache/mybingocard/chromium/config
+Environment=XDG_CACHE_HOME=/var/cache/mybingocard/chromium/cache
+Environment=XDG_DATA_HOME=/var/cache/mybingocard/chromium/data
+Environment=TMPDIR=/var/cache/mybingocard/tmp
+Environment=NODE_ENV=production
+Environment=NEXT_TELEMETRY_DISABLED=1
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+Restart=on-failure
+RestartSec=2s
+TimeoutStartSec=30s
+TimeoutStopSec=30s
+KillSignal=SIGTERM
+KillMode=control-group
+SuccessExitStatus=143
+OOMPolicy=stop
+UMask=0027
+TasksMax=512
+
+CacheDirectory=mybingocard
+CacheDirectoryMode=0750
+RuntimeDirectory=mybingocard
+RuntimeDirectoryMode=0750
+
+PrivateTmp=yes
+PrivateDevices=yes
+PrivateIPC=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectHostname=yes
+ProtectClock=yes
+ProtectProc=invisible
+LockPersonality=yes
+RestrictRealtime=yes
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+ReadWritePaths=/var/lib/mybingocard
+ReadWritePaths=/var/cache/mybingocard
+ReadWritePaths=/var/www/mybingocard.com/uploads
+ReadWritePaths=/var/www/mybingocard.com/.next/cache
+
+# Ubuntu restricts unprivileged user namespaces on this host. Chrome therefore
+# uses its packaged setuid sandbox. NoNewPrivileges, capability bounding,
+# RestrictSUIDSGID, and namespace restrictions are deliberately omitted so the
+# Chromium sandbox remains enabled instead of forcing --no-sandbox.
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=mybingocard
+
+[Install]
+WantedBy=multi-user.target

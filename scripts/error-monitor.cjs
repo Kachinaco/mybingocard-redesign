@@ -108,18 +108,20 @@ function isBenignNginxLine(line) {
   return count <= 2 && /^\/_next\/static\/chunks\/.+\.(?:js|css)(?:\?.*)?$/i.test(url);
 }
 
-function checkPM2Errors() {
+function checkServiceErrors() {
   try {
-    const cutoffMs = Date.now() - 35 * 60 * 1000;
-    const logFile = "/root/.pm2/logs/mybingocard-error.log";
-    const raw = fs.existsSync(logFile) ? fs.readFileSync(logFile, "utf8") : "";
+    const unit = process.env.MYBINGOCARD_SYSTEMD_UNIT || "mybingocard.service";
+    const raw = execFileSync("/usr/bin/journalctl", [
+      "--unit", unit,
+      "--since", "35 minutes ago",
+      "--no-pager",
+      "--output", "short-iso-precise",
+    ], { encoding: "utf8" });
     const lines = raw.split("\n").filter((line) => {
       if (!line.includes("Event handlers") && !line.includes("FATAL") && !line.includes("⨯ Error:")) return false;
-      const match = line.match(/(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/);
-      if (!match) return false;
-      return new Date(`${match[1]}Z`).getTime() > cutoffMs;
+      return true;
     });
-    return [...new Set(lines.map((line) => line.replace(/.*\|/, "").replace(/^\d{4}-.*?:\s*/, "").trim()))].slice(0, 5);
+    return [...new Set(lines.map((line) => line.replace(/^\S+\s+\S+\s+\S+\s+/, "").trim()))].slice(0, 5);
   } catch {
     return [];
   }
@@ -284,7 +286,7 @@ function formatStructuredError(group) {
 async function main() {
   loadEnvFile(path.join(APP_DIR, ".env.local"));
   const nginx5xx = checkNginx();
-  const pm2Errors = checkPM2Errors();
+  const serviceErrors = checkServiceErrors();
   const issues = [];
   const db = openSqliteShadowDatabase();
 
@@ -298,10 +300,10 @@ async function main() {
       issues.push(`Nginx 5xx errors:\n\`\`\`\n${nginx5xx.slice(0, 10).join("\n")}\n\`\`\``);
     }
 
-    const credErrors = pm2Errors.filter((line) => line.includes("CredentialsSignin")).length;
-    const otherErrors = pm2Errors.filter((line) => !line.includes("CredentialsSignin"));
+    const credErrors = serviceErrors.filter((line) => line.includes("CredentialsSignin")).length;
+    const otherErrors = serviceErrors.filter((line) => !line.includes("CredentialsSignin"));
     if (otherErrors.length > 0) {
-      issues.push(`PM2 errors:\n\`\`\`\n${otherErrors.slice(0, 3).join("\n")}\n\`\`\``);
+      issues.push(`Systemd service errors:\n\`\`\`\n${otherErrors.slice(0, 3).join("\n")}\n\`\`\``);
     }
     if (credErrors > 10) {
       issues.push(`High login failure count: ${credErrors} CredentialsSignin errors`);

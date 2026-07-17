@@ -3,18 +3,18 @@
  * Production deploy guard for mybingocard.com.
  *
  * This intentionally builds outside the live .next directory, preserves old
- * hashed static assets, then restarts PM2 from the application cwd. Building
+ * hashed static assets, then restarts the dedicated systemd service. Building
  * directly over .next can leave active browser tabs pointing at chunk files
  * the running Next server still references but the build just deleted.
  */
 
-const { execFileSync, execSync } = require("node:child_process");
+const { execFileSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 
 const APP_DIR = process.env.MYBINGOCARD_APP_DIR || "/var/www/mybingocard.com";
 const APP_URL = (process.env.MYBINGOCARD_APP_URL || "https://mybingocard.com").replace(/\/$/, "");
-const PM2_NAME = process.env.MYBINGOCARD_PM2_NAME || "mybingocard";
+const SERVICE_NAME = process.env.MYBINGOCARD_SYSTEMD_UNIT || "mybingocard.service";
 const USER_AGENT = "MyBingoCardDeployGuard/1.0";
 const NEXT_CHUNK_PATH = "/_next/static/chunks/";
 const NEXT_DIR = path.join(APP_DIR, ".next");
@@ -47,33 +47,47 @@ function output(command, commandArgs, options = {}) {
   });
 }
 
-function readPm2Rows(command, commandArgs) {
-  const raw = output(command, commandArgs);
-  return JSON.parse(raw);
+function runSystemctl(commandArgs) {
+  if (typeof process.getuid === "function" && process.getuid() === 0) {
+    run("systemctl", commandArgs);
+    return;
+  }
+  run("sudo", ["-n", "systemctl", ...commandArgs]);
 }
 
-function resolvePm2Command() {
-  const candidates = [
-    { command: "pm2", argsPrefix: [] },
-    { command: "sudo", argsPrefix: ["-n", "pm2"] },
-  ];
+function systemdProperties() {
+  const raw = output("systemctl", [
+    "show",
+    SERVICE_NAME,
+    "--property=LoadState",
+    "--property=ActiveState",
+    "--property=SubState",
+    "--property=User",
+    "--property=Group",
+    "--property=WorkingDirectory",
+    "--property=ExecMainPID",
+  ]);
+  return Object.fromEntries(raw.trim().split("\n").filter(Boolean).map((line) => {
+    const separator = line.indexOf("=");
+    return [line.slice(0, separator), line.slice(separator + 1)];
+  }));
+}
 
+function ensurePm2Absent() {
+  const candidates = [
+    { command: "pm2", args: ["jlist"] },
+    { command: "sudo", args: ["-n", "pm2", "jlist"] },
+  ];
   for (const candidate of candidates) {
     try {
-      const rows = readPm2Rows(candidate.command, [...candidate.argsPrefix, "jlist"]);
-      const proc = rows.find((item) => item.name === PM2_NAME);
-      if (proc) return { ...candidate, proc };
-    } catch {
-      // Try the next PM2 namespace.
+      const rows = JSON.parse(output(candidate.command, candidate.args));
+      if (rows.some((item) => item.name === "mybingocard")) {
+        throw new Error("PM2 still contains MyBingoCard; refusing dual-supervisor deploy");
+      }
+    } catch (error) {
+      if (String(error?.message || error).includes("dual-supervisor")) throw error;
     }
   }
-
-  throw new Error(`PM2 process not found: ${PM2_NAME}`);
-}
-
-function runPm2(commandArgs) {
-  const pm2 = resolvePm2Command();
-  run(pm2.command, [...pm2.argsPrefix, ...commandArgs]);
 }
 
 async function fetchText(url, options = {}) {
@@ -269,17 +283,25 @@ function buildApplication() {
   }
 }
 
-function ensurePm2Cwd() {
-  const { proc } = resolvePm2Command();
-  const cwd = proc.pm2_env?.pm_cwd || proc.pm2_env?.cwd || "";
-  const pwd = proc.pm2_env?.env?.PWD || proc.pm2_env?.PWD || "";
-  if (cwd !== APP_DIR) {
-    throw new Error(`PM2 cwd is ${cwd || "unknown"}, expected ${APP_DIR}`);
+function ensureSystemdService() {
+  const properties = systemdProperties();
+  if (properties.LoadState !== "loaded") {
+    throw new Error(`${SERVICE_NAME} load state is ${properties.LoadState || "unknown"}`);
   }
-  if (pwd && pwd !== APP_DIR) {
-    throw new Error(`PM2 PWD is ${pwd}, expected ${APP_DIR}`);
+  if (properties.ActiveState !== "active" || properties.SubState !== "running") {
+    throw new Error(`${SERVICE_NAME} is ${properties.ActiveState || "unknown"}/${properties.SubState || "unknown"}`);
   }
-  console.log(`PM2 cwd verified: ${cwd}`);
+  if (properties.User !== "mybingocard-svc" || properties.Group !== "mybingocard-svc") {
+    throw new Error(`${SERVICE_NAME} identity is ${properties.User || "unknown"}:${properties.Group || "unknown"}`);
+  }
+  if (properties.WorkingDirectory !== APP_DIR) {
+    throw new Error(`${SERVICE_NAME} cwd is ${properties.WorkingDirectory || "unknown"}, expected ${APP_DIR}`);
+  }
+  if (!(Number(properties.ExecMainPID) > 0)) {
+    throw new Error(`${SERVICE_NAME} has no main PID`);
+  }
+  ensurePm2Absent();
+  console.log(`${SERVICE_NAME} runtime verified at ${properties.WorkingDirectory}`);
 }
 
 function extractChunkUrls(html) {
@@ -359,11 +381,10 @@ async function main() {
   }
 
   if (!skipRestart) {
-    runPm2(["restart", PM2_NAME, "--update-env"]);
-    runPm2(["save"]);
+    runSystemctl(["restart", SERVICE_NAME]);
   }
 
-  ensurePm2Cwd();
+  ensureSystemdService();
   await verifyHttp();
 
   console.log("\nProduction deploy guard passed.");
