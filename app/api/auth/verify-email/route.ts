@@ -3,7 +3,8 @@ import { trackActivity } from "@/lib/activity";
 import { trackApiError } from "@/lib/api-error-tracking";
 import { buildPostVerificationLoginUrl, buildVerifyEmailErrorUrl, sanitizePostVerificationCallback } from "@/lib/auth/verify-email-redirect";
 import { deleteEmailVerificationToken, findEmailVerificationToken } from "@/lib/db/auth-data";
-import { updateUser } from "@/lib/db/users";
+import { markUserEmailVerified } from "@/lib/db/users";
+import { tryEnqueueVerifiedAccountOutcome } from "@/lib/server/tracker-outcome-events";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -51,8 +52,12 @@ export async function GET(request: Request) {
       );
     }
 
-    // Mark user as verified
-    await updateUser(record.userId, { emailVerified: new Date() });
+    // Mark user as verified before recording the authoritative outcome.
+    const verifiedUser = await markUserEmailVerified(record.userId);
+    tryEnqueueVerifiedAccountOutcome({
+      userId: record.userId,
+      verifiedAt: verifiedUser.emailVerified!,
+    });
 
     // Delete the used token
     await deleteEmailVerificationToken(token);

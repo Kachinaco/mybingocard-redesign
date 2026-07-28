@@ -2,6 +2,8 @@ import { ObjectId } from "bson";
 import type { BatchCount } from "@/lib/batchPacks";
 import { getSqliteStore } from "@/lib/db/sqlite";
 
+export type BatchPurchaseStatus = "paid" | "processing" | "generated" | "refunded" | "canceled";
+
 export interface BatchPurchase {
   _id: ObjectId;
   userId: string;
@@ -16,11 +18,12 @@ export interface BatchPurchase {
   appleOriginalTransactionId?: string | null;
   appleProductId?: string | null;
   appleEnvironment?: string | null;
-  status: "paid" | "processing" | "generated" | "refunded" | "canceled";
+  status: BatchPurchaseStatus;
   generatedCardIds: string[];
   purchasedAt: Date;
   generatedAt?: Date | null;
   updatedAt: Date;
+  statusBeforeRevocation?: BatchPurchaseStatus | null;
 }
 
 export async function upsertBatchPurchaseFromCheckout(data: {
@@ -68,6 +71,12 @@ export async function upsertBatchPurchaseFromAppleTransaction(data: {
   appleEnvironment?: string | null;
 }) {
   const now = new Date();
+    const existing = getSqliteStore().findOne<BatchPurchase>("batch_purchases", {
+      appleTransactionId: data.appleTransactionId,
+    });
+    if (existing && existing.userId !== data.userId) {
+      throw new Error("Apple transaction is already associated with another account.");
+    }
     return getSqliteStore().findOneAndUpdate<BatchPurchase>(
       "batch_purchases",
       { appleTransactionId: data.appleTransactionId },
@@ -95,6 +104,58 @@ export async function upsertBatchPurchaseFromAppleTransaction(data: {
       }
     );
   }
+
+export async function markAppleBatchPurchaseRevoked(data: {
+  userId: string;
+  appleTransactionId: string;
+  revokedAt: Date;
+}) {
+  const existing = getSqliteStore().findOne<BatchPurchase>("batch_purchases", {
+    userId: data.userId,
+    appleTransactionId: data.appleTransactionId,
+  });
+  return getSqliteStore().findOneAndUpdate<BatchPurchase>(
+    "batch_purchases",
+    {
+      userId: data.userId,
+      appleTransactionId: data.appleTransactionId,
+    },
+    {
+      $set: {
+        status: "refunded",
+        statusBeforeRevocation: existing?.status === "refunded"
+          ? existing.statusBeforeRevocation || "paid"
+          : existing?.status || "paid",
+        updatedAt: data.revokedAt,
+      },
+    },
+    { returnDocument: "after" },
+  );
+}
+
+export async function restoreAppleBatchPurchase(data: {
+  userId: string;
+  appleTransactionId: string;
+  restoredAt: Date;
+}) {
+  const existing = getSqliteStore().findOne<BatchPurchase>("batch_purchases", {
+    userId: data.userId,
+    appleTransactionId: data.appleTransactionId,
+  });
+  if (!existing) return null;
+  return getSqliteStore().findOneAndUpdate<BatchPurchase>(
+    "batch_purchases",
+    { _id: existing._id },
+    {
+      $set: {
+        status: existing.statusBeforeRevocation || "paid",
+        statusBeforeRevocation: null,
+        updatedAt: data.restoredAt,
+      },
+    },
+    { returnDocument: "after" },
+  );
+}
 
 export async function getBatchPurchaseById(purchaseId: string): Promise<BatchPurchase | null> {
   let objectId: ObjectId;

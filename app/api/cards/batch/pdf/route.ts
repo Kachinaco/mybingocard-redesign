@@ -5,7 +5,13 @@ import { findGeneratedBatchPurchaseForCards } from "@/lib/db/batchPurchases";
 import { getUserByEmail } from "@/lib/db/users";
 import { canRemoveBranding } from "@/lib/permissions";
 import { PLANS } from "@/lib/stripe/config";
-import puppeteer from "puppeteer";
+import puppeteer, { type Browser } from "puppeteer";
+import { getPuppeteerLaunchOptions } from "@/lib/server/chromium";
+import {
+  hardenExportPage,
+  renderExportCellContent,
+  sanitizeExportStyle,
+} from "@/lib/server/export-html";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { materializePdfImageCells } from "@/lib/pdf-image-assets";
 import { notifyBatchPdfExported } from "@/lib/discord";
@@ -35,12 +41,18 @@ function escapeHtml(text: string): string {
 function generateBatchHTML(
   cards: any[],
   removeBranding: boolean,
-  options: { grayscale: boolean; cardsPerPage: number; showCutLines: boolean }
+  options: {
+    grayscale: boolean;
+    cardsPerPage: number;
+    showCutLines: boolean;
+    allowedFileRoot?: string | null;
+  }
 ): string {
-  const { grayscale, cardsPerPage, showCutLines } = options;
+  const { grayscale, cardsPerPage, showCutLines, allowedFileRoot } = options;
 
   const cardHTMLs = cards.map((card) => {
-    const { title, size, cells, freeSpace, style } = card;
+    const { title, size, cells, freeSpace } = card;
+    const style = sanitizeExportStyle(card.style);
     const variant = normalizeBingoVariant(card.bingoVariant);
     const shape = getBingoGridShape(card);
     const freeSpaceIndex = getFreeSpaceIndexForGrid({
@@ -74,7 +86,7 @@ function generateBatchHTML(
                   border: ${isBlank ? "1px dashed #fed7aa" : `1.5px solid ${borderClr}`};
                   font-size: ${cellFontSize};
                 ">
-                  ${isBlank ? "" : isFreeSpace ? '<span class="free">FREE</span>' : cell.startsWith("__IMG__:") ? (() => { try { const d = JSON.parse(cell.slice(8)); const u = d.imageUrl?.startsWith("/") ? "https://mybingocard.com" + d.imageUrl : d.imageUrl; const lblStyle = d.fit === 'cover' ? 'position:relative;z-index:1;background:rgba(0,0,0,0.4);color:#fff;border-radius:3px;padding:1px 3px;' : ''; const lbl = d.label ? `<div style="font-size:0.6em;margin-top:1px;text-align:center;${lblStyle}">${escapeHtml(d.label)}</div>` : ""; if (d.fit === "cover") { return `<img src="${u}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;" />${lbl}`; } return `<img src="${u}" style="max-width:90%;max-height:${d.label ? '65%' : '85%'};object-fit:contain;" />${lbl}`; } catch { return escapeHtml(cellText); } })() : escapeHtml(cellText)}
+                  ${isBlank ? "" : isFreeSpace ? '<span class="free">FREE</span>' : renderExportCellContent(cell, cellText, { allowedFileRoot })}
                 </div>
               `;
             })
@@ -241,6 +253,7 @@ function generateBatchHTML(
           }
 
           .cell {
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -325,6 +338,7 @@ function generateBatchHTML(
 
 export async function POST(request: Request) {
   let tempAssetDir: string | null = null;
+  let browser: Browser | null = null;
 
   try {
     const session = await auth();
@@ -463,6 +477,7 @@ export async function POST(request: Request) {
         const materialized = await materializePdfImageCells(card.cells, {
           assetDir: tempAssetDir!,
           cache: imageAssetCache,
+          cardOwnerUserId: card.userId.toString(),
         });
 
         return {
@@ -476,15 +491,13 @@ export async function POST(request: Request) {
       grayscale,
       cardsPerPage: [1, 2, 4].includes(cardsPerPage) ? cardsPerPage : 1,
       showCutLines,
+      allowedFileRoot: tempAssetDir,
     });
 
-    const browser = await puppeteer.launch({
-      executablePath: "/usr/bin/google-chrome",
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
+    browser = await puppeteer.launch(getPuppeteerLaunchOptions());
 
     const page = await browser.newPage();
+    await hardenExportPage(page, { allowedFileRoot: tempAssetDir });
     await page.setViewport({ width: 1200, height: 1600 });
     await page.setContent(html, { waitUntil: "networkidle0" });
 
@@ -495,6 +508,7 @@ export async function POST(request: Request) {
     });
 
     await browser.close();
+    browser = null;
 
     await trackActivity({
       event: "batch_pdf_exported",
@@ -543,6 +557,11 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   } finally {
+    if (browser) {
+      await browser.close().catch((error) => {
+        console.error("Batch PDF browser cleanup error:", error);
+      });
+    }
     if (tempAssetDir) {
       rmSync(tempAssetDir, { recursive: true, force: true });
     }

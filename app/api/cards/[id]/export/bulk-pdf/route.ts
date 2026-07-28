@@ -3,7 +3,18 @@ import { auth } from "@/auth";
 import { getCardById } from "@/lib/db/cards";
 import { getUserByEmail } from "@/lib/db/users";
 import { hasPremiumAccess } from "@/lib/subscription-status";
-import puppeteer from "puppeteer";
+import puppeteer, { type Browser } from "puppeteer";
+import { mkdtemp } from "node:fs/promises";
+import { rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { materializePdfImageCells } from "@/lib/pdf-image-assets";
+import { getPuppeteerLaunchOptions } from "@/lib/server/chromium";
+import {
+  hardenExportPage,
+  renderExportCellContent,
+  sanitizeExportStyle,
+} from "@/lib/server/export-html";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { seededShuffle } from "@/lib/shuffle";
 import {
@@ -49,8 +60,15 @@ function sanitizeFilename(filename: string): string {
   return filename.replace(/[^a-z0-9]/gi, "_").toLowerCase().substring(0, 50);
 }
 
-function generateCardPageHTML(card: any, cardCells: string[], cardNum: number, totalCards: number): string {
-  const { title, style } = card;
+function generateCardPageHTML(
+  card: any,
+  cardCells: string[],
+  cardNum: number,
+  totalCards: number,
+  allowedFileRoot?: string | null,
+): string {
+  const { title } = card;
+  const style = sanitizeExportStyle(card.style);
   const variant = normalizeBingoVariant(card.bingoVariant);
   const shape = getBingoGridShape(card);
   const freeSpaceIndex = getFreeSpaceIndexForGrid({
@@ -81,7 +99,7 @@ function generateCardPageHTML(card: any, cardCells: string[], cardNum: number, t
               border: ${isBlank ? "1px dashed #fed7aa" : `2px solid ${style.borderColor || "#e2e8f0"}`};
               font-size: ${style.fontSize || "14px"};
               font-family: ${style.fontFamily || "Arial"}, sans-serif;
-            ">${isBlank ? "" : isFreeSpace ? "FREE" : cell.startsWith("__IMG__:") ? (() => { try { const d = JSON.parse(cell.slice(8)); const u = d.imageUrl?.startsWith("/") ? "https://mybingocard.com" + d.imageUrl : d.imageUrl; const lblStyle = d.fit === 'cover' ? 'position:relative;z-index:1;background:rgba(0,0,0,0.4);color:#fff;border-radius:3px;padding:1px 3px;' : ''; const lbl = d.label ? `<div style="font-size:0.65em;margin-top:2px;${lblStyle}">${escapeHtml(d.label)}</div>` : ""; if (d.fit === "cover") { return `<img src="${u}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;" />${lbl}`; } return `<img src="${u}" style="max-width:90%;max-height:${d.label ? '65%' : '85%'};object-fit:contain;" />${lbl}`; } catch { return escapeHtml(cellLabel); } })() : escapeHtml(cellLabel)}</div>`;
+            ">${isBlank ? "" : isFreeSpace ? "FREE" : renderExportCellContent(cell, cellLabel, { allowedFileRoot })}</div>`;
           }).join("")}
         </div>
         <div class="footer">MyBingoCard.com</div>
@@ -90,8 +108,13 @@ function generateCardPageHTML(card: any, cardCells: string[], cardNum: number, t
   `;
 }
 
-function generateBulkHTML(card: any, allCardCells: string[][], totalCards: number): string {
-  const { style } = card;
+function generateBulkHTML(
+  card: any,
+  allCardCells: string[][],
+  totalCards: number,
+  allowedFileRoot?: string | null,
+): string {
+  const style = sanitizeExportStyle(card.style);
 
   return `
     <!DOCTYPE html>
@@ -160,7 +183,7 @@ function generateBulkHTML(card: any, allCardCells: string[][], totalCards: numbe
         </style>
       </head>
       <body>
-        ${allCardCells.map((cells, i) => generateCardPageHTML(card, cells, i + 1, totalCards)).join("")}
+        ${allCardCells.map((cells, i) => generateCardPageHTML(card, cells, i + 1, totalCards, allowedFileRoot)).join("")}
       </body>
     </html>
   `;
@@ -170,6 +193,9 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let tempAssetDir: string | null = null;
+  let browser: Browser | null = null;
+
   try {
     const session = await auth();
     const requestContext = getRequestActivityContext(request);
@@ -206,22 +232,27 @@ export async function POST(
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
+    tempAssetDir = await mkdtemp(join(tmpdir(), "mybingocard-bulk-pdf-"));
+    const materialized = await materializePdfImageCells(card.cells, {
+      assetDir: tempAssetDir,
+      cache: new Map(),
+      cardOwnerUserId: card.userId.toString(),
+    });
+    const exportCard = { ...card, cells: materialized.cells };
+
     // Generate `count` unique shuffled card layouts
     const allCardCells: string[][] = [];
     for (let i = 0; i < count; i++) {
-      allCardCells.push(generateBulkCardCells(card, i));
+      allCardCells.push(generateBulkCardCells(exportCard, i));
     }
 
     // Generate multi-page PDF
-    const html = generateBulkHTML(card, allCardCells, count);
+    const html = generateBulkHTML(exportCard, allCardCells, count, tempAssetDir);
 
-    const browser = await puppeteer.launch({
-      executablePath: "/usr/bin/google-chrome",
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    });
+    browser = await puppeteer.launch(getPuppeteerLaunchOptions());
 
     const page = await browser.newPage();
+    await hardenExportPage(page, { allowedFileRoot: tempAssetDir });
     await page.setContent(html, { waitUntil: "networkidle0" });
 
     const pdfBuffer = await page.pdf({
@@ -231,6 +262,7 @@ export async function POST(
     });
 
     await browser.close();
+    browser = null;
 
     const filename = `${sanitizeFilename(card.title)}-${count}-cards.pdf`;
 
@@ -260,5 +292,14 @@ export async function POST(
   } catch (error) {
     console.error("Bulk PDF export error:", error);
     return NextResponse.json({ error: "Failed to generate bulk PDF" }, { status: 500 });
+  } finally {
+    if (browser) {
+      await browser.close().catch((error) => {
+        console.error("Bulk PDF browser cleanup error:", error);
+      });
+    }
+    if (tempAssetDir) {
+      rmSync(tempAssetDir, { recursive: true, force: true });
+    }
   }
 }

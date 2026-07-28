@@ -70,6 +70,12 @@ import {
   notifyTrialEndingSoon,
 } from "@/lib/discord";
 import { sendMetaConversionEvent } from "@/lib/meta-conversions";
+import {
+  calculateIncrementalStripeRefundAmount,
+  enqueueStripeDisputeOutcome,
+  enqueueStripePaymentOutcome,
+  enqueueStripeRefundOutcome,
+} from "@/lib/server/tracker-outcome-events";
 
 const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://mybingocard.com").replace(/\/$/, "");
 
@@ -81,6 +87,34 @@ function fireAndForget(promise: Promise<unknown>, context: string) {
 
 function toDate(timestamp?: number | null): Date | null {
   return typeof timestamp === "number" ? new Date(timestamp * 1000) : null;
+}
+
+function enqueuePaidCheckoutOutcome(
+  event: Stripe.Event,
+  session: Stripe.Checkout.Session,
+  product:
+    | "stripe_subscription"
+    | "stripe_lifetime"
+    | "stripe_batch_pack"
+    | "stripe_invite_pack"
+    | "stripe_share_links"
+): void {
+  if (
+    session.payment_status !== "paid" ||
+    !Number.isSafeInteger(session.amount_total) ||
+    !session.amount_total ||
+    !session.currency
+  ) {
+    return;
+  }
+
+  enqueueStripePaymentOutcome({
+    paymentId: session.id,
+    occurredAt: new Date(event.created * 1000),
+    product,
+    amountMinor: session.amount_total,
+    currency: session.currency,
+  });
 }
 
 function isActiveLikeStatus(status: Stripe.Subscription.Status): boolean {
@@ -420,6 +454,12 @@ export async function POST(request: Request) {
                   ).catch(console.error);
                 }
               }
+
+              enqueuePaidCheckoutOutcome(
+                event,
+                session,
+                "stripe_subscription"
+              );
             }
           }
         } else if (
@@ -502,6 +542,12 @@ export async function POST(request: Request) {
                 session.id
               ).catch(console.error);
             }
+
+            enqueuePaidCheckoutOutcome(
+              event,
+              session,
+              "stripe_lifetime"
+            );
           }
         } else if (
           session.mode === "payment" &&
@@ -534,7 +580,7 @@ export async function POST(request: Request) {
           if (session.payment_status === "paid" && userId && userEmail && isBatchCount(batchCount)) {
             const batchPack = getBatchPack(batchCount);
             if (batchPack) {
-              await upsertBatchPurchaseFromCheckout({
+              const batchPurchase = await upsertBatchPurchaseFromCheckout({
                 userId,
                 email: userEmail,
                 batchCount,
@@ -544,6 +590,9 @@ export async function POST(request: Request) {
                 stripePaymentIntentId:
                   typeof session.payment_intent === "string" ? session.payment_intent : null,
               });
+              if (!batchPurchase) {
+                throw new Error("Stripe batch purchase was not persisted");
+              }
 
               await trackActivity({
                 event: "batch_pack_purchased",
@@ -569,6 +618,14 @@ export async function POST(request: Request) {
                 session.currency || batchPack.currency,
                 session.id
               ).catch(console.error);
+
+              enqueueStripePaymentOutcome({
+                paymentId: session.id,
+                occurredAt: batchPurchase.purchasedAt,
+                product: "stripe_batch_pack",
+                amountMinor: batchPurchase.amount,
+                currency: batchPurchase.currency,
+              });
             }
           }
         } else if (
@@ -598,6 +655,11 @@ export async function POST(request: Request) {
               if (existingLinksForSession > 0) {
                 console.log(
                   `email_share_batch webhook: session ${session.id} already processed (${existingLinksForSession} links exist); skipping`
+                );
+                enqueuePaidCheckoutOutcome(
+                  event,
+                  session,
+                  "stripe_invite_pack"
                 );
                 break;
               }
@@ -711,6 +773,11 @@ export async function POST(request: Request) {
               console.log(
                 `Email share batch sent for user ${ownerEmail}: ${sent.length}/${recipientEmails.length} emails`
               );
+              enqueuePaidCheckoutOutcome(
+                event,
+                session,
+                "stripe_invite_pack"
+              );
             } catch (shareEmailErr) {
               console.error("Failed to send email share batch after checkout:", shareEmailErr);
               await notifyCheckoutFulfillmentFailure({
@@ -782,6 +849,11 @@ export async function POST(request: Request) {
               if (existingLinksForSession > 0) {
                 console.log(
                   `share_links webhook: session ${session.id} already processed (${existingLinksForSession} links exist); skipping`
+                );
+                enqueuePaidCheckoutOutcome(
+                  event,
+                  session,
+                  "stripe_share_links"
                 );
                 break;
               }
@@ -1146,6 +1218,12 @@ export async function POST(request: Request) {
                 }
               }
 
+              enqueuePaidCheckoutOutcome(
+                event,
+                session,
+                "stripe_share_links"
+              );
+
               // BUG #8 — Clean up the checkout ref doc after successful use.
               const refIdsToDelete = new Set<string>();
               if (cardIdsRefId) {
@@ -1407,6 +1485,21 @@ export async function POST(request: Request) {
               trialEndsAt: toDate(subscription.trial_end),
             });
 
+            if (
+              invoice.billing_reason !== "subscription_create" &&
+              Number.isSafeInteger(invoice.amount_paid) &&
+              invoice.amount_paid > 0 &&
+              invoice.currency
+            ) {
+              enqueueStripePaymentOutcome({
+                paymentId: invoice.id,
+                occurredAt: new Date(event.created * 1000),
+                product: "stripe_subscription",
+                amountMinor: invoice.amount_paid,
+                currency: invoice.currency,
+              });
+            }
+
             if (!isTrialInvoice) {
               fireAndForget(
                 sendBillingSuccessEmail(
@@ -1575,12 +1668,20 @@ export async function POST(request: Request) {
         const charge = event.data.object as Stripe.Charge;
         const email = charge.billing_details?.email || charge.receipt_email || "Unknown";
         const name = charge.billing_details?.name || email;
+        const previous = event.data.previous_attributes as
+          | { amount_refunded?: unknown }
+          | undefined;
+        const incrementalRefundAmount = calculateIncrementalStripeRefundAmount(
+          charge.amount_refunded,
+          previous?.amount_refunded
+        );
+        const notificationRefundAmount = incrementalRefundAmount || charge.amount_refunded || charge.amount;
 
         notifyRefundIssued(
           email,
           name,
           charge.description || "Stripe Charge",
-          charge.amount_refunded || charge.amount,
+          notificationRefundAmount,
           charge.currency || "usd",
           charge.id
         ).catch(console.error);
@@ -1611,7 +1712,7 @@ export async function POST(request: Request) {
                 email,
                 name,
                 `Share Links REVOKED (${revokedCount} link${revokedCount === 1 ? "" : "s"})`,
-                charge.amount_refunded || charge.amount,
+                notificationRefundAmount,
                 charge.currency || "usd",
                 `${charge.id} | session=${refundedSession.id}`
               ).catch(console.error);
@@ -1622,6 +1723,20 @@ export async function POST(request: Request) {
               revokeErr
             );
           }
+        }
+
+        if (incrementalRefundAmount) {
+          enqueueStripeRefundOutcome({
+            eventId: event.id,
+            chargeId: charge.id,
+            occurredAt: new Date(event.created * 1000),
+            amountMinor: incrementalRefundAmount,
+            currency: charge.currency,
+          });
+        } else {
+          console.error(
+            `Stripe refund ${event.id} did not include an exact incremental amount; Tracker outcome was not enqueued.`
+          );
         }
         break;
       }
@@ -1661,6 +1776,20 @@ export async function POST(request: Request) {
           disputeStatus,
           dispute.reason
         ).catch(console.error);
+
+        if (
+          event.type === "charge.dispute.created" ||
+          dispute.status === "won"
+        ) {
+          enqueueStripeDisputeOutcome({
+            eventId: event.id,
+            disputeId: dispute.id,
+            occurredAt: new Date(event.created * 1000),
+            amountMinor: dispute.amount,
+            currency: dispute.currency,
+            recovered: dispute.status === "won",
+          });
+        }
         break;
       }
 

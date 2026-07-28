@@ -21,6 +21,7 @@ const COOLDOWN_MINUTES = Number(process.env.MYBINGOCARD_OPS_MONITOR_COOLDOWN_MIN
 const USER_AGENT = "MyBingoCardOpsRegressionMonitor/1.0";
 const DISCORD_CHANNEL_ID = "1476666529184616510";
 const TOKEN_FILE = "/tmp/.dtoken";
+const BOT_UA_RE = /(bot|crawl|spider|slurp|bingpreview|headless|lighthouse|pagespeed|uptime|pingdom|monitor|preview|facebookexternalhit|pinterest|semrush|ahrefs|mj12|dotbot|bytespider|gptbot|claudebot|perplexitybot)/i;
 
 function loadEnvFile(filePath) {
   try {
@@ -125,7 +126,9 @@ function isNextChunkAsset(pathname) {
 }
 
 function summarizeAccessRows(rows) {
-  const chunkFailures = rows.filter((row) => isNextChunkAsset(row.pathname) && row.status >= 400);
+  const allChunkFailures = rows.filter((row) => isNextChunkAsset(row.pathname) && row.status >= 400);
+  const humanChunkFailures = allChunkFailures.filter((row) => !BOT_UA_RE.test(String(row.userAgent || "")));
+  const automationChunkFailures = allChunkFailures.filter((row) => BOT_UA_RE.test(String(row.userAgent || "")));
   const trackerScriptFailures = rows.filter((row) => row.pathname === "/t/tracker.js" && row.status >= 400);
   const trackerApiFailures = rows.filter((row) => row.pathname === "/t/api/track" && row.status >= 500);
   const shareApi404s = rows.filter((row) => row.pathname.startsWith("/api/cards/share/") && row.status === 404);
@@ -140,7 +143,8 @@ function summarizeAccessRows(rows) {
   });
 
   return {
-    chunkFailures,
+    humanChunkFailures,
+    automationChunkFailures,
     trackerScriptFailures,
     trackerApiFailures,
     shareApi404s,
@@ -185,15 +189,14 @@ async function liveChecks() {
   return issues;
 }
 
-function logIssues(rows) {
-  const buckets = summarizeAccessRows(rows);
+function logIssues(buckets) {
   const issues = [];
 
-  if (buckets.chunkFailures.length >= 8 || countUnique(buckets.chunkFailures, (row) => `${row.ip}|${row.userAgent}`) >= 3) {
+  if (buckets.humanChunkFailures.length >= 8 || countUnique(buckets.humanChunkFailures, (row) => `${row.ip}|${row.userAgent}`) >= 3) {
     issues.push(issue(
       "chunk-failures",
       "Next chunk failures spiked",
-      `${buckets.chunkFailures.length} failures, ${countUnique(buckets.chunkFailures, (row) => `${row.ip}|${row.userAgent}`)} unique clients in ${WINDOW_MINUTES}m`
+      `${buckets.humanChunkFailures.length} human failures, ${countUnique(buckets.humanChunkFailures, (row) => `${row.ip}|${row.userAgent}`)} unique human clients in ${WINDOW_MINUTES}m`
     ));
   }
   if (buckets.trackerScriptFailures.length > 0) {
@@ -321,13 +324,16 @@ function filterCooldown(issues) {
 async function main() {
   loadEnvFile(path.join(APP_DIR, ".env.local"));
   const rows = readRecentAccessRows();
+  const buckets = summarizeAccessRows(rows);
+  const skipLiveChecks = process.argv.includes("--skip-live") || /^(1|true|yes)$/i.test(process.env.MYBINGOCARD_OPS_MONITOR_SKIP_LIVE || "");
   const issues = [
-    ...logIssues(rows),
-    ...(await liveChecks()),
+    ...logIssues(buckets),
+    ...(skipLiveChecks ? [] : await liveChecks()),
   ];
+  const automationDiagnostic = `${buckets.automationChunkFailures.length} automation/bot chunk failures excluded from alerts`;
 
   if (issues.length === 0) {
-    console.log(`All clear - ${new Date().toISOString()} (${rows.length} recent access rows checked)`);
+    console.log(`All clear - ${new Date().toISOString()} (${rows.length} recent access rows checked; ${automationDiagnostic})`);
     return;
   }
 
@@ -336,6 +342,7 @@ async function main() {
     `MyBingoCard ops regression monitor (${WINDOW_MINUTES}m window)`,
     "",
     ...alertable.map((item) => `- ${item.title}: ${item.detail}`),
+    `- Diagnostic only: ${automationDiagnostic}`,
     "",
     "Run: `npm run prod:verify` and `npm run traffic:truth -- --days 3`",
   ].join("\n");

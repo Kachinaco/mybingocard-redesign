@@ -1,0 +1,959 @@
+{
+  "generatedAt": "2026-07-16T17:50:21.518Z",
+  "networkPolicy": "Only localhost/file GET/HEAD requests allowed; all API, tracker, non-local, and mutating requests aborted.",
+  "results": [
+    {
+      "label": "mockup",
+      "url": "file:///Users/coryanalla/Developer/mybingocard/docs/traffic-recovery/2026-07-16/mockups/cta-mobile-mockups.html",
+      "width": 390,
+      "status": 200,
+      "title": "MyBingoCard CTA and Mobile Mockups",
+      "innerWidth": 390,
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "bodyScrollWidth": 390,
+      "headerRect": {
+        "x": 0,
+        "y": 329.84375,
+        "width": 390,
+        "height": 64,
+        "top": 329.84375,
+        "right": 390,
+        "bottom": 393.84375,
+        "left": 0
+      },
+      "overflowing": [],
+      "visibleActions": [
+        {
+          "text": "Make a Card",
+          "visible": true,
+          "left": 221.3,
+          "right": 328
+        },
+        {
+          "text": "☰",
+          "visible": true,
+          "left": 336,
+          "right": 374
+        },
+        {
+          "text": "Make a Free Card",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "Start with a Template →",
+          "visible": true,
+          "left": 0,
+          "right": 390
+        },
+        {
+          "text": "Use This List",
+          "visible": true,
+          "left": 217.6,
+          "right": 328
+        },
+        {
+          "text": "☰",
+          "visible": true,
+          "left": 336,
+          "right": 374
+        },
+        {
+          "text": "Preview all ideas",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "Use This List Free",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        }
+      ]
+    },
+    {
+      "label": "create-389",
+      "url": "http://127.0.0.1:3100/create",
+      "width": 389,
+      "status": 200,
+      "title": "Create a Bingo Card Online | MyBingoCard",
+      "innerWidth": 389,
+      "clientWidth": 389,
+      "scrollWidth": 389,
+      "bodyScrollWidth": 389,
+      "headerRect": {
+        "x": 0,
+        "y": 0,
+        "width": 389,
+        "height": 57,
+        "top": 0,
+        "right": 389,
+        "bottom": 57,
+        "left": 0
+      },
+      "overflowing": [],
+      "visibleActions": [
+        {
+          "text": "MyBingoCard",
+          "visible": true,
+          "left": 12,
+          "right": 44
+        },
+        {
+          "text": "PreviewPreview Card",
+          "visible": true,
+          "left": 230,
+          "right": 300
+        },
+        {
+          "text": "Cancel",
+          "visible": true,
+          "left": 306,
+          "right": 377
+        },
+        {
+          "text": "Custom",
+          "visible": true,
+          "left": 29,
+          "right": 134
+        },
+        {
+          "text": "75-Ball",
+          "visible": true,
+          "left": 142,
+          "right": 247
+        },
+        {
+          "text": "90-Ball",
+          "visible": true,
+          "left": 255,
+          "right": 360
+        },
+        {
+          "text": "3×3",
+          "visible": true,
+          "left": 29,
+          "right": 134
+        },
+        {
+          "text": "4×4",
+          "visible": true,
+          "left": 142,
+          "right": 247
+        },
+        {
+          "text": "5×5",
+          "visible": true,
+          "left": 255,
+          "right": 360
+        },
+        {
+          "text": "Shuffle cells",
+          "visible": true,
+          "left": 29,
+          "right": 360
+        },
+        {
+          "text": "Funny",
+          "visible": true,
+          "left": 65.4,
+          "right": 116.5
+        },
+        {
+          "text": "Serious",
+          "visible": true,
+          "left": 122.5,
+          "right": 182
+        },
+        {
+          "text": "Mix",
+          "visible": true,
+          "left": 188,
+          "right": 224.6
+        },
+        {
+          "text": "Custom",
+          "visible": true,
+          "left": 230.6,
+          "right": 291
+        },
+        {
+          "text": "Generate Cells",
+          "visible": true,
+          "left": 29,
+          "right": 360
+        },
+        {
+          "text": "BINGOClassic",
+          "visible": true,
+          "left": 29,
+          "right": 107.3
+        },
+        {
+          "text": "BINGOOcean",
+          "visible": true,
+          "left": 113.3,
+          "right": 191.5
+        },
+        {
+          "text": "BINGOSunset",
+          "visible": true,
+          "left": 197.5,
+          "right": 275.8
+        },
+        {
+          "text": "BINGOForest",
+          "visible": true,
+          "left": 281.8,
+          "right": 360
+        },
+        {
+          "text": "BINGOBerry",
+          "visible": true,
+          "left": 29,
+          "right": 107.3
+        },
+        {
+          "text": "BINGOGold",
+          "visible": true,
+          "left": 113.3,
+          "right": 191.5
+        },
+        {
+          "text": "BINGOSlate",
+          "visible": true,
+          "left": 197.5,
+          "right": 275.8
+        },
+        {
+          "text": "BINGONight",
+          "visible": true,
+          "left": 281.8,
+          "right": 360
+        },
+        {
+          "text": "S",
+          "visible": true,
+          "left": 203.5,
+          "right": 240.4
+        },
+        {
+          "text": "M",
+          "visible": true,
+          "left": 242.4,
+          "right": 279.3
+        },
+        {
+          "text": "L",
+          "visible": true,
+          "left": 281.3,
+          "right": 318.1
+        },
+        {
+          "text": "XL",
+          "visible": true,
+          "left": 320.1,
+          "right": 357
+        },
+        {
+          "text": "30cards$1.99",
+          "visible": true,
+          "left": 29,
+          "right": 107.3
+        },
+        {
+          "text": "100cards$9.99",
+          "visible": true,
+          "left": 113.3,
+          "right": 191.5
+        },
+        {
+          "text": "250cards$19.99",
+          "visible": true,
+          "left": 197.5,
+          "right": 275.8
+        }
+      ]
+    },
+    {
+      "label": "create-390",
+      "url": "http://127.0.0.1:3100/create",
+      "width": 390,
+      "status": 200,
+      "title": "Create a Bingo Card Online | MyBingoCard",
+      "innerWidth": 390,
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "bodyScrollWidth": 390,
+      "headerRect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 57,
+        "top": 0,
+        "right": 390,
+        "bottom": 57,
+        "left": 0
+      },
+      "overflowing": [],
+      "visibleActions": [
+        {
+          "text": "MyBingoCard",
+          "visible": true,
+          "left": 12,
+          "right": 172.2
+        },
+        {
+          "text": "PreviewPreview Card",
+          "visible": true,
+          "left": 231,
+          "right": 301
+        },
+        {
+          "text": "Cancel",
+          "visible": true,
+          "left": 307,
+          "right": 378
+        },
+        {
+          "text": "Custom",
+          "visible": true,
+          "left": 29,
+          "right": 134.3
+        },
+        {
+          "text": "75-Ball",
+          "visible": true,
+          "left": 142.3,
+          "right": 247.7
+        },
+        {
+          "text": "90-Ball",
+          "visible": true,
+          "left": 255.7,
+          "right": 361
+        },
+        {
+          "text": "3×3",
+          "visible": true,
+          "left": 29,
+          "right": 134.3
+        },
+        {
+          "text": "4×4",
+          "visible": true,
+          "left": 142.3,
+          "right": 247.7
+        },
+        {
+          "text": "5×5",
+          "visible": true,
+          "left": 255.7,
+          "right": 361
+        },
+        {
+          "text": "Shuffle cells",
+          "visible": true,
+          "left": 29,
+          "right": 361
+        },
+        {
+          "text": "Funny",
+          "visible": true,
+          "left": 65.4,
+          "right": 116.5
+        },
+        {
+          "text": "Serious",
+          "visible": true,
+          "left": 122.5,
+          "right": 182
+        },
+        {
+          "text": "Mix",
+          "visible": true,
+          "left": 188,
+          "right": 224.6
+        },
+        {
+          "text": "Custom",
+          "visible": true,
+          "left": 230.6,
+          "right": 291
+        },
+        {
+          "text": "Generate Cells",
+          "visible": true,
+          "left": 29,
+          "right": 361
+        },
+        {
+          "text": "BINGOClassic",
+          "visible": true,
+          "left": 29,
+          "right": 107.5
+        },
+        {
+          "text": "BINGOOcean",
+          "visible": true,
+          "left": 113.5,
+          "right": 192
+        },
+        {
+          "text": "BINGOSunset",
+          "visible": true,
+          "left": 198,
+          "right": 276.5
+        },
+        {
+          "text": "BINGOForest",
+          "visible": true,
+          "left": 282.5,
+          "right": 361
+        },
+        {
+          "text": "BINGOBerry",
+          "visible": true,
+          "left": 29,
+          "right": 107.5
+        },
+        {
+          "text": "BINGOGold",
+          "visible": true,
+          "left": 113.5,
+          "right": 192
+        },
+        {
+          "text": "BINGOSlate",
+          "visible": true,
+          "left": 198,
+          "right": 276.5
+        },
+        {
+          "text": "BINGONight",
+          "visible": true,
+          "left": 282.5,
+          "right": 361
+        },
+        {
+          "text": "S",
+          "visible": true,
+          "left": 204,
+          "right": 241
+        },
+        {
+          "text": "M",
+          "visible": true,
+          "left": 243,
+          "right": 280
+        },
+        {
+          "text": "L",
+          "visible": true,
+          "left": 282,
+          "right": 319
+        },
+        {
+          "text": "XL",
+          "visible": true,
+          "left": 321,
+          "right": 358
+        },
+        {
+          "text": "30cards$1.99",
+          "visible": true,
+          "left": 29,
+          "right": 107.5
+        },
+        {
+          "text": "100cards$9.99",
+          "visible": true,
+          "left": 113.5,
+          "right": 192
+        },
+        {
+          "text": "250cards$19.99",
+          "visible": true,
+          "left": 198,
+          "right": 276.5
+        }
+      ]
+    },
+    {
+      "label": "create-391",
+      "url": "http://127.0.0.1:3100/create",
+      "width": 391,
+      "status": 200,
+      "title": "Create a Bingo Card Online | MyBingoCard",
+      "innerWidth": 391,
+      "clientWidth": 391,
+      "scrollWidth": 391,
+      "bodyScrollWidth": 391,
+      "headerRect": {
+        "x": 0,
+        "y": 0,
+        "width": 391,
+        "height": 57,
+        "top": 0,
+        "right": 391,
+        "bottom": 57,
+        "left": 0
+      },
+      "overflowing": [],
+      "visibleActions": [
+        {
+          "text": "MyBingoCard",
+          "visible": true,
+          "left": 12,
+          "right": 172.2
+        },
+        {
+          "text": "PreviewPreview Card",
+          "visible": true,
+          "left": 232,
+          "right": 302
+        },
+        {
+          "text": "Cancel",
+          "visible": true,
+          "left": 308,
+          "right": 379
+        },
+        {
+          "text": "Custom",
+          "visible": true,
+          "left": 29,
+          "right": 134.7
+        },
+        {
+          "text": "75-Ball",
+          "visible": true,
+          "left": 142.7,
+          "right": 248.3
+        },
+        {
+          "text": "90-Ball",
+          "visible": true,
+          "left": 256.3,
+          "right": 362
+        },
+        {
+          "text": "3×3",
+          "visible": true,
+          "left": 29,
+          "right": 134.7
+        },
+        {
+          "text": "4×4",
+          "visible": true,
+          "left": 142.7,
+          "right": 248.3
+        },
+        {
+          "text": "5×5",
+          "visible": true,
+          "left": 256.3,
+          "right": 362
+        },
+        {
+          "text": "Shuffle cells",
+          "visible": true,
+          "left": 29,
+          "right": 362
+        },
+        {
+          "text": "Funny",
+          "visible": true,
+          "left": 65.4,
+          "right": 116.5
+        },
+        {
+          "text": "Serious",
+          "visible": true,
+          "left": 122.5,
+          "right": 182
+        },
+        {
+          "text": "Mix",
+          "visible": true,
+          "left": 188,
+          "right": 224.6
+        },
+        {
+          "text": "Custom",
+          "visible": true,
+          "left": 230.6,
+          "right": 291
+        },
+        {
+          "text": "Generate Cells",
+          "visible": true,
+          "left": 29,
+          "right": 362
+        },
+        {
+          "text": "BINGOClassic",
+          "visible": true,
+          "left": 29,
+          "right": 107.8
+        },
+        {
+          "text": "BINGOOcean",
+          "visible": true,
+          "left": 113.8,
+          "right": 192.5
+        },
+        {
+          "text": "BINGOSunset",
+          "visible": true,
+          "left": 198.5,
+          "right": 277.3
+        },
+        {
+          "text": "BINGOForest",
+          "visible": true,
+          "left": 283.3,
+          "right": 362
+        },
+        {
+          "text": "BINGOBerry",
+          "visible": true,
+          "left": 29,
+          "right": 107.8
+        },
+        {
+          "text": "BINGOGold",
+          "visible": true,
+          "left": 113.8,
+          "right": 192.5
+        },
+        {
+          "text": "BINGOSlate",
+          "visible": true,
+          "left": 198.5,
+          "right": 277.3
+        },
+        {
+          "text": "BINGONight",
+          "visible": true,
+          "left": 283.3,
+          "right": 362
+        },
+        {
+          "text": "S",
+          "visible": true,
+          "left": 204.5,
+          "right": 241.6
+        },
+        {
+          "text": "M",
+          "visible": true,
+          "left": 243.6,
+          "right": 280.8
+        },
+        {
+          "text": "L",
+          "visible": true,
+          "left": 282.8,
+          "right": 319.9
+        },
+        {
+          "text": "XL",
+          "visible": true,
+          "left": 321.9,
+          "right": 359
+        },
+        {
+          "text": "30cards$1.99",
+          "visible": true,
+          "left": 29,
+          "right": 107.8
+        },
+        {
+          "text": "100cards$9.99",
+          "visible": true,
+          "left": 113.8,
+          "right": 192.5
+        },
+        {
+          "text": "250cards$19.99",
+          "visible": true,
+          "left": 198.5,
+          "right": 277.3
+        }
+      ]
+    },
+    {
+      "label": "homepage-390",
+      "url": "http://127.0.0.1:3100/",
+      "width": 390,
+      "status": 200,
+      "title": "Bingo Card Maker & Generator for Printable and Online Cards | MyBingoCard",
+      "innerWidth": 390,
+      "clientWidth": 390,
+      "scrollWidth": 390,
+      "bodyScrollWidth": 390,
+      "headerRect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 65,
+        "top": 0,
+        "right": 390,
+        "bottom": 65,
+        "left": 0
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "className": "absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-200/50 rounded-full blur-[100px] animate-blob",
+          "text": "",
+          "left": -210,
+          "right": 444.9,
+          "width": 654.9
+        },
+        {
+          "tag": "DIV",
+          "className": "absolute top-20 left-0 w-[500px] h-[500px] bg-violet-200/50 rounded-full blur-[100px] animate-blob animation-delay-200",
+          "text": "",
+          "left": 4.6,
+          "right": 550.4,
+          "width": 545.8
+        },
+        {
+          "tag": "DIV",
+          "className": "absolute -top-12 -left-12 w-48 h-48 bg-purple-500 rounded-full blur-3xl opacity-20 animate-pulse",
+          "text": "",
+          "left": -32,
+          "right": 160,
+          "width": 192
+        },
+        {
+          "tag": "DIV",
+          "className": "absolute -bottom-12 -right-12 w-48 h-48 bg-indigo-500 rounded-full blur-3xl opacity-20 animate-pulse animation-delay-400",
+          "text": "",
+          "left": 230,
+          "right": 422,
+          "width": 192
+        },
+        {
+          "tag": "DIV",
+          "className": "absolute left-[-10000px] top-auto h-px w-px overflow-hidden",
+          "text": "Company",
+          "left": -10000,
+          "right": -9999,
+          "width": 1
+        },
+        {
+          "tag": "LABEL",
+          "className": "",
+          "text": "Company",
+          "left": -10000,
+          "right": -9927.5,
+          "width": 72.5
+        },
+        {
+          "tag": "INPUT",
+          "className": "",
+          "text": "",
+          "left": -10000,
+          "right": -9813,
+          "width": 187
+        },
+        {
+          "tag": "BUTTON",
+          "className": "px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-bold text-sm hover:shadow-lg transition-all disabled:opacity-60 whitespace-n",
+          "text": "Get Free Templates",
+          "left": 261,
+          "right": 440.9,
+          "width": 179.9
+        }
+      ],
+      "visibleActions": [
+        {
+          "text": "MyBingoCard",
+          "visible": true,
+          "left": 16,
+          "right": 162.9
+        },
+        {
+          "text": "Sign In",
+          "visible": true,
+          "left": 253.9,
+          "right": 326
+        },
+        {
+          "text": "Menu",
+          "visible": true,
+          "left": 334,
+          "right": 374
+        },
+        {
+          "text": "Make a Free Bingo Card",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "Browse Bingo Games",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "Download MyBingoCard on the App Store",
+          "visible": true,
+          "left": 131.2,
+          "right": 258.8
+        },
+        {
+          "text": "conference bingo planning guide",
+          "visible": true,
+          "left": 48.1,
+          "right": 334.3
+        },
+        {
+          "text": "See all bingo games",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "Baby shower hostsBaby Shower BingoGift, prediction, and guest activity cards for",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "Wedding guestsWedding BingoGuest-friendly wedding cards for speeches, photos, da",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "TeachersClassroom BingoTeacher-ready bingo cards for review, routines, centers, ",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "Team leadersTeam Building BingoWorkplace cards for retreats, all-hands events, a",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "Holiday hostsHoliday BingoSeasonal cards for Christmas, classroom parties, famil",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "Fundraiser teamsFundraiser BingoFundraising cards for auctions, raffles, sponsor",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "FacilitatorsIcebreaker BingoFind-someone-who cards for groups, workshops, networ",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "Football party hostsSuper Bowl BingoWatch-party cards for game action, commercia",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "Get Free Templates",
+          "visible": true,
+          "left": 261,
+          "right": 440.9
+        },
+        {
+          "text": "Create a Card",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "View Pricing",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "MyBingoCard",
+          "visible": true,
+          "left": 16,
+          "right": 374
+        },
+        {
+          "text": "Create Cards",
+          "visible": true,
+          "left": 16,
+          "right": 115.5
+        },
+        {
+          "text": "Templates",
+          "visible": true,
+          "left": 16,
+          "right": 93.9
+        },
+        {
+          "text": "Bingo Games",
+          "visible": true,
+          "left": 16,
+          "right": 116.4
+        },
+        {
+          "text": "Pricing",
+          "visible": true,
+          "left": 16,
+          "right": 68.6
+        },
+        {
+          "text": "Features",
+          "visible": true,
+          "left": 16,
+          "right": 81.5
+        },
+        {
+          "text": "Printable bingo cards",
+          "visible": true,
+          "left": 16,
+          "right": 176.8
+        },
+        {
+          "text": "Online bingo generator",
+          "visible": true,
+          "left": 16,
+          "right": 189.4
+        },
+        {
+          "text": "Bingo board generator",
+          "visible": true,
+          "left": 16,
+          "right": 185.9
+        },
+        {
+          "text": "AI bingo generator",
+          "visible": true,
+          "left": 16,
+          "right": 156.5
+        },
+        {
+          "text": "Word bingo generator",
+          "visible": true,
+          "left": 16,
+          "right": 181.3
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -14,9 +14,10 @@ function makeGuestName() {
 function JoinGameContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session, status: authStatus } = useSession();
+  const { data: session } = useSession();
   const [roomCode, setRoomCode] = useState("");
   const [playerName, setPlayerName] = useState("");
+  const playerNameEditedRef = useRef(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [roomInfo, setRoomInfo] = useState<{ title: string; playerCount: number; status: string } | null>(null);
@@ -39,10 +40,21 @@ function JoinGameContent() {
 
   // Pre-fill player name from session
   useEffect(() => {
-    if (session?.user?.name && !playerName) {
-      setPlayerName(session.user.name.split(" ")[0] || "");
-    }
+    if (!session?.user?.name || playerNameEditedRef.current) return;
+
+    const sessionFirstName = session.user.name.split(" ")[0] || "";
+    if (sessionFirstName) setPlayerName(sessionFirstName);
   }, [session]);
+
+  const handlePlayerNameChange = (value: string) => {
+    playerNameEditedRef.current = true;
+    setPlayerName(value);
+  };
+
+  const pickGuestName = () => {
+    playerNameEditedRef.current = true;
+    setPlayerName(makeGuestName());
+  };
 
   const fetchRoomInfo = async (code: string) => {
     try {
@@ -129,12 +141,6 @@ function JoinGameContent() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg border border-emerald-100 p-6">
-          {authStatus === "loading" ? (
-            <div className="text-center py-8">
-              <div className="inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="mt-3 text-slate-500 text-sm">Loading...</p>
-            </div>
-          ) : (
           <form onSubmit={handleJoin} className="space-y-5">
             {session?.user?.email && (
               <div className="text-xs text-slate-500 text-center">
@@ -174,14 +180,14 @@ function JoinGameContent() {
               <input
                 type="text"
                 value={playerName}
-                onChange={(e) => setPlayerName(e.target.value)}
+                onChange={(e) => handlePlayerNameChange(e.target.value)}
                 placeholder="Player name"
                 maxLength={30}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
               />
               <button
                 type="button"
-                onClick={() => setPlayerName(makeGuestName())}
+                onClick={pickGuestName}
                 className="mt-2 text-xs font-semibold text-emerald-700 hover:text-emerald-800"
               >
                 Pick a simple name
@@ -202,7 +208,6 @@ function JoinGameContent() {
               {loading ? "Joining..." : "Join"}
             </button>
           </form>
-          )}
         </div>
 
         <div className="text-center mt-6">

@@ -1,0 +1,120 @@
+<!-- @dsCard group="Growth" -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MyBingoCard CTA and Mobile Mockups</title>
+  <style>
+    :root { --indigo:#4f46e5; --violet:#7c3aed; --ink:#111827; --muted:#4b5563; --line:#e5e7eb; --soft:#f5f3ff; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:#eef2ff; font-family:Inter,ui-sans-serif,system-ui,sans-serif; }
+    h1,h2,h3 { font-family:Poppins,Inter,ui-sans-serif,system-ui,sans-serif; }
+    .page { max-width:1180px; margin:auto; padding:32px 20px 60px; }
+    .intro { max-width:780px; margin-bottom:24px; }
+    .intro p { color:var(--muted); line-height:1.6; }
+    .variants { display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:24px; align-items:start; }
+    .frame { width:390px; max-width:100%; min-height:844px; margin:auto; background:white; border:1px solid #c7d2fe; border-radius:28px; overflow:hidden; box-shadow:0 24px 60px rgba(49,46,129,.16); }
+    .frame-label { padding:12px 16px; color:#4338ca; background:#eef2ff; border-bottom:1px solid #c7d2fe; font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+    .nav { height:64px; padding:0 16px; display:flex; align-items:center; justify-content:space-between; gap:10px; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:8px; min-width:0; font-weight:800; }
+    .mark { width:30px; height:30px; flex:0 0 auto; display:grid; place-items:center; color:white; border-radius:9px; background:linear-gradient(135deg,var(--violet),var(--indigo)); }
+    .nav-actions { display:flex; align-items:center; gap:8px; }
+    .menu { border:0; background:#f3f4f6; width:38px; height:38px; border-radius:10px; font-size:20px; }
+    .button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 17px; border-radius:12px; font-weight:800; text-decoration:none; border:1px solid transparent; }
+    .button.primary { color:white; background:linear-gradient(135deg,var(--violet),var(--indigo)); box-shadow:0 8px 20px rgba(79,70,229,.25); }
+    .button.secondary { color:#4338ca; border-color:#c7d2fe; background:white; }
+    .button.compact { min-height:38px; padding:0 12px; font-size:13px; white-space:nowrap; }
+    .hero { padding:34px 16px 18px; text-align:center; }
+    .eyebrow { color:#5b21b6; font-size:13px; font-weight:850; letter-spacing:.05em; text-transform:uppercase; }
+    .hero h2 { margin:10px auto 12px; max-width:340px; font-size:31px; line-height:1.08; letter-spacing:-.025em; }
+    .hero p { max-width:340px; margin:0 auto; color:var(--muted); font-size:16px; line-height:1.5; }
+    .cta-stack { display:grid; gap:10px; padding:22px 16px 12px; }
+    .proof { color:#4b5563; text-align:center; font-size:13px; }
+    .card-wrap { padding:16px; }
+    .product { padding:14px; border:1px solid #ddd6fe; border-radius:20px; background:linear-gradient(180deg,#faf5ff,#eef2ff); box-shadow:0 16px 36px rgba(76,29,149,.12); }
+    .product-top { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; }
+    .product-title { font-weight:850; }
+    .product-meta { color:#6b7280; font-size:12px; }
+    .grid { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; padding:6px; border-radius:10px; background:white; }
+    .cell { min-width:0; aspect-ratio:1; display:grid; place-items:center; padding:3px; text-align:center; overflow:hidden; border:1px solid #c7d2fe; border-radius:5px; background:#fff; color:#3730a3; font-size:8px; font-weight:750; line-height:1.1; }
+    .cell.free { color:white; background:linear-gradient(135deg,var(--violet),var(--indigo)); }
+    .tools { display:flex; gap:7px; margin-top:10px; }
+    .tool { flex:1; padding:8px 5px; border:1px solid #ddd6fe; border-radius:8px; background:white; color:#4338ca; text-align:center; font-size:11px; font-weight:750; }
+    .secondary-link { display:block; padding:8px 16px 25px; color:#4338ca; text-align:center; font-weight:750; text-decoration:none; }
+    .seo-body { padding:34px 16px; }
+    .seo-body h2 { margin:8px 0 10px; font-size:30px; line-height:1.08; }
+    .seo-body p { color:var(--muted); line-height:1.55; }
+    .idea-list { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:18px 0; }
+    .idea { padding:10px; border:1px solid #ddd6fe; border-radius:10px; background:#faf5ff; color:#4c1d95; font-size:13px; font-weight:700; }
+    .sticky { position:sticky; bottom:0; padding:12px 16px 16px; background:linear-gradient(180deg,rgba(255,255,255,.6),white 35%); }
+    .sticky .button { width:100%; }
+    .note { max-width:390px; margin:12px auto 0; color:#4b5563; font-size:13px; line-height:1.45; }
+    @media (max-width:420px) { .page { padding:18px 0 40px; } .intro { padding:0 16px; } .variants { grid-template-columns:1fr; } .frame { border-left:0; border-right:0; border-radius:0; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="intro">
+      <h1>Local CTA and 390px mobile concepts</h1>
+      <p>Static preparation only. These concepts preserve the violet-to-indigo brand, keep creation visible, put the product workflow before app promotion, and avoid horizontal overflow at a 390px viewport.</p>
+    </section>
+    <section class="variants">
+      <article>
+        <div class="frame">
+          <div class="frame-label">Homepage · visible create action</div>
+          <header class="nav">
+            <div class="brand"><span class="mark">B</span><span>MyBingoCard</span></div>
+            <div class="nav-actions"><a class="button primary compact" href="#">Make a Card</a><button class="menu" aria-label="Open menu">☰</button></div>
+          </header>
+          <section class="hero">
+            <div class="eyebrow">Free bingo card maker</div>
+            <h2>Create a bingo card for any class, event, team, or game</h2>
+            <p>Add your own words or generate ideas, customize the card, and print one individual PDF card free.</p>
+          </section>
+          <div class="cta-stack">
+            <a class="button primary" href="#">Make a Free Card</a>
+            <div class="proof">No account needed to start · Printable and online play</div>
+          </div>
+          <div class="card-wrap">
+            <div class="product">
+              <div class="product-top"><div class="product-title">Team Icebreaker</div><div class="product-meta">5 × 5 editable card</div></div>
+              <div class="grid">
+                <div class="cell">Has a pet</div><div class="cell">Morning person</div><div class="cell">Loves pizza</div><div class="cell">Plays music</div><div class="cell">Speaks 2 languages</div>
+                <div class="cell">Has traveled</div><div class="cell">Coffee fan</div><div class="cell">Reads often</div><div class="cell">Can cook</div><div class="cell">Likes hiking</div>
+                <div class="cell">Owns a bike</div><div class="cell">Night owl</div><div class="cell free">FREE</div><div class="cell">Has siblings</div><div class="cell">Plays sports</div>
+                <div class="cell">Loves movies</div><div class="cell">Has a garden</div><div class="cell">Wears glasses</div><div class="cell">Beach fan</div><div class="cell">Has met a celeb</div>
+                <div class="cell">Can whistle</div><div class="cell">Born in July</div><div class="cell">Likes puzzles</div><div class="cell">Has camped</div><div class="cell">Sings karaoke</div>
+              </div>
+              <div class="tools"><div class="tool">Edit squares</div><div class="tool">Print PDF</div><div class="tool">Share game</div></div>
+            </div>
+          </div>
+          <a class="secondary-link" href="#">Start with a Template →</a>
+        </div>
+        <p class="note">Primary action is visible in the closed mobile header. The product mockup appears before the secondary route or App Store promotion.</p>
+      </article>
+      <article>
+        <div class="frame">
+          <div class="frame-label">SEO landing · preserve intent</div>
+          <header class="nav">
+            <div class="brand"><span class="mark">B</span><span>MyBingoCard</span></div>
+            <div class="nav-actions"><a class="button primary compact" href="#">Use This List</a><button class="menu" aria-label="Open menu">☰</button></div>
+          </header>
+          <section class="seo-body">
+            <div class="eyebrow">Baby shower bingo</div>
+            <h2>Start with 25 editable baby shower ideas</h2>
+            <p>Use the ready-made list, replace any square, and customize colors before printing or sharing.</p>
+            <div class="idea-list">
+              <div class="idea">Baby blanket</div><div class="idea">Diaper bag</div><div class="idea">Story book</div><div class="idea">Tiny socks</div><div class="idea">Stroller</div><div class="idea">Baby bottle</div><div class="idea">Pacifier</div><div class="idea">Nursery song</div>
+            </div>
+            <a class="button secondary" href="#" style="width:100%">Preview all ideas</a>
+            <p class="proof" style="margin-top:14px">25 editable squares · No account needed to start</p>
+          </section>
+          <div class="sticky"><a class="button primary" href="#">Use This List Free</a></div>
+        </div>
+        <p class="note">The header and sticky action retain the landing page’s known template context instead of resetting the visitor to a blank creator.</p>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

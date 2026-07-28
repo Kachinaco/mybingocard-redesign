@@ -104,7 +104,8 @@ function emptyDay() {
     status3xx: 0,
     status4xx: 0,
     status5xx: 0,
-    chunkFailures: 0,
+    humanChunkFailures: 0,
+    automationChunkFailures: 0,
     sourceMapFailures: 0,
     trackerFailures: 0,
     shareApi404s: 0,
@@ -233,15 +234,25 @@ function parseAccessLogs(range) {
         if (/pinterest|pinimg/i.test(referrer)) row.pinterestRefs += 1;
       }
 
-      if (isNextChunkAsset(pathname) && status >= 400) row.chunkFailures += 1;
+      const isChunkFailure = isNextChunkAsset(pathname) && status >= 400;
+      if (isChunkFailure) {
+        if (isBot) row.automationChunkFailures += 1;
+        else row.humanChunkFailures += 1;
+      }
       if (isNextSourceMap(pathname) && status >= 400) row.sourceMapFailures += 1;
       if ((pathname === "/t/tracker.js" && status >= 400) || (pathname === "/t/api/track" && status >= 500)) row.trackerFailures += 1;
       if (pathname.startsWith("/api/cards/share/") && status === 404) row.shareApi404s += 1;
       if (pathname.startsWith("/api/images/") && status === 401) row.image401s += 1;
       if (pathname.startsWith("/cards/") && [401, 403, 500, 502].includes(status)) row.cardsRouteErrors += 1;
 
-      if (samples.length < 20 && (status >= 500 || isNextChunkAsset(pathname) && status >= 400)) {
-        samples.push(`${day} ${status} ${pathname}`);
+      if (samples.length < 20 && (status >= 500 || isChunkFailure)) {
+        samples.push({
+          day,
+          status,
+          pathname,
+          kind: isChunkFailure ? "next_chunk_failure" : "nginx_5xx",
+          traffic: isBot ? "automation" : "human",
+        });
       }
     }
   }
@@ -485,14 +496,14 @@ function buildFlags(range, access, firstParty, central) {
   const rawHuman = sum(range.days, access.byDay, "humanishPageRequests");
   const firstPartyClean = sum(range.days, firstParty.byDay || {}, "cleanPageViews");
   const centralReportable = sum(range.days, central.byDay || {}, "reportablePageViews");
-  const chunkFailures = sum(range.days, access.byDay, "chunkFailures");
+  const humanChunkFailures = sum(range.days, access.byDay, "humanChunkFailures");
   const trackerFailures = sum(range.days, access.byDay, "trackerFailures");
   const share404s = sum(range.days, access.byDay, "shareApi404s");
   const image401s = sum(range.days, access.byDay, "image401s");
   const cardsErrors = sum(range.days, access.byDay, "cardsRouteErrors");
   const status5xx = sum(range.days, access.byDay, "status5xx");
 
-  if (chunkFailures) flags.push(`${fmt(chunkFailures)} stale/missing Next chunk failures in nginx logs`);
+  if (humanChunkFailures) flags.push(`${fmt(humanChunkFailures)} human stale/missing Next chunk failures in nginx logs`);
   if (trackerFailures) flags.push(`${fmt(trackerFailures)} tracker delivery failures in nginx logs`);
   if (share404s) flags.push(`${fmt(share404s)} public share API 404s`);
   if (image401s) flags.push(`${fmt(image401s)} shared image 401s`);
@@ -527,19 +538,20 @@ function buildMarkdown(range, access, firstParty, central, gsc) {
   lines.push("");
   lines.push("## Daily Table");
   lines.push("");
-  lines.push("| Date | Nginx human pages | Nginx pages | First-party clean PV | Central reportable PV | GSC clicks | GSC impr. | 4xx | 5xx | Chunk | Tracker | Share 404 | Image 401 | Pin refs |");
-  lines.push("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |");
+  lines.push("| Date | Nginx human pages | Nginx pages | First-party clean PV | Central reportable PV | GSC clicks | GSC impr. | 4xx | 5xx | Human chunk | Automation chunk | Tracker | Share 404 | Image 401 | Pin refs |");
+  lines.push("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |");
   for (const day of range.days) {
     const raw = access.byDay[day] || {};
     const fp = firstParty.byDay?.[day] || {};
     const ca = central.byDay?.[day] || {};
     const gs = gsc.byDay?.[day] || {};
-    lines.push(`| ${day} | ${fmt(raw.humanishPageRequests)} | ${fmt(raw.pageRequests)} | ${firstParty.available ? fmt(fp.cleanPageViews) : "n/a"} | ${central.available ? fmt(ca.reportablePageViews) : "n/a"} | ${gsc.available ? fmt(gs.clicks) : "n/a"} | ${gsc.available ? fmt(gs.impressions) : "n/a"} | ${fmt(raw.status4xx)} | ${fmt(raw.status5xx)} | ${fmt(raw.chunkFailures)} | ${fmt(raw.trackerFailures)} | ${fmt(raw.shareApi404s)} | ${fmt(raw.image401s)} | ${fmt(raw.pinterestRefs)} |`);
+    lines.push(`| ${day} | ${fmt(raw.humanishPageRequests)} | ${fmt(raw.pageRequests)} | ${firstParty.available ? fmt(fp.cleanPageViews) : "n/a"} | ${central.available ? fmt(ca.reportablePageViews) : "n/a"} | ${gsc.available ? fmt(gs.clicks) : "n/a"} | ${gsc.available ? fmt(gs.impressions) : "n/a"} | ${fmt(raw.status4xx)} | ${fmt(raw.status5xx)} | ${fmt(raw.humanChunkFailures)} | ${fmt(raw.automationChunkFailures)} | ${fmt(raw.trackerFailures)} | ${fmt(raw.shareApi404s)} | ${fmt(raw.image401s)} | ${fmt(raw.pinterestRefs)} |`);
   }
   lines.push("");
   lines.push("## Source Detail");
   lines.push("");
   lines.push(`- Nginx requests: ${fmt(sum(range.days, access.byDay, "requests"))}; unique client+UA pairs: ${fmt(sum(range.days, access.byDay, "uniqueClients"))}`);
+  lines.push(`- Automation/bot JS/CSS chunk failures: ${fmt(sum(range.days, access.byDay, "automationChunkFailures"))} (diagnostic only; excluded from regression flags)`);
   lines.push(`- Private source-map 404s: ${fmt(sum(range.days, access.byDay, "sourceMapFailures"))} (tracked separately from JS/CSS chunk delivery failures)`);
   lines.push(`- First-party events: ${firstParty.available ? `${fmt(sum(range.days, firstParty.byDay, "total"))} total, ${fmt(sum(range.days, firstParty.byDay, "engagements"))} engagements, ${fmt(sum(range.days, firstParty.byDay, "cards"))} card/game/share/print events, ${fmt(sum(range.days, firstParty.byDay, "signups"))} signups, ${fmt(sum(range.days, firstParty.byDay, "checkouts"))} checkout events` : "unavailable"}`);
   lines.push(`- Central analytics events: ${central.available ? `${fmt(sum(range.days, central.byDay, "events"))} total, ${fmt(sum(range.days, central.byDay, "reportableEvents"))} reportable, ${fmt(sum(range.days, central.byDay, "visitors"))} unique visitors${central.partial ? `; raw events begin ${central.earliest}` : ""}` : "unavailable"}`);
@@ -563,7 +575,11 @@ function buildMarkdown(range, access, firstParty, central, gsc) {
     lines.push("");
     lines.push("## Error Samples");
     lines.push("");
-    for (const sample of access.samples) lines.push(`- ${sample}`);
+    for (const sample of access.samples) {
+      const kind = sample.kind === "next_chunk_failure" ? "Next chunk failure" : "Nginx 5xx";
+      const traffic = sample.traffic === "automation" ? "automation/bot traffic" : "human traffic";
+      lines.push(`- ${sample.day} ${sample.status} ${sample.pathname} (${kind}; ${traffic})`);
+    }
   }
   lines.push("");
   return lines.join("\n");

@@ -132,7 +132,14 @@ export default function AiGenerateSection({
     setGenerating(true);
     setError("");
     setSuccess(false);
-    trackClientActivity("ai_generate_clicked", { theme: theme.substring(0, 50), tone, size, use_case: useCase, prompt_detail_keys: promptDetailKeys });
+    trackClientActivity("ai_generate_clicked", {
+      theme_length: theme.trim().length,
+      tone,
+      size,
+      use_case: useCase,
+      prompt_detail_count: promptDetailKeys.length,
+      prompt_detail_keys: promptDetailKeys,
+    });
 
     try {
       const res = await fetch("/api/generate-cells", {
@@ -166,7 +173,14 @@ export default function AiGenerateSection({
 
       onCellsGenerated((data as { cells: string[] }).cells);
       setSuccess(true);
-      trackClientActivity("ai_generate_completed", { theme: theme.substring(0, 50), tone, size, use_case: useCase, prompt_detail_keys: promptDetailKeys });
+      trackClientActivity("ai_generate_completed", {
+        theme_length: theme.trim().length,
+        tone,
+        size,
+        use_case: useCase,
+        prompt_detail_count: promptDetailKeys.length,
+        prompt_detail_keys: promptDetailKeys,
+      });
       setTimeout(() => setSuccess(false), 3000);
     } catch {
       setError("Network error. Please try again.");

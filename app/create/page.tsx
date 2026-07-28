@@ -140,6 +140,7 @@ function CreateCardContent() {
   const [isLoadingCard, setIsLoadingCard] = useState(Boolean(cardIdFromUrl));
   const [autoSaveState, setAutoSaveState] = useState<AutoSaveState>("idle");
   const [autoSaveError, setAutoSaveError] = useState("");
+  const [localDraftSaveState, setLocalDraftSaveState] = useState<AutoSaveState>("idle");
   const [permissionStatus, setPermissionStatus] = useState<{
     allowed: boolean;
     reason?: string;
@@ -162,6 +163,7 @@ function CreateCardContent() {
   const lastSavedSnapshotRef = useRef("");
   const currentCardIdRef = useRef<string | null>(cardIdFromUrl);
   const createInFlightRef = useRef(false);
+  const titleInputRef = useRef<HTMLInputElement | null>(null);
   const cellTextareaRefs = useRef<Array<HTMLTextAreaElement | null>>([]);
 
   // Tracking refs
@@ -438,6 +440,7 @@ function CreateCardContent() {
             setStyle((prev) => ({ ...prev, ...draft.style }));
           }
           draftSource = "localStorage";
+          setLocalDraftSaveState("saved");
           // Draft kept in localStorage until successfully saved
         }
       } catch (draftError) {
@@ -588,6 +591,21 @@ function CreateCardContent() {
     setTimeout(() => setMobileToast(""), 3500);
   };
 
+  const focusAndRevealTitleInput = () => {
+    const input = titleInputRef.current;
+    if (!input) return;
+
+    input.focus({ preventScroll: true });
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.requestAnimationFrame(() => {
+      input.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "center",
+        inline: "nearest",
+      });
+    });
+  };
+
   const hasSavableContent = () => {
     if (!title.trim()) {
       return false;
@@ -674,7 +692,11 @@ function CreateCardContent() {
     return updatedCells;
   };
 
-  const saveCard = async (options?: { redirectAfterSave?: boolean; suppressValidationErrors?: boolean }) => {
+  const saveCard = async (options?: {
+    redirectAfterSave?: boolean;
+    suppressValidationErrors?: boolean;
+    recoverTitleInput?: boolean;
+  }) => {
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
       autoSaveTimerRef.current = null;
@@ -712,6 +734,9 @@ function CreateCardContent() {
         setAutoSaveState("error");
         setAutoSaveError(t("autosave.add_title"));
         showMobileToast(t("error.title_required"));
+        if (options?.recoverTitleInput) {
+          focusAndRevealTitleInput();
+        }
       }
       return false;
     }
@@ -1034,9 +1059,11 @@ function CreateCardContent() {
     setCells(newCells);
   };
 
-  const persistDraft = () => {
+  const persistDraft = (options?: { updateState?: boolean }): boolean => {
+    const shouldUpdateState = options?.updateState !== false;
+
     try {
-      setBrowserStorageItem("localStorage", "mybingo_card_draft", JSON.stringify({
+      const persisted = setBrowserStorageItem("localStorage", "mybingo_card_draft", JSON.stringify({
         title,
         description,
         size,
@@ -1048,8 +1075,19 @@ function CreateCardContent() {
         isPublic,
         style,
       }));
+
+      if (!persisted) {
+        console.error("Failed to save card draft: localStorage is unavailable");
+        if (shouldUpdateState) setLocalDraftSaveState("error");
+        return false;
+      }
+
+      if (shouldUpdateState) setLocalDraftSaveState("saved");
+      return true;
     } catch (e) {
       console.error("Failed to save card draft:", e);
+      if (shouldUpdateState) setLocalDraftSaveState("error");
+      return false;
     }
   };
 
@@ -1098,8 +1136,10 @@ function CreateCardContent() {
     if (!hasContent) return;
 
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    setLocalDraftSaveState("saving");
     draftTimerRef.current = setTimeout(() => {
       persistDraft();
+      draftTimerRef.current = null;
     }, 1000);
 
     return () => {
@@ -1107,9 +1147,9 @@ function CreateCardContent() {
     };
   }, [title, description, size, rows, columns, bingoVariant, cells, freeSpace, isPublic, style, currentCardId, isLoadingCard]);
 
-  // Track card_draft_lost on beforeunload (navigating away with unsaved changes)
+  // Flush the latest anonymous draft and report account-unsaved exits.
   useEffect(() => {
-    const handleBeforeUnload = () => {
+    const handlePageHide = (event: PageTransitionEvent) => {
       const hasContent = title.trim() || cells.some((c) => c.trim());
       if (!hasContent) return;
 
@@ -1117,17 +1157,33 @@ function CreateCardContent() {
       const snapshot = JSON.stringify(getCardPayload());
       if (snapshot === lastSavedSnapshotRef.current) return;
 
+      if (draftTimerRef.current) {
+        clearTimeout(draftTimerRef.current);
+        draftTimerRef.current = null;
+      }
+
+      const shouldPersistLocally = !currentCardIdRef.current && !isLoadingCard;
+      const persistedLocally = shouldPersistLocally
+        ? persistDraft({ updateState: false })
+        : false;
       const timeSpent = Math.round((Date.now() - pageLoadedAtRef.current) / 1000);
-      trackClientActivity("card_draft_lost", {
+      trackClientActivity("card_draft_left_unsaved", {
         cells_filled: cells.filter((c) => c.trim()).length,
         has_title: Boolean(title.trim()),
         time_spent_seconds: timeSpent,
+        local_persistence_status: shouldPersistLocally
+          ? persistedLocally
+            ? "saved"
+            : "failed"
+          : "not_applicable",
+        persisted_locally: persistedLocally,
+        page_cached: event.persisted,
       }, { keepalive: true });
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [title, cells, size, rows, columns, bingoVariant, freeSpace, isPublic, style, description]);
+    window.addEventListener("pagehide", handlePageHide);
+    return () => window.removeEventListener("pagehide", handlePageHide);
+  }, [title, cells, size, rows, columns, bingoVariant, freeSpace, isPublic, style, description, isLoadingCard]);
 
   const redirectToSignupForCreation = (options?: { autoCheckoutAfterAuth?: boolean }) => {
     persistDraft();
@@ -1204,7 +1260,7 @@ function CreateCardContent() {
     track("card_save_attempted", { title, size, cells_filled: cells.filter((c) => c.trim()).length });
 
     try {
-      await saveCard({ redirectAfterSave: true });
+      await saveCard({ redirectAfterSave: true, recoverTitleInput: true });
     } finally {
       setLoading(false);
     }
@@ -1560,7 +1616,7 @@ function CreateCardContent() {
     isEditingExistingCard,
     searchParams,
   ]);
-  const autoSaveLabel =
+  const accountAutoSaveLabel =
     autoSaveState === "saving"
       ? currentCardId
         ? "Saving changes..."
@@ -1571,9 +1627,16 @@ function CreateCardContent() {
           : "Draft ready"
         : autoSaveState === "error"
           ? autoSaveError || "Autosave failed"
-        : session?.user
-          ? "Changes save automatically"
-          : "Sign in to save automatically";
+          : "Changes save automatically";
+  const anonymousDraftSaveLabel =
+    localDraftSaveState === "saving"
+      ? "Saving draft on this device..."
+      : localDraftSaveState === "saved"
+        ? "Draft saved on this device. Sign in to save it to your account."
+        : localDraftSaveState === "error"
+          ? "Draft could not be saved on this device. Check your browser storage settings."
+          : "Drafts save on this device. Sign in to save them to your account.";
+  const autoSaveLabel = session?.user ? accountAutoSaveLabel : anonymousDraftSaveLabel;
   const isPremiumBatchUser = Boolean(permissionStatus?.hasPremiumAccess);
   const canUploadImages = Boolean(session?.user);
   const selectedBatchPrice = formatBatchPackPrice(batchCount);
@@ -1672,7 +1735,19 @@ function CreateCardContent() {
                 ) : null}
               </div>
               <span className="text-xs text-gray-400" title={autoSaveLabel}>
-                {autoSaveState === "saving" ? "Saving..." : autoSaveState === "saved" ? "\u2713 Saved" : ""}
+                {session?.user
+                  ? autoSaveState === "saving"
+                    ? "Saving..."
+                    : autoSaveState === "saved"
+                      ? "\u2713 Saved"
+                      : ""
+                  : localDraftSaveState === "saving"
+                    ? "Saving on this device..."
+                    : localDraftSaveState === "saved"
+                      ? "\u2713 Saved on this device"
+                      : localDraftSaveState === "error"
+                        ? "Local draft save failed"
+                        : ""}
               </span>
             </div>
              {/* Usage Banner */}
@@ -1704,7 +1779,7 @@ function CreateCardContent() {
           </div>
 
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 flex items-center gap-3">
+            <div id="create-card-error" role="alert" className="mb-4 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 flex items-center gap-3">
               <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -1796,10 +1871,12 @@ function CreateCardContent() {
 
                 <div className="space-y-3 lg:space-y-2.5">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    <label htmlFor="card-title" className="block text-xs font-semibold text-gray-700 mb-1">
                       Card Title <span className="text-red-500">*</span>
                     </label>
                     <input
+                      ref={titleInputRef}
+                      id="card-title"
                       type="text"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
@@ -1809,6 +1886,8 @@ function CreateCardContent() {
                         }
                       }}
                       placeholder="e.g., Wedding Bingo"
+                      aria-invalid={Boolean(error && !title.trim())}
+                      aria-describedby={error && !title.trim() ? "create-card-error" : undefined}
                       className="w-full px-3 py-2 bg-[#f2f2f7] border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] outline-none transition-all duration-200 placeholder:text-gray-400 text-sm"
                       disabled={showPreview}
                     />
@@ -2663,7 +2742,9 @@ function CreateCardContent() {
                   </p>
                 )}
                 <p style={{ margin: "0 0 20px", fontSize: "13px", color: "#64748b" }}>
-                  Create a free account to save this card. Free accounts get one saved bingo card.
+                  {localDraftSaveState === "error"
+                    ? "This browser could not save your local draft. Check your browser storage settings before leaving this page."
+                    : "Your draft is saved on this device. Sign in to save it to your account. Free accounts get one saved bingo card."}
                 </p>
 
                 {/* === Free path === */}

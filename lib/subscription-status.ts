@@ -7,6 +7,17 @@ export const NEW_FREE_CARD_LIMIT = 1;
 export const LEGACY_FREE_CARD_LIMIT = -1;
 export const LEGACY_FREE_IMAGE_UPLOAD_LIMIT = 500;
 
+type SubscriptionAccessUser = Pick<
+  User,
+  | "planType"
+  | "subscriptionStatus"
+  | "trialEndsAt"
+  | "purchaseProvider"
+  | "currentPeriodEnd"
+>;
+
+type LegacyAccessUser = SubscriptionAccessUser & Pick<User, "createdAt">;
+
 export function hasFutureTrialEnd(trialEndsAt?: Date | string | null): boolean {
   if (!trialEndsAt) return false;
   const trialEnd = trialEndsAt instanceof Date ? trialEndsAt : new Date(String(trialEndsAt));
@@ -32,15 +43,23 @@ export function isUserOnTrial(user?: Pick<User, "planType" | "subscriptionStatus
   return hasFutureTrialEnd(user.trialEndsAt);
 }
 
-export function hasPremiumAccess(user?: Pick<User, "planType" | "subscriptionStatus" | "trialEndsAt"> | null): boolean {
+export function hasPremiumAccess(user?: SubscriptionAccessUser | null): boolean {
   if (!user) return false;
   if (user.subscriptionStatus === "lifetime") return true;
   if (user.planType !== "PREMIUM") return false;
+  if (user.purchaseProvider === "apple") {
+    const currentPeriodEnd = user.currentPeriodEnd;
+    if (!currentPeriodEnd) return false;
+    const end = currentPeriodEnd instanceof Date
+      ? currentPeriodEnd
+      : new Date(String(currentPeriodEnd));
+    if (Number.isNaN(end.getTime()) || end.getTime() <= Date.now()) return false;
+  }
   return isActiveLikeSubscriptionStatus(user.subscriptionStatus) || isUserOnTrial(user);
 }
 
 export function isLegacyFreeUser(
-  user?: Pick<User, "createdAt" | "planType" | "subscriptionStatus" | "trialEndsAt"> | null
+  user?: LegacyAccessUser | null
 ): boolean {
   if (!user || !user.createdAt) return false;
   if (hasPremiumAccess(user)) return false;
@@ -54,14 +73,14 @@ export function isLegacyFreeUser(
 }
 
 export function hasCardSaveAccess(
-  user?: Pick<User, "createdAt" | "planType" | "subscriptionStatus" | "trialEndsAt"> | null
+  user?: LegacyAccessUser | null
 ): boolean {
   if (!user) return false;
   return getEffectiveCardLimit(user) !== 0;
 }
 
 export function getEffectiveCardLimit(
-  user?: Pick<User, "createdAt" | "planType" | "subscriptionStatus" | "trialEndsAt"> | null
+  user?: LegacyAccessUser | null
 ): number {
   if (!user) return 0;
   if (hasPremiumAccess(user)) return -1;

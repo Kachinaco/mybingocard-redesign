@@ -7,12 +7,13 @@ import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import crypto from "node:crypto";
 import { ATTRIBUTION_COOKIE_NAME, parseAttributionCookie, stripOAuthReferrer } from "@/lib/attribution";
-import { createUser, ensureUserDefaults, getUserByEmail, getUserById, incrementUserCounter, updateUser, updateUserAttribution, updateUserLastAttribution, updateUserSignupMethod } from "./lib/db/users";
+import { createUser, ensureUserDefaults, getUserByEmail, getUserById, incrementUserCounter, markUserEmailVerified, updateUser, updateUserAttribution, updateUserLastAttribution, updateUserSignupMethod } from "./lib/db/users";
 import { sendWelcomeEmail } from "./lib/email";
 import { trackActivity } from "./lib/activity";
 import { IMPERSONATION_COOKIE_NAME, parseImpersonationCookie } from "@/lib/impersonation";
 import { createMyBingoCardAuthAdapter } from "@/lib/db/auth-adapter";
 import { claimGuestUser, consumeMagicLinkToken, countRecentFailedLoginAttempts, recordLoginAttempt } from "@/lib/db/auth-data";
+import { tryEnqueueVerifiedAccountOutcome } from "@/lib/server/tracker-outcome-events";
 
 const authBaseUrl =
   process.env.AUTH_URL ||
@@ -136,12 +137,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               name: record.email.split("@")[0],
               signupMethod: "magic_link",
             });
-            const verifiedAt = new Date();
-            await updateUser(user._id.toString(), { emailVerified: verifiedAt });
-            user.emailVerified = verifiedAt;
-          } else if (!user.emailVerified) {
-            await updateUser(user._id.toString(), { emailVerified: new Date() });
           }
+
+          user = await markUserEmailVerified(user._id.toString());
+          tryEnqueueVerifiedAccountOutcome({
+            userId: user._id.toString(),
+            verifiedAt: user.emailVerified!,
+          });
 
           return {
             id: user._id.toString(),
@@ -274,12 +276,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             }
           }
 
-          // Auto-verify email for OAuth and magic link users
-          if (provider === "google" || provider === "apple" || provider === "magic-link") {
-            const existingUser = await getUserById(event.user.id);
-            if (existingUser && !existingUser.emailVerified) {
-              await updateUser(event.user.id, { emailVerified: new Date() });
-            }
+          // Persist verified account state before recording the authoritative outcome.
+          if (
+            provider === "google" ||
+            provider === "apple" ||
+            provider === "magic-link" ||
+            provider === "credentials"
+          ) {
+            const verifiedUser = await markUserEmailVerified(event.user.id);
+            tryEnqueueVerifiedAccountOutcome({
+              userId: event.user.id,
+              verifiedAt: verifiedUser.emailVerified!,
+            });
           }
 
           if (event.isNewUser) {

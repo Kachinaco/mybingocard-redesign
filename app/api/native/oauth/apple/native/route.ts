@@ -3,11 +3,12 @@ import {
   getUserByAuthAccount,
   upsertAuthAccountForUser,
 } from "@/lib/db/auth-data";
-import { createUser, getUserByEmail, recordNativeOAuthLogin, updateUser } from "@/lib/db/users";
+import { createUser, getUserByEmail, markUserEmailVerified, recordNativeOAuthLogin, updateUser } from "@/lib/db/users";
 import { createNativeOAuthToken, hashNativeOAuthToken, normalizeNativeCallback } from "@/lib/native-oauth";
 import { verifyAppleIdentityToken } from "@/lib/apple-native-auth";
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { tryEnqueueVerifiedAccountOutcome } from "@/lib/server/tracker-outcome-events";
 
 type NativeAppleRequest = {
   identityToken?: string;
@@ -102,6 +103,12 @@ export async function POST(request: NextRequest) {
     providerAccountId: appleUserId,
     userId: user._id,
     now,
+  });
+
+  const verifiedUser = await markUserEmailVerified(user._id.toString(), now);
+  tryEnqueueVerifiedAccountOutcome({
+    userId: user._id.toString(),
+    verifiedAt: verifiedUser.emailVerified!,
   });
 
   const token = createNativeOAuthToken();

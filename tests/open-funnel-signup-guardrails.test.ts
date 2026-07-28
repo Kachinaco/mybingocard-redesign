@@ -37,6 +37,10 @@ describe("open-funnel signup guardrails", () => {
   const emailCaptureSource = readSource("components/EmailCapture.tsx");
   const honeypotSource = readSource("lib/honeypot.ts");
   const proxySource = readSource("proxy.ts");
+  const authSource = readSource("auth.ts");
+  const verifyEmailSource = readSource("app/api/auth/verify-email/route.ts");
+  const nativeAppleSource = readSource("app/api/native/oauth/apple/native/route.ts");
+  const trackerOutcomeEventsSource = readSource("lib/server/tracker-outcome-events.ts");
 
   test("critical signup and tracking paths use safe storage wrappers", () => {
     for (const source of [
@@ -129,6 +133,22 @@ describe("open-funnel signup guardrails", () => {
     expect(proxySource).toContain('SERVER_ACTION_PATHS = ["/admin/errors"]');
     expect(proxySource).toContain("function isUnsupportedServerActionRequest");
     expect(proxySource).toContain("!isSupportedServerActionPath(req.nextUrl.pathname)");
+  });
+
+  test("verified account outcomes follow durable state and never block auth", () => {
+    expect(verifyEmailSource.indexOf("await markUserEmailVerified"))
+      .toBeLessThan(verifyEmailSource.indexOf("tryEnqueueVerifiedAccountOutcome({"));
+    expect(authSource.indexOf("await markUserEmailVerified"))
+      .toBeLessThan(authSource.indexOf("tryEnqueueVerifiedAccountOutcome({"));
+    expect(nativeAppleSource.indexOf("await upsertAuthAccountForUser"))
+      .toBeLessThan(nativeAppleSource.indexOf("await markUserEmailVerified"));
+    expect(nativeAppleSource.indexOf("await markUserEmailVerified"))
+      .toBeLessThan(nativeAppleSource.indexOf("tryEnqueueVerifiedAccountOutcome({"));
+    expect(trackerOutcomeEventsSource).toContain(
+      "reconciliation will retry it"
+    );
+    expect(trackerOutcomeEventsSource).not.toContain("email:");
+    expect(trackerOutcomeEventsSource).not.toContain("token:");
   });
 
   test("public proxy requests do not invoke Auth.js unless auth is needed", () => {

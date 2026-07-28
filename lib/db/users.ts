@@ -21,6 +21,12 @@ export interface User {
   cancelAtPeriodEnd?: boolean;
   cancelAt?: Date | null;
   trialEndsAt?: Date | null;
+  purchaseProvider?: "stripe" | "apple";
+  appleProductId?: string | null;
+  appleTransactionId?: string | null;
+  appleOriginalTransactionId?: string | null;
+  appleEnvironment?: string | null;
+  appleAppAccountToken?: string | null;
   billingPastDueSince?: Date | null;
   billingLastPaymentFailedAt?: Date | null;
   billingNextPaymentAttempt?: Date | null;
@@ -265,6 +271,53 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 
 export async function getUserById(id: string): Promise<User | null> {
   return getSqliteStore().findOne<User>("users", { _id: new ObjectId(id) });
+}
+
+export async function getUserByAppleAppAccountToken(token: string): Promise<User | null> {
+  return getSqliteStore().findOne<User>("users", { appleAppAccountToken: token });
+}
+
+export async function getUserByAppleTransactionIdentity(input: {
+  transactionId?: string | null;
+  originalTransactionId?: string | null;
+}): Promise<User | null> {
+  const store = getSqliteStore();
+  if (input.transactionId) {
+    const exact = store.findOne<User>("users", { appleTransactionId: input.transactionId });
+    if (exact) return exact;
+  }
+  if (input.originalTransactionId) {
+    return store.findOne<User>("users", {
+      appleOriginalTransactionId: input.originalTransactionId,
+    });
+  }
+  return null;
+}
+
+export async function getOrCreateAppleAppAccountToken(userId: string): Promise<string> {
+  const existing = await getUserById(userId);
+  if (!existing) throw new Error("User not found");
+  if (existing.appleAppAccountToken) return existing.appleAppAccountToken;
+
+  const token = crypto.randomUUID();
+  getSqliteStore().updateOne<User>(
+    "users",
+    {
+      _id: new ObjectId(userId),
+      $or: [
+        { appleAppAccountToken: { $exists: false } },
+        { appleAppAccountToken: null },
+        { appleAppAccountToken: "" },
+      ],
+    },
+    { $set: { appleAppAccountToken: token, updatedAt: new Date() } },
+  );
+
+  const persisted = await getUserById(userId);
+  if (!persisted?.appleAppAccountToken) {
+    throw new Error("Could not persist Apple account token");
+  }
+  return persisted.appleAppAccountToken;
 }
 
 export async function getUsersForExport(): Promise<UserExportRow[]> {
@@ -525,6 +578,44 @@ export async function updateUser(
     },
     { returnDocument: "after" }
   );
+}
+
+export async function markUserEmailVerified(
+  id: string,
+  verifiedAt = new Date()
+): Promise<User> {
+  const objectId = new ObjectId(id);
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const existing = getSqliteStore().findOne<User>("users", { _id: objectId });
+    if (!existing) throw new Error("User not found");
+    if (existing.emailVerified) return existing;
+
+    const updated = getSqliteStore().findOneAndUpdateAtomic<User>(
+      "users",
+      {
+        _id: objectId,
+        $or: [
+          { emailVerified: { $exists: false } },
+          { emailVerified: null },
+        ],
+      },
+      {
+        $set: {
+          emailVerified: verifiedAt,
+          updatedAt: new Date(),
+        },
+      },
+      { returnDocument: "after" }
+    );
+    if (updated?.emailVerified) return updated;
+  }
+
+  const persisted = await getUserById(id);
+  if (!persisted?.emailVerified) {
+    throw new Error("Could not persist email verification");
+  }
+  return persisted;
 }
 
 export async function recordNativeOAuthLogin(

@@ -113,6 +113,8 @@ const FRICTION_EVENTS = new Set([
   "rage_click",
   "slow_page_load",
   "card_save_blocked",
+  "card_draft_left_unsaved",
+  // Legacy name retained so historical rows remain visible in journey reports.
   "card_draft_lost",
   "login_failed",
   "signup_failed",
@@ -292,8 +294,11 @@ function buildFlags({ user, events, cards, subscription, supportTickets, emailPr
   if ((counts.get("card_save_blocked") || 0) > 0) {
     add("medium", "card_save_blocked", `${counts.get("card_save_blocked")} save-blocked event(s)`);
   }
-  if ((counts.get("card_draft_lost") || 0) > 0) {
-    add("medium", "card_draft_lost", `${counts.get("card_draft_lost")} draft-lost event(s)`);
+  const draftsLeftAccountUnsaved =
+    (counts.get("card_draft_left_unsaved") || 0) +
+    (counts.get("card_draft_lost") || 0);
+  if (draftsLeftAccountUnsaved > 0) {
+    add("medium", "card_draft_left_unsaved", `${draftsLeftAccountUnsaved} draft exit(s) without an account save`);
   }
   if ((counts.get("card_limit_reached") || 0) > 0) {
     add("medium", "card_limit_reached", `${counts.get("card_limit_reached")} card-limit event(s)`);

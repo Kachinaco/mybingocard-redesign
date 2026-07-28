@@ -20,6 +20,10 @@ describe("checkout funnel guardrails", () => {
     "utf8"
   );
   const stripeConfigSource = readFileSync(resolve(process.cwd(), "lib/stripe/config.ts"), "utf8");
+  const stripeWebhookSource = readFileSync(
+    resolve(process.cwd(), "app/api/stripe/webhook/route.ts"),
+    "utf8"
+  );
   const adminExtendTrialRouteSource = readFileSync(
     resolve(process.cwd(), "app/api/admin/users/[id]/extend-trial/route.ts"),
     "utf8"
@@ -70,6 +74,30 @@ describe("checkout funnel guardrails", () => {
     expect(adminExtendTrialRouteSource).not.toContain("stripe.subscriptions.update");
     expect(adminUserDetailSource).not.toContain("Extend Trial");
     expect(adminUserDetailSource).not.toContain("extendTrial");
+  });
+
+  it("records verified payments only from signed Stripe webhooks", () => {
+    expect(stripeWebhookSource).toContain("stripe.webhooks.constructEvent");
+    expect(stripeWebhookSource).toContain("claimStripeWebhookEvent");
+    expect(stripeWebhookSource).toContain("enqueuePaidCheckoutOutcome");
+    expect(stripeWebhookSource).toContain("enqueueStripeRefundOutcome");
+    expect(stripeWebhookSource).toContain("enqueueStripeDisputeOutcome");
+    expect(stripeWebhookSource.indexOf("stripe.webhooks.constructEvent"))
+      .toBeLessThan(stripeWebhookSource.lastIndexOf("enqueuePaidCheckoutOutcome("));
+    expect(stripeWebhookSource.indexOf("enqueueStripePaymentOutcome({"))
+      .toBeLessThan(stripeWebhookSource.indexOf("await completeStripeWebhookEvent"));
+    expect(stripeWebhookSource).toContain("occurredAt: batchPurchase.purchasedAt");
+    expect(stripeWebhookSource).toContain(
+      "calculateIncrementalStripeRefundAmount("
+    );
+    expect(stripeWebhookSource).toContain(
+      "amountMinor: incrementalRefundAmount"
+    );
+    expect(stripeWebhookSource).not.toContain(
+      "amountMinor: charge.amount_refunded || charge.amount"
+    );
+    expect(embeddedCheckoutRouteSource).not.toContain("enqueueStripePaymentOutcome");
+    expect(createCheckoutRouteSource).not.toContain("enqueueStripePaymentOutcome");
   });
 
   it("loads Stripe.js only after checkout is opened", () => {

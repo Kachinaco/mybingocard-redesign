@@ -210,7 +210,7 @@ export function EmailCaptureInline() {
         <h3 className="text-xl font-bold text-slate-900">Get 5 Starter Template Ideas</h3>
         <p className="text-slate-500 text-sm mt-1">Wedding, classroom, and party designs. Yours free.</p>
       </div>
-      <form onSubmit={handleSubmit} className="flex gap-3 max-w-md mx-auto">
+      <form onSubmit={handleSubmit} className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row">
         <div className="absolute left-[-10000px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
           <label htmlFor="inline-company-name">Company</label>
           <input
@@ -228,12 +228,12 @@ export function EmailCaptureInline() {
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@email.com"
           required
-          className="flex-1 px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition text-sm"
+          className="min-w-0 w-full flex-1 px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition text-sm"
         />
         <button
           type="submit"
           disabled={status === "loading"}
-          className="px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-bold text-sm hover:shadow-lg transition-all disabled:opacity-60 whitespace-nowrap"
+          className="w-full px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-bold text-sm hover:shadow-lg transition-all disabled:opacity-60 whitespace-nowrap sm:w-auto"
         >
           {status === "loading" ? "..." : "Get Free Templates"}
         </button>

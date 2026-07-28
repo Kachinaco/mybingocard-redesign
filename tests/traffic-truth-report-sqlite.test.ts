@@ -2,12 +2,12 @@ import { describe, expect, test } from "bun:test";
 import { Database } from "bun:sqlite";
 import { EJSON, ObjectId } from "bson";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 describe("traffic truth report SQLite backend", () => {
-  test("summarizes first-party activity_events from the shadow document store", () => {
+  test("summarizes SQLite activity and separates human chunk failures from automation", () => {
     const dir = mkdtempSync(join(tmpdir(), "mybingocard-traffic-truth-"));
     const dbPath = join(dir, "shadow.sqlite");
     const logDir = join(dir, "logs");
@@ -82,6 +82,16 @@ describe("traffic truth report SQLite backend", () => {
       });
       db.close();
 
+      mkdirSync(logDir, { recursive: true });
+      const at = new Date(Date.now() - 1000);
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const pad = (value: number) => String(value).padStart(2, "0");
+      const nginxTime = `${pad(at.getUTCDate())}/${months[at.getUTCMonth()]}/${at.getUTCFullYear()}:${pad(at.getUTCHours())}:${pad(at.getUTCMinutes())}:${pad(at.getUTCSeconds())} +0000`;
+      writeFileSync(join(logDir, "mybingocard.com.access.log"), [
+        `203.0.113.10 - - [${nginxTime}] "GET /_next/static/chunks/human-stale.js HTTP/1.1" 404 123 "-" "Mozilla/5.0 Safari/605.1.15"`,
+        `203.0.113.20 - - [${nginxTime}] "GET /_next/static/chunks/automation-stale.js HTTP/1.1" 404 123 "-" "Mozilla/5.0 HeadlessChrome/126.0"`,
+      ].join("\n"));
+
       const result = spawnSync("node", ["scripts/traffic-truth-report.cjs", "--days", "1", "--no-write", "--json"], {
         cwd: process.cwd(),
         env: {
@@ -105,6 +115,16 @@ describe("traffic truth report SQLite backend", () => {
       expect(result.stdout).toContain('"cleanPageViews": 1');
       expect(result.stdout).toContain('"pageViews": 2');
       expect(result.stdout).toContain('"sessions": 1');
+      expect(result.stdout).toContain("Regression flags: 1 human stale/missing Next chunk failures in nginx logs");
+      expect(result.stdout).toContain("| Human chunk | Automation chunk |");
+      expect(result.stdout).toContain("Automation/bot JS/CSS chunk failures: 1 (diagnostic only; excluded from regression flags)");
+      expect(result.stdout).toContain("(Next chunk failure; human traffic)");
+      expect(result.stdout).toContain("(Next chunk failure; automation/bot traffic)");
+      expect(result.stdout).toContain('"humanChunkFailures": 1');
+      expect(result.stdout).toContain('"automationChunkFailures": 1');
+      expect(result.stdout).not.toContain('"chunkFailures":');
+      expect(result.stdout).toContain('"kind": "next_chunk_failure"');
+      expect(result.stdout).toContain('"traffic": "automation"');
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

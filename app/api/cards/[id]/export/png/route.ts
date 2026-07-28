@@ -3,7 +3,18 @@ import { auth } from "@/auth";
 import { getCardById } from "@/lib/db/cards";
 import { getUserByEmail, incrementUserCounter } from "@/lib/db/users";
 import { canExportHD, canRemoveBranding } from "@/lib/permissions";
-import puppeteer from "puppeteer";
+import puppeteer, { type Browser } from "puppeteer";
+import { mkdtemp } from "node:fs/promises";
+import { rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { materializePdfImageCells } from "@/lib/pdf-image-assets";
+import { getPuppeteerLaunchOptions } from "@/lib/server/chromium";
+import {
+  hardenExportPage,
+  renderExportCellContent,
+  sanitizeExportStyle,
+} from "@/lib/server/export-html";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyCardExported } from "@/lib/discord";
 import {
@@ -18,6 +29,9 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let tempAssetDir: string | null = null;
+  let browser: Browser | null = null;
+
   try {
     const session = await auth();
     const requestContext = getRequestActivityContext(request);
@@ -60,17 +74,26 @@ export async function POST(
     const hdPermission = canExportHD(user.planType);
     const brandingPermission = canRemoveBranding(user.planType);
 
-    // Generate HTML for the bingo card
-    const html = generateCardHTML(card, brandingPermission.allowed, hdPermission.allowed);
-
-    // Launch headless browser
-    const browser = await puppeteer.launch({
-      executablePath: "/usr/bin/google-chrome",
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    tempAssetDir = await mkdtemp(join(tmpdir(), "mybingocard-png-"));
+    const materialized = await materializePdfImageCells(card.cells, {
+      assetDir: tempAssetDir,
+      cache: new Map(),
+      cardOwnerUserId: card.userId.toString(),
     });
 
+    // Generate HTML for the bingo card
+    const html = generateCardHTML(
+      { ...card, cells: materialized.cells },
+      brandingPermission.allowed,
+      hdPermission.allowed,
+      tempAssetDir,
+    );
+
+    // Launch headless browser
+    browser = await puppeteer.launch(getPuppeteerLaunchOptions());
+
     const page = await browser.newPage();
+    await hardenExportPage(page, { allowedFileRoot: tempAssetDir });
 
     // Set viewport based on HD permission
     const viewportSize = hdPermission.allowed ? 2400 : 1200;
@@ -93,6 +116,7 @@ export async function POST(
     });
 
     await browser.close();
+    browser = null;
 
     await trackActivity({
       event: "export_png",
@@ -135,11 +159,26 @@ export async function POST(
       { error: "Failed to generate PNG" },
       { status: 500 }
     );
+  } finally {
+    if (browser) {
+      await browser.close().catch((error) => {
+        console.error("PNG browser cleanup error:", error);
+      });
+    }
+    if (tempAssetDir) {
+      rmSync(tempAssetDir, { recursive: true, force: true });
+    }
   }
 }
 
-function generateCardHTML(card: any, removeBranding: boolean, isHD: boolean): string {
-  const { title, description, size, cells, freeSpace, style } = card;
+function generateCardHTML(
+  card: any,
+  removeBranding: boolean,
+  isHD: boolean,
+  allowedFileRoot?: string | null,
+): string {
+  const { title, description, size, cells, freeSpace } = card;
+  const style = sanitizeExportStyle(card.style);
   const variant = normalizeBingoVariant(card.bingoVariant);
   const shape = getBingoGridShape(card);
   const freeSpaceIndex = getFreeSpaceIndexForGrid({
@@ -290,7 +329,7 @@ function generateCardHTML(card: any, removeBranding: boolean, isHD: boolean): st
       </head>
       <body>
         <div class="container">
-          \${!removeBranding ? '<div class="watermark-overlay"><div class="watermark-text">MyBingoCard.com</div></div>' : ""}
+          ${!removeBranding ? '<div class="watermark-overlay"><div class="watermark-text">MyBingoCard.com</div></div>' : ""}
           <div class="header">
             <div class="title">${escapeHtml(title)}</div>
             ${description ? `<div class="description">${escapeHtml(description)}</div>` : ""}
@@ -303,25 +342,19 @@ function generateCardHTML(card: any, removeBranding: boolean, isHD: boolean): st
               .map((cell: string, index: number) => {
                 const isFreeSpace = freeSpace && index === freeSpaceIndex;
                 const isBlank = isBlankClassicCell(cell, variant);
-                let cellContent = escapeHtml(formatClassicCellLabel(cell, variant));
+                let cellContent = renderExportCellContent(
+                  cell,
+                  formatClassicCellLabel(cell, variant),
+                  { allowedFileRoot },
+                );
                 let extraStyle = "";
                 if (!isFreeSpace && cell.startsWith("__IMG__:")) {
-                  try {
-                    const imgData = JSON.parse(cell.slice(8));
-                    const imgUrl = imgData.imageUrl?.startsWith("/")
-                      ? "https://mybingocard.com" + imgData.imageUrl
-                      : imgData.imageUrl;
-                    const labelStyle = imgData.fit === 'cover' ? 'position:relative;z-index:1;background:rgba(0,0,0,0.4);color:#fff;border-radius:3px;padding:1px 3px;' : '';
-                    const label = imgData.label ? '<div style="font-size:0.65em;margin-top:4px;text-align:center;' + labelStyle + '">' + escapeHtml(imgData.label) + '</div>' : "";
-                    if (imgData.fit === "cover") {
-                      cellContent = '<img src="' + imgUrl + '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;" />' + label;
-                      extraStyle = "position:relative;overflow:hidden;";
-                    } else {
-                      const maxH = label ? "65%" : "85%";
-                      cellContent = '<img src="' + imgUrl + '" style="max-width:90%;max-height:' + maxH + ';object-fit:contain;" />' + label;
-                      extraStyle = "flex-direction:column;";
-                    }
-                  } catch { /* fall through to text */ }
+                  const imageContent = cellContent;
+                  if (imageContent) {
+                    extraStyle = imageContent.includes("position:absolute")
+                      ? "position:relative;overflow:hidden;"
+                      : "flex-direction:column;";
+                  }
                 }
                 if (isBlank) {
                   extraStyle += "background:#fff7ed;border-style:dashed;border-color:#fed7aa;";

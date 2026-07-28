@@ -1,0 +1,840 @@
+{
+  "generatedAt": "2026-07-16T18:21:14.955Z",
+  "networkPolicy": "Only localhost/file GET/HEAD requests allowed; all API, tracker, non-local, and mutating requests aborted.",
+  "widths": [
+    320,
+    360,
+    375,
+    389,
+    390,
+    391,
+    414,
+    430
+  ],
+  "results": [
+    {
+      "page": "homepage",
+      "width": 320,
+      "status": 200,
+      "viewport": 320,
+      "documentScrollWidth": 320,
+      "header": {
+        "top": 0,
+        "bottom": 65,
+        "left": 0,
+        "right": 320,
+        "width": 320,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create",
+        "rect": {
+          "top": 14,
+          "bottom": 50,
+          "left": 159.2,
+          "right": 256,
+          "width": 96.8,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": false,
+      "emailCapture": {
+        "flexDirection": "column",
+        "form": {
+          "top": 12443.8,
+          "bottom": 12545.8,
+          "left": 49,
+          "right": 271,
+          "width": 222,
+          "height": 102
+        },
+        "input": {
+          "top": 12443.8,
+          "bottom": 12489.8,
+          "left": 49,
+          "right": 271,
+          "width": 222,
+          "height": 46
+        },
+        "button": {
+          "top": 12501.8,
+          "bottom": 12545.8,
+          "left": 49,
+          "right": 271,
+          "width": 222,
+          "height": 44
+        }
+      },
+      "productOrder": {
+        "demoLabel": {
+          "top": 1098.6,
+          "bottom": 1123.5,
+          "left": 36.8,
+          "right": 291.2,
+          "width": 254.4,
+          "height": 24.9
+        },
+        "appStoreLink": {
+          "top": 1486,
+          "bottom": 1534,
+          "left": 96.2,
+          "right": 223.8,
+          "width": 127.7,
+          "height": 48
+        }
+      }
+    },
+    {
+      "page": "seo-landing",
+      "width": 320,
+      "status": 200,
+      "viewport": 320,
+      "documentScrollWidth": 320,
+      "header": {
+        "left": 0,
+        "right": 320,
+        "top": 0,
+        "bottom": 65,
+        "width": 320,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create?templateId=seo-bingo-board-generator&title=Printable+Bingo+Board&size=5&cells=%5B%22Welcome%22%2C%22Prize%22%2C%22Question%22%2C%22Photo%22%2C%22Team%22%2C%22Laugh%22%2C%22Music%22%2C%22Winner%22%2C%22Share%22%2C%22Round%22%2C%22Guest%22%2C%22Board%22%2C%22%22%2C%22Prompt%22%2C%22Bingo%22%2C%22Friend%22%2C%22Host%22%2C%22Theme%22%2C%22Card%22%2C%22Play%22%2C%22Marker%22%2C%22Table%22%2C%22Caller%22%2C%22Gift%22%2C%22Finish%22%5D&freeSpace=true",
+        "rect": {
+          "left": 199,
+          "right": 304,
+          "top": 14,
+          "bottom": 50,
+          "width": 105,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": false
+    },
+    {
+      "page": "homepage",
+      "width": 360,
+      "status": 200,
+      "viewport": 360,
+      "documentScrollWidth": 360,
+      "header": {
+        "top": 0,
+        "bottom": 65,
+        "left": 0,
+        "right": 360,
+        "width": 360,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create",
+        "rect": {
+          "top": 14,
+          "bottom": 50,
+          "left": 199.2,
+          "right": 296,
+          "width": 96.8,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": false,
+      "emailCapture": {
+        "flexDirection": "column",
+        "form": {
+          "top": 11598.2,
+          "bottom": 11700.2,
+          "left": 49,
+          "right": 311,
+          "width": 262,
+          "height": 102
+        },
+        "input": {
+          "top": 11598.2,
+          "bottom": 11644.2,
+          "left": 49,
+          "right": 311,
+          "width": 262,
+          "height": 46
+        },
+        "button": {
+          "top": 11656.2,
+          "bottom": 11700.2,
+          "left": 49,
+          "right": 311,
+          "width": 262,
+          "height": 44
+        }
+      },
+      "productOrder": {
+        "demoLabel": {
+          "top": 961.1,
+          "bottom": 987.3,
+          "left": 37.5,
+          "right": 331.9,
+          "width": 294.4,
+          "height": 26.3
+        },
+        "appStoreLink": {
+          "top": 1389.2,
+          "bottom": 1437.2,
+          "left": 116.2,
+          "right": 243.8,
+          "width": 127.7,
+          "height": 48
+        }
+      }
+    },
+    {
+      "page": "seo-landing",
+      "width": 360,
+      "status": 200,
+      "viewport": 360,
+      "documentScrollWidth": 360,
+      "header": {
+        "left": 0,
+        "right": 360,
+        "top": 0,
+        "bottom": 65,
+        "width": 360,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create?templateId=seo-bingo-board-generator&title=Printable+Bingo+Board&size=5&cells=%5B%22Welcome%22%2C%22Prize%22%2C%22Question%22%2C%22Photo%22%2C%22Team%22%2C%22Laugh%22%2C%22Music%22%2C%22Winner%22%2C%22Share%22%2C%22Round%22%2C%22Guest%22%2C%22Board%22%2C%22%22%2C%22Prompt%22%2C%22Bingo%22%2C%22Friend%22%2C%22Host%22%2C%22Theme%22%2C%22Card%22%2C%22Play%22%2C%22Marker%22%2C%22Table%22%2C%22Caller%22%2C%22Gift%22%2C%22Finish%22%5D&freeSpace=true",
+        "rect": {
+          "left": 239,
+          "right": 344,
+          "top": 14,
+          "bottom": 50,
+          "width": 105,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": false
+    },
+    {
+      "page": "homepage",
+      "width": 375,
+      "status": 200,
+      "viewport": 375,
+      "documentScrollWidth": 375,
+      "header": {
+        "top": 0,
+        "bottom": 65,
+        "left": 0,
+        "right": 375,
+        "width": 375,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create",
+        "rect": {
+          "top": 14,
+          "bottom": 50,
+          "left": 214.2,
+          "right": 311,
+          "width": 96.8,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": false,
+      "emailCapture": {
+        "flexDirection": "column",
+        "form": {
+          "top": 11405.7,
+          "bottom": 11507.7,
+          "left": 49,
+          "right": 326,
+          "width": 277,
+          "height": 102
+        },
+        "input": {
+          "top": 11405.7,
+          "bottom": 11451.7,
+          "left": 49,
+          "right": 326,
+          "width": 277,
+          "height": 46
+        },
+        "button": {
+          "top": 11463.7,
+          "bottom": 11507.7,
+          "left": 49,
+          "right": 326,
+          "width": 277,
+          "height": 44
+        }
+      },
+      "productOrder": {
+        "demoLabel": {
+          "top": 960.8,
+          "bottom": 987.6,
+          "left": 37.8,
+          "right": 347.2,
+          "width": 309.4,
+          "height": 26.8
+        },
+        "appStoreLink": {
+          "top": 1404.2,
+          "bottom": 1452.2,
+          "left": 123.7,
+          "right": 251.3,
+          "width": 127.7,
+          "height": 48
+        }
+      }
+    },
+    {
+      "page": "seo-landing",
+      "width": 375,
+      "status": 200,
+      "viewport": 375,
+      "documentScrollWidth": 375,
+      "header": {
+        "left": 0,
+        "right": 375,
+        "top": 0,
+        "bottom": 65,
+        "width": 375,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create?templateId=seo-bingo-board-generator&title=Printable+Bingo+Board&size=5&cells=%5B%22Welcome%22%2C%22Prize%22%2C%22Question%22%2C%22Photo%22%2C%22Team%22%2C%22Laugh%22%2C%22Music%22%2C%22Winner%22%2C%22Share%22%2C%22Round%22%2C%22Guest%22%2C%22Board%22%2C%22%22%2C%22Prompt%22%2C%22Bingo%22%2C%22Friend%22%2C%22Host%22%2C%22Theme%22%2C%22Card%22%2C%22Play%22%2C%22Marker%22%2C%22Table%22%2C%22Caller%22%2C%22Gift%22%2C%22Finish%22%5D&freeSpace=true",
+        "rect": {
+          "left": 254,
+          "right": 359,
+          "top": 14,
+          "bottom": 50,
+          "width": 105,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": false
+    },
+    {
+      "page": "homepage",
+      "width": 389,
+      "status": 200,
+      "viewport": 389,
+      "documentScrollWidth": 389,
+      "header": {
+        "top": 0,
+        "bottom": 65,
+        "left": 0,
+        "right": 389,
+        "width": 389,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create",
+        "rect": {
+          "top": 14,
+          "bottom": 50,
+          "left": 228.2,
+          "right": 325,
+          "width": 96.8,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": false,
+      "emailCapture": {
+        "flexDirection": "column",
+        "form": {
+          "top": 11231.6,
+          "bottom": 11333.6,
+          "left": 49,
+          "right": 340,
+          "width": 291,
+          "height": 102
+        },
+        "input": {
+          "top": 11231.6,
+          "bottom": 11277.6,
+          "left": 49,
+          "right": 340,
+          "width": 291,
+          "height": 46
+        },
+        "button": {
+          "top": 11289.6,
+          "bottom": 11333.6,
+          "left": 49,
+          "right": 340,
+          "width": 291,
+          "height": 44
+        }
+      },
+      "productOrder": {
+        "demoLabel": {
+          "top": 940.6,
+          "bottom": 967.8,
+          "left": 38,
+          "right": 361.4,
+          "width": 323.4,
+          "height": 27.3
+        },
+        "appStoreLink": {
+          "top": 1398.1,
+          "bottom": 1446.1,
+          "left": 130.7,
+          "right": 258.3,
+          "width": 127.7,
+          "height": 48
+        }
+      }
+    },
+    {
+      "page": "seo-landing",
+      "width": 389,
+      "status": 200,
+      "viewport": 389,
+      "documentScrollWidth": 389,
+      "header": {
+        "left": 0,
+        "right": 389,
+        "top": 0,
+        "bottom": 65,
+        "width": 389,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create?templateId=seo-bingo-board-generator&title=Printable+Bingo+Board&size=5&cells=%5B%22Welcome%22%2C%22Prize%22%2C%22Question%22%2C%22Photo%22%2C%22Team%22%2C%22Laugh%22%2C%22Music%22%2C%22Winner%22%2C%22Share%22%2C%22Round%22%2C%22Guest%22%2C%22Board%22%2C%22%22%2C%22Prompt%22%2C%22Bingo%22%2C%22Friend%22%2C%22Host%22%2C%22Theme%22%2C%22Card%22%2C%22Play%22%2C%22Marker%22%2C%22Table%22%2C%22Caller%22%2C%22Gift%22%2C%22Finish%22%5D&freeSpace=true",
+        "rect": {
+          "left": 268,
+          "right": 373,
+          "top": 14,
+          "bottom": 50,
+          "width": 105,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": false
+    },
+    {
+      "page": "homepage",
+      "width": 390,
+      "status": 200,
+      "viewport": 390,
+      "documentScrollWidth": 390,
+      "header": {
+        "top": 0,
+        "bottom": 65,
+        "left": 0,
+        "right": 390,
+        "width": 390,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create",
+        "rect": {
+          "top": 14,
+          "bottom": 50,
+          "left": 229.2,
+          "right": 326,
+          "width": 96.8,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": true,
+      "emailCapture": {
+        "flexDirection": "column",
+        "form": {
+          "top": 11232.7,
+          "bottom": 11334.7,
+          "left": 49,
+          "right": 341,
+          "width": 292,
+          "height": 102
+        },
+        "input": {
+          "top": 11232.7,
+          "bottom": 11278.7,
+          "left": 49,
+          "right": 341,
+          "width": 292,
+          "height": 46
+        },
+        "button": {
+          "top": 11290.7,
+          "bottom": 11334.7,
+          "left": 49,
+          "right": 341,
+          "width": 292,
+          "height": 44
+        }
+      },
+      "productOrder": {
+        "demoLabel": {
+          "top": 940.6,
+          "bottom": 967.9,
+          "left": 38.1,
+          "right": 362.4,
+          "width": 324.4,
+          "height": 27.3
+        },
+        "appStoreLink": {
+          "top": 1399.2,
+          "bottom": 1447.2,
+          "left": 131.2,
+          "right": 258.8,
+          "width": 127.7,
+          "height": 48
+        }
+      }
+    },
+    {
+      "page": "seo-landing",
+      "width": 390,
+      "status": 200,
+      "viewport": 390,
+      "documentScrollWidth": 390,
+      "header": {
+        "left": 0,
+        "right": 390,
+        "top": 0,
+        "bottom": 65,
+        "width": 390,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create?templateId=seo-bingo-board-generator&title=Printable+Bingo+Board&size=5&cells=%5B%22Welcome%22%2C%22Prize%22%2C%22Question%22%2C%22Photo%22%2C%22Team%22%2C%22Laugh%22%2C%22Music%22%2C%22Winner%22%2C%22Share%22%2C%22Round%22%2C%22Guest%22%2C%22Board%22%2C%22%22%2C%22Prompt%22%2C%22Bingo%22%2C%22Friend%22%2C%22Host%22%2C%22Theme%22%2C%22Card%22%2C%22Play%22%2C%22Marker%22%2C%22Table%22%2C%22Caller%22%2C%22Gift%22%2C%22Finish%22%5D&freeSpace=true",
+        "rect": {
+          "left": 269,
+          "right": 374,
+          "top": 14,
+          "bottom": 50,
+          "width": 105,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": true
+    },
+    {
+      "page": "homepage",
+      "width": 391,
+      "status": 200,
+      "viewport": 391,
+      "documentScrollWidth": 391,
+      "header": {
+        "top": 0,
+        "bottom": 65,
+        "left": 0,
+        "right": 391,
+        "width": 391,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create",
+        "rect": {
+          "top": 14,
+          "bottom": 50,
+          "left": 230.2,
+          "right": 327,
+          "width": 96.8,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": true,
+      "emailCapture": {
+        "flexDirection": "column",
+        "form": {
+          "top": 11205.7,
+          "bottom": 11307.7,
+          "left": 49,
+          "right": 342,
+          "width": 293,
+          "height": 102
+        },
+        "input": {
+          "top": 11205.7,
+          "bottom": 11251.7,
+          "left": 49,
+          "right": 342,
+          "width": 293,
+          "height": 46
+        },
+        "button": {
+          "top": 11263.7,
+          "bottom": 11307.7,
+          "left": 49,
+          "right": 342,
+          "width": 293,
+          "height": 44
+        }
+      },
+      "productOrder": {
+        "demoLabel": {
+          "top": 940.6,
+          "bottom": 967.9,
+          "left": 38.1,
+          "right": 363.4,
+          "width": 325.4,
+          "height": 27.3
+        },
+        "appStoreLink": {
+          "top": 1400.2,
+          "bottom": 1448.2,
+          "left": 131.7,
+          "right": 259.3,
+          "width": 127.7,
+          "height": 48
+        }
+      }
+    },
+    {
+      "page": "seo-landing",
+      "width": 391,
+      "status": 200,
+      "viewport": 391,
+      "documentScrollWidth": 391,
+      "header": {
+        "left": 0,
+        "right": 391,
+        "top": 0,
+        "bottom": 65,
+        "width": 391,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create?templateId=seo-bingo-board-generator&title=Printable+Bingo+Board&size=5&cells=%5B%22Welcome%22%2C%22Prize%22%2C%22Question%22%2C%22Photo%22%2C%22Team%22%2C%22Laugh%22%2C%22Music%22%2C%22Winner%22%2C%22Share%22%2C%22Round%22%2C%22Guest%22%2C%22Board%22%2C%22%22%2C%22Prompt%22%2C%22Bingo%22%2C%22Friend%22%2C%22Host%22%2C%22Theme%22%2C%22Card%22%2C%22Play%22%2C%22Marker%22%2C%22Table%22%2C%22Caller%22%2C%22Gift%22%2C%22Finish%22%5D&freeSpace=true",
+        "rect": {
+          "left": 270,
+          "right": 375,
+          "top": 14,
+          "bottom": 50,
+          "width": 105,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": true
+    },
+    {
+      "page": "homepage",
+      "width": 414,
+      "status": 200,
+      "viewport": 414,
+      "documentScrollWidth": 414,
+      "header": {
+        "top": 0,
+        "bottom": 65,
+        "left": 0,
+        "right": 414,
+        "width": 414,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create",
+        "rect": {
+          "top": 14,
+          "bottom": 50,
+          "left": 253.2,
+          "right": 350,
+          "width": 96.8,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": true,
+      "emailCapture": {
+        "flexDirection": "column",
+        "form": {
+          "top": 11125.4,
+          "bottom": 11227.4,
+          "left": 49,
+          "right": 365,
+          "width": 316,
+          "height": 102
+        },
+        "input": {
+          "top": 11125.4,
+          "bottom": 11171.4,
+          "left": 49,
+          "right": 365,
+          "width": 316,
+          "height": 46
+        },
+        "button": {
+          "top": 11183.4,
+          "bottom": 11227.4,
+          "left": 49,
+          "right": 365,
+          "width": 316,
+          "height": 44
+        }
+      },
+      "productOrder": {
+        "demoLabel": {
+          "top": 910.9,
+          "bottom": 939,
+          "left": 38.5,
+          "right": 386.8,
+          "width": 348.3,
+          "height": 28.1
+        },
+        "appStoreLink": {
+          "top": 1393.9,
+          "bottom": 1441.9,
+          "left": 143.2,
+          "right": 270.8,
+          "width": 127.7,
+          "height": 48
+        }
+      }
+    },
+    {
+      "page": "seo-landing",
+      "width": 414,
+      "status": 200,
+      "viewport": 414,
+      "documentScrollWidth": 414,
+      "header": {
+        "left": 0,
+        "right": 414,
+        "top": 0,
+        "bottom": 65,
+        "width": 414,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create?templateId=seo-bingo-board-generator&title=Printable+Bingo+Board&size=5&cells=%5B%22Welcome%22%2C%22Prize%22%2C%22Question%22%2C%22Photo%22%2C%22Team%22%2C%22Laugh%22%2C%22Music%22%2C%22Winner%22%2C%22Share%22%2C%22Round%22%2C%22Guest%22%2C%22Board%22%2C%22%22%2C%22Prompt%22%2C%22Bingo%22%2C%22Friend%22%2C%22Host%22%2C%22Theme%22%2C%22Card%22%2C%22Play%22%2C%22Marker%22%2C%22Table%22%2C%22Caller%22%2C%22Gift%22%2C%22Finish%22%5D&freeSpace=true",
+        "rect": {
+          "left": 293,
+          "right": 398,
+          "top": 14,
+          "bottom": 50,
+          "width": 105,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": true
+    },
+    {
+      "page": "homepage",
+      "width": 430,
+      "status": 200,
+      "viewport": 430,
+      "documentScrollWidth": 430,
+      "header": {
+        "top": 0,
+        "bottom": 65,
+        "left": 0,
+        "right": 430,
+        "width": 430,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create",
+        "rect": {
+          "top": 14,
+          "bottom": 50,
+          "left": 269.2,
+          "right": 366,
+          "width": 96.8,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": true,
+      "emailCapture": {
+        "flexDirection": "column",
+        "form": {
+          "top": 11040.7,
+          "bottom": 11142.7,
+          "left": 49,
+          "right": 381,
+          "width": 332,
+          "height": 102
+        },
+        "input": {
+          "top": 11040.7,
+          "bottom": 11086.7,
+          "left": 49,
+          "right": 381,
+          "width": 332,
+          "height": 46
+        },
+        "button": {
+          "top": 11098.7,
+          "bottom": 11142.7,
+          "left": 49,
+          "right": 381,
+          "width": 332,
+          "height": 44
+        }
+      },
+      "productOrder": {
+        "demoLabel": {
+          "top": 910.6,
+          "bottom": 939.3,
+          "left": 38.8,
+          "right": 403.1,
+          "width": 364.3,
+          "height": 28.7
+        },
+        "appStoreLink": {
+          "top": 1409.9,
+          "bottom": 1457.9,
+          "left": 151.2,
+          "right": 278.8,
+          "width": 127.7,
+          "height": 48
+        }
+      }
+    },
+    {
+      "page": "seo-landing",
+      "width": 430,
+      "status": 200,
+      "viewport": 430,
+      "documentScrollWidth": 430,
+      "header": {
+        "left": 0,
+        "right": 430,
+        "top": 0,
+        "bottom": 65,
+        "width": 430,
+        "height": 65
+      },
+      "headerOverflow": [],
+      "createAction": {
+        "visible": true,
+        "href": "/create?templateId=seo-bingo-board-generator&title=Printable+Bingo+Board&size=5&cells=%5B%22Welcome%22%2C%22Prize%22%2C%22Question%22%2C%22Photo%22%2C%22Team%22%2C%22Laugh%22%2C%22Music%22%2C%22Winner%22%2C%22Share%22%2C%22Round%22%2C%22Guest%22%2C%22Board%22%2C%22%22%2C%22Prompt%22%2C%22Bingo%22%2C%22Friend%22%2C%22Host%22%2C%22Theme%22%2C%22Card%22%2C%22Play%22%2C%22Marker%22%2C%22Table%22%2C%22Caller%22%2C%22Gift%22%2C%22Finish%22%5D&freeSpace=true",
+        "rect": {
+          "left": 309,
+          "right": 414,
+          "top": 14,
+          "bottom": 50,
+          "width": 105,
+          "height": 36
+        }
+      },
+      "wordmarkVisible": true
+    }
+  ]
+}

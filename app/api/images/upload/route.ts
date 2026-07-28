@@ -14,7 +14,8 @@ import sharp from "sharp";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const UPLOAD_BASE = "/var/www/mybingocard.com/uploads";
+const UPLOAD_BASE = process.env.MYBINGOCARD_UPLOAD_BASE?.trim()
+  || "/var/www/mybingocard.com/uploads";
 const MAX_DIMENSION = 800;
 const THUMB_DIMENSION = 150;
 const WEBP_QUALITY = 80;

@@ -119,6 +119,29 @@ function BingoCardDemo() {
   );
 }
 
+function HomeAppStorePromo({ className = "" }: { className?: string }) {
+  return (
+    <div className={`mt-4 flex flex-col items-center gap-2 lg:items-start ${className}`}>
+      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Also available for iPhone</p>
+      <a
+        href={IOS_APP_STORE_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Download MyBingoCard on the App Store"
+        className="inline-flex h-12 items-center justify-center rounded-lg px-1 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      >
+        <img
+          src="/badges/download-on-the-app-store.svg"
+          alt="Download on the App Store"
+          width={120}
+          height={40}
+          className="h-10 w-auto"
+        />
+      </a>
+    </div>
+  );
+}
+
 function FeatureCard({ icon, title, description, delay = "" }: { icon: React.ReactNode; title: string; description: string; delay?: string }) {
   return (
     <div className={`group bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 border border-slate-100 hover:border-indigo-100 animate-fade-in-up ${delay}`}>
@@ -215,24 +238,7 @@ export default function Home() {
                   Create, customize, save one card, and export an individual PDF or PNG for free. Paid batches, player links, and live hosting are optional.
                 </p>
 
-                <div className="mt-4 flex flex-col items-center gap-2 lg:items-start">
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Also available for iPhone</p>
-                  <a
-                    href={IOS_APP_STORE_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Download MyBingoCard on the App Store"
-                    className="inline-flex h-12 items-center justify-center rounded-lg px-1 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                  >
-                    <img
-                      src="/badges/download-on-the-app-store.svg"
-                      alt="Download on the App Store"
-                      width={120}
-                      height={40}
-                      className="h-10 w-auto"
-                    />
-                  </a>
-                </div>
+                <HomeAppStorePromo className="hidden lg:flex" />
 
                 <div className="mt-6 flex items-center justify-center lg:justify-start gap-4 text-sm text-slate-500">
                   <div className="flex -space-x-3">
@@ -255,6 +261,8 @@ export default function Home() {
               <div className="relative">
                 <BingoCardDemo />
               </div>
+
+              <HomeAppStorePromo className="lg:hidden" />
             </div>
           </div>
         </section>

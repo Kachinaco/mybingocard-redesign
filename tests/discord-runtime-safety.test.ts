@@ -17,7 +17,7 @@ describe("Discord runtime safety", () => {
       calls += 1;
       payload = JSON.parse(String(init?.body || "{}"));
       return new Response(null, { status: calls === 1 ? 500 : 204 });
-    }) as typeof fetch;
+    }) as unknown as typeof fetch;
 
     try {
       const delivered = await sendDiscordNotification(
@@ -66,7 +66,7 @@ describe("Discord runtime safety", () => {
     globalThis.fetch = (async () => {
       calls += 1;
       return new Response("failed", { status: 500 });
-    }) as typeof fetch;
+    }) as unknown as typeof fetch;
     (globalThis as any).__myBingoCardServerErrorAlertState = new Map();
 
     const request = { path: "/api/no-send", method: "GET", headers: {} } as any;

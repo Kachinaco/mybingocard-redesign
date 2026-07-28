@@ -56,7 +56,11 @@ import {
   revokeSharedLinksByStripeSession,
 } from "@/lib/db/sharedLinks";
 import { getCardTitlesByIds, getOwnedCardIds } from "@/lib/db/cards";
-import { updateUserBillingRecoveryState } from "@/lib/db/users";
+import {
+  getOrCreateAppleAppAccountToken,
+  getUserByAppleAppAccountToken,
+  updateUserBillingRecoveryState,
+} from "@/lib/db/users";
 import {
   claimStripeWebhookEvent,
   completeStripeWebhookEvent,
@@ -108,8 +112,17 @@ import {
 import { upsertVisitorProfileIdentification } from "@/lib/db/analytics-identify";
 import {
   applyApplePremiumEntitlement,
+  claimAppleIapTransactionOwnership,
+  getAppleIapTransaction,
+  isAppleIapLineageStateStale,
+  recordAppleIapLineageState,
+  revokeApplePremiumEntitlement,
   upsertAppleIapTransaction,
 } from "@/lib/db/apple-iap";
+import {
+  beginAppleIapNotification,
+  finishAppleIapNotification,
+} from "@/lib/db/apple-iap-notifications";
 import { closeSqliteStoreForTests, setSqliteStoreForTests } from "@/lib/db/sqlite";
 import { SqliteDocumentStore, type SqliteDocument } from "@/lib/sqlite-document-store";
 
@@ -977,7 +990,7 @@ describe("SQLite-backed DB modules", () => {
     process.env.MYBINGOCARD_ERRORS_WEBHOOK_URL = "https://discord.invalid/no-send-test";
     process.env.MYBINGOCARD_DISCORD_MAX_ATTEMPTS = "1";
     const originalFetch = globalThis.fetch;
-    globalThis.fetch = (async () => new Response("failed", { status: 500 })) as typeof fetch;
+    globalThis.fetch = (async () => new Response("failed", { status: 500 })) as unknown as typeof fetch;
     try {
       const delivered = await notifyClientErrorCaptured({
         fingerprint,
@@ -989,7 +1002,11 @@ describe("SQLite-backed DB modules", () => {
         sessionId: doc.sessionId,
         anonymousId: doc.anonymousId,
         severity: doc.severity,
-        breadcrumbs: doc.breadcrumbs,
+        breadcrumbs: doc.breadcrumbs as Array<{
+          type?: string;
+          message?: string;
+          timestamp?: string;
+        }>,
       });
       expect(delivered).toBe(false);
       expect(await releaseClientErrorCaptureNotification({
@@ -1365,5 +1382,157 @@ describe("SQLite-backed DB modules", () => {
       appleTransactionId: "apple-premium-1",
     });
     expect(user?.trialEndsAt?.toISOString()).toBe(expiresDate.toISOString());
+
+    const revokedAt = new Date("2026-07-03T01:00:00.000Z");
+    expect(await revokeApplePremiumEntitlement({
+      userId,
+      transactionId: "apple-premium-1",
+      originalTransactionId: "apple-original-premium-1",
+      revokedAt,
+    })).toBe(true);
+    expect(store.findOne("users", { _id: userId })).toMatchObject({
+      planType: "FREE",
+      subscriptionStatus: "canceled",
+      currentPeriodEnd: revokedAt,
+    });
+  });
+
+  test("Apple app-account tokens are stable and resolve to exactly one local user", async () => {
+    const { store } = createFixture();
+    const userId = new ObjectId("64f000000000000000006009");
+    store.insertOne("users", {
+      _id: userId,
+      email: "apple-token@example.com",
+      planType: "FREE",
+      subscriptionStatus: "inactive",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const first = await getOrCreateAppleAppAccountToken(userId.toHexString());
+    const second = await getOrCreateAppleAppAccountToken(userId.toHexString());
+    expect(first).toBe(second);
+    expect(first).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+    expect((await getUserByAppleAppAccountToken(first))?._id.toHexString()).toBe(userId.toHexString());
+  });
+
+  test("Apple transaction ownership cannot move between users", async () => {
+    createFixture();
+    const firstUserId = new ObjectId("64f000000000000000006011").toHexString();
+    const secondUserId = new ObjectId("64f000000000000000006012").toHexString();
+    const now = new Date("2026-07-02T23:30:00.000Z");
+
+    expect(await claimAppleIapTransactionOwnership({
+      transactionId: "apple-owned-transaction",
+      originalTransactionId: "apple-owned-original",
+      userId: firstUserId,
+      email: "first@example.com",
+      now,
+    })).toBe(true);
+
+    expect(await claimAppleIapTransactionOwnership({
+      transactionId: "apple-owned-transaction",
+      originalTransactionId: "apple-owned-original",
+      userId: secondUserId,
+      email: "second@example.com",
+      now,
+    })).toBe(false);
+
+    expect(await claimAppleIapTransactionOwnership({
+      transactionId: "apple-renewal-transaction",
+      originalTransactionId: "apple-owned-original",
+      userId: secondUserId,
+      email: "second@example.com",
+      now,
+    })).toBe(false);
+
+    await expect(upsertAppleIapTransaction({
+      transactionId: "apple-owned-transaction",
+      userId: secondUserId,
+      email: "second@example.com",
+      productId: "com.coryanalla.MyBingoCardApp.premium.lifetime",
+      purchaseType: "premium",
+      originalTransactionId: "apple-owned-original",
+      environment: "Sandbox",
+      purchaseDate: now,
+      expiresDate: null,
+      status: "lifetime",
+      now,
+    })).rejects.toThrow("already associated with another account");
+  });
+
+  test("Apple revocation ledger state is terminal against stale active replay", async () => {
+    createFixture();
+    const userId = new ObjectId("64f000000000000000006021").toHexString();
+    const purchaseDate = new Date("2026-07-01T00:00:00.000Z");
+    const revokedAt = new Date("2026-07-02T00:00:00.000Z");
+    const base = {
+      transactionId: "apple-revoked-terminal",
+      userId,
+      email: "revoked@example.com",
+      productId: "com.coryanalla.MyBingoCardApp.premium.lifetime",
+      purchaseType: "premium" as const,
+      originalTransactionId: "apple-revoked-terminal",
+      environment: "Sandbox",
+      purchaseDate,
+      expiresDate: null,
+    };
+
+    await upsertAppleIapTransaction({
+      ...base,
+      status: "revoked",
+      revocationDate: revokedAt,
+      now: revokedAt,
+    });
+    await upsertAppleIapTransaction({
+      ...base,
+      status: "lifetime",
+      now: new Date("2026-07-03T00:00:00.000Z"),
+    });
+
+    const persisted = await getAppleIapTransaction(base.transactionId);
+    expect(persisted?.status).toBe("revoked");
+    expect(persisted?.revocationDate?.toISOString()).toBe(revokedAt.toISOString());
+  });
+
+  test("Apple notification receipts are idempotent and lineage state rejects older events", async () => {
+    createFixture();
+    const notificationUUID = "notification-0001";
+    expect(await beginAppleIapNotification({
+      notificationUUID,
+      notificationType: "DID_RENEW",
+      signedDate: new Date("2026-07-03T00:00:00.000Z"),
+      environment: "Sandbox",
+      signedPayload: "signed-payload",
+    })).toBe("process");
+    await finishAppleIapNotification({
+      notificationUUID,
+      status: "completed",
+      userId: "64f000000000000000006099",
+      transactionId: "renewal-2",
+      originalTransactionId: "original-1",
+    });
+    expect(await beginAppleIapNotification({
+      notificationUUID,
+      signedPayload: "signed-payload",
+    })).toBe("duplicate");
+
+    await recordAppleIapLineageState({
+      originalTransactionId: "original-1",
+      userId: "64f000000000000000006099",
+      signedDate: new Date("2026-07-03T00:00:00.000Z"),
+      transactionId: "renewal-2",
+      status: "active",
+      notificationType: "DID_RENEW",
+      notificationUUID,
+    });
+    expect(await isAppleIapLineageStateStale({
+      originalTransactionId: "original-1",
+      signedDate: new Date("2026-07-02T23:59:59.000Z"),
+    })).toBe(true);
+    expect(await isAppleIapLineageStateStale({
+      originalTransactionId: "original-1",
+      signedDate: new Date("2026-07-04T00:00:00.000Z"),
+    })).toBe(false);
   });
 });

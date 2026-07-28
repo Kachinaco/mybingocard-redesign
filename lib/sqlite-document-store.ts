@@ -61,6 +61,7 @@ export class SqliteDocumentStore {
   private readonly insertCollection: SqliteStatement;
   private readonly insertDocument: SqliteStatement;
   private readonly updateDocument: SqliteStatement;
+  private readonly compareAndSetDocument: SqliteStatement;
   private readonly deleteDocument: SqliteStatement;
   private readonly syncCollectionCount: SqliteStatement;
 
@@ -86,6 +87,11 @@ export class SqliteDocumentStore {
       `INSERT INTO documents (collection, object_id, ejson)
        VALUES (?, ?, ?)
        ON CONFLICT(collection, object_id) DO UPDATE SET ejson = excluded.ejson`
+    );
+    this.compareAndSetDocument = this.db.prepare(
+      `UPDATE documents
+       SET ejson = ?
+       WHERE collection = ? AND object_id = ? AND ejson = ?`
     );
     this.deleteDocument = this.db.prepare(
       "DELETE FROM documents WHERE collection = ? AND object_id = ?"
@@ -216,6 +222,38 @@ export class SqliteDocumentStore {
     return options.returnDocument === "after" ? after : before;
   }
 
+  findOneAndUpdateAtomic<T extends object>(
+    collection: string,
+    filter: SqliteFilter,
+    update: SqliteFilter,
+    options: Pick<FindOneAndUpdateOptions, "returnDocument"> = {}
+  ): T | null {
+    const run = this.transaction(() => {
+      const row = this.loadCollection<T>(collection)
+        .find(({ document }) => matchesFilter(document, filter));
+      if (!row) return null;
+
+      const before = cloneDocument(row.document) as T;
+      const after = applyUpdate(row.document, update, false) as T;
+      const beforeId = documentObjectId(before);
+      const afterId = documentObjectId(after);
+      if (beforeId !== afterId) {
+        throw new Error("SQLite document updates cannot change _id");
+      }
+
+      const result = this.compareAndSetDocument.run(
+        encodeDocument(after),
+        collection,
+        afterId,
+        row.ejson
+      ) as { changes?: number };
+      if (result.changes !== 1) return null;
+      return options.returnDocument === "after" ? after : before;
+    });
+
+    return run();
+  }
+
   deleteOne(collection: string, filter: SqliteFilter): DeleteResult {
     const row = this.loadCollection(collection).find(({ document }) => matchesFilter(document, filter));
     if (!row) return { deletedCount: 0 };
@@ -282,6 +320,7 @@ export class SqliteDocumentStore {
     const rows = this.selectCollectionRows.all(collection) as ShadowRow[];
     return rows.map((row) => ({
       objectId: row.object_id,
+      ejson: row.ejson,
       document: decodeDocument<T>(row.ejson),
     }));
   }

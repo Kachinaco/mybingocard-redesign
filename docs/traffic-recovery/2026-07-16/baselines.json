@@ -1,0 +1,59 @@
+{
+  "timezone": "America/Phoenix",
+  "matchedWindow": {
+    "currentStart": "2026-07-13T00:00:00-07:00",
+    "currentEnd": "2026-07-16T09:38:00-07:00",
+    "priorStart": "2026-07-06T00:00:00-07:00",
+    "priorEnd": "2026-07-09T09:38:00-07:00"
+  },
+  "gscWindow": {
+    "currentStart": "2026-07-13",
+    "currentEnd": "2026-07-14",
+    "priorStart": "2026-07-06",
+    "priorEnd": "2026-07-07"
+  },
+  "persistedOutcomes": {
+    "priorSignups": 2,
+    "currentSignups": 1,
+    "priorCards": 1,
+    "currentCards": 2,
+    "priorCardOwners": 1,
+    "currentCardOwners": 2
+  },
+  "trackerLite": {
+    "priorHumanPageviews": 464,
+    "currentHumanPageviews": 117,
+    "priorCreatePageviews": 174,
+    "currentCreatePageviews": 33,
+    "priorCreateVisitors": 119,
+    "currentCreateVisitors": 19,
+    "priorCreateSessions": 138,
+    "currentCreateSessions": 21,
+    "priorBotSharePercent": 9.1,
+    "currentBotSharePercent": 21.9
+  },
+  "firstPartyAcquisition": {
+    "priorCleanPageviews": 169,
+    "currentCleanPageviews": 96,
+    "priorSessions": 66,
+    "currentSessions": 61,
+    "priorDirectPageviews": 110,
+    "currentDirectPageviews": 43,
+    "priorChatgptReferrerPageviews": 20,
+    "currentChatgptReferrerPageviews": 4,
+    "priorChatgptUtmPageviews": 23,
+    "currentChatgptUtmPageviews": 6,
+    "priorGooglePageviews": 28,
+    "currentGooglePageviews": 28
+  },
+  "gsc": {
+    "priorClicks": 10,
+    "currentClicks": 10,
+    "priorImpressions": 673,
+    "currentImpressions": 683,
+    "priorCtrPercent": 1.49,
+    "currentCtrPercent": 1.46,
+    "priorAveragePosition": 26.4,
+    "currentAveragePosition": 35.5
+  }
+}

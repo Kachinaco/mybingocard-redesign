@@ -1,28 +1,40 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { getUserByEmail } from "@/lib/db/users";
+import { getOrCreateAppleAppAccountToken, getUserByEmail } from "@/lib/db/users";
 import {
   createSubscription,
   getSubscriptionByUserId,
   PLAN_LIMITS,
   updateSubscription,
 } from "@/lib/db/subscriptions";
-import { getBatchPack, isBatchCount, type BatchCount } from "@/lib/batchPacks";
-import { upsertBatchPurchaseFromAppleTransaction } from "@/lib/db/batchPurchases";
-import { applyApplePremiumEntitlement, upsertAppleIapTransaction } from "@/lib/db/apple-iap";
-import { createVerify, X509Certificate } from "node:crypto";
+import { getBatchPack, isBatchCount } from "@/lib/batchPacks";
+import {
+  markAppleBatchPurchaseRevoked,
+  upsertBatchPurchaseFromAppleTransaction,
+} from "@/lib/db/batchPurchases";
+import {
+  applyApplePremiumEntitlement,
+  claimAppleIapTransactionOwnership,
+  getAppleIapTransaction,
+  revokeApplePremiumEntitlement,
+  upsertAppleIapTransaction,
+} from "@/lib/db/apple-iap";
+import {
+  APPLE_BUNDLE_ID,
+  verifyAndDecodeAppleTransaction,
+} from "@/lib/apple-app-store-verifier";
+import {
+  APPLE_BATCH_PRODUCT_IDS,
+  APPLE_LIFETIME_PRODUCT_ID,
+  APPLE_MONTHLY_PRODUCT_ID,
+  isApplePremiumProduct,
+} from "@/lib/apple-iap-products";
+import {
+  enqueueApplePaymentOutcome,
+  enqueueAppleRefundOutcome,
+} from "@/lib/server/tracker-outcome-events";
 
 export const runtime = "nodejs";
-
-const APPLE_BUNDLE_ID = "com.coryanalla.MyBingoCardApp";
-const APPLE_MONTHLY_PRODUCT_ID = "com.coryanalla.MyBingoCardApp.premium.monthly";
-const APPLE_LIFETIME_PRODUCT_ID = "com.coryanalla.MyBingoCardApp.premium.lifetime";
-const APPLE_BATCH_PRODUCT_IDS: Record<string, BatchCount> = {
-  "com.coryanalla.MyBingoCardApp.batch.30": 30,
-  "com.coryanalla.MyBingoCardApp.batch.100": 100,
-  "com.coryanalla.MyBingoCardApp.batch.250": 250,
-  "com.coryanalla.MyBingoCardApp.batch.500": 500,
-};
 
 type AppleTransactionPayload = {
   bundleId?: string;
@@ -32,76 +44,12 @@ type AppleTransactionPayload = {
   purchaseDate?: number;
   expiresDate?: number;
   offerType?: number;
+  revocationDate?: number;
+  revocationReason?: number;
   environment?: string;
   type?: string;
+  appAccountToken?: string;
 };
-
-function base64UrlDecode(value: string): Buffer {
-  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
-  return Buffer.from(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "="), "base64");
-}
-
-function readJsonPart<T>(value: string): T {
-  return JSON.parse(base64UrlDecode(value).toString("utf8")) as T;
-}
-
-function encodeDerLength(length: number): Buffer {
-  if (length < 128) return Buffer.from([length]);
-  const bytes: number[] = [];
-  let next = length;
-  while (next > 0) {
-    bytes.unshift(next & 0xff);
-    next >>= 8;
-  }
-  return Buffer.from([0x80 | bytes.length, ...bytes]);
-}
-
-function encodeDerInteger(bytes: Buffer): Buffer {
-  let value = bytes;
-  while (value.length > 1 && value[0] === 0 && (value[1]! & 0x80) === 0) {
-    value = value.subarray(1);
-  }
-  if ((value[0]! & 0x80) !== 0) {
-    value = Buffer.concat([Buffer.from([0]), value]);
-  }
-  return Buffer.concat([Buffer.from([0x02]), encodeDerLength(value.length), value]);
-}
-
-function rawEcdsaSignatureToDer(signature: Buffer): Buffer {
-  if (signature.length !== 64) {
-    throw new Error("Unexpected Apple transaction signature length.");
-  }
-
-  const r = encodeDerInteger(signature.subarray(0, 32));
-  const s = encodeDerInteger(signature.subarray(32));
-  const body = Buffer.concat([r, s]);
-  return Buffer.concat([Buffer.from([0x30]), encodeDerLength(body.length), body]);
-}
-
-function verifyAndDecodeAppleTransaction(jws: string): AppleTransactionPayload {
-  const parts = jws.split(".");
-  if (parts.length !== 3) {
-    throw new Error("Invalid Apple transaction token.");
-  }
-
-  const [encodedHeader, encodedPayload, encodedSignature] = parts as [string, string, string];
-  const header = readJsonPart<{ alg?: string; x5c?: string[] }>(encodedHeader);
-  if (header.alg !== "ES256" || !Array.isArray(header.x5c) || !header.x5c[0]) {
-    throw new Error("Apple transaction token is missing signing certificate.");
-  }
-
-  const cert = new X509Certificate(Buffer.from(header.x5c[0], "base64"));
-  const verifier = createVerify("SHA256");
-  verifier.update(`${encodedHeader}.${encodedPayload}`);
-  verifier.end();
-
-  const signature = rawEcdsaSignatureToDer(base64UrlDecode(encodedSignature));
-  if (!verifier.verify(cert.publicKey, signature)) {
-    throw new Error("Apple transaction signature verification failed.");
-  }
-
-  return readJsonPart<AppleTransactionPayload>(encodedPayload);
-}
 
 function dateFromMs(value?: number): Date | null {
   if (!Number.isFinite(value)) return null;
@@ -122,26 +70,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "signedTransactionInfo is required" }, { status: 400 });
     }
 
-    const transaction = verifyAndDecodeAppleTransaction(signedTransactionInfo);
+    const transaction: AppleTransactionPayload = await verifyAndDecodeAppleTransaction(signedTransactionInfo);
     if (transaction.bundleId !== APPLE_BUNDLE_ID) {
       return NextResponse.json({ error: "Apple transaction bundle does not match this app" }, { status: 400 });
     }
 
     const productId = transaction.productId || "";
+    const transactionId = transaction.transactionId || "";
+    if (!transactionId) {
+      return NextResponse.json({ error: "Apple transaction is missing transactionId" }, { status: 400 });
+    }
     const batchCount = APPLE_BATCH_PRODUCT_IDS[productId];
-    const isPremiumProduct = productId === APPLE_MONTHLY_PRODUCT_ID || productId === APPLE_LIFETIME_PRODUCT_ID;
+    const isPremiumProduct = isApplePremiumProduct(productId);
     if (!isPremiumProduct && !isBatchCount(batchCount)) {
       return NextResponse.json({ error: "Apple product is not a MyBingoCard product" }, { status: 400 });
     }
 
     const now = new Date();
-    const purchaseDate = dateFromMs(transaction.purchaseDate) || now;
-    const expiresDate = dateFromMs(transaction.expiresDate);
-    const isLifetime = productId === APPLE_LIFETIME_PRODUCT_ID;
-    const isExpiredSubscription = !isLifetime && expiresDate !== null && expiresDate.getTime() <= now.getTime();
-    if (isExpiredSubscription) {
-      return NextResponse.json({ error: "Apple subscription transaction is expired" }, { status: 402 });
+    const purchaseDate = dateFromMs(transaction.purchaseDate);
+    if (!purchaseDate) {
+      return NextResponse.json(
+        { error: "Apple transaction is missing purchaseDate" },
+        { status: 400 },
+      );
     }
+    const expiresDate = dateFromMs(transaction.expiresDate);
+    const revocationDate = dateFromMs(transaction.revocationDate);
+    const isLifetime = productId === APPLE_LIFETIME_PRODUCT_ID;
+    const isExpiredSubscription =
+      isPremiumProduct && !isLifetime && expiresDate !== null && expiresDate.getTime() <= now.getTime();
 
     const subscriptionStatus = isLifetime
       ? "lifetime"
@@ -154,31 +111,158 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (isBatchCount(batchCount)) {
-      if (!transaction.transactionId) {
-        return NextResponse.json({ error: "Apple batch transaction is missing transactionId" }, { status: 400 });
+    const userId = user._id.toString();
+    const appAccountToken = transaction.appAccountToken || null;
+    if (appAccountToken) {
+      const expectedAppAccountToken = await getOrCreateAppleAppAccountToken(userId);
+      if (appAccountToken !== expectedAppAccountToken) {
+        return NextResponse.json(
+          { error: "This Apple purchase belongs to a different MyBingoCard account." },
+          { status: 409 },
+        );
+      }
+    }
+    const ownsTransaction = await claimAppleIapTransactionOwnership({
+      transactionId,
+      originalTransactionId: transaction.originalTransactionId || null,
+      userId,
+      email: session.user.email,
+      appAccountToken,
+      now,
+    });
+    if (!ownsTransaction) {
+      return NextResponse.json(
+        { error: "This Apple purchase is already linked to another MyBingoCard account." },
+        { status: 409 },
+      );
+    }
+
+    const existingAppleTransaction = await getAppleIapTransaction(transactionId);
+    if (
+      !revocationDate
+      && (existingAppleTransaction?.status === "revoked" || existingAppleTransaction?.revocationDate)
+    ) {
+      return NextResponse.json({
+        success: true,
+        revoked: true,
+        staleTransactionIgnored: true,
+        productId,
+      });
+    }
+
+    if (revocationDate) {
+      if (isBatchCount(batchCount)) {
+        await markAppleBatchPurchaseRevoked({
+          userId,
+          appleTransactionId: transactionId,
+          revokedAt: revocationDate,
+        });
+      } else {
+        const entitlementRevoked = await revokeApplePremiumEntitlement({
+          userId: user._id,
+          transactionId,
+          originalTransactionId: transaction.originalTransactionId || null,
+          revokedAt: revocationDate,
+        });
+        if (entitlementRevoked) {
+          const existingSubscription = await getSubscriptionByUserId(userId);
+          if (existingSubscription) {
+            await updateSubscription(userId, {
+              plan: "free",
+              status: "canceled",
+              limits: PLAN_LIMITS.free,
+              currentPeriodEnd: revocationDate,
+              cancelAtPeriodEnd: false,
+            });
+          }
+        }
       }
 
+      await upsertAppleIapTransaction({
+        transactionId,
+        userId,
+        email: session.user.email,
+        productId,
+        purchaseType: isBatchCount(batchCount) ? "batch_pack" : "premium",
+        batchCount: isBatchCount(batchCount) ? batchCount : undefined,
+        originalTransactionId: transaction.originalTransactionId || null,
+        environment: transaction.environment || null,
+        purchaseDate,
+        expiresDate,
+        status: "revoked",
+        revocationDate,
+        revocationReason: Number.isFinite(transaction.revocationReason)
+          ? Number(transaction.revocationReason)
+          : null,
+        appAccountToken,
+        now,
+      });
+      enqueueAppleRefundOutcome({
+        transactionId,
+        refundedAt: revocationDate,
+      });
+
+      return NextResponse.json({ success: true, revoked: true, productId });
+    }
+
+    if (isExpiredSubscription) {
+      const entitlementExpired = await revokeApplePremiumEntitlement({
+        userId: user._id,
+        transactionId,
+        originalTransactionId: transaction.originalTransactionId || null,
+        revokedAt: expiresDate!,
+        allowOriginalTransactionMatch: false,
+      });
+      if (entitlementExpired) {
+        const existingSubscription = await getSubscriptionByUserId(userId);
+        if (existingSubscription) {
+          await updateSubscription(userId, {
+            plan: "free",
+            status: "canceled",
+            limits: PLAN_LIMITS.free,
+            currentPeriodEnd: expiresDate!,
+            cancelAtPeriodEnd: false,
+          });
+        }
+      }
+      await upsertAppleIapTransaction({
+        transactionId,
+        userId,
+        email: session.user.email,
+        productId,
+        purchaseType: "premium",
+        originalTransactionId: transaction.originalTransactionId || null,
+        environment: transaction.environment || null,
+        purchaseDate,
+        expiresDate,
+        status: "expired",
+        appAccountToken,
+        now,
+      });
+      return NextResponse.json({ success: true, expired: true, productId });
+    }
+
+    if (isBatchCount(batchCount)) {
       const batchPack = getBatchPack(batchCount);
       if (!batchPack) {
         return NextResponse.json({ error: "Apple batch product is not configured" }, { status: 400 });
       }
 
       const batchPurchase = await upsertBatchPurchaseFromAppleTransaction({
-        userId: user._id.toString(),
+        userId,
         email: session.user.email,
         batchCount,
         amount: batchPack.amount,
         currency: batchPack.currency,
-        appleTransactionId: transaction.transactionId,
-        appleOriginalTransactionId: transaction.originalTransactionId || transaction.transactionId,
+        appleTransactionId: transactionId,
+        appleOriginalTransactionId: transaction.originalTransactionId || transactionId,
         appleProductId: productId,
         appleEnvironment: transaction.environment || null,
       });
 
       await upsertAppleIapTransaction({
-        transactionId: transaction.transactionId,
-        userId: user._id.toString(),
+        transactionId,
+        userId,
         email: session.user.email,
         productId,
         purchaseType: "batch_pack",
@@ -189,7 +273,13 @@ export async function POST(request: Request) {
         purchaseDate,
         expiresDate: null,
         status: "paid",
+        appAccountToken,
         now,
+      });
+      enqueueApplePaymentOutcome({
+        transactionId,
+        occurredAt: purchaseDate,
+        product: "apple_batch_pack",
       });
 
       return NextResponse.json({
@@ -208,13 +298,13 @@ export async function POST(request: Request) {
       expiresDate,
       isLifetime,
       productId,
-      transactionId: transaction.transactionId || null,
-      originalTransactionId: transaction.originalTransactionId || transaction.transactionId || null,
+      transactionId,
+      originalTransactionId: transaction.originalTransactionId || transactionId,
       environment: transaction.environment || null,
       now,
     });
 
-    const existingSubscription = await getSubscriptionByUserId(user._id.toString());
+    const existingSubscription = await getSubscriptionByUserId(userId);
     const subscriptionUpdate = {
       plan: "unlimited" as const,
       status: subscriptionStatus === "trialing" ? "trialing" as const : "active" as const,
@@ -228,18 +318,18 @@ export async function POST(request: Request) {
     };
 
     if (existingSubscription) {
-      await updateSubscription(user._id.toString(), subscriptionUpdate);
+      await updateSubscription(userId, subscriptionUpdate);
     } else {
       await createSubscription({
-        userId: user._id.toString(),
+        userId,
         plan: "unlimited",
       });
-      await updateSubscription(user._id.toString(), subscriptionUpdate);
+      await updateSubscription(userId, subscriptionUpdate);
     }
 
     await upsertAppleIapTransaction({
-      transactionId: transaction.transactionId || signedTransactionInfo,
-      userId: user._id.toString(),
+      transactionId,
+      userId,
       email: session.user.email,
       productId,
       purchaseType: "premium",
@@ -248,8 +338,16 @@ export async function POST(request: Request) {
       purchaseDate,
       expiresDate,
       status: subscriptionStatus,
+      appAccountToken,
       now,
     });
+    if (subscriptionStatus !== "trialing") {
+      enqueueApplePaymentOutcome({
+        transactionId,
+        occurredAt: purchaseDate,
+        product: "apple_premium",
+      });
+    }
 
     return NextResponse.json({
       success: true,

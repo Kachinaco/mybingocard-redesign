@@ -78,6 +78,8 @@ export async function POST(req: NextRequest) {
     const cleanedTheme = typeof theme === "string" ? theme.trim().substring(0, 500) : "";
     const cleanedPromptDetails = cleanPromptDetails(promptDetails);
     const promptDetailKeys = cleanedPromptDetails ? Object.keys(cleanedPromptDetails) : [];
+    const themeLength = cleanedTheme.length;
+    const promptDetailCount = promptDetailKeys.length;
     const cleanedUseCase = typeof useCase === "string" ? useCase.trim().substring(0, 40) : undefined;
 
     if (!cleanedTheme && promptDetailKeys.length === 0) {
@@ -100,7 +102,8 @@ export async function POST(req: NextRequest) {
           metadata: {
             limit: FREE_DAILY_LIMIT,
             used: freeGenerationsUsed,
-            theme: cleanedTheme.substring(0, 100),
+            themeLength,
+            promptDetailCount,
             useCase: cleanedUseCase || "custom",
             aiAccess: sessionUserId ? "free_limited" : "anonymous_limited",
             ...(anonymousQuotaKey ? { aiQuotaKey: anonymousQuotaKey } : {}),
@@ -136,7 +139,8 @@ export async function POST(req: NextRequest) {
         email: sessionUserEmail,
         metadata: {
           source: "server",
-          theme: cleanedTheme.substring(0, 100),
+          themeLength,
+          promptDetailCount,
           tone,
           size,
           useCase: cleanedUseCase || "custom",
@@ -166,7 +170,8 @@ export async function POST(req: NextRequest) {
         userId: sessionUserId,
         email: sessionUserEmail,
         metadata: {
-          theme: cleanedTheme.substring(0, 100),
+          themeLength,
+          promptDetailCount,
           tone,
           size,
           cellCount,
@@ -190,7 +195,8 @@ export async function POST(req: NextRequest) {
           userId: sessionUserId,
           email: sessionUserEmail,
           metadata: {
-            theme: cleanedTheme.substring(0, 100),
+            themeLength,
+            promptDetailCount,
             tone,
             size,
             useCase: cleanedUseCase || "custom",
@@ -204,7 +210,7 @@ export async function POST(req: NextRequest) {
         notifyFirstAiGeneration(
           user?.name || sessionUserName || "Unknown",
           sessionUserEmail,
-          cleanedTheme.substring(0, 100) || cleanedUseCase || "Custom bingo card"
+          cleanedUseCase || "custom"
         ).catch(() => {});
       }
     } catch {}

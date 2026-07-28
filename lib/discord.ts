@@ -1004,7 +1004,7 @@ export async function notifyTrialChurnRisk(
 export async function notifyFirstAiGeneration(
   name: string,
   email: string,
-  topic: string
+  useCase: string
 ) {
   await sendDiscordNotification("", [{
     title: "🤖 First AI Generation!",
@@ -1012,7 +1012,7 @@ export async function notifyFirstAiGeneration(
     fields: [
       { name: "Name", value: name || "Unknown", inline: true },
       { name: "Email", value: email, inline: true },
-      { name: "Topic", value: topic || "Unknown", inline: false },
+      { name: "Use Case", value: useCase || "custom", inline: false },
     ],
     timestamp: new Date().toISOString(),
   }]);

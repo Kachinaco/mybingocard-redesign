@@ -57,7 +57,7 @@ function inspectShadowDatabase(db) {
   };
 }
 
-function createFixture() {
+function createFixture(options = {}) {
   const sourceDbPath = process.env[BASE_DB_ENV] || process.env[ALT_BASE_DB_ENV] || "";
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "mybingocard-sqlite-runtime-"));
   const dbPath = path.join(dir, "shadow.sqlite");
@@ -170,29 +170,31 @@ function createFixture() {
     createdAt: now,
   });
 
-  insert("cards", {
-    _id: cardId,
-    userId: userId.toString(),
-    title: "SQLite Runtime Shared Card",
-    description: "Public shared card for SQLite runtime smoke",
-    size: 3,
-    cells: ["One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"],
-    freeSpace: false,
-    style: {
-      backgroundColor: "#ffffff",
-      textColor: "#111827",
-      borderColor: "#111827",
-      fontSize: "16px",
-      fontFamily: "Inter",
-    },
-    isPublic: true,
-    shareLink: "sqlite-runtime-smoke",
-    sharePassword: null,
-    shareExpiresAt: null,
-    views: 0,
-    createdAt: now,
-    updatedAt: now,
-  });
+  if (options.seedSharedCard !== false) {
+    insert("cards", {
+      _id: cardId,
+      userId: userId.toString(),
+      title: "SQLite Runtime Shared Card",
+      description: "Public shared card for SQLite runtime smoke",
+      size: 3,
+      cells: ["One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"],
+      freeSpace: false,
+      style: {
+        backgroundColor: "#ffffff",
+        textColor: "#111827",
+        borderColor: "#111827",
+        fontSize: "16px",
+        fontFamily: "Inter",
+      },
+      isPublic: true,
+      shareLink: "sqlite-runtime-smoke",
+      sharePassword: null,
+      shareExpiresAt: null,
+      views: 0,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
 
   db.close();
   return {
@@ -591,7 +593,16 @@ async function run() {
   }
 }
 
-run().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+module.exports = {
+  PASSWORD,
+  createFixture,
+  getFreePort,
+  waitForServer,
+};
+
+if (require.main === module) {
+  run().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}

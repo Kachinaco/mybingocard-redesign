@@ -3,7 +3,18 @@ import { auth } from "@/auth";
 import { getCardById } from "@/lib/db/cards";
 import { getUserByEmail, incrementUserCounter } from "@/lib/db/users";
 import { canExportHD, canRemoveBranding } from "@/lib/permissions";
-import puppeteer from "puppeteer";
+import puppeteer, { type Browser } from "puppeteer";
+import { mkdtemp } from "node:fs/promises";
+import { rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { materializePdfImageCells } from "@/lib/pdf-image-assets";
+import { getPuppeteerLaunchOptions } from "@/lib/server/chromium";
+import {
+  hardenExportPage,
+  renderExportCellContent,
+  sanitizeExportStyle,
+} from "@/lib/server/export-html";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyCardExported } from "@/lib/discord";
 import {
@@ -18,6 +29,9 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  let tempAssetDir: string | null = null;
+  let browser: Browser | null = null;
+
   try {
     const session = await auth();
     const requestContext = getRequestActivityContext(request);
@@ -70,17 +84,26 @@ export async function POST(
     const hdPermission = canExportHD(user.planType);
     const brandingPermission = canRemoveBranding(user.planType);
 
-    // Generate HTML for the bingo card
-    const html = generateCardHTML(card, brandingPermission.allowed, options);
-
-    // Launch headless browser
-    const browser = await puppeteer.launch({
-      executablePath: "/usr/bin/google-chrome",
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    tempAssetDir = await mkdtemp(join(tmpdir(), "mybingocard-pdf-"));
+    const materialized = await materializePdfImageCells(card.cells, {
+      assetDir: tempAssetDir,
+      cache: new Map(),
+      cardOwnerUserId: card.userId.toString(),
     });
 
+    // Generate HTML for the bingo card
+    const html = generateCardHTML(
+      { ...card, cells: materialized.cells },
+      brandingPermission.allowed,
+      options,
+      tempAssetDir,
+    );
+
+    // Launch headless browser
+    browser = await puppeteer.launch(getPuppeteerLaunchOptions());
+
     const page = await browser.newPage();
+    await hardenExportPage(page, { allowedFileRoot: tempAssetDir });
 
     // Set viewport based on HD permission
     const viewportSize = hdPermission.allowed ? 2400 : 1200;
@@ -108,6 +131,7 @@ export async function POST(
     });
 
     await browser.close();
+    browser = null;
 
     await trackActivity({
       event: "export_pdf",
@@ -152,15 +176,26 @@ export async function POST(
       { error: "Failed to generate PDF" },
       { status: 500 }
     );
+  } finally {
+    if (browser) {
+      await browser.close().catch((error) => {
+        console.error("PDF browser cleanup error:", error);
+      });
+    }
+    if (tempAssetDir) {
+      rmSync(tempAssetDir, { recursive: true, force: true });
+    }
   }
 }
 
 function generateCardHTML(
   card: any,
   removeBranding: boolean,
-  options: { grayscale: boolean; copies: number }
+  options: { grayscale: boolean; copies: number },
+  allowedFileRoot?: string | null,
 ): string {
-  const { title, description, size, cells, freeSpace, style } = card;
+  const { title, description, size, cells, freeSpace } = card;
+  const style = sanitizeExportStyle(card.style);
   const variant = normalizeBingoVariant(card.bingoVariant);
   const shape = getBingoGridShape(card);
   const freeSpaceIndex = getFreeSpaceIndexForGrid({
@@ -202,21 +237,11 @@ function generateCardHTML(
           .map((cell: string, index: number) => {
             const isFreeSpace = freeSpace && index === freeSpaceIndex;
             const isBlank = isBlankClassicCell(cell, variant);
-            let cellContent = escapeHtml(formatClassicCellLabel(cell, variant));
-            if (!isFreeSpace && cell.startsWith("__IMG__:")) {
-              try {
-                const imgData = JSON.parse(cell.slice(8));
-                const imgUrl = imgData.imageUrl?.startsWith("/")
-                  ? `https://mybingocard.com${imgData.imageUrl}`
-                  : imgData.imageUrl;
-                const label = imgData.label ? `<div style="font-size:0.7em;margin-top:2px;text-align:center;${imgData.fit === 'cover' ? 'position:relative;z-index:1;background:rgba(0,0,0,0.4);color:#fff;border-radius:3px;padding:1px 3px;' : ''}">${escapeHtml(imgData.label)}</div>` : "";
-                if (imgData.fit === "cover") {
-                  cellContent = `<img src="${imgUrl}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;" />${label}`;
-                } else {
-                  cellContent = `<img src="${imgUrl}" style="max-width:90%;max-height:${label ? '65%' : '85%'};object-fit:contain;" />${label}`;
-                }
-              } catch { /* fall through to text */ }
-            }
+            const cellContent = renderExportCellContent(
+              cell,
+              formatClassicCellLabel(cell, variant),
+              { allowedFileRoot },
+            );
             return `
               <div class="cell" style="
                 background-color: ${isBlank ? "#fff7ed" : isFreeSpace ? freeSpaceBg : bgColor};
@@ -332,6 +357,7 @@ function generateCardHTML(
           }
 
           .cell {
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
