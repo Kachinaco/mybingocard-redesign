@@ -279,6 +279,55 @@ h1, h2, h3, h4, h5, h6 {
 @media (prefers-reduced-motion: reduce) {
   .cbtn, .ccard-hover { transition: none; }
   .cbtn:hover, .ccard-hover:hover { transform: none; }
+  .animate-bob, .occ-track { animation: none; }
+}
+
+/* Wavy yellow squiggle underline (hero headline) */
+.squiggle {
+  text-decoration: underline wavy var(--yellow);
+  text-decoration-thickness: 4px;
+  text-underline-offset: 7px;
+}
+
+/* Gentle floating confetti dots */
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+.animate-bob {
+  animation: bob 5s ease-in-out infinite;
+}
+
+/* Occasions marquee strip */
+@layer components {
+  .occ-strip {
+    border-top: 3px solid var(--ink);
+    border-bottom: 3px solid var(--ink);
+    background: #fff;
+    overflow: hidden;
+    padding: 14px 0;
+    white-space: nowrap;
+  }
+  .occ-track {
+    display: inline-block;
+    animation: occ-scroll 30s linear infinite;
+  }
+  .occ-track:hover { animation-play-state: paused; }
+  .occ {
+    display: inline-block;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: 999px;
+    padding: 7px 18px;
+    font-family: var(--font-fredoka), sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    margin: 0 6px;
+  }
+}
+@keyframes occ-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 /* Smooth scrolling */

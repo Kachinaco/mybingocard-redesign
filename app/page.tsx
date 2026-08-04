@@ -4,6 +4,7 @@ import MobileNav from "@/components/MobileNav";
 import AdUnit from "@/components/AdUnit";
 import { EmailCaptureInline } from "@/components/EmailCapture";
 import HomeStartDraftLink from "@/components/HomeStartDraftLink";
+import HomeDabBoard from "@/components/HomeDabBoard";
 import { featuredBingoGames } from "@/lib/bingo-games";
 import { seoLandingPages, type SeoLandingPageData } from "@/lib/seo-landing-pages";
 import { FACEBOOK_PAGE_URL, IOS_APP_STORE_URL, REDDIT_COMMUNITY_URL } from "@/lib/social-links";
@@ -74,61 +75,128 @@ const generatorFooterLinks = [
   .map((slug) => seoLandingPages[slug])
   .filter((page): page is SeoLandingPageData => Boolean(page));
 
-const demoBingoItems = [
-  "Free Drinks", "Dance Off", "Photo Booth", "Cake Time", "FREE",
-  "First Kiss", "Funny Speech", "Crying Guest", "Dad Joke", "Late Arrival",
-  "Champagne", "Bouquet", "First Dance", "Dessert", "Confetti",
-  "Group Photo", "Live Music", "Toasts", "Slow Dance", "Fireworks",
-  "Happy Tears", "Best Man", "Ring Bearer", "Flower Girl", "DJ",
+const occasions = [
+  "🍼 Baby Shower", "🎂 Birthday", "💍 Bridal Shower", "🎄 Holiday Party", "✏️ Classroom",
+  "👋 Team Building", "⛪ Church Social", "🎓 Graduation", "🎃 Halloween", "🏈 Super Bowl",
 ];
 
-function BingoCardDemo() {
-  return (
-    <div className="relative animate-fade-in-up animation-delay-200">
-      <div className="absolute -top-12 -left-12 w-48 h-48 bg-purple-500 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-      <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-indigo-500 rounded-full blur-3xl opacity-20 animate-pulse animation-delay-400"></div>
+const steps = [
+  {
+    n: "1",
+    color: "#ff5d8f",
+    title: "Add your words",
+    desc: "Type your own squares, upload pictures, or grab a template. AI can brainstorm ideas for your theme too.",
+  },
+  {
+    n: "2",
+    color: "#2ec4b6",
+    title: "Shuffle it up",
+    desc: "Choose 3x3, 4x4, or the classic 5x5. Every card is shuffled so no two players get the same board.",
+  },
+  {
+    n: "3",
+    color: "#7c5cff",
+    title: "Play your way",
+    desc: "Print free PDFs and PNGs, share a link for phone play, or host the game live and call squares yourself.",
+  },
+];
 
-      <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl shadow-indigo-500/10 p-4 transform rotate-2 hover:rotate-0 transition-all duration-500 border border-white/50">
-        <div className="text-center mb-6">
-          <div className="flex justify-center gap-3 text-4xl font-black tracking-widest">
-            <span className="text-transparent bg-clip-text bg-gradient-to-br from-violet-600 to-indigo-600">B</span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-600 to-blue-600">I</span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-600 to-cyan-600">N</span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-br from-cyan-600 to-teal-600">G</span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-br from-teal-600 to-emerald-600">O</span>
-          </div>
-          <p className="text-slate-400 text-xs uppercase tracking-widest font-semibold mt-2">Wedding Edition</p>
-        </div>
+const features = [
+  {
+    emojiBg: "#ffd9e6",
+    iconColor: "#ff5d8f",
+    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />,
+    title: "Image Bingo Cards",
+    description: "Add photos and images to any cell. Perfect for kids, vocabulary games, or picture-based bingo nights.",
+  },
+  {
+    emojiBg: "#fff0c7",
+    iconColor: "#e69c00",
+    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />,
+    title: "Theme Library",
+    description: "Choose from included templates for weddings, baby showers, classrooms, holidays, office events, and parties.",
+  },
+  {
+    emojiBg: "#cdeee9",
+    iconColor: "#2ec4b6",
+    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />,
+    title: "Print and Batch PDFs",
+    description: "Export an individual PDF or PNG for free, or buy printable batch packs when you need a larger set.",
+  },
+  {
+    emojiBg: "#e9e4ff",
+    iconColor: "#7c5cff",
+    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />,
+    title: "Virtual Play",
+    description: "Add paid share links or live hosting when players need to join from a browser on their phones, no app required.",
+  },
+  {
+    emojiBg: "#ffe6d4",
+    iconColor: "#ff8a3d",
+    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />,
+    title: "Magic Shuffle",
+    description: "Use paid batch packs to make unique shuffled printable cards for a group.",
+  },
+  {
+    emojiBg: "#d9f5d9",
+    iconColor: "#3aa856",
+    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />,
+    title: "AI Card Generator",
+    description: "Describe your theme, pick a tone, and AI generates polished card ideas. Dating bingo, office meetings, baby showers — done in seconds.",
+  },
+];
 
-        <div className="grid grid-cols-5 gap-2">
-          {demoBingoItems.map((item, i) => (
-            <div
-              key={i}
-              className={`aspect-square flex items-center justify-center p-2 rounded-xl text-center text-[10px] leading-tight font-semibold cursor-pointer shadow-sm ${
-                i === 12
-                  ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-indigo-200 ring-2 ring-indigo-100"
-                  : "bg-white text-slate-600 border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/50"
-              }`}
-            >
-              {item}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
+const workflows = [
+  {
+    title: "Vocabulary review",
+    audience: "Teacher",
+    description: "Turn a unit word list into a classroom review game students can play on paper or devices.",
+    steps: ["Paste vocabulary terms", "Choose 4x4 or 5x5", "Export for free or add paid links"],
+  },
+  {
+    title: "Gift-opening bingo",
+    audience: "Baby shower host",
+    description: "Use common registry gifts, shuffle unique cards, and keep guests involved during present opening.",
+    steps: ["Start from a gift list", "Choose a paid batch pack for unique cards", "Export an individual card for free"],
+  },
+  {
+    title: "Remote team game",
+    audience: "HR team",
+    description: "Run meeting bingo, onboarding bingo, or an icebreaker without asking players to install an app.",
+    steps: ["Start checkout", "Share the browser link", "Verify winners in the host view"],
+  },
+  {
+    title: "Wedding reception game",
+    audience: "Wedding planner",
+    description: "Create reception-safe squares for speeches, photos, dancing, dessert, and guest moments.",
+    steps: ["Use a reception template", "Add couple-specific details", "Export for free or add paid phone play"],
+  },
+  {
+    title: "Activity-center bingo",
+    audience: "Program coordinator",
+    description: "Prepare repeatable cards for senior centers, community rooms, libraries, and church events.",
+    steps: ["Reuse saved card themes", "Adjust grid size", "Export called lists after games"],
+  },
+  {
+    title: "Holiday party bingo",
+    audience: "Party host",
+    description: "Make seasonal cards for family gatherings, office parties, classrooms, or neighborhood events.",
+    steps: ["Pick a holiday list", "Add party-specific squares", "Export for free or add paid sharing"],
+  },
+];
+
+const audienceHues = ["#ff5d8f", "#2ec4b6", "#7c5cff", "#ff8a3d", "#e69c00", "#3aa856"];
 
 function HomeAppStorePromo({ className = "" }: { className?: string }) {
   return (
     <div className={`mt-4 flex flex-col items-center gap-2 lg:items-start ${className}`}>
-      <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Also available for iPhone</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-[#a39a88]">Also available for iPhone</p>
       <a
         href={IOS_APP_STORE_URL}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Download MyBingoCard on the App Store"
-        className="inline-flex h-12 items-center justify-center rounded-lg px-1 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        className="inline-flex h-12 items-center justify-center rounded-lg px-1 transition focus:outline-none focus:ring-2 focus:ring-[#7c5cff] focus:ring-offset-2"
       >
         <img
           src="/badges/download-on-the-app-store.svg"
@@ -142,220 +210,193 @@ function HomeAppStorePromo({ className = "" }: { className?: string }) {
   );
 }
 
-function FeatureCard({ icon, title, description, delay = "" }: { icon: React.ReactNode; title: string; description: string; delay?: string }) {
-  return (
-    <div className={`group bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 border border-slate-100 hover:border-indigo-100 animate-fade-in-up ${delay}`}>
-      <div className="w-14 h-14 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 border border-indigo-100/50">
-        <div className="text-indigo-600">
-          {icon}
-        </div>
-      </div>
-      <h3 className="text-xl font-bold text-slate-900 mb-3">{title}</h3>
-      <p className="text-slate-600 leading-relaxed text-sm">{description}</p>
-    </div>
-  );
-}
-
-function StatCard({ number, label }: { number: string; label: string }) {
-  return (
-    <div className="text-center p-8 rounded-2xl bg-white shadow-sm border border-slate-100 hover:shadow-lg transition-all duration-300">
-      <div className="text-5xl md:text-5xl font-extrabold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent mb-3">
-        {number}
-      </div>
-      <div className="text-slate-600 font-semibold text-base uppercase tracking-wide">{label}</div>
-    </div>
-  );
-}
-
-function WorkflowCard({ title, audience, description, steps }: { title: string; audience: string; description: string; steps: string[] }) {
-  return (
-    <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-      <div className="mb-5">
-        <div className="text-xs font-bold uppercase tracking-wide text-indigo-600 mb-2">{audience}</div>
-        <h3 className="text-xl font-bold text-slate-900">{title}</h3>
-      </div>
-      <p className="text-slate-600 mb-6 leading-relaxed flex-grow">{description}</p>
-      <ul className="space-y-3 pt-6 border-t border-slate-50">
-        {steps.map((step) => (
-          <li key={step} className="flex gap-3 text-sm text-slate-600">
-            <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-indigo-500"></span>
-            <span>{step}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 export default function Home() {
   return (
-    <div className="min-h-screen overflow-x-hidden bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
-      {/* Navbar */}
+    <div className="min-h-screen overflow-x-hidden bg-[#fff7ed]">
       <MobileNav />
 
       <main className="pt-16">
-        {/* Hero Section - Strong CTA above the fold */}
-        <section className="relative overflow-hidden pt-8 pb-16 lg:pt-12 lg:pb-20">
-          {/* Background Gradients */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl opacity-40 pointer-events-none">
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-indigo-200/50 rounded-full blur-[100px] animate-blob"></div>
-            <div className="absolute top-20 left-0 w-[500px] h-[500px] bg-violet-200/50 rounded-full blur-[100px] animate-blob animation-delay-200"></div>
-          </div>
+        {/* Hero */}
+        <section className="relative">
+          <div className="max-w-6xl mx-auto px-4 lg:px-8 pt-10 pb-14 lg:pt-14 lg:pb-16 grid lg:grid-cols-[1.05fr_.95fr] gap-10 items-center relative">
+            <div className="confetti-dot animate-bob absolute w-[13px] h-[13px] rounded-full bg-[#ff5d8f] top-[6%] left-[45%] pointer-events-none" />
+            <div className="confetti-dot animate-bob absolute w-[9px] h-[9px] rounded-full bg-[#2ec4b6] top-[20%] left-[39%] pointer-events-none" style={{ animationDelay: ".8s" }} />
+            <div className="confetti-dot animate-bob absolute w-[11px] h-[11px] rounded-full bg-[#ffb800] top-[66%] left-[1%] pointer-events-none" style={{ animationDelay: "1.6s" }} />
+            <div className="confetti-dot animate-bob absolute w-[8px] h-[8px] rounded-full bg-[#7c5cff] top-[86%] left-[46%] pointer-events-none" style={{ animationDelay: "2.2s" }} />
 
-          <div className="container mx-auto px-4 lg:px-8 relative">
-            <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-              {/* Left Content */}
-              <div className="text-center lg:text-left animate-fade-in-up">
-                <div className="inline-flex items-center gap-2 bg-white border border-indigo-100 shadow-sm rounded-full px-4 py-1.5 mb-8 transform hover:scale-105 transition-transform duration-300 cursor-default">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
-                  </span>
-                  <span className="text-xs font-semibold text-indigo-900 uppercase tracking-wide">Free Bingo Card Maker</span>
-                </div>
-                
-                <h1 className="text-4xl lg:text-6xl font-bold tracking-tight text-slate-900 mb-4 leading-[1.1]">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Bingo Card Maker and Generator</span> for Printable and Online Cards
-                </h1>
-                
-                <p className="text-lg text-slate-600 mb-6 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                  Make bingo cards and boards for classrooms, baby showers, weddings, parties, team events, and social challenges. Add words or images, save one card, export an individual PDF or PNG for free, then use paid group tools when needed.
-                </p>
-
-                {/* Primary CTA - prominent above the fold */}
-                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                  <HomeStartDraftLink href="/create" trackingSurface="hero" className="group bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3">
-                    Make a Free Bingo Card
-                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                  </HomeStartDraftLink>
-                  <Link href="/bingo-games" className="bg-white text-indigo-600 border-2 border-indigo-200 px-8 py-5 rounded-2xl font-bold text-lg hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-300 flex items-center justify-center gap-2">
-                    Browse Bingo Games
-                  </Link>
-                </div>
-
-
-                <p className="mt-4 text-sm text-slate-500 text-center lg:text-left">
-                  Create, customize, save one card, and export an individual PDF or PNG for free. Paid batches, player links, and live hosting are optional.
-                </p>
-
-                <HomeAppStorePromo className="hidden lg:flex" />
-
-                <div className="mt-6 flex items-center justify-center lg:justify-start gap-4 text-sm text-slate-500">
-                  <div className="flex -space-x-3">
-                    {[
-                      { bg: "bg-violet-400", emoji: "😊" },
-                      { bg: "bg-indigo-400", emoji: "🎉" },
-                      { bg: "bg-pink-400",   emoji: "🙌" },
-                      { bg: "bg-emerald-400",emoji: "⭐" },
-                    ].map((av, i) => (
-                      <div key={i} className={`w-8 h-8 rounded-full border-2 border-white ${av.bg} flex items-center justify-center text-sm`}>
-                        {av.emoji}
-                      </div>
-                    ))}
-                  </div>
-                  <div>Used for classrooms, parties, showers, weddings, and team events</div>
-                </div>
+            <div className="text-center lg:text-left">
+              <span className="csticker bg-white text-[#33312e] text-xs mb-5">★ Free to print, fun to play</span>
+              <h1 className="font-heading text-4xl lg:text-[46px] font-bold text-[#33312e] leading-[1.08] mb-4">
+                Bingo cards as <span className="squiggle">fun</span> as your party
+              </h1>
+              <p className="text-[17px] font-semibold text-[#6b6459] max-w-[460px] mx-auto lg:mx-0 mb-6">
+                Make bingo cards and boards for classrooms, baby showers, weddings, parties, team events, and social challenges. Add words or images, save one card, export an individual PDF or PNG for free.
+              </p>
+              <div className="flex flex-col min-[321px]:flex-row gap-3 justify-center lg:justify-start">
+                <HomeStartDraftLink href="/create" trackingSurface="hero" className="cbtn">
+                  Create a free card
+                </HomeStartDraftLink>
+                <Link href="/templates" className="cbtn cbtn-teal">
+                  Pick a template
+                </Link>
               </div>
-
-              {/* Right Visual */}
-              <div className="relative">
-                <BingoCardDemo />
-              </div>
-
-              <HomeAppStorePromo className="lg:hidden" />
+              <p className="mt-3.5 text-xs font-bold text-[#a39a88] text-center lg:text-left">
+                ✓ No account needed &nbsp; ✓ Free PDF &amp; PNG &nbsp; ✓ Play online too
+              </p>
+              <HomeAppStorePromo className="hidden lg:flex" />
             </div>
+
+            <HomeDabBoard />
+            <HomeAppStorePromo className="lg:hidden" />
           </div>
         </section>
 
-        {/* Stats Section */}
-        <section className="py-12 border-y border-slate-200 bg-slate-50/50">
-          <div className="container mx-auto px-6 lg:px-8">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-12">
-              <StatCard number="1" label="Free Saved Card" />
-              <StatCard number="3x3-5x5" label="Grid Sizes" />
-              <StatCard number="PDF" label="Print Exports" />
-              <StatCard number="Premium" label="Online Play" />
-            </div>
+        {/* Occasions marquee */}
+        <div className="occ-strip" aria-hidden="true">
+          <div className="occ-track">
+            {[...occasions, ...occasions].map((occ, i) => (
+              <span key={i} className="occ">{occ}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* How it works */}
+        <section className="max-w-6xl mx-auto px-4 lg:px-8 py-14">
+          <div className="text-center mb-9">
+            <span className="ckick mb-3">How it works</span>
+            <h2 className="font-heading text-3xl font-bold text-[#33312e] mb-2.5">Easy as 1-2-bingo</h2>
+            <p className="font-semibold text-[#6b6459] max-w-[480px] mx-auto text-[15px]">From blank page to game time in about two minutes.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            {steps.map((step) => (
+              <div key={step.n} className="ccard">
+                <div
+                  className="w-[34px] h-[34px] rounded-full border-[2.5px] border-[#33312e] flex items-center justify-center font-heading font-bold text-[15px] mb-3.5 text-white"
+                  style={{ background: step.color }}
+                >
+                  {step.n}
+                </div>
+                <h3 className="font-heading text-[17px] font-bold text-[#33312e] mb-1.5">{step.title}</h3>
+                <p className="text-[13px] font-semibold text-[#6b6459]">{step.desc}</p>
+              </div>
+            ))}
           </div>
         </section>
 
-        {/* Ad placement - below stats */}
-        <section className="py-6 bg-slate-50">
+        {/* Ad placement */}
+        <section className="py-6">
           <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
             <AdUnit slot="homepage-top" format="horizontal" className="my-4" />
           </div>
         </section>
 
-        {/* Features Grid */}
-        <section className="py-24 lg:py-32 bg-slate-50">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-20 animate-fade-in-up">
-              <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-6">
-                Everything you need in a <span className="text-indigo-600">bingo card maker</span>
-              </h2>
-              <p className="text-lg text-slate-600">
-                Build printable bingo cards, online bingo games, bingo boards, and themed templates for real events and classrooms.
+        {/* Features */}
+        <section className="max-w-6xl mx-auto px-4 lg:px-8 py-14">
+          <div className="text-center mb-9">
+            <span className="ckick mb-3">Features</span>
+            <h2 className="font-heading text-3xl font-bold text-[#33312e] mb-2.5">Small tool, big party energy</h2>
+            <p className="font-semibold text-[#6b6459] max-w-[480px] mx-auto text-[15px]">
+              Build printable bingo cards, online bingo games, bingo boards, and themed templates for real events and classrooms.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {features.map((feature) => (
+              <div key={feature.title} className="ccard ccard-hover">
+                <div
+                  className="w-10 h-10 rounded-[11px] border-2 border-[#33312e] flex items-center justify-center mb-3"
+                  style={{ background: feature.emojiBg }}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={feature.iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    {feature.icon}
+                  </svg>
+                </div>
+                <h3 className="font-heading text-base font-bold text-[#33312e] mb-1.5">{feature.title}</h3>
+                <p className="text-[13px] font-semibold text-[#6b6459]">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Workflows */}
+        <section className="cband cband-yellow">
+          <div className="max-w-6xl mx-auto px-4 lg:px-8 py-14">
+            <div className="text-center mb-9">
+              <span className="ckick mb-3">Common workflows</span>
+              <h2 className="font-heading text-3xl font-bold text-[#33312e] mb-2.5">Built for real bingo jobs</h2>
+              <p className="font-semibold text-[#33312e]/70 max-w-[480px] mx-auto text-[15px]">
+                Start from the setup closest to your event, then export for free, or add paid share links and hosting.
               </p>
             </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <FeatureCard
-                icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
-                title="Image Bingo Cards"
-                description="Add photos and images to any cell. Perfect for kids, vocabulary games, or picture-based bingo nights."
-                delay="animation-delay-200"
-              />
-              <FeatureCard
-                icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>}
-                title="Theme Library"
-                description="Choose from included templates for weddings, baby showers, classrooms, holidays, office events, and parties."
-                delay="animation-delay-400"
-              />
-              <FeatureCard
-                icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>}
-                title="Print and Batch PDFs"
-                description="Export an individual PDF or PNG for free, or buy printable batch packs when you need a larger set."
-                delay=""
-              />
-              <FeatureCard
-                icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>}
-                title="Virtual Play"
-                description="Add paid share links or live hosting when players need to join from a browser on their phones, no app required."
-                delay="animation-delay-200"
-              />
-              <FeatureCard
-                icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>}
-                title="Magic Shuffle"
-                description="Use paid batch packs to make unique shuffled printable cards for a group."
-                delay="animation-delay-400"
-              />
-              <FeatureCard
-                icon={<svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>}
-                title="AI Card Generator"
-                description="Describe your theme, pick a tone, and AI generates polished card ideas. Dating bingo, office meetings, baby showers — done in seconds."
-                delay=""
-              />
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {workflows.map((workflow, i) => (
+                <div key={workflow.title} className="ccard h-full flex flex-col">
+                  <div className="mb-4">
+                    <div className="text-xs font-heading font-bold uppercase tracking-wide mb-1.5" style={{ color: audienceHues[i % audienceHues.length] }}>
+                      {workflow.audience}
+                    </div>
+                    <h3 className="font-heading text-lg font-bold text-[#33312e]">{workflow.title}</h3>
+                  </div>
+                  <p className="text-[13px] font-semibold text-[#6b6459] mb-5 leading-relaxed flex-grow">{workflow.description}</p>
+                  <ul className="space-y-2.5 pt-5 border-t-2 border-[#33312e]/10">
+                    {workflow.steps.map((step) => (
+                      <li key={step} className="flex gap-2.5 text-[13px] font-semibold text-[#6b6459]">
+                        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#ff5d8f] border border-[#33312e]"></span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* FAQ Section */}
-        <section className="py-24 lg:py-28 bg-slate-50 border-t border-slate-200">
-          <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
-            <div className="text-center mb-14">
-              <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-4">
-                Bingo Card Generator FAQ
-              </h2>
-              <p className="text-lg text-slate-600">
+        {/* Bingo games library */}
+        <section className="max-w-6xl mx-auto px-4 lg:px-8 py-14">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5 mb-9">
+            <div className="max-w-3xl">
+              <span className="ckick mb-3">Bingo games</span>
+              <h2 className="font-heading text-3xl font-bold text-[#33312e] mb-2.5">Pick a game idea and build from there</h2>
+              <p className="font-semibold text-[#6b6459] text-[15px]">
+                Browse ready-to-edit bingo game pages for showers, weddings, classrooms, holidays, fundraisers, and team events. Planning a professional event? Start with the{" "}
+                <Link href="/conference-bingo" className="font-bold text-[#ff5d8f] hover:underline">
+                  conference bingo planning guide
+                </Link>
+                .
+              </p>
+            </div>
+            <Link href="/bingo-games" className="text-sm font-bold text-[#ff5d8f] hover:underline">
+              See all bingo games
+            </Link>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {featuredBingoGames.map((game, i) => (
+              <Link key={game.slug} href={`/${game.slug}`} className="ccard ccard-hover block">
+                <div className="text-xs font-heading font-bold uppercase tracking-wide mb-2.5" style={{ color: audienceHues[i % audienceHues.length] }}>
+                  {game.audience}
+                </div>
+                <h3 className="font-heading text-lg font-bold text-[#33312e] mb-2">{game.title}</h3>
+                <p className="text-[13px] font-semibold text-[#6b6459] leading-relaxed">{game.description}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="bg-white border-t-[3px] border-[#33312e]">
+          <div className="max-w-4xl mx-auto px-4 lg:px-8 py-14">
+            <div className="text-center mb-9">
+              <span className="ckick mb-3">FAQ</span>
+              <h2 className="font-heading text-3xl font-bold text-[#33312e] mb-2.5">Bingo Card Generator FAQ</h2>
+              <p className="font-semibold text-[#6b6459] max-w-[480px] mx-auto text-[15px]">
                 Short answers for the questions people ask before choosing a bingo card generator or bingo card maker.
               </p>
             </div>
-
             <div className="space-y-4">
               {faqItems.map((item) => (
-                <div key={item.question} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <h3 className="text-xl font-semibold text-slate-900 mb-3">{item.question}</h3>
-                  <p className="text-slate-600 leading-relaxed">{item.answer}</p>
+                <div key={item.question} className="ccard p-6">
+                  <h3 className="font-heading text-lg font-bold text-[#33312e] mb-2">{item.question}</h3>
+                  <p className="font-semibold text-[#6b6459] text-[15px] leading-relaxed">{item.answer}</p>
                 </div>
               ))}
             </div>
@@ -379,185 +420,74 @@ export default function Home() {
           />
         </section>
 
-        {/* Workflow Examples Section */}
-        <section className="py-24 lg:py-32 bg-white">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <div className="inline-block px-4 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold uppercase tracking-wide mb-6">
-                Common workflows
-              </div>
-              <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-6">
-                Built for <span className="text-indigo-600">real bingo jobs</span>
-              </h2>
-              <p className="text-lg text-slate-600">
-                Start from the setup closest to your event, then export for free, or add paid share links and hosting.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              <WorkflowCard
-                title="Vocabulary review"
-                audience="Teacher"
-                description="Turn a unit word list into a classroom review game students can play on paper or devices."
-                steps={["Paste vocabulary terms", "Choose 4x4 or 5x5", "Export for free or add paid links"]}
-              />
-              <WorkflowCard
-                title="Gift-opening bingo"
-                audience="Baby shower host"
-                description="Use common registry gifts, shuffle unique cards, and keep guests involved during present opening."
-                steps={["Start from a gift list", "Choose a paid batch pack for unique cards", "Export an individual card for free"]}
-              />
-              <WorkflowCard
-                title="Remote team game"
-                audience="HR team"
-                description="Run meeting bingo, onboarding bingo, or an icebreaker without asking players to install an app."
-                steps={["Start checkout", "Share the browser link", "Verify winners in the host view"]}
-              />
-              <WorkflowCard
-                title="Wedding reception game"
-                audience="Wedding planner"
-                description="Create reception-safe squares for speeches, photos, dancing, dessert, and guest moments."
-                steps={["Use a reception template", "Add couple-specific details", "Export for free or add paid phone play"]}
-              />
-              <WorkflowCard
-                title="Activity-center bingo"
-                audience="Program coordinator"
-                description="Prepare repeatable cards for senior centers, community rooms, libraries, and church events."
-                steps={["Reuse saved card themes", "Adjust grid size", "Export called lists after games"]}
-              />
-              <WorkflowCard
-                title="Holiday party bingo"
-                audience="Party host"
-                description="Make seasonal cards for family gatherings, office parties, classrooms, or neighborhood events."
-                steps={["Pick a holiday list", "Add party-specific squares", "Export for free or add paid sharing"]}
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Bingo Games Library Section */}
-        <section className="py-24 lg:py-32 bg-slate-50 border-y border-slate-200">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5 mb-12">
-              <div className="max-w-3xl">
-                <div className="inline-block px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wide mb-6">
-                  Bingo games
-                </div>
-                <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-5">
-                  Pick a game idea and build from there
-                </h2>
-                <p className="text-lg text-slate-600">
-                  Browse ready-to-edit bingo game pages for showers, weddings, classrooms, holidays, fundraisers, and team events. Planning a professional event? Start with the{" "}
-                  <Link href="/conference-bingo" className="font-semibold text-indigo-700 hover:text-indigo-800 hover:underline">
-                    conference bingo planning guide
-                  </Link>
-                  .
-                </p>
-              </div>
-              <Link href="/bingo-games" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">
-                See all bingo games
-              </Link>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredBingoGames.map((game) => (
-                <Link
-                  key={game.slug}
-                  href={`/${game.slug}`}
-                  className="group bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-200"
-                >
-                  <div className="text-xs font-bold uppercase tracking-wide text-indigo-600 mb-3">{game.audience}</div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-3">{game.title}</h3>
-                  <p className="text-sm leading-relaxed text-slate-600">{game.description}</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-
-        {/* Email Capture Section */}
-        <section className="py-16 bg-slate-50">
+        {/* Email capture */}
+        <section className="py-14">
           <div className="container mx-auto px-4 lg:px-8 max-w-2xl">
             <EmailCaptureInline />
           </div>
         </section>
 
-        {/* Ad placement - above CTA */}
-        <section className="py-6 bg-slate-50">
+        {/* Ad placement */}
+        <section className="py-6">
           <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
             <AdUnit slot="homepage-bottom" format="horizontal" className="my-4" />
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-24 relative overflow-hidden">
-           <div className="absolute inset-0 bg-slate-900">
-             <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 to-indigo-600/20"></div>
-           </div>
-           
-           <div className="container mx-auto px-4 relative z-10 text-center">
-             <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 tracking-tight">
-               Ready to create custom bingo cards?
-             </h2>
-             <p className="text-xl text-slate-300 mb-4 max-w-2xl mx-auto">
-               Make printable or online bingo cards in a few minutes for classrooms, parties, showers, work events, and holiday games.
-             </p>
-             <p className="text-indigo-300 mb-12">
-               Create, customize, save one card, use templates, AI, and image cells, then export individual PDFs or PNGs for free. Paid batches, player links, and live hosting are available when you need them.
-             </p>
-             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <HomeStartDraftLink
-                  href="/create"
-                  trackingSurface="bottom_cta"
-                  className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-indigo-50 transition-all duration-300 shadow-xl"
-                >
-                  Create a Card
-                </HomeStartDraftLink>
-                <Link
-                  href="/pricing"
-                  className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300"
-                >
-                  View Pricing
-                </Link>
-             </div>
-           </div>
+        {/* Final CTA */}
+        <section className="cband cband-teal text-center">
+          <div className="max-w-3xl mx-auto px-4 lg:px-8 py-16">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold text-white mb-3" style={{ textShadow: "2px 2px 0 #33312e" }}>
+              Ready, set, BINGO!
+            </h2>
+            <p className="text-white/85 font-bold mb-8 text-[15px]">
+              Create, customize, save one card, use templates, AI, and image cells, then export individual PDFs or PNGs for free. Paid batches, player links, and live hosting are available when you need them.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <HomeStartDraftLink href="/create" trackingSurface="bottom_cta" className="cbtn cbtn-yellow !text-lg !px-10 !py-4">
+                Create a free card
+              </HomeStartDraftLink>
+              <Link href="/pricing" className="cbtn cbtn-white !text-lg !px-10 !py-4">
+                View Pricing
+              </Link>
+            </div>
+          </div>
         </section>
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 pt-16 pb-12">
+      <footer className="bg-white border-t-[3px] border-[#33312e] pt-16 pb-12">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="grid md:grid-cols-5 gap-10 mb-12">
             <div className="col-span-1 md:col-span-2">
               <Link href="/" className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-[#ff5d8f] border-2 border-[#33312e] rounded-lg flex items-center justify-center shadow-[0_2px_0_#33312e]">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                   </svg>
                 </div>
-                <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
+                <span className="text-xl font-heading font-bold text-[#33312e]">MyBingoCard</span>
               </Link>
-              <p className="text-slate-500 max-w-sm leading-relaxed">
+              <p className="font-semibold text-[#6b6459] max-w-sm leading-relaxed">
                 Bingo card maker for printable games. Build custom cards for classrooms, parties, showers, weddings, and team events, save one card and export individual PDFs or PNGs for free, then add paid batches, player links, or live hosting when needed.
               </p>
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 mb-6">Product</h4>
+              <h4 className="font-heading font-bold text-[#33312e] mb-6">Product</h4>
               <ul className="space-y-4">
-                <li><Link href="/create" className="text-slate-500 hover:text-indigo-600 transition-colors">Create Cards</Link></li>
-                <li><Link href="/templates" className="text-slate-500 hover:text-indigo-600 transition-colors">Templates</Link></li>
-                <li><Link href="/bingo-games" className="text-slate-500 hover:text-indigo-600 transition-colors">Bingo Games</Link></li>
-                <li><Link href="/pricing" className="text-slate-500 hover:text-indigo-600 transition-colors">Pricing</Link></li>
-                <li><Link href="/features" className="text-slate-500 hover:text-indigo-600 transition-colors">Features</Link></li>
+                <li><Link href="/create" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Create Cards</Link></li>
+                <li><Link href="/templates" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Templates</Link></li>
+                <li><Link href="/bingo-games" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Bingo Games</Link></li>
+                <li><Link href="/pricing" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Pricing</Link></li>
+                <li><Link href="/features" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Features</Link></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 mb-6">Generators</h4>
+              <h4 className="font-heading font-bold text-[#33312e] mb-6">Generators</h4>
               <ul className="space-y-4">
                 {generatorFooterLinks.map((page) => (
                   <li key={page.slug}>
-                    <Link href={`/${page.slug}`} className="text-slate-500 hover:text-indigo-600 transition-colors">
+                    <Link href={`/${page.slug}`} className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">
                       {page.eyebrow}
                     </Link>
                   </li>
@@ -565,26 +495,26 @@ export default function Home() {
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-slate-900 mb-6">Company</h4>
+              <h4 className="font-heading font-bold text-[#33312e] mb-6">Company</h4>
               <ul className="space-y-4">
-                <li><Link href="/about" className="text-slate-500 hover:text-indigo-600 transition-colors">About Us</Link></li>
-                <li><Link href="/blog" className="text-slate-500 hover:text-indigo-600 transition-colors">Blog</Link></li>
+                <li><Link href="/about" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">About Us</Link></li>
+                <li><Link href="/blog" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Blog</Link></li>
                 <li>
-                  <a href={FACEBOOK_PAGE_URL} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-indigo-600 transition-colors">
+                  <a href={FACEBOOK_PAGE_URL} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">
                     Facebook
                   </a>
                 </li>
                 <li>
-                  <a href={REDDIT_COMMUNITY_URL} target="_blank" rel="noopener noreferrer" className="text-slate-500 hover:text-indigo-600 transition-colors">
+                  <a href={REDDIT_COMMUNITY_URL} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">
                     Reddit
                   </a>
                 </li>
-                <li><Link href="/privacy" className="text-slate-500 hover:text-indigo-600 transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="text-slate-500 hover:text-indigo-600 transition-colors">Terms of Service</Link></li>
+                <li><Link href="/privacy" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Terms of Service</Link></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
+          <div className="border-t-2 border-[#33312e]/10 pt-8 text-center text-[#a39a88] text-sm font-semibold">
             <p>&copy; 2026 MyBingoCard. All rights reserved.</p>
           </div>
         </div>
