@@ -13,8 +13,8 @@ const config: Config = {
         foreground: "var(--foreground)",
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-        heading: ["var(--font-poppins)", "var(--font-inter)", "system-ui", "sans-serif"],
+        sans: ["var(--font-nunito)", "system-ui", "sans-serif"],
+        heading: ["var(--font-fredoka)", "var(--font-nunito)", "system-ui", "sans-serif"],
       },
       keyframes: {
         "nps-slide-up": {

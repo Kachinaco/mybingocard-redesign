@@ -1,6 +1,6 @@
 import Script from "next/script";
 import type { Metadata, Viewport } from "next";
-import { Inter, Poppins, Satisfy } from "next/font/google";
+import { Nunito, Fredoka, Satisfy } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import VisitorTracker from "@/components/VisitorTracker";
@@ -15,15 +15,15 @@ import { CheckoutModalProvider } from "@/components/CheckoutModal";
 import MetaPixel from "@/components/MetaPixel";
 import { FACEBOOK_PAGE_URL, REDDIT_COMMUNITY_URL } from "@/lib/social-links";
 
-const inter = Inter({
+const nunito = Nunito({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-nunito",
 });
 
-const poppins = Poppins({
-  weight: ["400", "500", "600", "700", "800"],
+const fredoka = Fredoka({
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
-  variable: "--font-poppins",
+  variable: "--font-fredoka",
 });
 
 const satisfy = Satisfy({
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#4f46e5",
+  themeColor: "#fff7ed",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -102,7 +102,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${poppins.variable} ${satisfy.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${nunito.variable} ${fredoka.variable} ${satisfy.variable}`} suppressHydrationWarning>
       <head>
         <meta name="p:domain_verify" content="377c2985c8bafafc989490930e0eefff" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />

@@ -2,25 +2,91 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ================================================================
+   Playful Confetti design tokens (ported from approved prototype)
+   ================================================================ */
+@theme {
+  /* Brand accents */
+  --color-confetti-pink: #ff5d8f;
+  --color-confetti-teal: #2ec4b6;
+  --color-confetti-yellow: #ffb800;
+  --color-confetti-purple: #7c5cff;
+  --color-confetti-orange: #ff8a3d;
+  --color-ink: #33312e;
+  --color-paper: #fff7ed;
+  --color-inkmut: #6b6459;
+  --color-inkfaint: #a39a88;
+
+  /* Remap legacy palette: violet -> confetti pink scale */
+  --color-violet-50: #fff0f4;
+  --color-violet-100: #ffdae5;
+  --color-violet-200: #ffb3c9;
+  --color-violet-300: #ff85ab;
+  --color-violet-400: #ff5d8f;
+  --color-violet-500: #f5387b;
+  --color-violet-600: #e01e68;
+  --color-violet-700: #b81256;
+  --color-violet-800: #911246;
+  --color-violet-900: #6b0f36;
+  --color-violet-950: #3d071d;
+
+  /* Remap legacy palette: indigo -> confetti purple scale */
+  --color-indigo-50: #f2efff;
+  --color-indigo-100: #e6dfff;
+  --color-indigo-200: #cfc2ff;
+  --color-indigo-300: #b09aff;
+  --color-indigo-400: #9173ff;
+  --color-indigo-500: #7c5cff;
+  --color-indigo-600: #6a3df0;
+  --color-indigo-700: #5828d0;
+  --color-indigo-800: #4725a6;
+  --color-indigo-900: #3a2182;
+  --color-indigo-950: #22124d;
+
+  /* Remap legacy palette: slate -> warm ink/paper neutrals */
+  --color-slate-50: #faf7f1;
+  --color-slate-100: #f3eee4;
+  --color-slate-200: #e7dfd0;
+  --color-slate-300: #d5c9b4;
+  --color-slate-400: #b3a88f;
+  --color-slate-500: #948a71;
+  --color-slate-600: #776e58;
+  --color-slate-700: #5f5847;
+  --color-slate-800: #4a453a;
+  --color-slate-900: #33312e;
+  --color-slate-950: #211f1d;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fff7ed;
+  --foreground: #33312e;
+  --ink: #33312e;
+  --paper: #fff7ed;
+  --pink: #ff5d8f;
+  --teal: #2ec4b6;
+  --yellow: #ffb800;
+  --purple: #7c5cff;
+  --orange: #ff8a3d;
+  --mut: #6b6459;
+  --faint: #a39a88;
+  --cshadow: 0 4px 0 var(--ink);
+  --cshadow-lg: 0 6px 0 var(--ink);
 }
 
 .dark {
-  --background: #0f172a;
-  --foreground: #e2e8f0;
+  --background: #211f1d;
+  --foreground: #f3eee4;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-nunito), system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-poppins), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-fredoka), var(--font-nunito), system-ui, sans-serif;
 }
 
 @layer utilities {
@@ -29,8 +95,190 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .font-heading {
-    font-family: var(--font-poppins), var(--font-inter), system-ui, sans-serif;
+    font-family: var(--font-fredoka), var(--font-nunito), system-ui, sans-serif;
   }
+}
+
+::selection {
+  background: var(--yellow);
+}
+
+/* ================================================================
+   Playful Confetti component classes
+   (mirrors confetti-site.css from the approved prototype)
+   ================================================================ */
+@layer components {
+
+/* Buttons */
+.cbtn {
+  display: inline-block;
+  background: var(--pink);
+  color: #fff;
+  cursor: pointer;
+  padding: 10px 24px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-family: var(--font-fredoka), sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  border: 2.5px solid var(--ink);
+  box-shadow: 0 3px 0 var(--ink);
+  transition: transform 0.12s, box-shadow 0.12s;
+  text-align: center;
+  min-height: 44px;
+  line-height: 1.4;
+}
+.cbtn:hover {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--ink);
+}
+.cbtn:focus-visible {
+  outline: 3px solid var(--purple);
+  outline-offset: 2px;
+}
+.cbtn-teal { background: var(--teal); }
+.cbtn-yellow { background: var(--yellow); color: var(--ink); }
+.cbtn-purple { background: var(--purple); }
+.cbtn-white { background: #fff; color: var(--ink); }
+.cbtn-sm { padding: 8px 16px; font-size: 13px; min-height: 38px; }
+.cbtn-block { display: block; width: 100%; }
+
+/* Cards */
+.ccard {
+  background: #fff;
+  border: 2.5px solid var(--ink);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--cshadow);
+}
+.ccard-hover { transition: transform 0.15s; }
+.ccard-hover:hover { transform: translateY(-4px); }
+
+/* Eyebrow kicker pill */
+.ckick {
+  display: inline-block;
+  font-family: var(--font-fredoka), sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--purple);
+  background: #efeaff;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 4px 14px;
+  box-shadow: 0 2px 0 var(--ink);
+}
+
+/* Pills / badges */
+.cpill {
+  display: inline-block;
+  font-family: var(--font-fredoka), sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 2px 10px;
+  box-shadow: 0 2px 0 var(--ink);
+  white-space: nowrap;
+}
+.cpill-pink { background: #ffd9e6; color: #c2255c; }
+.cpill-teal { background: #cdeee9; color: #157f76; }
+.cpill-yellow { background: #fff0c7; color: #8a6100; }
+.cpill-purple { background: #e9e4ff; color: #5b3fd4; }
+.cpill-green { background: #d9f5d9; color: #2b7a3d; }
+
+/* Filter chips */
+.cchip {
+  font-family: var(--font-fredoka), sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  padding: 7px 16px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--ink);
+  box-shadow: 0 2px 0 var(--ink);
+  min-height: 38px;
+  display: inline-block;
+}
+.cchip:hover, .cchip.on { background: var(--ink); color: var(--paper); }
+
+/* Colored bands */
+.cband { border-top: 3px solid var(--ink); border-bottom: 3px solid var(--ink); }
+.cband-purple { background: var(--purple); color: #fff; }
+.cband-teal { background: var(--teal); color: #fff; }
+.cband-yellow { background: var(--yellow); color: var(--ink); }
+
+/* Check lists */
+.ccheck { list-style: none; padding: 0; }
+.ccheck li {
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 9px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--mut);
+}
+.ccheck li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 18px;
+  height: 18px;
+  background: var(--teal);
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+}
+.ccheck li::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 7px;
+  width: 5px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(42deg);
+}
+
+/* Rotated sticker badge */
+.csticker {
+  display: inline-block;
+  font-family: var(--font-fredoka), sans-serif;
+  font-weight: 700;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  box-shadow: 0 3px 0 var(--ink);
+  padding: 6px 14px;
+  transform: rotate(-3deg);
+}
+
+/* Inputs */
+.cinput {
+  width: 100%;
+  font-size: 16px; /* prevents iOS zoom */
+  font-family: var(--font-nunito), sans-serif;
+  font-weight: 600;
+  color: var(--ink);
+  background: #fff;
+  border: 2.5px solid var(--ink);
+  border-radius: 12px;
+  padding: 12px 16px;
+  min-height: 48px;
+}
+.cinput:focus {
+  outline: 3px solid var(--purple);
+  outline-offset: 1px;
+}
+.cinput::placeholder { color: var(--faint); }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .cbtn, .ccard-hover { transition: none; }
+  .cbtn:hover, .ccard-hover:hover { transform: none; }
 }
 
 /* Smooth scrolling */
