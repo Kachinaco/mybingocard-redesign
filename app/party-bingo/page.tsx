@@ -56,9 +56,9 @@ const schema = {
 function BingoGrid({ squares }: { squares: string[] }) {
   return (
     <div className="relative">
-      <div className="absolute -top-10 -left-10 w-40 h-40 bg-emerald-400 rounded-full blur-3xl opacity-20 animate-pulse"></div>
-      <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-teal-400 rounded-full blur-3xl opacity-20 animate-pulse animation-delay-400"></div>
-      <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl shadow-emerald-500/10 p-6 transform rotate-2 hover:rotate-0 transition-all duration-500 border border-white/50">
+      <div className="absolute -top-6 -left-6 w-14 h-14 bg-[#cdeee9] border-[2.5px] border-[#33312e] rounded-2xl rotate-12 shadow-[0_3px_0_#33312e]"></div>
+      <div className="absolute -bottom-6 -right-6 w-12 h-12 bg-[#ffb800] border-[2.5px] border-[#33312e] rounded-full -rotate-12 shadow-[0_3px_0_#33312e]"></div>
+      <div className="relative bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_6px_0_#33312e] p-6 transform rotate-2 hover:rotate-0 transition-all duration-500">
         <div className="text-center mb-4">
           <div className="flex justify-center gap-3 text-4xl font-black tracking-widest">
             {["B","I","N","G","O"].map((l, i) => {
@@ -70,20 +70,20 @@ function BingoGrid({ squares }: { squares: string[] }) {
                 "from-indigo-500 to-violet-500",
               ];
               return (
-                <span key={i} className={`text-transparent bg-clip-text bg-gradient-to-br ${colors[i]}`}>{l}</span>
+                <span key={i} className={["text-[#ff5d8f]", "text-[#7c5cff]", "text-[#2ec4b6]", "text-[#ff8a3d]", "text-[#ffb800]"][i % 5]}>{l}</span>
               );
             })}
           </div>
-          <p className="text-slate-400 text-xs uppercase tracking-widest font-semibold mt-2">Party Edition</p>
+          <p className="text-[#a39a88] text-xs uppercase tracking-widest font-bold mt-2">Party Edition</p>
         </div>
         <div className="grid grid-cols-5 gap-1.5">
           {squares.map((item, i) => (
             <div
               key={i}
-              className={`aspect-square flex items-center justify-center p-1.5 rounded-xl text-center text-[9px] leading-tight font-semibold cursor-pointer shadow-sm
+              className={`aspect-square flex items-center justify-center p-1.5 rounded-lg text-center text-[9px] leading-tight font-bold cursor-pointer
                 ${i === 4
-                  ? "bg-gradient-to-br from-emerald-500 to-teal-500 text-white ring-2 ring-emerald-100"
-                  : "bg-white text-slate-600 border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/50"
+                  ? "bg-[#ff5d8f] text-white border-2 border-[#33312e]"
+                  : "bg-[#fff7ed] text-[#33312e] border-2 border-[#33312e]"
                 }`}
             >
               {item}
@@ -103,26 +103,26 @@ export default function PartyBingoPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />
-      <div className="min-h-screen bg-slate-50 selection:bg-emerald-100 selection:text-emerald-900">
+      <div className="min-h-screen bg-[#fff7ed] overflow-x-clip">
         {/* Navbar */}
-        <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
+        <header className="fixed top-0 w-full z-50 bg-[#fff7ed]/95 backdrop-blur-md border-b-[3px] border-[#33312e]">
           <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-all duration-300">
+              <div className="w-10 h-10 bg-[#ff5d8f] border-2 border-[#33312e] rounded-xl flex items-center justify-center shadow-[0_2px_0_#33312e] group-hover:-rotate-6 transition-all duration-300">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
               </div>
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
+              <span className="text-xl font-heading font-bold text-[#ff5d8f]">
                 MyBingoCard
               </span>
             </Link>
             <nav className="hidden md:flex items-center gap-8">
-              <Link href="/templates" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Templates</Link>
-              <Link href="/pricing" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Pricing</Link>
-              <div className="w-px h-4 bg-slate-200"></div>
-              <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Sign In</Link>
-              <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
+              <Link href="/templates" className="text-sm font-bold text-[#33312e] hover:text-[#ff5d8f] transition-colors">Templates</Link>
+              <Link href="/pricing" className="text-sm font-bold text-[#33312e] hover:text-[#ff5d8f] transition-colors">Pricing</Link>
+              <div className="w-[2px] h-4 bg-[#33312e]/20"></div>
+              <Link href="/login" className="text-sm font-bold text-[#33312e] hover:text-[#ff5d8f] transition-colors">Sign In</Link>
+              <Link href="/create" className="cbtn cbtn-sm">
                 Create a Card
               </Link>
             </nav>
@@ -141,30 +141,30 @@ export default function PartyBingoPage() {
                   <div className="inline-flex items-center gap-2 bg-white border border-emerald-100 shadow-sm rounded-full px-4 py-1.5 mb-8">
                     <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">🎉 Party Games</span>
                   </div>
-                  <h1 className="text-4xl lg:text-6xl font-bold tracking-tight text-slate-900 mb-6 leading-[1.1]">
+                  <h1 className="text-4xl lg:text-6xl font-heading font-bold text-[#33312e] mb-6 leading-[1.1]">
                     Party Bingo Cards{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">
+                    <span className="text-[#ff5d8f]">
                       for Any Celebration
                     </span>
                   </h1>
-                  <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
+                  <p className="text-lg font-semibold text-[#6b6459] mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
                     Turn any party into an interactive event with editable bingo cards for birthdays, game nights, dinner parties, housewarmings, and backyard BBQs. Add dance-offs, cake time, surprise guests, group selfies, or your own inside jokes, then save one card and export an individual PDF or PNG for free. Use a paid batch pack for a unique printable card per guest, or add paid player links for phone play.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
                       href="/create"
-                      className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:-translate-y-1 transition-all duration-300"
+                      className="cbtn !text-lg !px-8 !py-4"
                     >
                       Create Party Bingo Cards
                     </Link>
                     <Link
                       href="/pricing"
-                      className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300 flex items-center justify-center gap-2"
+                      className="cbtn cbtn-white !text-lg !px-8 !py-4 inline-flex items-center justify-center gap-2"
                     >
                       View Pricing
                     </Link>
                   </div>
-                  <p className="text-sm text-slate-400">1 free saved card · Individual PDF/PNG export · Paid group options</p>
+                  <p className="text-sm font-semibold text-[#a39a88]">1 free saved card · Individual PDF/PNG export · Paid group options</p>
                 </div>
 
                 <div className="relative">
@@ -177,10 +177,10 @@ export default function PartyBingoPage() {
           {/* Use Cases */}
           <section className="py-20 bg-white">
             <div className="container mx-auto px-4 lg:px-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-4">
+              <h2 className="text-3xl md:text-4xl font-heading font-bold text-[#33312e] text-center mb-4">
                 Party bingo for every occasion
               </h2>
-              <p className="text-slate-600 text-center max-w-2xl mx-auto mb-14">
+              <p className="font-semibold text-[#6b6459] text-center max-w-2xl mx-auto mb-14">
                 Custom bingo cards make every celebration more interactive, memorable, and fun.
               </p>
               <div className="grid md:grid-cols-3 gap-8">
@@ -192,10 +192,10 @@ export default function PartyBingoPage() {
                   { icon: "🎤", title: "Karaoke Night", desc: "Song-themed bingo cards that guests mark off as different tunes are performed." },
                   { icon: "🏖️", title: "Backyard BBQ", desc: "Outdoor fun bingo with squares like &quot;someone asks for seconds&quot; and &quot;dog steals food.&quot;" },
                 ].map((f) => (
-                  <div key={f.title} className="bg-slate-50 rounded-2xl p-8 border border-slate-100 hover:shadow-lg transition-all duration-300">
+                  <div key={f.title} className="ccard ccard-hover p-8">
                     <div className="text-4xl mb-4">{f.icon}</div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-2">{f.title}</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed">{f.desc}</p>
+                    <h3 className="text-xl font-heading font-bold text-[#33312e] mb-2">{f.title}</h3>
+                    <p className="font-semibold text-[#6b6459] text-sm leading-relaxed">{f.desc}</p>
                   </div>
                 ))}
               </div>
@@ -203,9 +203,9 @@ export default function PartyBingoPage() {
           </section>
 
           {/* How It Works */}
-          <section className="py-20 bg-slate-50">
+          <section className="py-20 bg-[#fff7ed]">
             <div className="container mx-auto px-4 lg:px-8">
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 text-center mb-14">
+              <h2 className="text-3xl md:text-4xl font-heading font-bold text-[#33312e] text-center mb-14">
                 Create party bingo cards in 3 easy steps
               </h2>
               <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
@@ -215,11 +215,11 @@ export default function PartyBingoPage() {
                   { step: "3", title: "Print or Share", desc: "Export a PDF or share a digital link with paid links for phone play." },
                 ].map((s) => (
                   <div key={s.step} className="text-center">
-                    <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto mb-6 shadow-lg shadow-emerald-200">
+                    <div className="w-16 h-16 bg-[#2ec4b6] border-[2.5px] border-[#33312e] shadow-[0_3px_0_#33312e] rounded-2xl flex items-center justify-center text-white text-2xl font-heading font-bold mx-auto mb-6">
                       {s.step}
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-3">{s.title}</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed">{s.desc}</p>
+                    <h3 className="text-xl font-heading font-bold text-[#33312e] mb-3">{s.title}</h3>
+                    <p className="font-semibold text-[#6b6459] text-sm leading-relaxed">{s.desc}</p>
                   </div>
                 ))}
               </div>
@@ -228,18 +228,16 @@ export default function PartyBingoPage() {
 
           {/* CTA */}
           <section className="py-24 relative overflow-hidden">
-            <div className="absolute inset-0 bg-slate-900">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/20 to-teal-600/20"></div>
-            </div>
+            <div className="absolute inset-0 bg-[#7c5cff]"></div>
             <div className="container mx-auto px-4 relative z-10 text-center">
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
+              <h2 className="text-4xl md:text-5xl font-heading font-bold text-white mb-6 tracking-tight">
                 Make your next party the one everyone remembers
               </h2>
-              <p className="text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
+              <p className="text-xl font-semibold text-white/85 mb-10 max-w-2xl mx-auto">
                 Make custom party bingo cards in under 2 minutes, then add a paid batch pack when every guest needs a unique printable card.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/create" className="bg-white text-slate-900 px-10 py-4 rounded-xl text-lg font-bold hover:bg-emerald-50 transition-all duration-300 shadow-xl">
+                <Link href="/create" className="cbtn cbtn-yellow !text-lg !px-10 !py-4">
                   Create Party Bingo Cards
                 </Link>
                 <Link href="/pricing" className="bg-transparent border border-white/30 text-white px-10 py-4 rounded-xl text-lg font-semibold hover:bg-white/10 transition-all duration-300">
@@ -252,41 +250,41 @@ export default function PartyBingoPage() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-white border-t border-slate-200 pt-16 pb-12">
+        <footer className="bg-white border-t-[3px] border-[#33312e] pt-16 pb-12">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="grid md:grid-cols-4 gap-12 mb-12">
               <div className="col-span-1 md:col-span-2">
                 <Link href="/" className="flex items-center gap-2 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-[#ff5d8f] border-2 border-[#33312e] rounded-lg flex items-center justify-center shadow-[0_2px_0_#33312e]">
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
                   </div>
-                  <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
+                  <span className="text-xl font-heading font-bold text-[#33312e]">MyBingoCard</span>
                 </Link>
-                <p className="text-slate-500 max-w-sm leading-relaxed">
+                <p className="font-semibold text-[#6b6459] max-w-sm leading-relaxed">
                   The easiest bingo card generator for parties, celebrations, and good times.
                 </p>
               </div>
               <div>
-                <h4 className="font-bold text-slate-900 mb-6">Product</h4>
+                <h4 className="font-heading font-bold text-[#33312e] mb-6">Product</h4>
                 <ul className="space-y-4">
-                  <li><Link href="/create" className="text-slate-500 hover:text-indigo-600 transition-colors">Create Cards</Link></li>
-                  <li><Link href="/templates" className="text-slate-500 hover:text-indigo-600 transition-colors">Templates</Link></li>
-                  <li><Link href="/pricing" className="text-slate-500 hover:text-indigo-600 transition-colors">Pricing</Link></li>
+                  <li><Link href="/create" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Create Cards</Link></li>
+                  <li><Link href="/templates" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Templates</Link></li>
+                  <li><Link href="/pricing" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Pricing</Link></li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-bold text-slate-900 mb-6">More Ideas</h4>
+                <h4 className="font-heading font-bold text-[#33312e] mb-6">More Ideas</h4>
                 <ul className="space-y-4">
-                  <li><Link href="/wedding-bingo" className="text-slate-500 hover:text-indigo-600 transition-colors">Wedding Bingo</Link></li>
-                  <li><Link href="/baby-shower-bingo" className="text-slate-500 hover:text-indigo-600 transition-colors">Baby Shower Bingo</Link></li>
-                  <li><Link href="/classroom-bingo" className="text-slate-500 hover:text-indigo-600 transition-colors">Classroom Bingo</Link></li>
-                  <li><Link href="/holiday-bingo" className="text-slate-500 hover:text-indigo-600 transition-colors">Holiday Bingo</Link></li>
+                  <li><Link href="/wedding-bingo" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Wedding Bingo</Link></li>
+                  <li><Link href="/baby-shower-bingo" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Baby Shower Bingo</Link></li>
+                  <li><Link href="/classroom-bingo" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Classroom Bingo</Link></li>
+                  <li><Link href="/holiday-bingo" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Holiday Bingo</Link></li>
                 </ul>
               </div>
             </div>
-            <div className="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
+            <div className="border-t-2 border-[#33312e]/10 pt-8 text-center text-[#a39a88] text-sm font-semibold">
               <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
             </div>
           </div>
