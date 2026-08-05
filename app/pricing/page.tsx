@@ -69,7 +69,7 @@ const FAQ_ITEMS = [
 
 function CheckIcon({ tone = "indigo" }: { tone?: "indigo" | "slate" }) {
   return (
-    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${tone === "indigo" ? "bg-indigo-50 text-indigo-600" : "bg-slate-100 text-slate-500"}`}>
+    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${tone === "indigo" ? "bg-[#cdeee9] text-[#157f76] border-2 border-[#33312e]" : "bg-[#fff0c7] text-[#8a6100] border-2 border-[#33312e]"}`}>
       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
       </svg>
@@ -83,7 +83,7 @@ function PlanFeatureList({ features, tone = "indigo" }: { features: string[]; to
       {features.map((feature) => (
         <li key={feature} className="flex items-start gap-3">
           <CheckIcon tone={tone} />
-          <span className="text-slate-600 font-medium leading-tight">{feature}</span>
+          <span className="font-semibold text-[#33312e] leading-tight">{feature}</span>
         </li>
       ))}
     </ul>
@@ -92,29 +92,29 @@ function PlanFeatureList({ features, tone = "indigo" }: { features: string[]; to
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-[#fff7ed]">
       <Suspense fallback={null}>
         <PricingPageTracker />
       </Suspense>
 
-      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
+      <header className="fixed top-0 w-full z-50 bg-[#fff7ed]/95 backdrop-blur-md border-b-[3px] border-[#33312e]">
         <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-all duration-300">
+            <div className="w-10 h-10 bg-[#ff5d8f] border-2 border-[#33312e] rounded-xl flex items-center justify-center shadow-[0_2px_0_#33312e] group-hover:-rotate-6 transition-all duration-300">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
             </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
+            <span className="text-xl font-heading font-bold text-[#ff5d8f]">
               MyBingoCard
             </span>
           </Link>
 
           <div className="flex gap-4 items-center">
-            <Link href="/login" className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">
+            <Link href="/login" className="text-sm font-bold text-[#33312e] hover:text-[#ff5d8f] transition-colors">
               Sign In
             </Link>
-            <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
+            <Link href="/create" className="cbtn cbtn-sm">
               Create Card
             </Link>
           </div>
@@ -127,73 +127,73 @@ export default function PricingPage() {
         </Suspense>
 
         <section className="text-center mb-16">
-          <div className="inline-block px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-bold uppercase tracking-wide mb-6">
+          <div className="ckick mb-6 uppercase tracking-wide">
             Free: One Saved Card
           </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-tight">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-[#33312e] mb-4 tracking-tight">
             Clear pricing for individual cards, group batches, and online play
           </h1>
-          <p className="text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg font-semibold text-[#6b6459] max-w-3xl mx-auto leading-relaxed">
             Create, customize, use templates, export individual printable cards, and save your first card for free. Premium unlocks unlimited saved cards plus printable batches, player links, and live bingo hosting.
           </p>
         </section>
 
         <section className="max-w-6xl mx-auto grid lg:grid-cols-3 gap-6 px-4">
-          <div className="relative bg-white rounded-3xl border border-slate-200 shadow-xl hover:shadow-2xl hover:border-indigo-200 transition-all duration-300 flex flex-col">
+          <div className="ccard !rounded-3xl ccard-hover relative flex flex-col">
             <div className="p-8 flex-grow">
-              <h2 className="text-xl font-bold text-slate-900 mb-2">Free</h2>
-              <p className="text-sm text-slate-500 mb-6">Starter access for making, printing, and saving your first bingo card.</p>
+              <h2 className="text-xl font-heading font-bold text-[#33312e] mb-2">Free</h2>
+              <p className="text-sm font-semibold text-[#a39a88] mb-6">Starter access for making, printing, and saving your first bingo card.</p>
               <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-black text-slate-900 tracking-tight">$0</span>
-                <span className="text-slate-500 font-medium">forever</span>
+                <span className="text-4xl font-heading font-bold text-[#33312e] tracking-tight">$0</span>
+                <span className="font-semibold text-[#a39a88]">forever</span>
               </div>
               <PlanFeatureList features={FREE_FEATURES} tone="slate" />
             </div>
             <div className="p-8 pt-0 mt-auto">
-              <Link href="/signup" className="block w-full py-4 px-6 bg-slate-100 text-slate-700 rounded-xl font-bold text-center hover:bg-slate-200 transition-colors border border-slate-200">
+              <Link href="/signup" className="cbtn cbtn-white cbtn-block">
                 Start Creating
               </Link>
             </div>
           </div>
 
-          <div className="relative bg-white rounded-3xl border border-slate-200 shadow-xl hover:shadow-2xl hover:border-indigo-200 transition-all duration-300 flex flex-col">
+          <div className="ccard !rounded-3xl ccard-hover relative flex flex-col">
             <div className="p-8 flex-grow">
-              <h2 className="text-xl font-bold text-slate-900 mb-2">Premium</h2>
-              <p className="text-sm text-slate-500 mb-6">Best for people hosting live games or sharing cards with players online.</p>
+              <h2 className="text-xl font-heading font-bold text-[#33312e] mb-2">Premium</h2>
+              <p className="text-sm font-semibold text-[#a39a88] mb-6">Best for people hosting live games or sharing cards with players online.</p>
               <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-black text-slate-900 tracking-tight">$7.99</span>
-                <span className="text-slate-500 font-medium">/month</span>
+                <span className="text-4xl font-heading font-bold text-[#33312e] tracking-tight">$7.99</span>
+                <span className="font-semibold text-[#a39a88]">/month</span>
               </div>
-              <p className="-mt-5 mb-6 text-sm font-semibold text-indigo-600">Billed monthly</p>
+              <p className="-mt-5 mb-6 text-sm font-bold text-[#ff5d8f]">Billed monthly</p>
               <PlanFeatureList features={PREMIUM_FEATURES} />
             </div>
             <div className="p-8 pt-0 mt-auto">
               <PricingCheckoutButton
                 purchaseType="monthly"
-                className="w-full py-4 px-6 rounded-xl font-bold transition-all duration-200 bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-indigo-500/30"
+                className="cbtn cbtn-block"
               >
                 Subscribe Monthly
               </PricingCheckoutButton>
             </div>
           </div>
 
-          <div className="relative bg-white rounded-3xl ring-2 ring-indigo-600 shadow-2xl shadow-indigo-500/20 transition-all duration-300 flex flex-col">
-            <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg">
+          <div className="ccard !rounded-3xl relative flex flex-col !border-[#ff5d8f] !shadow-[0_6px_0_#33312e]">
+            <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-[#ffb800] text-[#33312e] border-2 border-[#33312e] px-4 py-1 rounded-full text-xs font-heading font-bold uppercase tracking-wider shadow-[0_2px_0_#33312e]">
               Pay Once
             </div>
             <div className="p-8 flex-grow">
-              <h2 className="text-xl font-bold text-slate-900 mb-2">Lifetime</h2>
-              <p className="text-sm text-slate-500 mb-6">Permanent batch, sharing, and hosting access with no renewal.</p>
+              <h2 className="text-xl font-heading font-bold text-[#33312e] mb-2">Lifetime</h2>
+              <p className="text-sm font-semibold text-[#a39a88] mb-6">Permanent batch, sharing, and hosting access with no renewal.</p>
               <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-black text-slate-900 tracking-tight">$29.99</span>
-                <span className="text-slate-500 font-medium">once</span>
+                <span className="text-4xl font-heading font-bold text-[#33312e] tracking-tight">$29.99</span>
+                <span className="font-semibold text-[#a39a88]">once</span>
               </div>
               <PlanFeatureList features={[...PREMIUM_FEATURES, "Lifetime access, never pay again"]} />
             </div>
             <div className="p-8 pt-0 mt-auto">
               <PricingCheckoutButton
                 purchaseType="lifetime"
-                className="w-full py-4 px-6 rounded-xl font-bold transition-all duration-200 bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 shadow-lg shadow-indigo-500/30"
+                className="cbtn cbtn-block"
               >
                 Get Lifetime Access
               </PricingCheckoutButton>
@@ -202,24 +202,24 @@ export default function PricingPage() {
         </section>
 
         <section className="max-w-6xl mx-auto mt-12 px-4">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-8 md:p-10">
+          <div className="ccard !rounded-3xl p-8 md:p-10">
             <div className="grid lg:grid-cols-[1fr_1.4fr] gap-8 items-start">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wide text-indigo-600 mb-3">Paid Batch Packs and Share Links</p>
-                <h2 className="text-2xl font-bold text-slate-900 mb-4">Need a larger printable set?</h2>
-                <p className="text-slate-600 leading-relaxed">
+                <p className="text-xs font-heading font-bold uppercase tracking-wide text-[#7c5cff] mb-3">Paid Batch Packs and Share Links</p>
+                <h2 className="text-2xl font-heading font-bold text-[#33312e] mb-4">Need a larger printable set?</h2>
+                <p className="font-semibold text-[#6b6459] leading-relaxed">
                   Buy a one-time printable batch pack for saved or printable PDF sets. Share links are separate when players need online cards, and Premium includes batches, direct sharing, and hosted rooms.
                 </p>
               </div>
               <div className="grid sm:grid-cols-4 gap-3">
                 {([30, 100, 250, 500] as const).map((count) => (
-                  <div key={count} className="rounded-2xl border border-slate-200 bg-slate-50 p-5 flex flex-col">
-                    <div className="text-xl font-black text-slate-900">{count} cards</div>
-                    <div className="text-sm text-slate-500 mb-4">printable batch</div>
-                    <div className="text-lg font-bold text-indigo-600">{BATCH_PACKS[count].label}</div>
+                  <div key={count} className="rounded-2xl border-2 border-[#33312e] bg-[#fff7ed] shadow-[0_3px_0_#33312e] p-5 flex flex-col">
+                    <div className="text-xl font-heading font-bold text-[#33312e]">{count} cards</div>
+                    <div className="text-sm font-semibold text-[#a39a88] mb-4">printable batch</div>
+                    <div className="text-lg font-heading font-bold text-[#ff5d8f]">{BATCH_PACKS[count].label}</div>
                     <Link
                       href={`/create?batchMode=1&batchCount=${count}`}
-                      className="mt-4 inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-slate-800"
+                      className="cbtn cbtn-sm mt-4 !rounded-xl"
                     >
                       Create batch
                     </Link>
@@ -231,24 +231,24 @@ export default function PricingPage() {
         </section>
 
         <section className="max-w-4xl mx-auto mt-20">
-          <h2 className="text-xl font-bold text-slate-900 text-center mb-6">Compare Plans</h2>
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm overflow-x-auto">
+          <h2 className="text-xl font-heading font-bold text-[#33312e] text-center mb-6">Compare Plans</h2>
+          <div className="ccard !rounded-2xl overflow-hidden overflow-x-auto !p-0">
             <table className="w-full min-w-[680px]">
               <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left p-4 text-sm font-semibold text-slate-700">Feature</th>
-                  <th className="text-center p-4 text-sm font-semibold text-slate-700">Free</th>
-                  <th className="text-center p-4 text-sm font-semibold text-slate-700">Premium</th>
-                  <th className="text-center p-4 text-sm font-semibold text-indigo-600">Lifetime</th>
+                <tr className="border-b-2 border-[#33312e]">
+                  <th className="text-left p-4 text-sm font-heading font-bold text-[#33312e]">Feature</th>
+                  <th className="text-center p-4 text-sm font-heading font-bold text-[#33312e]">Free</th>
+                  <th className="text-center p-4 text-sm font-heading font-bold text-[#33312e]">Premium</th>
+                  <th className="text-center p-4 text-sm font-heading font-bold text-[#ff5d8f]">Lifetime</th>
                 </tr>
               </thead>
               <tbody className="text-sm">
                 {PLAN_ROWS.map(([feature, free, monthly, lifetime], index) => (
-                  <tr key={feature} className={index % 2 === 0 ? "bg-slate-50/50" : ""}>
-                    <td className="p-4 text-slate-700 font-medium">{feature}</td>
-                    <td className="p-4 text-center text-slate-500">{free}</td>
-                    <td className="p-4 text-center text-slate-600">{monthly}</td>
-                    <td className="p-4 text-center text-indigo-600 font-semibold">{lifetime}</td>
+                  <tr key={feature} className={index % 2 === 0 ? "bg-[#fff7ed]/70" : ""}>
+                    <td className="p-4 font-semibold text-[#33312e]">{feature}</td>
+                    <td className="p-4 text-center font-semibold text-[#6b6459]">{free}</td>
+                    <td className="p-4 text-center font-semibold text-[#33312e]">{monthly}</td>
+                    <td className="p-4 text-center font-bold text-[#ff5d8f]">{lifetime}</td>
                   </tr>
                 ))}
               </tbody>
@@ -275,27 +275,27 @@ export default function PricingPage() {
         />
 
         <section className="max-w-3xl mx-auto mt-20">
-          <h2 className="text-2xl font-bold text-slate-900 text-center mb-8">Frequently Asked Questions</h2>
+          <h2 className="text-2xl font-heading font-bold text-[#33312e] text-center mb-8">Frequently Asked Questions</h2>
           <div className="grid gap-6">
             {FAQ_ITEMS.map((item) => (
-              <div key={item.question} className="bg-white rounded-2xl border border-slate-100 p-8 shadow-sm">
-                <h3 className="font-bold text-lg text-slate-900 mb-3">{item.question}</h3>
-                <p className="text-slate-600 leading-relaxed">{item.answer}</p>
+              <div key={item.question} className="ccard !rounded-2xl p-8">
+                <h3 className="font-heading font-bold text-lg text-[#33312e] mb-3">{item.question}</h3>
+                <p className="font-semibold text-[#6b6459] leading-relaxed">{item.answer}</p>
               </div>
             ))}
           </div>
         </section>
 
         <section className="max-w-5xl mx-auto mt-24">
-          <div className="bg-slate-900 rounded-3xl p-12 text-center relative overflow-hidden">
+          <div className="bg-[#7c5cff] border-[3px] border-[#33312e] shadow-[0_6px_0_#33312e] rounded-3xl p-12 text-center relative overflow-hidden">
             <div className="relative z-10">
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
+              <h2 className="text-2xl md:text-3xl font-heading font-bold text-white mb-4">
                 Make your first card now.
               </h2>
-              <p className="text-indigo-200 text-base mb-6 max-w-2xl mx-auto">
+              <p className="text-white/85 font-semibold text-base mb-6 max-w-2xl mx-auto">
                 Start with one free saved card and individual PDF/PNG exports, then add paid batch packs, player share links, or hosted bingo events when needed.
               </p>
-              <Link href="/create" className="inline-block px-8 py-4 bg-white text-slate-900 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-colors shadow-lg shadow-white/10">
+              <Link href="/create" className="cbtn cbtn-yellow !text-lg !px-8 !py-4">
                 Create Your First Card
               </Link>
             </div>
@@ -303,22 +303,22 @@ export default function PricingPage() {
         </section>
       </main>
 
-      <footer className="bg-white border-t border-slate-200 pt-16 pb-12">
+      <footer className="bg-white border-t-[3px] border-[#33312e] pt-16 pb-12">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-[#ff5d8f] border-2 border-[#33312e] rounded-lg flex items-center justify-center shadow-[0_2px_0_#33312e]">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
               </div>
-              <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
+              <span className="text-xl font-heading font-bold text-[#33312e]">MyBingoCard</span>
             </div>
-            <div className="text-slate-500 text-sm">&copy; 2026 MyBingoCard. All rights reserved.</div>
-            <div className="flex gap-6 text-sm font-medium text-slate-500">
-              <Link href="/privacy" className="hover:text-indigo-600 transition-colors">Privacy</Link>
-              <Link href="/terms" className="hover:text-indigo-600 transition-colors">Terms</Link>
-              <Link href="/contact" className="hover:text-indigo-600 transition-colors">Contact</Link>
+            <div className="font-semibold text-[#6b6459] text-sm">&copy; 2026 MyBingoCard. All rights reserved.</div>
+            <div className="flex gap-6 text-sm font-semibold text-[#6b6459]">
+              <Link href="/privacy" className="hover:text-[#ff5d8f] transition-colors">Privacy</Link>
+              <Link href="/terms" className="hover:text-[#ff5d8f] transition-colors">Terms</Link>
+              <Link href="/contact" className="hover:text-[#ff5d8f] transition-colors">Contact</Link>
             </div>
           </div>
         </div>

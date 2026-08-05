@@ -111,35 +111,35 @@ const useCases = [
 
 export default function FeaturesPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-[#fff7ed]">
       {/* Hero */}
       <section className="pt-20 pb-16 px-4 text-center">
         <div className="max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 text-sm font-semibold px-4 py-2 rounded-full mb-6 border border-indigo-100">
+          <div className="ckick mb-6">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
             </svg>
             Everything you need
           </div>
-          <h1 className="text-5xl font-black text-slate-900 mb-6 leading-tight">
+          <h1 className="text-5xl font-heading font-bold text-[#33312e] mb-6 leading-tight">
             Powerful features for the{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
+            <span className="text-[#ff5d8f]">
               perfect game
             </span>
           </h1>
-          <p className="text-xl text-slate-500 mb-10 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-xl font-semibold text-[#6b6459] mb-10 max-w-2xl mx-auto leading-relaxed">
             From smart editing to virtual play, MyBingoCard has everything you need to create, share, and run amazing bingo games — in minutes.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link
               href="/create"
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold px-8 py-4 rounded-2xl hover:shadow-lg hover:shadow-indigo-500/25 transition-all duration-200 hover:-translate-y-0.5"
+              className="cbtn !text-base !px-8 !py-4 inline-flex items-center gap-2"
             >
               Create a Card
             </Link>
             <Link
               href="/pricing"
-              className="inline-flex items-center gap-2 bg-white text-slate-700 font-semibold px-8 py-4 rounded-2xl border border-slate-200 hover:border-indigo-200 hover:shadow-md transition-all duration-200"
+              className="cbtn cbtn-white !text-base !px-8 !py-4 inline-flex items-center gap-2"
             >
               View Pricing
             </Link>
@@ -148,7 +148,7 @@ export default function FeaturesPage() {
       </section>
 
       {/* Stats */}
-      <section className="py-12 px-4 border-y border-slate-100 bg-white">
+      <section className="cband cband-yellow py-12 px-4">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
             { value: "1", label: "Free Saved Card" },
@@ -157,8 +157,8 @@ export default function FeaturesPage() {
             { value: "Paid", label: "Online Play" },
           ].map((stat) => (
             <div key={stat.label}>
-              <div className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">{stat.value}</div>
-              <div className="text-slate-500 text-sm font-medium mt-1">{stat.label}</div>
+              <div className="text-3xl font-heading font-bold text-[#33312e]">{stat.value}</div>
+              <div className="text-[#33312e]/70 text-sm font-bold mt-1">{stat.label}</div>
             </div>
           ))}
         </div>
@@ -168,24 +168,24 @@ export default function FeaturesPage() {
       <section className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-black text-slate-900 mb-4">All features, in one place</h2>
-            <p className="text-slate-500 text-lg max-w-xl mx-auto">No complicated setup. Everything works out of the box.</p>
+            <h2 className="text-3xl font-heading font-bold text-[#33312e] mb-4">All features, in one place</h2>
+            <p className="font-semibold text-[#6b6459] text-lg max-w-xl mx-auto">No complicated setup. Everything works out of the box.</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="group bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 border border-slate-100 hover:border-indigo-100"
+                className="ccard ccard-hover p-8"
               >
-                <div className="w-14 h-14 bg-gradient-to-br from-indigo-50 to-violet-50 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 border border-indigo-100/50">
-                  <div className="text-indigo-600">{feature.icon}</div>
+                <div className="w-14 h-14 bg-[#ffd9e6] border-2 border-[#33312e] rounded-2xl flex items-center justify-center mb-6">
+                  <div className="text-[#ff5d8f]">{feature.icon}</div>
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-3">{feature.title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed mb-5">{feature.description}</p>
+                <h3 className="text-lg font-heading font-bold text-[#33312e] mb-3">{feature.title}</h3>
+                <p className="font-semibold text-[#6b6459] text-sm leading-relaxed mb-5">{feature.description}</p>
                 <ul className="space-y-2">
                   {feature.highlights.map((h) => (
-                    <li key={h} className="flex items-center gap-2 text-sm text-slate-600">
-                      <svg className="w-4 h-4 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <li key={h} className="flex items-center gap-2 text-sm font-semibold text-[#33312e]">
+                      <svg className="w-4 h-4 text-[#2ec4b6] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                       </svg>
                       {h}
@@ -199,18 +199,18 @@ export default function FeaturesPage() {
       </section>
 
       {/* Use Cases */}
-      <section className="py-20 px-4 bg-slate-50">
+      <section className="py-20 px-4 bg-[#fff7ed]">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-black text-slate-900 mb-4">Built for every occasion</h2>
-            <p className="text-slate-500 text-lg">Create, save your first card, and export individual cards for free. Add paid batches, player links, or hosted live games when needed.</p>
+            <h2 className="text-3xl font-heading font-bold text-[#33312e] mb-4">Built for every occasion</h2>
+            <p className="font-semibold text-[#6b6459] text-lg">Create, save your first card, and export individual cards for free. Add paid batches, player links, or hosted live games when needed.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {useCases.map((uc) => (
-              <div key={uc.title} className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm text-center hover:shadow-md transition-all duration-200">
+              <div key={uc.title} className="ccard ccard-hover p-6 text-center">
                 <div className="text-4xl mb-4">{uc.emoji}</div>
-                <h3 className="font-bold text-slate-900 mb-2">{uc.title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{uc.description}</p>
+                <h3 className="font-heading font-bold text-[#33312e] mb-2">{uc.title}</h3>
+                <p className="font-semibold text-[#6b6459] text-sm leading-relaxed">{uc.description}</p>
               </div>
             ))}
           </div>
@@ -220,12 +220,12 @@ export default function FeaturesPage() {
       {/* CTA */}
       <section className="py-20 px-4">
         <div className="max-w-2xl mx-auto text-center">
-          <div className="bg-gradient-to-br from-violet-600 to-indigo-600 rounded-3xl p-12 text-white shadow-2xl shadow-indigo-500/25">
+          <div className="bg-[#7c5cff] border-[3px] border-[#33312e] shadow-[0_6px_0_#33312e] rounded-3xl p-12 text-white">
             <h2 className="text-3xl font-black mb-4">Ready to create your first card?</h2>
-            <p className="text-indigo-100 mb-8 text-lg">Create, save your first card, and export individual cards for free. Add paid batches, sharing, or hosting when your game needs it.</p>
+            <p className="text-white/85 font-semibold mb-8 text-lg">Create, save your first card, and export individual cards for free. Add paid batches, sharing, or hosting when your game needs it.</p>
             <Link
               href="/create"
-              className="inline-flex items-center gap-2 bg-white text-indigo-700 font-bold px-8 py-4 rounded-2xl hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"
+              className="cbtn cbtn-yellow !text-base !px-8 !py-4 inline-flex items-center gap-2"
             >
               Create Your First Card →
             </Link>
