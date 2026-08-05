@@ -46,11 +46,11 @@ function BingoGrid({ squares }: { squares: string[] }) {
           <div className="flex justify-center gap-3 text-4xl font-black tracking-widest">
             {["B","I","N","G","O"].map((l, i) => {
               const colors = [
-                "from-violet-600 to-purple-600",
-                "from-purple-600 to-fuchsia-600",
-                "from-fuchsia-600 to-pink-600",
-                "from-pink-600 to-rose-600",
-                "from-rose-600 to-red-600",
+                "from-[#7c5cff] to-[#7c5cff]",
+                "from-[#7c5cff] to-[#ff5d8f]",
+                "from-[#ff5d8f] to-[#ff5d8f]",
+                "from-[#ff5d8f] to-[#ff5d8f]",
+                "from-[#ff5d8f] to-[#ff5d8f]",
               ];
               return (
                 <span key={i} className={`text-transparent bg-clip-text bg-gradient-to-br ${colors[i]}`}>{l}</span>
@@ -65,8 +65,8 @@ function BingoGrid({ squares }: { squares: string[] }) {
               key={i}
               className={`aspect-square flex items-center justify-center p-1.5 rounded-lg text-center text-[9px] leading-tight font-bold cursor-pointer
                 ${i === 4
-                  ? "bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white ring-2 ring-violet-100"
-                  : "bg-white text-slate-600 border border-slate-100 hover:border-violet-200 hover:bg-violet-50/50"
+                  ? "bg-gradient-to-br from-[#7c5cff] to-[#ff5d8f] text-white ring-2 ring-[#7c5cff]/15"
+                  : "bg-white text-[#33312e] border border-[#fff7ed] hover:border-[#7c5cff] hover:bg-[#7c5cff]/50"
                 }`}
             >
               {item}
@@ -126,7 +126,7 @@ export default function WeddingBingoPage() {
                   </div>
                   <h1 className="text-4xl lg:text-6xl font-heading font-bold text-[#33312e] mb-6 leading-[1.1]">
                     Wedding Bingo Cards{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-fuchsia-600">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cff] to-[#ff5d8f]">
                       Printable
                     </span>
                   </h1>
@@ -136,7 +136,7 @@ export default function WeddingBingoPage() {
                   <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
                     <Link
                       href="/create"
-                      className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-violet-500/20 hover:shadow-violet-500/40 hover:-translate-y-1 transition-all duration-300"
+                      className="bg-gradient-to-r from-[#7c5cff] to-[#ff5d8f] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-[#7c5cff]/20 hover:shadow-[#7c5cff]/40 hover:-translate-y-1 transition-all duration-300"
                     >
                       Create Wedding Bingo Cards
                     </Link>

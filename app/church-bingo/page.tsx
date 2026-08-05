@@ -145,7 +145,7 @@ export default function ChurchBingoPage() {
                   <BingoGrid
                     squares={churchSquares}
                     label="Church Edition"
-                    gradient="bg-gradient-to-br from-amber-500 to-yellow-500"
+                    gradient="bg-gradient-to-br from-[#ffb800] to-[#ffb800]"
                   />
                 </div>
               </div>

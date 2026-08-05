@@ -116,18 +116,18 @@ function BingoGamesJsonLd() {
 
 function GameCard({ game, featured = false }: { game: BingoGame; featured?: boolean }) {
   return (
-    <article className="group flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10">
+    <article className="group flex h-full flex-col rounded-2xl border border-[#a39a88] bg-white p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-[#7c5cff] hover:shadow-xl hover:shadow-[#7c5cff]/10">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-indigo-700">
+        <span className="rounded-full bg-[#7c5cff]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#7c5cff]">
           {game.category}
         </span>
-        {featured ? <span className="text-xs font-semibold text-slate-400">{game.audience}</span> : null}
+        {featured ? <span className="text-xs font-semibold text-[#6b6459]">{game.audience}</span> : null}
       </div>
-      <h3 className="mb-2 text-lg font-bold text-slate-900">{game.title}</h3>
-      <p className="mb-4 flex-grow text-sm leading-relaxed text-slate-600">{game.description}</p>
+      <h3 className="mb-2 text-lg font-bold text-[#33312e]">{game.title}</h3>
+      <p className="mb-4 flex-grow text-sm leading-relaxed text-[#33312e]">{game.description}</p>
       <Link
         href={`/${game.slug}`}
-        className="inline-flex items-center justify-center rounded-xl border border-indigo-200 bg-white px-4 py-2.5 text-sm font-semibold text-indigo-600 transition-colors hover:border-indigo-300 hover:bg-indigo-50"
+        className="inline-flex items-center justify-center rounded-xl border border-[#7c5cff] bg-white px-4 py-2.5 text-sm font-semibold text-[#7c5cff] transition-colors hover:border-[#7c5cff] hover:bg-[#7c5cff]/10"
       >
         Open Game
       </Link>
@@ -137,7 +137,7 @@ function GameCard({ game, featured = false }: { game: BingoGame; featured?: bool
 
 export default function BingoGamesPage() {
   return (
-    <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-[#fff7ed] selection:bg-[#7c5cff]/15 selection:text-[#7c5cff]">
       <MobileNav />
       <BingoGamesJsonLd />
 
@@ -145,41 +145,41 @@ export default function BingoGamesPage() {
         <section className="bg-white py-10 lg:py-14">
           <div className="container mx-auto grid gap-8 px-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8">
             <div>
-              <div className="mb-4 inline-flex rounded-full border border-indigo-100 bg-indigo-50 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-indigo-700">
+              <div className="mb-4 inline-flex rounded-full border border-[#7c5cff]/15 bg-[#7c5cff]/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-[#7c5cff]">
                 Bingo game library
               </div>
-              <h1 className="mb-4 text-3xl font-bold leading-tight tracking-tight text-slate-900 md:text-4xl lg:text-5xl">
+              <h1 className="mb-4 text-3xl font-bold leading-tight tracking-tight text-[#33312e] md:text-4xl lg:text-5xl">
                 Bingo Games for Classrooms, Parties, Showers, Work, and Events
               </h1>
-              <p className="mb-6 max-w-2xl text-base leading-relaxed text-slate-600">
+              <p className="mb-6 max-w-2xl text-base leading-relaxed text-[#33312e]">
                 Pick the game type closest to your event, open the guide, customize the square ideas, then print a PDF or add online play when your group needs device-based cards.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row">
                 <Link
                   href="/create"
-                  className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-3 text-base font-bold text-white shadow-xl shadow-indigo-500/20 transition-all duration-300 hover:-translate-y-1"
+                  className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] px-6 py-3 text-base font-bold text-white shadow-xl shadow-[#7c5cff]/20 transition-all duration-300 hover:-translate-y-1"
                 >
                   Start a Blank Card
                 </Link>
                 <Link
                   href="/templates"
-                  className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3 text-base font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                  className="inline-flex items-center justify-center rounded-xl border border-[#a39a88] bg-white px-6 py-3 text-base font-bold text-[#33312e] transition-colors hover:bg-[#fff7ed]"
                 >
                   Browse Templates
                 </Link>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+            <div className="rounded-2xl border border-[#a39a88] bg-[#fff7ed] p-6">
               <div className="grid grid-cols-2 gap-3">
                 {featuredBingoGames.slice(0, 6).map((game) => (
                   <Link
                     key={game.slug}
                     href={`/${game.slug}`}
-                    className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-200 hover:border-indigo-200 hover:shadow-md"
+                    className="rounded-xl border border-[#a39a88] bg-white p-4 shadow-sm transition-all duration-200 hover:border-[#7c5cff] hover:shadow-md"
                   >
-                    <div className="text-xs font-bold uppercase tracking-wide text-indigo-600">{game.audience}</div>
-                    <div className="mt-2 text-sm font-bold leading-snug text-slate-900">{game.title}</div>
+                    <div className="text-xs font-bold uppercase tracking-wide text-[#7c5cff]">{game.audience}</div>
+                    <div className="mt-2 text-sm font-bold leading-snug text-[#33312e]">{game.title}</div>
                   </Link>
                 ))}
               </div>
@@ -187,23 +187,23 @@ export default function BingoGamesPage() {
           </div>
         </section>
 
-        <section className="border-y border-slate-200 bg-indigo-50/40 py-12">
+        <section className="border-y border-[#a39a88] bg-[#7c5cff]/40 py-12">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="mb-8 max-w-3xl">
-              <h2 className="text-2xl font-bold text-slate-900 md:text-3xl">Choose a game by how people will play</h2>
-              <p className="mt-3 leading-relaxed text-slate-600">
+              <h2 className="text-2xl font-bold text-[#33312e] md:text-3xl">Choose a game by how people will play</h2>
+              <p className="mt-3 leading-relaxed text-[#33312e]">
                 Start with the activity, not the theme. Pick the play style that fits the room, then open a focused guide with square ideas and setup advice.
               </p>
             </div>
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
               {playModes.map((mode) => (
-                <article key={mode.title} className="rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm">
-                  <h3 className="mb-2 text-lg font-bold text-slate-900">{mode.title}</h3>
-                  <p className="mb-5 text-sm leading-relaxed text-slate-600">{mode.description}</p>
+                <article key={mode.title} className="rounded-2xl border border-[#7c5cff]/15 bg-white p-6 shadow-sm">
+                  <h3 className="mb-2 text-lg font-bold text-[#33312e]">{mode.title}</h3>
+                  <p className="mb-5 text-sm leading-relaxed text-[#33312e]">{mode.description}</p>
                   <ul className="space-y-2 text-sm">
                     {mode.links.map((link) => (
                       <li key={link.href}>
-                        <Link href={link.href} className="font-semibold text-indigo-700 hover:text-indigo-800 hover:underline">
+                        <Link href={link.href} className="font-semibold text-[#7c5cff] hover:text-[#7c5cff] hover:underline">
                           {link.label}
                         </Link>
                       </li>
@@ -215,16 +215,16 @@ export default function BingoGamesPage() {
           </div>
         </section>
 
-        <section className="border-y border-slate-200 bg-slate-50 py-12">
+        <section className="border-y border-[#a39a88] bg-[#fff7ed] py-12">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 md:text-3xl">Popular bingo games</h2>
-                <p className="mt-2 max-w-2xl text-slate-600">
+                <h2 className="text-2xl font-bold text-[#33312e] md:text-3xl">Popular bingo games</h2>
+                <p className="mt-2 max-w-2xl text-[#33312e]">
                   These are the high-intent game pages from the MyBingoCard notes: showers, weddings, classrooms, holidays, teams, and fundraisers.
                 </p>
               </div>
-              <Link href="/create" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">
+              <Link href="/create" className="text-sm font-semibold text-[#7c5cff] hover:text-[#7c5cff]">
                 Create from scratch
               </Link>
             </div>
@@ -240,8 +240,8 @@ export default function BingoGamesPage() {
         <section className="bg-white py-12 lg:py-16">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="mb-8 max-w-3xl">
-              <h2 className="text-2xl font-bold text-slate-900 md:text-3xl">All bingo game ideas</h2>
-              <p className="mt-2 text-slate-600">
+              <h2 className="text-2xl font-bold text-[#33312e] md:text-3xl">All bingo game ideas</h2>
+              <p className="mt-2 text-[#33312e]">
                 Browse by occasion, classroom use, workplace flow, or community event. Each game page gives you square ideas and a path into the card editor.
               </p>
             </div>
@@ -250,10 +250,10 @@ export default function BingoGamesPage() {
               {categoryGroups.map((group) => (
                 <section key={group.category} aria-labelledby={`${group.category.replaceAll(" ", "-").toLowerCase()}-heading`}>
                   <div className="mb-4 flex items-center gap-4">
-                    <h2 id={`${group.category.replaceAll(" ", "-").toLowerCase()}-heading`} className="text-xl font-bold text-slate-900">
+                    <h2 id={`${group.category.replaceAll(" ", "-").toLowerCase()}-heading`} className="text-xl font-bold text-[#33312e]">
                       {group.category}
                     </h2>
-                    <div className="h-px flex-1 bg-slate-200" />
+                    <div className="h-px flex-1 bg-[#a39a88]" />
                   </div>
                   <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                     {group.games.map((game) => (
@@ -266,15 +266,15 @@ export default function BingoGamesPage() {
           </div>
         </section>
 
-        <section className="bg-slate-900 py-12 text-center text-white">
+        <section className="bg-[#33312e] py-12 text-center text-white">
           <div className="container mx-auto max-w-3xl px-4">
             <h2 className="mb-4 text-2xl font-bold md:text-4xl">Build the next bingo game</h2>
-            <p className="mb-6 text-base leading-relaxed text-slate-300">
+            <p className="mb-6 text-base leading-relaxed text-[#a39a88]">
               Start from a guide when you know the occasion, or open a blank card when you already have the square list ready.
             </p>
             <Link
               href="/create"
-              className="inline-flex rounded-xl bg-white px-7 py-3 text-base font-bold text-slate-900 transition-colors hover:bg-indigo-50"
+              className="inline-flex rounded-xl bg-white px-7 py-3 text-base font-bold text-[#33312e] transition-colors hover:bg-[#7c5cff]/10"
             >
               Create a Card
             </Link>

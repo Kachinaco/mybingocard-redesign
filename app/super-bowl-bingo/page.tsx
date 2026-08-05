@@ -41,7 +41,7 @@ function BingoGrid({ squares }: { squares: string[] }) {
         <div className="text-center mb-4">
           <div className="flex justify-center gap-3 text-4xl font-black tracking-widest">
             {["B","I","N","G","O"].map((l, i) => {
-              const colors = ["from-green-600 to-emerald-600","from-emerald-600 to-teal-600","from-teal-600 to-slate-700","from-slate-700 to-green-700","from-green-700 to-emerald-600"];
+              const colors = ["from-[#2ec4b6] to-[#2ec4b6]","from-[#2ec4b6] to-[#2ec4b6]","from-[#2ec4b6] to-[#33312e]","from-[#33312e] to-[#2ec4b6]","from-[#2ec4b6] to-[#2ec4b6]"];
               return <span key={i} className={["text-[#ff5d8f]", "text-[#7c5cff]", "text-[#2ec4b6]", "text-[#ff8a3d]", "text-[#ffb800]"][i % 5]}>{l}</span>;
             })}
           </div>
@@ -123,7 +123,7 @@ export default function SuperBowlBingoPage() {
           <div className="max-w-3xl mx-auto bg-[#7c5cff] border-[3px] border-[#33312e] shadow-[0_6px_0_#33312e] rounded-3xl p-12 text-center text-white mb-20">
             <h2 className="text-3xl font-bold mb-4">Touchdown! Time to Play 🏈</h2>
             <p className="text-white/85 font-semibold text-lg mb-8">Make a Super Bowl bingo card in minutes, then add a paid batch pack when every guest needs a unique printable card.</p>
-            <Link href="/create" className="inline-block px-8 py-4 bg-white text-green-700 rounded-xl font-bold text-lg hover:bg-green-50 transition-colors shadow-lg">Create Super Bowl Bingo</Link>
+            <Link href="/create" className="inline-block px-8 py-4 bg-white text-[#2ec4b6] rounded-xl font-bold text-lg hover:bg-[#2ec4b6]/10 transition-colors shadow-lg">Create Super Bowl Bingo</Link>
           </div>
 
           <div className="max-w-5xl mx-auto">

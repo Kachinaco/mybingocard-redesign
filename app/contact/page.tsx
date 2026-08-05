@@ -38,31 +38,31 @@ export default function ContactPage() {
 
       <main className="container mx-auto px-4 py-12 max-w-3xl">
         <div className="ccard !rounded-2xl p-8 md:p-12">
-          <h1 className="text-3xl font-black text-slate-900 mb-2">Contact Us</h1>
+          <h1 className="text-3xl font-black text-[#33312e] mb-2">Contact Us</h1>
 
           <div className="mt-8 space-y-8">
 
               <div>
-                <h2 className="text-xl font-bold text-slate-900 mb-3">Get in Touch</h2>
-                <p className="text-slate-600 leading-relaxed">We'd love to hear from you! Whether you have a question, feedback, or need help with your bingo cards, we're here for you.</p>
+                <h2 className="text-xl font-bold text-[#33312e] mb-3">Get in Touch</h2>
+                <p className="text-[#33312e] leading-relaxed">We'd love to hear from you! Whether you have a question, feedback, or need help with your bingo cards, we're here for you.</p>
               </div>
 
               <div>
-                <h2 className="text-xl font-bold text-slate-900 mb-3">Email Support</h2>
+                <h2 className="text-xl font-bold text-[#33312e] mb-3">Email Support</h2>
                 <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-slate-600">Send us an email at support@mybingocard.com</li>
-                  <li className="text-slate-600">We read every message and typically respond within 24 hours</li>
+                  <li className="text-[#33312e]">Send us an email at support@mybingocard.com</li>
+                  <li className="text-[#33312e]">We read every message and typically respond within 24 hours</li>
                 </ul>
               </div>
 
               <div>
-                <h2 className="text-xl font-bold text-slate-900 mb-3">Common Questions</h2>
+                <h2 className="text-xl font-bold text-[#33312e] mb-3">Common Questions</h2>
                 <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-slate-600">How do I upgrade to Premium? — Visit your Settings page or the Pricing page</li>
-                  <li className="text-slate-600">How do I cancel my subscription? — Go to Settings and click Manage Subscription</li>
-                  <li className="text-slate-600">Can I get a refund? — Email us and we'll work something out</li>
-                  <li className="text-slate-600">How do I export my cards? — Open any card and click the Export tab</li>
-                  <li className="text-slate-600">How do I host a live game? — Open a card and click "Host Live Game" in the Play tab</li>
+                  <li className="text-[#33312e]">How do I upgrade to Premium? — Visit your Settings page or the Pricing page</li>
+                  <li className="text-[#33312e]">How do I cancel my subscription? — Go to Settings and click Manage Subscription</li>
+                  <li className="text-[#33312e]">Can I get a refund? — Email us and we'll work something out</li>
+                  <li className="text-[#33312e]">How do I export my cards? — Open any card and click the Export tab</li>
+                  <li className="text-[#33312e]">How do I host a live game? — Open a card and click "Host Live Game" in the Play tab</li>
                 </ul>
               </div>
 
@@ -70,7 +70,7 @@ export default function ContactPage() {
         </div>
       </main>
 
-      <footer className="border-t border-slate-200 py-8 text-center text-slate-400 text-sm">
+      <footer className="border-t border-[#a39a88] py-8 text-center text-[#6b6459] text-sm">
         <p>&copy; 2026 MyBingoCard. All rights reserved.</p>
       </footer>      <SeoSupportBlock slug="contact" />
 

@@ -46,11 +46,11 @@ function BingoGrid({ squares }: { squares: string[] }) {
           <div className="flex justify-center gap-3 text-4xl font-black tracking-widest">
             {["B","I","N","G","O"].map((l, i) => {
               const colors = [
-                "from-sky-600 to-blue-600",
-                "from-blue-600 to-indigo-600",
-                "from-indigo-600 to-violet-600",
-                "from-violet-600 to-purple-600",
-                "from-purple-600 to-fuchsia-600",
+                "from-[#2ec4b6] to-[#7c5cff]",
+                "from-[#7c5cff] to-[#7c5cff]",
+                "from-[#7c5cff] to-[#7c5cff]",
+                "from-[#7c5cff] to-[#7c5cff]",
+                "from-[#7c5cff] to-[#ff5d8f]",
               ];
               return (
                 <span key={i} className={`text-transparent bg-clip-text bg-gradient-to-br ${colors[i]}`}>{l}</span>

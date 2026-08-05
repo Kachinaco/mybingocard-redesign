@@ -75,7 +75,7 @@ function BingoGrid({ squares }: { squares: string[] }) {
         <div className="text-center mb-4">
           <div className="flex justify-center gap-3 text-4xl font-black tracking-widest">
             {["B","I","N","G","O"].map((l, i) => {
-              const colors = ["from-blue-600 to-indigo-600","from-indigo-600 to-violet-600","from-violet-600 to-blue-600","from-blue-500 to-cyan-600","from-cyan-600 to-blue-600"];
+              const colors = ["from-[#7c5cff] to-[#7c5cff]","from-[#7c5cff] to-[#7c5cff]","from-[#7c5cff] to-[#7c5cff]","from-[#7c5cff] to-[#2ec4b6]","from-[#2ec4b6] to-[#7c5cff]"];
               return <span key={i} className={["text-[#ff5d8f]", "text-[#7c5cff]", "text-[#2ec4b6]", "text-[#ff8a3d]", "text-[#ffb800]"][i % 5]}>{l}</span>;
             })}
           </div>
@@ -148,7 +148,7 @@ export default function GraduationBingoPage() {
 
           <section className="max-w-5xl mx-auto mb-20">
             <div className="grid lg:grid-cols-2 gap-8">
-              <article className="bg-white rounded-2xl border border-blue-100 p-8 shadow-sm">
+              <article className="bg-white rounded-2xl border border-[#7c5cff]/15 p-8 shadow-sm">
                 <h2 className="text-2xl font-heading font-bold text-[#33312e] mb-4">How to make graduation bingo work</h2>
                 <p className="font-semibold text-[#6b6459] leading-relaxed mb-5">
                   Graduation bingo works best as a quiet observation game. Build around moments that are likely to happen, then choose a rule that does not distract from the graduates or the ceremony.
@@ -160,20 +160,20 @@ export default function GraduationBingoPage() {
                   <li>Verify winners during a break or after the final procession.</li>
                 </ol>
               </article>
-              <article className="bg-white rounded-2xl border border-blue-100 p-8 shadow-sm">
+              <article className="bg-white rounded-2xl border border-[#7c5cff]/15 p-8 shadow-sm">
                 <h2 className="text-2xl font-heading font-bold text-[#33312e] mb-4">Graduation square ideas</h2>
                 <p className="font-semibold text-[#6b6459] leading-relaxed mb-5">
                   Start with ceremony moments, then add details from the graduate&apos;s school or party. Remove any square that depends on someone being embarrassed or singled out.
                 </p>
                 <div className="grid sm:grid-cols-2 gap-3 text-sm font-bold text-[#33312e]">
                   {["Diploma moment", "Tassel turn", "Class photo", "Proud family member", "Standing ovation", "School song", "Handshake", "Speech applause", "Cake cutting", "After-party photo"].map((idea) => (
-                    <div key={idea} className="rounded-xl bg-blue-50 px-4 py-3">{idea}</div>
+                    <div key={idea} className="rounded-xl bg-[#7c5cff]/10 px-4 py-3">{idea}</div>
                   ))}
                 </div>
               </article>
             </div>
 
-            <div className="mt-8 bg-white rounded-2xl border border-blue-100 p-8 shadow-sm">
+            <div className="mt-8 bg-white rounded-2xl border border-[#7c5cff]/15 p-8 shadow-sm">
               <h2 className="text-2xl font-heading font-bold text-[#33312e] mb-5">Graduation bingo FAQs</h2>
               <div className="grid md:grid-cols-3 gap-6 font-semibold text-[#6b6459] leading-relaxed">
                 <div>
@@ -190,7 +190,7 @@ export default function GraduationBingoPage() {
                 </div>
               </div>
               <p className="mt-6 font-semibold text-[#6b6459]">
-                For a school-year memory game, try <Link href="/end-of-year-bingo" className="font-semibold text-indigo-600 hover:text-indigo-700">end-of-year bingo</Link>. For a general celebration, browse <Link href="/party-bingo" className="font-semibold text-indigo-600 hover:text-indigo-700">party bingo cards</Link>.
+                For a school-year memory game, try <Link href="/end-of-year-bingo" className="font-semibold text-[#7c5cff] hover:text-[#7c5cff]">end-of-year bingo</Link>. For a general celebration, browse <Link href="/party-bingo" className="font-semibold text-[#7c5cff] hover:text-[#7c5cff]">party bingo cards</Link>.
               </p>
             </div>
           </section>

@@ -63,11 +63,11 @@ function BingoGrid({ squares }: { squares: string[] }) {
           <div className="flex justify-center gap-3 text-4xl font-black tracking-widest">
             {["B","I","N","G","O"].map((l, i) => {
               const colors = [
-                "from-emerald-500 to-teal-500",
-                "from-teal-500 to-cyan-500",
-                "from-cyan-500 to-blue-500",
-                "from-blue-500 to-indigo-500",
-                "from-indigo-500 to-violet-500",
+                "from-[#2ec4b6] to-[#2ec4b6]",
+                "from-[#2ec4b6] to-[#2ec4b6]",
+                "from-[#2ec4b6] to-[#7c5cff]",
+                "from-[#7c5cff] to-[#7c5cff]",
+                "from-[#7c5cff] to-[#7c5cff]",
               ];
               return (
                 <span key={i} className={["text-[#ff5d8f]", "text-[#7c5cff]", "text-[#2ec4b6]", "text-[#ff8a3d]", "text-[#ffb800]"][i % 5]}>{l}</span>
@@ -132,14 +132,14 @@ export default function PartyBingoPage() {
         <main className="pt-20">
           {/* Hero */}
           <section className="relative overflow-hidden pt-12 pb-24 lg:pt-20 lg:pb-32">
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-200/40 rounded-full blur-[100px] pointer-events-none"></div>
-            <div className="absolute top-20 left-0 w-[400px] h-[400px] bg-teal-200/40 rounded-full blur-[100px] pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#2ec4b6]/40 rounded-full blur-[100px] pointer-events-none"></div>
+            <div className="absolute top-20 left-0 w-[400px] h-[400px] bg-[#2ec4b6]/40 rounded-full blur-[100px] pointer-events-none"></div>
 
             <div className="container mx-auto px-4 lg:px-8 relative">
               <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
                 <div className="text-center lg:text-left animate-fade-in-up">
-                  <div className="inline-flex items-center gap-2 bg-white border border-emerald-100 shadow-sm rounded-full px-4 py-1.5 mb-8">
-                    <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">🎉 Party Games</span>
+                  <div className="inline-flex items-center gap-2 bg-white border border-[#2ec4b6]/15 shadow-sm rounded-full px-4 py-1.5 mb-8">
+                    <span className="text-xs font-semibold text-[#2ec4b6] uppercase tracking-wide">🎉 Party Games</span>
                   </div>
                   <h1 className="text-4xl lg:text-6xl font-heading font-bold text-[#33312e] mb-6 leading-[1.1]">
                     Party Bingo Cards{" "}

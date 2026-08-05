@@ -144,7 +144,7 @@ export default function TriviaBingoPage() {
                   <BingoGrid
                     squares={triviaSquares}
                     label="Trivia Night Edition"
-                    gradient="bg-gradient-to-br from-purple-500 to-violet-500"
+                    gradient="bg-gradient-to-br from-[#7c5cff] to-[#7c5cff]"
                   />
                 </div>
               </div>

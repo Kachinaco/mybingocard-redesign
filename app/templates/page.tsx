@@ -420,10 +420,10 @@ export default function TemplatesPage() {
     return (
       <div
         key={template._id}
-        className="group bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-100 transition-all duration-300 overflow-hidden flex flex-col h-full"
+        className="group bg-white rounded-2xl shadow-sm border border-[#a39a88] hover:shadow-xl hover:shadow-[#7c5cff]/10 hover:border-[#7c5cff]/15 transition-all duration-300 overflow-hidden flex flex-col h-full"
       >
         {/* Template Preview */}
-        <div className="p-6 bg-slate-50 relative border-b border-slate-100 group-hover:bg-indigo-50/30 transition-colors">
+        <div className="p-6 bg-[#fff7ed] relative border-b border-[#fff7ed] group-hover:bg-[#7c5cff]/30 transition-colors">
           <div className="relative transform group-hover:scale-105 transition-transform duration-500">
            <ThemedCardWrapper theme={template.style?.theme} title={template.title} size="mini">
             <div
@@ -452,7 +452,7 @@ export default function TemplatesPage() {
           </div>
 
           {template.isPremium && (
-            <div className="absolute top-3 right-3 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm flex items-center gap-1">
+            <div className="absolute top-3 right-3 bg-gradient-to-r from-[#ffb800] to-[#ffb800] text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm flex items-center gap-1">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
@@ -464,22 +464,22 @@ export default function TemplatesPage() {
         {/* Template Info */}
         <div className="p-5 flex flex-col flex-grow">
           <div className="mb-4">
-            <h3 className="font-bold text-slate-900 text-lg mb-1 leading-tight">{template.title}</h3>
+            <h3 className="font-bold text-[#33312e] text-lg mb-1 leading-tight">{template.title}</h3>
             {template.description && (
-              <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
+              <p className="text-sm text-[#6b6459] line-clamp-2 leading-relaxed">
                 {template.description}
               </p>
             )}
           </div>
 
-          <div className="flex items-center gap-3 text-xs font-medium text-slate-400 mb-6 mt-auto">
+          <div className="flex items-center gap-3 text-xs font-medium text-[#6b6459] mb-6 mt-auto">
             <span className="flex items-center gap-1">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
               {gridSize}×{gridSize}
             </span>
-            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+            <span className="w-1 h-1 rounded-full bg-[#a39a88]"></span>
             <span className="flex items-center gap-1">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -491,7 +491,7 @@ export default function TemplatesPage() {
 
           <button
             onClick={() => handleUseTemplate(template)}
-            className="w-full bg-white text-indigo-600 border border-indigo-200 px-4 py-2.5 rounded-xl hover:bg-indigo-50 hover:border-indigo-300 transition-all font-semibold text-sm shadow-sm"
+            className="w-full bg-white text-[#7c5cff] border border-[#7c5cff] px-4 py-2.5 rounded-xl hover:bg-[#7c5cff]/10 hover:border-[#7c5cff] transition-all font-semibold text-sm shadow-sm"
           >
             Use Template
           </button>
@@ -501,17 +501,17 @@ export default function TemplatesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-[#fff7ed] selection:bg-[#7c5cff]/15 selection:text-[#7c5cff]">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
+      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-[#a39a88]/50">
         <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-all duration-300">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-xl flex items-center justify-center shadow-lg shadow-[#7c5cff] group-hover:shadow-[#7c5cff] transition-all duration-300">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
             </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#33312e] to-[#33312e]">
               MyBingoCard
             </span>
           </Link>
@@ -521,13 +521,13 @@ export default function TemplatesPage() {
                <>
                 <Link
                   href="/dashboard"
-                  className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
+                  className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff] transition-colors"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/create"
-                  className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20"
+                  className="bg-[#33312e] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#33312e] transition-all duration-200 shadow-lg shadow-[#33312e]/20"
                 >
                   Create New
                 </Link>
@@ -536,13 +536,13 @@ export default function TemplatesPage() {
               <>
                 <Link
                   href="/login"
-                  className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
+                  className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff] transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/create"
-                  className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20"
+                  className="bg-[#33312e] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#33312e] transition-all duration-200 shadow-lg shadow-[#33312e]/20"
                 >
                   Create a Card
                 </Link>
@@ -555,16 +555,16 @@ export default function TemplatesPage() {
       <main className="pt-32 pb-24 px-4">
         <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-16 animate-fade-in-up">
-             <div className="inline-block px-4 py-1.5 rounded-full bg-violet-50 border border-violet-100 text-violet-600 text-xs font-bold uppercase tracking-wide mb-6">
+             <div className="inline-block px-4 py-1.5 rounded-full bg-[#7c5cff]/10 border border-[#7c5cff]/15 text-[#7c5cff] text-xs font-bold uppercase tracking-wide mb-6">
                 Template Gallery
               </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
-              Start with a <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">perfect design</span>.
+            <h1 className="text-3xl md:text-4xl font-bold text-[#33312e] mb-4 tracking-tight">
+              Start with a <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cff] to-[#7c5cff]">perfect design</span>.
             </h1>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-xl text-[#33312e] max-w-2xl mx-auto leading-relaxed">
               Choose from our collection of professionally designed templates for weddings, parties, classrooms, and more.
             </p>
-            <Link href="/bingo-games" className="mt-6 inline-flex text-sm font-semibold text-indigo-600 hover:text-indigo-700">
+            <Link href="/bingo-games" className="mt-6 inline-flex text-sm font-semibold text-[#7c5cff] hover:text-[#7c5cff]">
               Browse bingo games by occasion
             </Link>
           </div>
@@ -572,20 +572,20 @@ export default function TemplatesPage() {
           <section className="mb-16 animate-fade-in-up animation-delay-100">
             <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
               <div>
-                <h2 className="text-xl md:text-2xl font-bold text-slate-900">Popular bingo card templates</h2>
-                <p className="mt-2 text-slate-600 max-w-2xl">
+                <h2 className="text-xl md:text-2xl font-bold text-[#33312e]">Popular bingo card templates</h2>
+                <p className="mt-2 text-[#33312e] max-w-2xl">
                   Start with a ready-made idea, customize the squares, then print a PDF or share the card online.
                 </p>
               </div>
-              <Link href="/create" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700">
+              <Link href="/create" className="text-sm font-semibold text-[#7c5cff] hover:text-[#7c5cff]">
                 Start from a blank card
               </Link>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {INDEXABLE_TEMPLATES.map((template) => (
-                <article key={template.slug} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-full">
-                  <div className="p-5 bg-slate-50 border-b border-slate-100">
+                <article key={template.slug} className="bg-white rounded-2xl border border-[#a39a88] shadow-sm overflow-hidden flex flex-col h-full">
+                  <div className="p-5 bg-[#fff7ed] border-b border-[#fff7ed]">
                     <div className="grid grid-cols-3 gap-1.5 rounded-xl bg-white p-2 shadow-sm" aria-label={`${template.title} preview`}>
                       {template.cells.map((cell, index) => (
                         <div
@@ -603,14 +603,14 @@ export default function TemplatesPage() {
                     </div>
                   </div>
                   <div className="p-5 flex flex-col flex-grow">
-                    <div className="text-xs font-bold uppercase tracking-wide text-indigo-600 mb-2">
+                    <div className="text-xs font-bold uppercase tracking-wide text-[#7c5cff] mb-2">
                       {getCategoryName(template.category)}
                     </div>
-                    <h3 className="text-lg font-bold text-slate-900 mb-2">{template.title}</h3>
-                    <p className="text-sm text-slate-500 leading-relaxed mb-5 flex-grow">{template.description}</p>
+                    <h3 className="text-lg font-bold text-[#33312e] mb-2">{template.title}</h3>
+                    <p className="text-sm text-[#6b6459] leading-relaxed mb-5 flex-grow">{template.description}</p>
                     <Link
                       href={getIndexableTemplateHref(template)}
-                      className="w-full bg-white text-indigo-600 border border-indigo-200 px-4 py-2.5 rounded-xl hover:bg-indigo-50 hover:border-indigo-300 transition-all font-semibold text-sm shadow-sm text-center"
+                      className="w-full bg-white text-[#7c5cff] border border-[#7c5cff] px-4 py-2.5 rounded-xl hover:bg-[#7c5cff]/10 hover:border-[#7c5cff] transition-all font-semibold text-sm shadow-sm text-center"
                     >
                       Use This Template
                     </Link>
@@ -621,12 +621,12 @@ export default function TemplatesPage() {
           </section>
 
           {/* Filters and Search */}
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-8 animate-fade-in-up animation-delay-100">
+          <div className="bg-white rounded-2xl shadow-sm border border-[#a39a88] p-4 mb-8 animate-fade-in-up animation-delay-100">
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               {/* Search */}
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-5 w-5 text-[#6b6459]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
@@ -635,20 +635,20 @@ export default function TemplatesPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search templates..."
-                  className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200"
+                  className="block w-full pl-10 pr-3 py-3 border border-[#a39a88] rounded-xl leading-5 bg-[#fff7ed] placeholder-[#6b6459] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#7c5cff]/20 focus:border-[#7c5cff] transition-all duration-200"
                 />
               </div>
 
               {/* Premium-tag filter */}
               <div className="flex items-center">
-                <label className="flex items-center p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors w-full md:w-auto">
+                <label className="flex items-center p-3 rounded-xl hover:bg-[#fff7ed] cursor-pointer transition-colors w-full md:w-auto">
                   <input
                     type="checkbox"
                     checked={showPremiumOnly}
                     onChange={(e) => setShowPremiumOnly(e.target.checked)}
-                    className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                    className="w-5 h-5 text-[#7c5cff] border-[#a39a88] rounded focus:ring-[#7c5cff]"
                   />
-                  <span className="ml-3 text-sm font-medium text-slate-700">Show premium-tagged templates only</span>
+                  <span className="ml-3 text-sm font-medium text-[#33312e]">Show premium-tagged templates only</span>
                 </label>
               </div>
             </div>
@@ -661,8 +661,8 @@ export default function TemplatesPage() {
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     selectedCategory === cat.id
-                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-200"
-                      : "bg-white text-slate-600 hover:bg-slate-50 hover:text-indigo-600 border border-slate-200 hover:border-indigo-200"
+                      ? "bg-[#7c5cff] text-white shadow-md shadow-[#7c5cff]"
+                      : "bg-white text-[#33312e] hover:bg-[#fff7ed] hover:text-[#7c5cff] border border-[#a39a88] hover:border-[#7c5cff]"
                   }`}
                 >
                   {cat.name}
@@ -673,19 +673,19 @@ export default function TemplatesPage() {
 
           {/* Empty state */}
           {status !== "loading" && templates.length === 0 && (
-            <div className="text-center py-10 bg-gradient-to-br from-violet-50 to-indigo-50 rounded-3xl border border-indigo-100 mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-violet-500 to-indigo-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-indigo-200">
+            <div className="text-center py-10 bg-gradient-to-br from-[#7c5cff]/10 to-[#7c5cff]/10 rounded-3xl border border-[#7c5cff]/15 mb-8">
+              <div className="w-16 h-16 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#7c5cff]">
                 <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-3">Templates are loading</h3>
-              <p className="text-slate-600 max-w-md mx-auto mb-6">
+              <h3 className="text-2xl font-bold text-[#33312e] mb-3">Templates are loading</h3>
+              <p className="text-[#33312e] max-w-md mx-auto mb-6">
                 All templates are included for free. Start from a blank card while the gallery refreshes.
               </p>
               <Link
                 href="/create"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-indigo-500/20 hover:-translate-y-0.5 transition-all"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-[#7c5cff]/20 hover:-translate-y-0.5 transition-all"
               >
                 Start from blank
               </Link>
@@ -695,30 +695,30 @@ export default function TemplatesPage() {
           {/* Templates Grid */}
           {loading ? (
             <div className="text-center py-16">
-              <div className="inline-block w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="mt-4 text-slate-500 font-medium">Loading more templates...</p>
+              <div className="inline-block w-12 h-12 border-4 border-[#7c5cff] border-t-transparent rounded-full animate-spin"></div>
+              <p className="mt-4 text-[#6b6459] font-medium">Loading more templates...</p>
             </div>
           ) : filteredTemplates.length === 0 && templates.length > 0 ? (
-            <div className="text-center py-24 bg-white rounded-3xl border border-slate-200 border-dashed">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                 <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center py-24 bg-white rounded-3xl border border-[#a39a88] border-dashed">
+              <div className="w-16 h-16 bg-[#fff7ed] rounded-full flex items-center justify-center mx-auto mb-4">
+                 <svg className="w-8 h-8 text-[#6b6459]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">No templates found</h3>
-              <p className="text-slate-500">
+              <h3 className="text-xl font-bold text-[#33312e] mb-2">No templates found</h3>
+              <p className="text-[#6b6459]">
                 Try adjusting your search or filters to find what you're looking for.
               </p>
               <button
                 onClick={() => {setSelectedCategory("all"); setSearchQuery(""); setShowPremiumOnly(false);}}
-                className="mt-6 text-indigo-600 font-medium hover:text-indigo-700 hover:underline"
+                className="mt-6 text-[#7c5cff] font-medium hover:text-[#7c5cff] hover:underline"
               >
                 Clear all filters
               </button>
             </div>
           ) : templates.length > 0 ? (
             <>
-              <div className="mb-6 text-sm font-medium text-slate-500 animate-fade-in-up animation-delay-200">
+              <div className="mb-6 text-sm font-medium text-[#6b6459] animate-fade-in-up animation-delay-200">
                 Showing {filteredTemplates.length} template{filteredTemplates.length !== 1 ? "s" : ""}
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 animate-fade-in-up animation-delay-300">

@@ -32,45 +32,45 @@ export default function AboutPage() {
 
       <main className="container mx-auto px-4 py-12 max-w-3xl">
         <div className="ccard !rounded-2xl p-8 md:p-12">
-          <h1 className="text-3xl font-black text-slate-900 mb-2">About MyBingoCard</h1>
+          <h1 className="text-3xl font-black text-[#33312e] mb-2">About MyBingoCard</h1>
 
           <div className="mt-8 space-y-8">
 
               <div>
-                <h2 className="text-xl font-bold text-slate-900 mb-3">Our Mission</h2>
+                <h2 className="text-xl font-bold text-[#33312e] mb-3">Our Mission</h2>
                 <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-slate-600">MyBingoCard makes it easy for anyone to create beautiful, custom bingo cards for any occasion — from baby showers and weddings to classrooms and team meetings.</li>
+                  <li className="text-[#33312e]">MyBingoCard makes it easy for anyone to create beautiful, custom bingo cards for any occasion — from baby showers and weddings to classrooms and team meetings.</li>
                 </ul>
               </div>
 
               <div>
-                <h2 className="text-xl font-bold text-slate-900 mb-3">What We Offer</h2>
+                <h2 className="text-xl font-bold text-[#33312e] mb-3">What We Offer</h2>
                 <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-slate-600">A simple card editor that anyone can use in minutes</li>
-                  <li className="text-slate-600">Included templates for common bingo occasions</li>
-                  <li className="text-slate-600">Paid live multiplayer bingo rooms for real-time games</li>
-                  <li className="text-slate-600">One saved card and individual PDF and PNG exports on the free plan</li>
-                  <li className="text-slate-600">Paid batch generation for up to 500 unique printable cards at once</li>
+                  <li className="text-[#33312e]">A simple card editor that anyone can use in minutes</li>
+                  <li className="text-[#33312e]">Included templates for common bingo occasions</li>
+                  <li className="text-[#33312e]">Paid live multiplayer bingo rooms for real-time games</li>
+                  <li className="text-[#33312e]">One saved card and individual PDF and PNG exports on the free plan</li>
+                  <li className="text-[#33312e]">Paid batch generation for up to 500 unique printable cards at once</li>
                 </ul>
               </div>
 
               <div>
-                <h2 className="text-xl font-bold text-slate-900 mb-3">Why Bingo?</h2>
+                <h2 className="text-xl font-bold text-[#33312e] mb-3">Why Bingo?</h2>
                 <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-slate-600">Bingo is one of those rare games that works for everyone — kids, adults, classrooms, parties, corporate events. We built MyBingoCard because we believe great games bring people together, and making custom bingo cards shouldn't be complicated or expensive.</li>
+                  <li className="text-[#33312e]">Bingo is one of those rare games that works for everyone — kids, adults, classrooms, parties, corporate events. We built MyBingoCard because we believe great games bring people together, and making custom bingo cards shouldn't be complicated or expensive.</li>
                 </ul>
               </div>
 
               <div>
-                <h2 className="text-xl font-bold text-slate-900 mb-3">Get Started</h2>
-                <p className="text-slate-600 leading-relaxed">Create your first card at <Link href="/create" className="text-indigo-600 hover:text-indigo-700 font-medium underline">mybingocard.com/create</Link> or browse our templates at <Link href="/templates" className="text-indigo-600 hover:text-indigo-700 font-medium underline">mybingocard.com/templates</Link>. The free plan includes one saved card and individual PDF/PNG exports.</p>
+                <h2 className="text-xl font-bold text-[#33312e] mb-3">Get Started</h2>
+                <p className="text-[#33312e] leading-relaxed">Create your first card at <Link href="/create" className="text-[#7c5cff] hover:text-[#7c5cff] font-medium underline">mybingocard.com/create</Link> or browse our templates at <Link href="/templates" className="text-[#7c5cff] hover:text-[#7c5cff] font-medium underline">mybingocard.com/templates</Link>. The free plan includes one saved card and individual PDF/PNG exports.</p>
               </div>
 
           </div>
         </div>
       </main>
 
-      <footer className="border-t border-slate-200 py-8 text-center text-slate-400 text-sm">
+      <footer className="border-t border-[#a39a88] py-8 text-center text-[#6b6459] text-sm">
         <p>&copy; 2026 MyBingoCard. All rights reserved.</p>
       </footer>      <SeoSupportBlock slug="about" />
 

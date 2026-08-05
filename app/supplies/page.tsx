@@ -137,24 +137,24 @@ const supplies = [
 
 export default function SuppliesPage() {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#fff7ed]">
       <SuppliesTracker />
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
+      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-[#a39a88]/50">
         <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-xl flex items-center justify-center shadow-lg shadow-[#7c5cff]">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
             </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#33312e] to-[#33312e]">
               MyBingoCard
             </span>
           </Link>
 
           <div className="flex gap-4 items-center">
-            <Link href="/create" className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20">
+            <Link href="/create" className="bg-[#33312e] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#33312e] transition-all duration-200 shadow-lg shadow-[#33312e]/20">
               Create Card
             </Link>
           </div>
@@ -164,13 +164,13 @@ export default function SuppliesPage() {
       <main className="pt-32 pb-24 px-4">
         {/* Hero */}
         <div className="text-center mb-16 max-w-3xl mx-auto">
-          <div className="inline-block px-4 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold uppercase tracking-wide mb-6">
+          <div className="inline-block px-4 py-1.5 rounded-full bg-[#ffb800]/10 border border-[#ffb800] text-[#ffb800] text-xs font-bold uppercase tracking-wide mb-6">
             Everything You Need
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-            Bingo <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">Supplies</span>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#33312e] mb-6 tracking-tight">
+            Bingo <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cff] to-[#7c5cff]">Supplies</span>
           </h1>
-          <p className="text-xl text-slate-600 leading-relaxed">
+          <p className="text-xl text-[#33312e] leading-relaxed">
             Level up your bingo game with quality daubers, cages, chips, and prizes.
             We&apos;ve curated the best supplies from Amazon.
           </p>
@@ -180,8 +180,8 @@ export default function SuppliesPage() {
         <div className="max-w-7xl mx-auto space-y-16">
           {supplies.map((category) => (
             <section key={category.category}>
-              <h2 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-3">
-                <span className="w-2 h-8 bg-gradient-to-b from-violet-600 to-indigo-600 rounded-full"></span>
+              <h2 className="text-2xl font-bold text-[#33312e] mb-8 flex items-center gap-3">
+                <span className="w-2 h-8 bg-gradient-to-b from-[#7c5cff] to-[#7c5cff] rounded-full"></span>
                 {category.category}
               </h2>
 
@@ -192,31 +192,31 @@ export default function SuppliesPage() {
                     href={item.amazonUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl hover:border-indigo-200 transition-all duration-300"
+                    className="group bg-white rounded-2xl border border-[#a39a88] overflow-hidden hover:shadow-xl hover:border-[#7c5cff] transition-all duration-300"
                   >
-                    <div className="aspect-square bg-slate-100 relative overflow-hidden">
-                      <div className="absolute inset-0 flex items-center justify-center text-slate-400 group-hover:scale-105 transition-transform duration-300">
+                    <div className="aspect-square bg-[#fff7ed] relative overflow-hidden">
+                      <div className="absolute inset-0 flex items-center justify-center text-[#6b6459] group-hover:scale-105 transition-transform duration-300">
                         <svg className="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                         </svg>
                       </div>
-                      <div className="absolute top-3 right-3 bg-amber-400 text-amber-900 text-xs font-bold px-2 py-1 rounded-full">
+                      <div className="absolute top-3 right-3 bg-[#ffb800] text-[#ffb800] text-xs font-bold px-2 py-1 rounded-full">
                         Amazon
                       </div>
                     </div>
 
                     <div className="p-6">
-                      <h3 className="font-bold text-lg text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
+                      <h3 className="font-bold text-lg text-[#33312e] mb-2 group-hover:text-[#7c5cff] transition-colors">
                         {item.name}
                       </h3>
-                      <p className="text-slate-600 text-sm mb-4">
+                      <p className="text-[#33312e] text-sm mb-4">
                         {item.description}
                       </p>
                       <div className="flex items-center justify-between">
-                        <span className="text-2xl font-bold text-slate-900">
+                        <span className="text-2xl font-bold text-[#33312e]">
                           {item.price}
                         </span>
-                        <span className="text-indigo-600 font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+                        <span className="text-[#7c5cff] font-semibold text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
                           View on Amazon
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -233,14 +233,14 @@ export default function SuppliesPage() {
 
         {/* CTA */}
         <div className="max-w-4xl mx-auto mt-24">
-          <div className="bg-gradient-to-br from-violet-600 to-indigo-600 rounded-3xl p-12 text-center text-white">
+          <div className="bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-3xl p-12 text-center text-white">
             <h2 className="text-3xl font-bold mb-4">Ready to Play?</h2>
-            <p className="text-indigo-100 mb-8 text-lg">
+            <p className="text-[#7c5cff]/15 mb-8 text-lg">
               Create custom bingo cards for your next event in minutes.
             </p>
             <Link
               href="/create"
-              className="inline-block px-8 py-4 bg-white text-indigo-600 rounded-xl font-bold text-lg hover:bg-indigo-50 transition-colors shadow-lg"
+              className="inline-block px-8 py-4 bg-white text-[#7c5cff] rounded-xl font-bold text-lg hover:bg-[#7c5cff]/10 transition-colors shadow-lg"
             >
               Create Your Cards
             </Link>
@@ -248,31 +248,31 @@ export default function SuppliesPage() {
         </div>
 
         {/* Affiliate Disclosure */}
-        <p className="text-center text-slate-400 text-sm mt-12 max-w-2xl mx-auto">
+        <p className="text-center text-[#6b6459] text-sm mt-12 max-w-2xl mx-auto">
           As an Amazon Associate, we earn from qualifying purchases.
           Prices and availability are subject to change.
         </p>
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-12">
+      <footer className="bg-white border-t border-[#a39a88] py-12">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                 </svg>
               </div>
-              <span className="text-xl font-bold text-slate-900">MyBingoCard</span>
+              <span className="text-xl font-bold text-[#33312e]">MyBingoCard</span>
             </div>
-            <div className="text-slate-500 text-sm">
+            <div className="text-[#6b6459] text-sm">
               &copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.
             </div>
-            <div className="flex gap-6 text-sm font-medium text-slate-500">
-              <Link href="/pricing" className="hover:text-indigo-600 transition-colors">Pricing</Link>
-              <Link href="/templates" className="hover:text-indigo-600 transition-colors">Templates</Link>
-              <Link href="/supplies" className="hover:text-indigo-600 transition-colors">Supplies</Link>
+            <div className="flex gap-6 text-sm font-medium text-[#6b6459]">
+              <Link href="/pricing" className="hover:text-[#7c5cff] transition-colors">Pricing</Link>
+              <Link href="/templates" className="hover:text-[#7c5cff] transition-colors">Templates</Link>
+              <Link href="/supplies" className="hover:text-[#7c5cff] transition-colors">Supplies</Link>
             </div>
           </div>
         </div>

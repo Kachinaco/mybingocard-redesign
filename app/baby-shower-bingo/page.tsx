@@ -145,7 +145,7 @@ export default function BabyShowerBingoPage() {
                   <BingoGrid
                     squares={babySquares}
                     label="Baby Shower Edition"
-                    gradient="bg-gradient-to-br from-pink-500 to-rose-500"
+                    gradient="bg-gradient-to-br from-[#ff5d8f] to-[#ff5d8f]"
                   />
                 </div>
               </div>

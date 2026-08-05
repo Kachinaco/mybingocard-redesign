@@ -96,13 +96,13 @@ function PatternCard({ name, grid }: { name: string; grid: PatternGrid }) {
             key={i}
             className={`rounded-sm ${
               cell
-                ? "bg-gradient-to-br from-violet-500 to-indigo-500"
-                : "bg-slate-100"
+                ? "bg-gradient-to-br from-[#7c5cff] to-[#7c5cff]"
+                : "bg-[#fff7ed]"
             }`}
           />
         ))}
       </div>
-      <span className="text-sm font-semibold text-slate-700">{name}</span>
+      <span className="text-sm font-semibold text-[#33312e]">{name}</span>
     </div>
   );
 }
@@ -197,12 +197,12 @@ export default function HowToPlayBingoPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <div className="min-h-screen bg-white selection:bg-indigo-100 selection:text-indigo-900">
+      <div className="min-h-screen bg-white selection:bg-[#7c5cff]/15 selection:text-[#7c5cff]">
         {/* Navbar */}
-        <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
+        <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-[#a39a88]/50">
           <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-all duration-300">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-xl flex items-center justify-center shadow-lg shadow-[#7c5cff] group-hover:shadow-[#7c5cff] transition-all duration-300">
                 <svg
                   className="w-6 h-6 text-white"
                   fill="none"
@@ -217,33 +217,33 @@ export default function HowToPlayBingoPage() {
                   />
                 </svg>
               </div>
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
+              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#33312e] to-[#33312e]">
                 MyBingoCard
               </span>
             </Link>
             <nav className="hidden md:flex items-center gap-8">
               <Link
                 href="/templates"
-                className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
+                className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff] transition-colors"
               >
                 Templates
               </Link>
               <Link
                 href="/pricing"
-                className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
+                className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff] transition-colors"
               >
                 Pricing
               </Link>
-              <div className="w-px h-4 bg-slate-200"></div>
+              <div className="w-px h-4 bg-[#a39a88]"></div>
               <Link
                 href="/login"
-                className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors"
+                className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff] transition-colors"
               >
                 Sign In
               </Link>
               <Link
                 href="/create"
-                className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20"
+                className="bg-[#33312e] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#33312e] transition-all duration-200 shadow-lg shadow-[#33312e]/20"
               >
                 Create a Card
               </Link>
@@ -253,23 +253,23 @@ export default function HowToPlayBingoPage() {
 
         <main className="pt-20">
           {/* Hero */}
-          <section className="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-28 bg-gradient-to-b from-indigo-50/60 to-white">
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-200/30 rounded-full blur-[120px] pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-indigo-200/30 rounded-full blur-[120px] pointer-events-none"></div>
+          <section className="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-28 bg-gradient-to-b from-[#7c5cff]/60 to-white">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#7c5cff]/30 rounded-full blur-[120px] pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#7c5cff]/30 rounded-full blur-[120px] pointer-events-none"></div>
 
             <div className="container mx-auto px-4 lg:px-8 relative text-center max-w-4xl">
-              <div className="inline-flex items-center gap-2 bg-white border border-indigo-100 shadow-sm rounded-full px-4 py-1.5 mb-8">
-                <span className="text-xs font-semibold text-indigo-700 uppercase tracking-wide">
+              <div className="inline-flex items-center gap-2 bg-white border border-[#7c5cff]/15 shadow-sm rounded-full px-4 py-1.5 mb-8">
+                <span className="text-xs font-semibold text-[#7c5cff] uppercase tracking-wide">
                   Complete Guide
                 </span>
               </div>
-              <h1 className="text-4xl lg:text-6xl font-bold tracking-tight text-slate-900 mb-6 leading-[1.1]">
+              <h1 className="text-4xl lg:text-6xl font-bold tracking-tight text-[#33312e] mb-6 leading-[1.1]">
                 How to Play{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cff] to-[#7c5cff]">
                   Bingo
                 </span>
               </h1>
-              <p className="text-lg lg:text-xl text-slate-600 mb-10 leading-relaxed max-w-2xl mx-auto">
+              <p className="text-lg lg:text-xl text-[#33312e] mb-10 leading-relaxed max-w-2xl mx-auto">
                 Everything you need to know about bingo — from basic rules and
                 card layouts to winning patterns, game variations, and hosting
                 tips. Your complete reference for America&apos;s favorite group
@@ -278,13 +278,13 @@ export default function HowToPlayBingoPage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/create"
-                  className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:-translate-y-1 transition-all duration-300"
+                  className="bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-xl shadow-[#7c5cff]/20 hover:shadow-[#7c5cff]/40 hover:-translate-y-1 transition-all duration-300"
                 >
                   Create a Card
                 </Link>
                 <a
                   href="#basic-rules"
-                  className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all duration-300"
+                  className="bg-white text-[#33312e] border border-[#a39a88] px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#fff7ed] transition-all duration-300"
                 >
                   Read the Rules
                 </a>
@@ -298,15 +298,15 @@ export default function HowToPlayBingoPage() {
               {/* Sticky TOC sidebar */}
               <aside className="hidden lg:block">
                 <nav className="sticky top-28">
-                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
+                  <p className="text-xs font-bold uppercase tracking-widest text-[#6b6459] mb-4">
                     On this page
                   </p>
-                  <ul className="space-y-2 border-l-2 border-slate-100">
+                  <ul className="space-y-2 border-l-2 border-[#fff7ed]">
                     {tocSections.map((s) => (
                       <li key={s.id}>
                         <a
                           href={`#${s.id}`}
-                          className="block pl-4 py-1 text-sm text-slate-500 hover:text-indigo-600 hover:border-l-indigo-600 transition-colors -ml-[2px] border-l-2 border-transparent hover:border-indigo-600"
+                          className="block pl-4 py-1 text-sm text-[#6b6459] hover:text-[#7c5cff] hover:border-l-indigo-600 transition-colors -ml-[2px] border-l-2 border-transparent hover:border-[#7c5cff]"
                         >
                           {s.label}
                         </a>
@@ -317,8 +317,8 @@ export default function HowToPlayBingoPage() {
               </aside>
 
               {/* Mobile TOC */}
-              <div className="lg:hidden mb-12 bg-slate-50 rounded-2xl p-6 border border-slate-200">
-                <p className="text-sm font-bold text-slate-900 mb-3">
+              <div className="lg:hidden mb-12 bg-[#fff7ed] rounded-2xl p-6 border border-[#a39a88]">
+                <p className="text-sm font-bold text-[#33312e] mb-3">
                   Table of Contents
                 </p>
                 <ul className="grid grid-cols-2 gap-2">
@@ -326,7 +326,7 @@ export default function HowToPlayBingoPage() {
                     <li key={s.id}>
                       <a
                         href={`#${s.id}`}
-                        className="text-sm text-indigo-600 hover:text-indigo-800 transition-colors"
+                        className="text-sm text-[#7c5cff] hover:text-[#7c5cff] transition-colors"
                       >
                         {s.label}
                       </a>
@@ -339,11 +339,11 @@ export default function HowToPlayBingoPage() {
               <div className="max-w-3xl">
                 {/* What is Bingo? */}
                 <section id="what-is-bingo" className="scroll-mt-28 mb-16">
-                  <h2 className="text-3xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                    <span className="w-1.5 h-8 bg-gradient-to-b from-violet-600 to-indigo-600 rounded-full"></span>
+                  <h2 className="text-3xl font-bold text-[#33312e] mb-6 flex items-center gap-3">
+                    <span className="w-1.5 h-8 bg-gradient-to-b from-[#7c5cff] to-[#7c5cff] rounded-full"></span>
                     What Is Bingo?
                   </h2>
-                  <div className="space-y-4 text-slate-600 leading-relaxed text-[17px]">
+                  <div className="space-y-4 text-[#33312e] leading-relaxed text-[17px]">
                     <p>
                       Bingo is a game of chance where players mark numbers on a
                       card as they are randomly called out. The first person to
@@ -376,11 +376,11 @@ export default function HowToPlayBingoPage() {
 
                 {/* Basic Rules */}
                 <section id="basic-rules" className="scroll-mt-28 mb-16">
-                  <h2 className="text-3xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                    <span className="w-1.5 h-8 bg-gradient-to-b from-violet-600 to-indigo-600 rounded-full"></span>
+                  <h2 className="text-3xl font-bold text-[#33312e] mb-6 flex items-center gap-3">
+                    <span className="w-1.5 h-8 bg-gradient-to-b from-[#7c5cff] to-[#7c5cff] rounded-full"></span>
                     Basic Rules of Bingo
                   </h2>
-                  <p className="text-slate-600 leading-relaxed text-[17px] mb-8">
+                  <p className="text-[#33312e] leading-relaxed text-[17px] mb-8">
                     Bingo is simple to learn. Here is how a standard game works
                     from start to finish:
                   </p>
@@ -413,14 +413,14 @@ export default function HowToPlayBingoPage() {
                       },
                     ].map((item, i) => (
                       <li key={i} className="flex gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-indigo-200">
+                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-[#7c5cff]">
                           {i + 1}
                         </div>
                         <div>
-                          <h3 className="font-bold text-slate-900 text-lg mb-1">
+                          <h3 className="font-bold text-[#33312e] text-lg mb-1">
                             {item.step}
                           </h3>
-                          <p className="text-slate-600 leading-relaxed">
+                          <p className="text-[#33312e] leading-relaxed">
                             {item.detail}
                           </p>
                         </div>
@@ -431,11 +431,11 @@ export default function HowToPlayBingoPage() {
 
                 {/* Bingo Card Layout */}
                 <section id="bingo-card-layout" className="scroll-mt-28 mb-16">
-                  <h2 className="text-3xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                    <span className="w-1.5 h-8 bg-gradient-to-b from-violet-600 to-indigo-600 rounded-full"></span>
+                  <h2 className="text-3xl font-bold text-[#33312e] mb-6 flex items-center gap-3">
+                    <span className="w-1.5 h-8 bg-gradient-to-b from-[#7c5cff] to-[#7c5cff] rounded-full"></span>
                     Bingo Card Layout
                   </h2>
-                  <div className="space-y-4 text-slate-600 leading-relaxed text-[17px] mb-8">
+                  <div className="space-y-4 text-[#33312e] leading-relaxed text-[17px] mb-8">
                     <p>
                       A standard 75-ball bingo card is a 5-column, 5-row grid
                       with the letters B-I-N-G-O across the top. Each column
@@ -445,14 +445,14 @@ export default function HowToPlayBingoPage() {
                   </div>
 
                   {/* Visual card layout */}
-                  <div className="bg-slate-50 rounded-2xl p-6 sm:p-8 border border-slate-200 mb-8">
+                  <div className="bg-[#fff7ed] rounded-2xl p-6 sm:p-8 border border-[#a39a88] mb-8">
                     <div className="max-w-xs mx-auto">
                       {/* BINGO header */}
                       <div className="grid grid-cols-5 gap-2 mb-2">
                         {["B", "I", "N", "G", "O"].map((letter) => (
                           <div
                             key={letter}
-                            className="text-center text-xl font-black text-transparent bg-clip-text bg-gradient-to-br from-violet-600 to-indigo-600"
+                            className="text-center text-xl font-black text-transparent bg-clip-text bg-gradient-to-br from-[#7c5cff] to-[#7c5cff]"
                           >
                             {letter}
                           </div>
@@ -470,8 +470,8 @@ export default function HowToPlayBingoPage() {
                                     key={row}
                                     className={`aspect-square rounded-lg flex items-center justify-center text-xs font-semibold ${
                                       isFree
-                                        ? "bg-gradient-to-br from-violet-500 to-indigo-500 text-white"
-                                        : "bg-white border border-slate-200 text-slate-500"
+                                        ? "bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] text-white"
+                                        : "bg-white border border-[#a39a88] text-[#6b6459]"
                                     }`}
                                   >
                                     {isFree ? "FREE" : range}
@@ -485,10 +485,10 @@ export default function HowToPlayBingoPage() {
                     </div>
                   </div>
 
-                  <div className="overflow-hidden rounded-2xl border border-slate-200">
+                  <div className="overflow-hidden rounded-2xl border border-[#a39a88]">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white">
+                        <tr className="bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white">
                           <th className="px-4 py-3 text-left font-semibold">
                             Column
                           </th>
@@ -500,7 +500,7 @@ export default function HowToPlayBingoPage() {
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-[#fff7ed]">
                         {[
                           { col: "1st", letter: "B", range: "1 - 15" },
                           { col: "2nd", letter: "I", range: "16 - 30" },
@@ -511,16 +511,16 @@ export default function HowToPlayBingoPage() {
                           <tr
                             key={i}
                             className={
-                              i % 2 === 0 ? "bg-white" : "bg-slate-50"
+                              i % 2 === 0 ? "bg-white" : "bg-[#fff7ed]"
                             }
                           >
-                            <td className="px-4 py-3 text-slate-600">
+                            <td className="px-4 py-3 text-[#33312e]">
                               {row.col}
                             </td>
-                            <td className="px-4 py-3 font-bold text-indigo-600">
+                            <td className="px-4 py-3 font-bold text-[#7c5cff]">
                               {row.letter}
                             </td>
-                            <td className="px-4 py-3 text-slate-900 font-medium">
+                            <td className="px-4 py-3 text-[#33312e] font-medium">
                               {row.range}
                             </td>
                           </tr>
@@ -529,7 +529,7 @@ export default function HowToPlayBingoPage() {
                     </table>
                   </div>
 
-                  <p className="text-slate-500 text-sm mt-4 leading-relaxed">
+                  <p className="text-[#6b6459] text-sm mt-4 leading-relaxed">
                     The N column has only four numbers because the center square
                     is the free space. This arrangement means there are
                     1,474,200 possible unique B column combinations alone,
@@ -539,11 +539,11 @@ export default function HowToPlayBingoPage() {
 
                 {/* Winning Patterns */}
                 <section id="winning-patterns" className="scroll-mt-28 mb-16">
-                  <h2 className="text-3xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                    <span className="w-1.5 h-8 bg-gradient-to-b from-violet-600 to-indigo-600 rounded-full"></span>
+                  <h2 className="text-3xl font-bold text-[#33312e] mb-6 flex items-center gap-3">
+                    <span className="w-1.5 h-8 bg-gradient-to-b from-[#7c5cff] to-[#7c5cff] rounded-full"></span>
                     Winning Patterns
                   </h2>
-                  <p className="text-slate-600 leading-relaxed text-[17px] mb-8">
+                  <p className="text-[#33312e] leading-relaxed text-[17px] mb-8">
                     Before each game, the caller announces which pattern players
                     need to complete. Here are the most common winning patterns
                     in bingo. Highlighted squares show which cells must be
@@ -554,8 +554,8 @@ export default function HowToPlayBingoPage() {
                       <PatternCard key={p.name} name={p.name} grid={p.grid} />
                     ))}
                   </div>
-                  <div className="mt-8 bg-indigo-50 rounded-xl p-5 border border-indigo-100">
-                    <p className="text-sm text-indigo-800 leading-relaxed">
+                  <div className="mt-8 bg-[#7c5cff]/10 rounded-xl p-5 border border-[#7c5cff]/15">
+                    <p className="text-sm text-[#7c5cff] leading-relaxed">
                       <strong>Tip:</strong> The most common pattern in casual
                       games is a straight line in any direction. Blackout
                       (covering every square) is the hardest to achieve and
@@ -568,16 +568,16 @@ export default function HowToPlayBingoPage() {
 
                 {/* Game Variations */}
                 <section id="game-variations" className="scroll-mt-28 mb-16">
-                  <h2 className="text-3xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                    <span className="w-1.5 h-8 bg-gradient-to-b from-violet-600 to-indigo-600 rounded-full"></span>
+                  <h2 className="text-3xl font-bold text-[#33312e] mb-6 flex items-center gap-3">
+                    <span className="w-1.5 h-8 bg-gradient-to-b from-[#7c5cff] to-[#7c5cff] rounded-full"></span>
                     Game Variations
                   </h2>
                   <div className="space-y-8">
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-shadow">
-                      <h3 className="text-xl font-bold text-slate-900 mb-3">
+                    <div className="bg-white rounded-2xl border border-[#a39a88] p-6 hover:shadow-lg transition-shadow">
+                      <h3 className="text-xl font-bold text-[#33312e] mb-3">
                         75-Ball Bingo (American)
                       </h3>
-                      <p className="text-slate-600 leading-relaxed">
+                      <p className="text-[#33312e] leading-relaxed">
                         The standard in the US and Canada. Uses a 5x5 card with
                         numbers 1-75 and a free center space. Players win by
                         completing a specific pattern announced before the game.
@@ -586,11 +586,11 @@ export default function HowToPlayBingoPage() {
                       </p>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-shadow">
-                      <h3 className="text-xl font-bold text-slate-900 mb-3">
+                    <div className="bg-white rounded-2xl border border-[#a39a88] p-6 hover:shadow-lg transition-shadow">
+                      <h3 className="text-xl font-bold text-[#33312e] mb-3">
                         90-Ball Bingo (British)
                       </h3>
-                      <p className="text-slate-600 leading-relaxed">
+                      <p className="text-[#33312e] leading-relaxed">
                         Popular in the UK, Australia, and Europe. Cards have a
                         9x3 grid with 15 numbers and 12 blank spaces, using
                         numbers 1-90. Each game has three stages: one line (any
@@ -600,11 +600,11 @@ export default function HowToPlayBingoPage() {
                       </p>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-shadow">
-                      <h3 className="text-xl font-bold text-slate-900 mb-3">
+                    <div className="bg-white rounded-2xl border border-[#a39a88] p-6 hover:shadow-lg transition-shadow">
+                      <h3 className="text-xl font-bold text-[#33312e] mb-3">
                         Speed Bingo
                       </h3>
-                      <p className="text-slate-600 leading-relaxed">
+                      <p className="text-[#33312e] leading-relaxed">
                         A faster version using a 3x3 card with only 9 numbers.
                         Numbers are called rapidly, and games last just a few
                         minutes. It is great for quick rounds between longer
@@ -613,37 +613,37 @@ export default function HowToPlayBingoPage() {
                       </p>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-shadow">
-                      <h3 className="text-xl font-bold text-slate-900 mb-3">
+                    <div className="bg-white rounded-2xl border border-[#a39a88] p-6 hover:shadow-lg transition-shadow">
+                      <h3 className="text-xl font-bold text-[#33312e] mb-3">
                         Themed Bingo
                       </h3>
-                      <p className="text-slate-600 leading-relaxed">
+                      <p className="text-[#33312e] leading-relaxed">
                         Custom cards with words, phrases, or tasks instead of
                         numbers. Popular themes include{" "}
                         <Link
                           href="/baby-shower-bingo"
-                          className="text-indigo-600 hover:text-indigo-700 font-medium underline underline-offset-2"
+                          className="text-[#7c5cff] hover:text-[#7c5cff] font-medium underline underline-offset-2"
                         >
                           baby shower bingo
                         </Link>
                         ,{" "}
                         <Link
                           href="/wedding-bingo"
-                          className="text-indigo-600 hover:text-indigo-700 font-medium underline underline-offset-2"
+                          className="text-[#7c5cff] hover:text-[#7c5cff] font-medium underline underline-offset-2"
                         >
                           wedding bingo
                         </Link>
                         ,{" "}
                         <Link
                           href="/classroom-bingo"
-                          className="text-indigo-600 hover:text-indigo-700 font-medium underline underline-offset-2"
+                          className="text-[#7c5cff] hover:text-[#7c5cff] font-medium underline underline-offset-2"
                         >
                           classroom bingo
                         </Link>
                         , and{" "}
                         <Link
                           href="/holiday-bingo"
-                          className="text-indigo-600 hover:text-indigo-700 font-medium underline underline-offset-2"
+                          className="text-[#7c5cff] hover:text-[#7c5cff] font-medium underline underline-offset-2"
                         >
                           holiday bingo
                         </Link>
@@ -653,11 +653,11 @@ export default function HowToPlayBingoPage() {
                       </p>
                     </div>
 
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-lg transition-shadow">
-                      <h3 className="text-xl font-bold text-slate-900 mb-3">
+                    <div className="bg-white rounded-2xl border border-[#a39a88] p-6 hover:shadow-lg transition-shadow">
+                      <h3 className="text-xl font-bold text-[#33312e] mb-3">
                         Picture Bingo
                       </h3>
-                      <p className="text-slate-600 leading-relaxed">
+                      <p className="text-[#33312e] leading-relaxed">
                         Instead of numbers or words, cards feature images. The
                         caller holds up a matching image or describes it, and
                         players mark the picture on their card. This is ideal
@@ -665,7 +665,7 @@ export default function HowToPlayBingoPage() {
                         a visual game. You can{" "}
                         <Link
                           href="/create"
-                          className="text-indigo-600 hover:text-indigo-700 font-medium underline underline-offset-2"
+                          className="text-[#7c5cff] hover:text-[#7c5cff] font-medium underline underline-offset-2"
                         >
                           create picture bingo cards
                         </Link>{" "}
@@ -677,30 +677,30 @@ export default function HowToPlayBingoPage() {
 
                 {/* How to Host */}
                 <section id="how-to-host" className="scroll-mt-28 mb-16">
-                  <h2 className="text-3xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                    <span className="w-1.5 h-8 bg-gradient-to-b from-violet-600 to-indigo-600 rounded-full"></span>
+                  <h2 className="text-3xl font-bold text-[#33312e] mb-6 flex items-center gap-3">
+                    <span className="w-1.5 h-8 bg-gradient-to-b from-[#7c5cff] to-[#7c5cff] rounded-full"></span>
                     How to Host a Bingo Game
                   </h2>
-                  <p className="text-slate-600 leading-relaxed text-[17px] mb-8">
+                  <p className="text-[#33312e] leading-relaxed text-[17px] mb-8">
                     Hosting bingo is straightforward. Follow these steps and you
                     will have everyone laughing and competing in no time.
                   </p>
 
                   <div className="space-y-6">
-                    <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
-                      <h3 className="font-bold text-slate-900 text-lg mb-3">
+                    <div className="bg-[#fff7ed] rounded-xl p-6 border border-[#a39a88]">
+                      <h3 className="font-bold text-[#33312e] text-lg mb-3">
                         1. Gather your supplies
                       </h3>
-                      <ul className="space-y-2 text-slate-600 leading-relaxed">
+                      <ul className="space-y-2 text-[#33312e] leading-relaxed">
                         <li className="flex gap-2">
-                          <span className="text-indigo-500 font-bold">
+                          <span className="text-[#7c5cff] font-bold">
                             &bull;
                           </span>
                           <span>
                             <strong>Bingo cards</strong> &mdash;{" "}
                             <Link
                               href="/create"
-                              className="text-indigo-600 hover:text-indigo-700 font-medium underline underline-offset-2"
+                              className="text-[#7c5cff] hover:text-[#7c5cff] font-medium underline underline-offset-2"
                             >
                               Create one card, then export an individual PDF or PNG for free or add paid digital cards
                             </Link>{" "}
@@ -708,7 +708,7 @@ export default function HowToPlayBingoPage() {
                           </span>
                         </li>
                         <li className="flex gap-2">
-                          <span className="text-indigo-500 font-bold">
+                          <span className="text-[#7c5cff] font-bold">
                             &bull;
                           </span>
                           <span>
@@ -717,7 +717,7 @@ export default function HowToPlayBingoPage() {
                           </span>
                         </li>
                         <li className="flex gap-2">
-                          <span className="text-indigo-500 font-bold">
+                          <span className="text-[#7c5cff] font-bold">
                             &bull;
                           </span>
                           <span>
@@ -726,7 +726,7 @@ export default function HowToPlayBingoPage() {
                           </span>
                         </li>
                         <li className="flex gap-2">
-                          <span className="text-indigo-500 font-bold">
+                          <span className="text-[#7c5cff] font-bold">
                             &bull;
                           </span>
                           <span>
@@ -737,11 +737,11 @@ export default function HowToPlayBingoPage() {
                       </ul>
                     </div>
 
-                    <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
-                      <h3 className="font-bold text-slate-900 text-lg mb-3">
+                    <div className="bg-[#fff7ed] rounded-xl p-6 border border-[#a39a88]">
+                      <h3 className="font-bold text-[#33312e] text-lg mb-3">
                         2. Set the rules
                       </h3>
-                      <p className="text-slate-600 leading-relaxed">
+                      <p className="text-[#33312e] leading-relaxed">
                         Before the first number is called, announce the winning
                         pattern for the round. Let players know how many rounds
                         you plan to play, whether there are prizes, and what
@@ -750,11 +750,11 @@ export default function HowToPlayBingoPage() {
                       </p>
                     </div>
 
-                    <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
-                      <h3 className="font-bold text-slate-900 text-lg mb-3">
+                    <div className="bg-[#fff7ed] rounded-xl p-6 border border-[#a39a88]">
+                      <h3 className="font-bold text-[#33312e] text-lg mb-3">
                         3. Call numbers clearly
                       </h3>
-                      <p className="text-slate-600 leading-relaxed">
+                      <p className="text-[#33312e] leading-relaxed">
                         Speak loudly and repeat each number twice. Say the
                         letter and number together (&ldquo;B-7&rdquo;,
                         &ldquo;N-42&rdquo;) so players can find them quickly.
@@ -764,11 +764,11 @@ export default function HowToPlayBingoPage() {
                       </p>
                     </div>
 
-                    <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
-                      <h3 className="font-bold text-slate-900 text-lg mb-3">
+                    <div className="bg-[#fff7ed] rounded-xl p-6 border border-[#a39a88]">
+                      <h3 className="font-bold text-[#33312e] text-lg mb-3">
                         4. Verify wins and keep it fun
                       </h3>
-                      <p className="text-slate-600 leading-relaxed">
+                      <p className="text-[#33312e] leading-relaxed">
                         When someone calls bingo, pause the game and read back
                         their marked numbers against your call list. Celebrate
                         the winner, hand out the prize, and reset for the next
@@ -782,11 +782,11 @@ export default function HowToPlayBingoPage() {
 
                 {/* Tips & Strategy */}
                 <section id="tips-and-strategy" className="scroll-mt-28 mb-16">
-                  <h2 className="text-3xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                    <span className="w-1.5 h-8 bg-gradient-to-b from-violet-600 to-indigo-600 rounded-full"></span>
+                  <h2 className="text-3xl font-bold text-[#33312e] mb-6 flex items-center gap-3">
+                    <span className="w-1.5 h-8 bg-gradient-to-b from-[#7c5cff] to-[#7c5cff] rounded-full"></span>
                     Bingo Tips & Strategy
                   </h2>
-                  <p className="text-slate-600 leading-relaxed text-[17px] mb-8">
+                  <p className="text-[#33312e] leading-relaxed text-[17px] mb-8">
                     Bingo is ultimately a game of luck, but these tips can
                     improve your experience and your odds.
                   </p>
@@ -819,12 +819,12 @@ export default function HowToPlayBingoPage() {
                     ].map((tip) => (
                       <div
                         key={tip.title}
-                        className="bg-white rounded-xl p-5 border border-slate-200 hover:border-indigo-200 hover:shadow-md transition-all"
+                        className="bg-white rounded-xl p-5 border border-[#a39a88] hover:border-[#7c5cff] hover:shadow-md transition-all"
                       >
-                        <h3 className="font-bold text-slate-900 mb-2">
+                        <h3 className="font-bold text-[#33312e] mb-2">
                           {tip.title}
                         </h3>
-                        <p className="text-slate-600 text-sm leading-relaxed">
+                        <p className="text-[#33312e] text-sm leading-relaxed">
                           {tip.body}
                         </p>
                       </div>
@@ -834,20 +834,20 @@ export default function HowToPlayBingoPage() {
 
                 {/* FAQ */}
                 <section id="faq" className="scroll-mt-28 mb-16">
-                  <h2 className="text-3xl font-bold text-slate-900 mb-6 flex items-center gap-3">
-                    <span className="w-1.5 h-8 bg-gradient-to-b from-violet-600 to-indigo-600 rounded-full"></span>
+                  <h2 className="text-3xl font-bold text-[#33312e] mb-6 flex items-center gap-3">
+                    <span className="w-1.5 h-8 bg-gradient-to-b from-[#7c5cff] to-[#7c5cff] rounded-full"></span>
                     Frequently Asked Questions
                   </h2>
                   <div className="space-y-6">
                     {faqItems.map((item, i) => (
                       <div
                         key={i}
-                        className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow"
+                        className="bg-white rounded-xl border border-[#a39a88] p-6 hover:shadow-md transition-shadow"
                       >
-                        <h3 className="font-bold text-slate-900 text-lg mb-3">
+                        <h3 className="font-bold text-[#33312e] text-lg mb-3">
                           {item.question}
                         </h3>
-                        <p className="text-slate-600 leading-relaxed">
+                        <p className="text-[#33312e] leading-relaxed">
                           {item.answer}
                         </p>
                       </div>
@@ -861,21 +861,21 @@ export default function HowToPlayBingoPage() {
           {/* CTA Section */}
           <section className="py-16 lg:py-24">
             <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
-              <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-10 sm:p-14 text-center text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 rounded-full blur-[80px] pointer-events-none"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-violet-600/20 rounded-full blur-[80px] pointer-events-none"></div>
+              <div className="bg-gradient-to-br from-[#33312e] to-[#33312e] rounded-3xl p-10 sm:p-14 text-center text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#7c5cff]/20 rounded-full blur-[80px] pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#7c5cff]/20 rounded-full blur-[80px] pointer-events-none"></div>
                 <div className="relative">
                   <h2 className="text-3xl sm:text-4xl font-bold mb-4">
                     Ready to Play Bingo?
                   </h2>
-                  <p className="text-slate-300 mb-8 text-lg max-w-xl mx-auto leading-relaxed">
+                  <p className="text-[#a39a88] mb-8 text-lg max-w-xl mx-auto leading-relaxed">
                     Create custom bingo cards for your next game night, party,
                     or classroom activity. Make one card, then choose a paid batch pack, player links, or Premium when the group needs more.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Link
                       href="/create"
-                      className="inline-block px-8 py-4 bg-gradient-to-r from-violet-500 to-indigo-500 text-white rounded-xl font-bold text-lg hover:from-violet-400 hover:to-indigo-400 transition-all shadow-lg shadow-indigo-500/30"
+                      className="inline-block px-8 py-4 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl font-bold text-lg hover:from-[#7c5cff] hover:to-[#7c5cff] transition-all shadow-lg shadow-[#7c5cff]/30"
                     >
                       Create a Card
                     </Link>
@@ -893,12 +893,12 @@ export default function HowToPlayBingoPage() {
         </main>
 
         {/* Footer */}
-        <footer className="bg-white border-t border-slate-200 pt-16 pb-12">
+        <footer className="bg-white border-t border-[#a39a88] pt-16 pb-12">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="grid md:grid-cols-4 gap-12 mb-12">
               <div className="col-span-1 md:col-span-2">
                 <Link href="/" className="flex items-center gap-2 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-lg flex items-center justify-center">
                     <svg
                       className="w-5 h-5 text-white"
                       fill="none"
@@ -913,23 +913,23 @@ export default function HowToPlayBingoPage() {
                       />
                     </svg>
                   </div>
-                  <span className="text-xl font-bold text-slate-900">
+                  <span className="text-xl font-bold text-[#33312e]">
                     MyBingoCard
                   </span>
                 </Link>
-                <p className="text-slate-500 max-w-sm leading-relaxed">
+                <p className="text-[#6b6459] max-w-sm leading-relaxed">
                   The easiest way to create custom bingo cards for any occasion.
                   Online bingo card maker with templates, individual PDF export, and
                   live multiplayer games.
                 </p>
               </div>
               <div>
-                <h4 className="font-bold text-slate-900 mb-6">Product</h4>
+                <h4 className="font-bold text-[#33312e] mb-6">Product</h4>
                 <ul className="space-y-4">
                   <li>
                     <Link
                       href="/create"
-                      className="text-slate-500 hover:text-indigo-600 transition-colors"
+                      className="text-[#6b6459] hover:text-[#7c5cff] transition-colors"
                     >
                       Create Cards
                     </Link>
@@ -937,7 +937,7 @@ export default function HowToPlayBingoPage() {
                   <li>
                     <Link
                       href="/templates"
-                      className="text-slate-500 hover:text-indigo-600 transition-colors"
+                      className="text-[#6b6459] hover:text-[#7c5cff] transition-colors"
                     >
                       Templates
                     </Link>
@@ -945,7 +945,7 @@ export default function HowToPlayBingoPage() {
                   <li>
                     <Link
                       href="/pricing"
-                      className="text-slate-500 hover:text-indigo-600 transition-colors"
+                      className="text-[#6b6459] hover:text-[#7c5cff] transition-colors"
                     >
                       Pricing
                     </Link>
@@ -953,12 +953,12 @@ export default function HowToPlayBingoPage() {
                 </ul>
               </div>
               <div>
-                <h4 className="font-bold text-slate-900 mb-6">More Ideas</h4>
+                <h4 className="font-bold text-[#33312e] mb-6">More Ideas</h4>
                 <ul className="space-y-4">
                   <li>
                     <Link
                       href="/classroom-bingo"
-                      className="text-slate-500 hover:text-indigo-600 transition-colors"
+                      className="text-[#6b6459] hover:text-[#7c5cff] transition-colors"
                     >
                       Classroom Bingo
                     </Link>
@@ -966,7 +966,7 @@ export default function HowToPlayBingoPage() {
                   <li>
                     <Link
                       href="/office-party-bingo"
-                      className="text-slate-500 hover:text-indigo-600 transition-colors"
+                      className="text-[#6b6459] hover:text-[#7c5cff] transition-colors"
                     >
                       Office Party Bingo
                     </Link>
@@ -974,7 +974,7 @@ export default function HowToPlayBingoPage() {
                   <li>
                     <Link
                       href="/wedding-bingo"
-                      className="text-slate-500 hover:text-indigo-600 transition-colors"
+                      className="text-[#6b6459] hover:text-[#7c5cff] transition-colors"
                     >
                       Wedding Bingo
                     </Link>
@@ -982,7 +982,7 @@ export default function HowToPlayBingoPage() {
                   <li>
                     <Link
                       href="/holiday-bingo"
-                      className="text-slate-500 hover:text-indigo-600 transition-colors"
+                      className="text-[#6b6459] hover:text-[#7c5cff] transition-colors"
                     >
                       Holiday Bingo
                     </Link>
@@ -990,7 +990,7 @@ export default function HowToPlayBingoPage() {
                 </ul>
               </div>
             </div>
-            <div className="border-t border-slate-100 pt-8 text-center text-slate-400 text-sm">
+            <div className="border-t border-[#fff7ed] pt-8 text-center text-[#6b6459] text-sm">
               <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
             </div>
           </div>

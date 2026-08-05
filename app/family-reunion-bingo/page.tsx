@@ -145,7 +145,7 @@ export default function FamilyReunionBingoPage() {
                   <BingoGrid
                     squares={reunionSquares}
                     label="Family Reunion Edition"
-                    gradient="bg-gradient-to-br from-emerald-500 to-green-500"
+                    gradient="bg-gradient-to-br from-[#2ec4b6] to-[#2ec4b6]"
                   />
                 </div>
               </div>

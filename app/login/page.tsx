@@ -72,7 +72,7 @@ function LoginContent() {
 
   if (sessionState.status === "authenticated") {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center text-slate-600">
+      <div className="min-h-screen bg-white flex items-center justify-center text-[#33312e]">
         Redirecting...
       </div>
     );
@@ -287,12 +287,12 @@ function LoginContent() {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-white">
       {/* Left Side - Visual & Testimonial */}
-      <div className="hidden lg:flex flex-col justify-between lg:w-1/2 bg-gradient-to-br from-violet-900 via-indigo-900 to-slate-900 p-12 text-white relative overflow-hidden">
+      <div className="hidden lg:flex flex-col justify-between lg:w-1/2 bg-gradient-to-br from-[#7c5cff] via-[#7c5cff] to-[#33312e] p-12 text-white relative overflow-hidden">
         {/* Background Decorations */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-          <div className="absolute top-10 left-10 w-64 h-64 bg-violet-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-          <div className="absolute bottom-10 right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-200"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-400"></div>
+          <div className="absolute top-10 left-10 w-64 h-64 bg-[#7c5cff] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+          <div className="absolute bottom-10 right-10 w-64 h-64 bg-[#7c5cff] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-200"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#7c5cff] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-400"></div>
         </div>
 
         <div className="relative z-10">
@@ -313,27 +313,27 @@ function LoginContent() {
             </h2>
             <div className="flex gap-2 mb-8">
               {[...Array(5)].map((_, i) => (
-                <svg key={i} className="w-6 h-6 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                <svg key={i} className="w-6 h-6 text-[#ffb800] fill-current" viewBox="0 0 20 20">
                   <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
                 </svg>
               ))}
             </div>
-            <blockquote className="text-xl text-indigo-100 italic leading-relaxed">
+            <blockquote className="text-xl text-[#7c5cff]/15 italic leading-relaxed">
               &ldquo;MyBingoCard has completely transformed how I organize classroom activities. It's so intuitive and the designs are beautiful.&rdquo;
             </blockquote>
             <div className="mt-6 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold border-2 border-indigo-400">
+              <div className="w-12 h-12 rounded-full bg-[#7c5cff] flex items-center justify-center text-white font-bold border-2 border-[#7c5cff]">
                 JD
               </div>
               <div>
                 <div className="font-bold">Jennifer Davis</div>
-                <div className="text-indigo-300 text-sm">Elementary Teacher</div>
+                <div className="text-[#7c5cff] text-sm">Elementary Teacher</div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="relative z-10 text-sm text-indigo-200">
+        <div className="relative z-10 text-sm text-[#7c5cff]">
           © {new Date().getFullYear()} MyBingoCard. All rights reserved.
         </div>
       </div>
@@ -342,16 +342,16 @@ function LoginContent() {
       <div className="flex-1 flex items-center justify-center p-6 sm:p-12 lg:p-24 bg-white relative">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center lg:text-left">
-            <Link href="/" className="lg:hidden flex items-center justify-center gap-2 mb-8 text-gray-500">
-               <span className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
+            <Link href="/" className="lg:hidden flex items-center justify-center gap-2 mb-8 text-[#6b6459]">
+               <span className="w-8 h-8 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                   </svg>
                </span>
-               <span className="font-bold text-gray-900 text-xl">MyBingoCard</span>
+               <span className="font-bold text-[#33312e] text-xl">MyBingoCard</span>
              </Link>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Sign in to your account</h1>
-            <p className="mt-2 text-gray-600">
+            <h1 className="text-3xl font-bold tracking-tight text-[#33312e]">Sign in to your account</h1>
+            <p className="mt-2 text-[#33312e]">
               Enter your details below to access your cards.
             </p>
           </div>
@@ -360,7 +360,7 @@ function LoginContent() {
             <button
               onClick={handleGoogleLogin}
               data-mybingocard-oauth-provider="google"
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-[#a39a88] rounded-xl text-[#33312e] font-medium hover:bg-[#fff7ed] hover:border-[#a39a88] transition-all duration-200 shadow-sm hover:shadow-md"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -387,7 +387,7 @@ function LoginContent() {
               <button
                 onClick={handleAppleLogin}
                 data-mybingocard-oauth-provider="apple"
-                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-black border border-black rounded-xl text-white font-medium hover:bg-gray-900 transition-all duration-200 shadow-sm hover:shadow-md"
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-black border border-black rounded-xl text-white font-medium hover:bg-[#33312e] transition-all duration-200 shadow-sm hover:shadow-md"
               >
                 <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M16.37 1.51c0 1.14-.42 2.14-1.25 3-.9.92-1.95 1.45-3.08 1.36-.14-1.1.43-2.28 1.25-3.12.86-.88 2.25-1.55 3.08-1.24ZM20.5 17.38c-.47 1.07-.7 1.55-1.3 2.5-.84 1.29-2.02 2.9-3.48 2.91-1.3.01-1.64-.85-3.4-.84-1.77.01-2.14.85-3.44.84-1.46-.01-2.57-1.46-3.41-2.75-2.35-3.61-2.6-7.85-1.15-10.1 1.03-1.6 2.65-2.53 4.18-2.53 1.55 0 2.53.86 3.82.86 1.25 0 2.02-.86 3.83-.86 1.37 0 2.82.75 3.84 2.04-3.37 1.85-2.82 6.67.01 7.93Z" />
@@ -400,9 +400,9 @@ function LoginContent() {
               <button
                 type="button"
                 onClick={() => setUseMagicLink(true)}
-                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
+                className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-[#a39a88] rounded-xl text-[#33312e] font-medium hover:bg-[#fff7ed] hover:border-[#a39a88] transition-all duration-200 shadow-sm hover:shadow-md"
               >
-                <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-[#7c5cff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -416,21 +416,21 @@ function LoginContent() {
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
+                <div className="w-full border-t border-[#a39a88]"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">Or continue with email</span>
+                <span className="px-4 bg-white text-[#6b6459]">Or continue with email</span>
               </div>
             </div>
 
             {justVerified && (
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm font-medium">
+              <div className="p-4 bg-[#2ec4b6]/10 border border-[#2ec4b6] rounded-xl text-[#2ec4b6] text-sm font-medium">
                 ✅ Email verified! You can now sign in.
               </div>
             )}
 
             {error && (
-              <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+              <div className="bg-[#ff5d8f]/10 border border-[#ff5d8f]/15 text-[#ff5d8f] px-4 py-3 rounded-lg text-sm flex items-center gap-2">
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -443,14 +443,14 @@ function LoginContent() {
               !magicLinkSent ? (
                 <form onSubmit={handleMagicLink} className="space-y-5">
                   <div>
-                    <label htmlFor="magic-email" className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
+                    <label htmlFor="magic-email" className="block text-sm font-medium text-[#33312e] mb-1.5">Email address</label>
                     <input
                       id="magic-email"
                       type="email"
                       value={magicLinkEmail}
                       onChange={(e) => setMagicLinkEmail(e.target.value)}
                       required
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all duration-200"
+                      className="w-full px-4 py-3 bg-[#fff7ed] border border-[#a39a88] rounded-xl focus:ring-2 focus:ring-[#7c5cff] focus:border-transparent outline-none transition-all duration-200"
                       placeholder="you@example.com"
                     />
                   </div>
@@ -458,7 +458,7 @@ function LoginContent() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-3.5 rounded-xl font-semibold shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+                    className="w-full bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white py-3.5 rounded-xl font-semibold shadow-lg shadow-[#7c5cff] hover:shadow-xl hover:shadow-[#7c5cff] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
                   >
                     {isLoading ? "Sending Link..." : "Send Magic Link"}
                   </button>
@@ -466,23 +466,23 @@ function LoginContent() {
                   <button
                     type="button"
                     onClick={() => setUseMagicLink(false)}
-                    className="w-full text-sm text-gray-500 hover:text-gray-700 font-medium"
+                    className="w-full text-sm text-[#6b6459] hover:text-[#33312e] font-medium"
                   >
                     Back to password sign in
                   </button>
                 </form>
               ) : (
                 <div className="text-center py-6">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                     <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-16 h-16 bg-[#2ec4b6]/15 rounded-full flex items-center justify-center mx-auto mb-4">
+                     <svg className="w-8 h-8 text-[#2ec4b6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                      </svg>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">Check your email</h3>
-                  <p className="text-gray-600 mb-6">We've sent a magic link to <strong>{magicLinkEmail}</strong></p>
+                  <h3 className="text-xl font-bold text-[#33312e] mb-2">Check your email</h3>
+                  <p className="text-[#33312e] mb-6">We've sent a magic link to <strong>{magicLinkEmail}</strong></p>
                   <button 
                     onClick={() => { setMagicLinkSent(false); setUseMagicLink(false); }}
-                    className="text-violet-600 hover:text-violet-700 font-medium"
+                    className="text-[#7c5cff] hover:text-[#7c5cff] font-medium"
                   >
                     Back to login
                   </button>
@@ -492,22 +492,22 @@ function LoginContent() {
               // Password Login Form
               <form onSubmit={handleCredentialsLogin} className="space-y-5">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">Email address</label>
+                  <label htmlFor="email" className="block text-sm font-medium text-[#33312e] mb-1.5">Email address</label>
                   <input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all duration-200"
+                    className="w-full px-4 py-3 bg-[#fff7ed] border border-[#a39a88] rounded-xl focus:ring-2 focus:ring-[#7c5cff] focus:border-transparent outline-none transition-all duration-200"
                     placeholder="you@example.com"
                   />
                 </div>
 
                 <div>
                   <div className="flex justify-between mb-1.5">
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                    <Link href="/forgot-password" className="text-sm text-indigo-600 hover:text-indigo-700">Forgot password?</Link>
+                    <label htmlFor="password" className="block text-sm font-medium text-[#33312e]">Password</label>
+                    <Link href="/forgot-password" className="text-sm text-[#7c5cff] hover:text-[#7c5cff]">Forgot password?</Link>
                   </div>
                   <input
                     id="password"
@@ -515,7 +515,7 @@ function LoginContent() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all duration-200"
+                    className="w-full px-4 py-3 bg-[#fff7ed] border border-[#a39a88] rounded-xl focus:ring-2 focus:ring-[#7c5cff] focus:border-transparent outline-none transition-all duration-200"
                     placeholder="Enter your password"
                   />
                 </div>
@@ -523,7 +523,7 @@ function LoginContent() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white py-3.5 rounded-xl font-semibold shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+                  className="w-full bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white py-3.5 rounded-xl font-semibold shadow-lg shadow-[#7c5cff] hover:shadow-xl hover:shadow-[#7c5cff] hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
                 >
                   {isLoading ? "Signing in..." : "Sign In"}
                 </button>
@@ -531,9 +531,9 @@ function LoginContent() {
               </form>
             )}
 
-            <p className="text-center text-sm text-gray-600 mt-8">
+            <p className="text-center text-sm text-[#33312e] mt-8">
               Don't have an account?{" "}
-              <Link href="/signup" className="font-semibold text-violet-600 hover:text-violet-700 hover:underline transition-colors">
+              <Link href="/signup" className="font-semibold text-[#7c5cff] hover:text-[#7c5cff] hover:underline transition-colors">
                 Create an account
               </Link>
             </p>
@@ -546,7 +546,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#fff7ed] flex items-center justify-center">Loading...</div>}>
       <LoginContent />
     </Suspense>
   );

@@ -47,3 +47,6 @@ uploads/
 
 # local runtime data
 bingo.db
+
+# Claude Code local state
+.claude/

@@ -145,7 +145,7 @@ export default function TeamBuildingBingoPage() {
                   <BingoGrid
                     squares={teamSquares}
                     label="Team Building Edition"
-                    gradient="bg-gradient-to-br from-blue-500 to-cyan-500"
+                    gradient="bg-gradient-to-br from-[#7c5cff] to-[#2ec4b6]"
                   />
                 </div>
               </div>

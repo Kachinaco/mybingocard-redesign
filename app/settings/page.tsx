@@ -221,8 +221,8 @@ export default function SettingsPage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen bg-[#fff7ed] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7c5cff]"></div>
       </div>
     );
   }
@@ -236,23 +236,23 @@ export default function SettingsPage() {
   const cancelPending = Boolean(planInfo?.cancelAtPeriodEnd && subscriptionEndsOn);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#fff7ed]">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200">
+      <header className="bg-white border-b border-[#a39a88]">
         <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-lg flex items-center justify-center">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
             </div>
-            <span className="text-lg font-bold text-slate-900">MyBingoCard</span>
+            <span className="text-lg font-bold text-[#33312e]">MyBingoCard</span>
           </Link>
           <nav className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-sm font-medium text-slate-600 hover:text-indigo-600">
+            <Link href="/dashboard" className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff]">
               Dashboard
             </Link>
-            <Link href="/create" className="text-sm font-medium text-slate-600 hover:text-indigo-600">
+            <Link href="/create" className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff]">
               Create
             </Link>
           </nav>
@@ -260,16 +260,16 @@ export default function SettingsPage() {
       </header>
 
       <main className="container mx-auto px-4 lg:px-8 py-12 max-w-3xl">
-        <h1 className="text-3xl font-bold text-slate-900 mb-8">Settings</h1>
+        <h1 className="text-3xl font-bold text-[#33312e] mb-8">Settings</h1>
 
         {/* Profile Section */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Profile</h2>
+        <div className="bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
+          <h2 className="text-lg font-semibold text-[#33312e] mb-4">Profile</h2>
           <div className="flex items-start gap-4">
             {session.user?.image ? (
               <img src={session.user.image} alt="Profile" className="w-16 h-16 rounded-full" />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
                 {session.user?.name?.charAt(0) || session.user?.email?.charAt(0) || "?"}
               </div>
             )}
@@ -280,38 +280,38 @@ export default function SettingsPage() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="flex-1 px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                    className="flex-1 px-3 py-1.5 border border-[#a39a88] rounded-lg text-sm focus:ring-2 focus:ring-[#7c5cff]/20 focus:border-[#7c5cff] outline-none"
                     autoFocus
                     onKeyDown={(e) => e.key === "Enter" && handleNameSave()}
                   />
                   <button
                     onClick={handleNameSave}
                     disabled={nameSaving || !name.trim()}
-                    className="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded-lg font-medium hover:bg-indigo-700 disabled:opacity-50"
+                    className="px-3 py-1.5 bg-[#7c5cff] text-white text-sm rounded-lg font-medium hover:bg-[#7c5cff] disabled:opacity-50"
                   >
                     {nameSaving ? "..." : "Save"}
                   </button>
                   <button
                     onClick={() => { setEditingName(false); setName(session.user?.name || ""); setNameMessage(""); }}
-                    className="px-3 py-1.5 text-slate-500 text-sm hover:text-slate-700"
+                    className="px-3 py-1.5 text-[#6b6459] text-sm hover:text-[#33312e]"
                   >
                     Cancel
                   </button>
                 </div>
               ) : (
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="font-semibold text-slate-900">{session.user?.name || "User"}</p>
+                  <p className="font-semibold text-[#33312e]">{session.user?.name || "User"}</p>
                   <button
                     onClick={() => setEditingName(true)}
-                    className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+                    className="text-xs text-[#7c5cff] hover:text-[#7c5cff] font-medium"
                   >
                     Edit
                   </button>
                 </div>
               )}
-              <p className="text-slate-500 text-sm">{session.user?.email}</p>
+              <p className="text-[#6b6459] text-sm">{session.user?.email}</p>
               {nameMessage && (
-                <p className={`text-xs mt-1 ${nameMessage.includes("Failed") ? "text-red-500" : "text-green-600"}`}>
+                <p className={`text-xs mt-1 ${nameMessage.includes("Failed") ? "text-[#ff5d8f]" : "text-[#2ec4b6]"}`}>
                   {nameMessage}
                 </p>
               )}
@@ -320,13 +320,13 @@ export default function SettingsPage() {
         </div>
 
         {/* Password Section */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+        <div className="bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">Password</h2>
+            <h2 className="text-lg font-semibold text-[#33312e]">Password</h2>
             {!showPasswordForm && (
               <button
                 onClick={() => setShowPasswordForm(true)}
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                className="text-sm font-medium text-[#7c5cff] hover:text-[#7c5cff]"
               >
                 {hasPassword ? "Change Password" : "Set Password"}
               </button>
@@ -334,7 +334,7 @@ export default function SettingsPage() {
           </div>
 
           {!showPasswordForm ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-[#6b6459]">
               {hasPassword
                 ? "Last changed — unknown. We recommend updating your password regularly."
                 : "You signed up with Google. Set a password to also log in with email."}
@@ -343,19 +343,19 @@ export default function SettingsPage() {
             <form onSubmit={handlePasswordChange} className="space-y-4">
               {hasPassword && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Current Password</label>
+                  <label className="block text-sm font-medium text-[#33312e] mb-1">Current Password</label>
                   <input
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     required
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
+                    className="w-full px-4 py-2.5 border border-[#a39a88] rounded-xl bg-[#fff7ed] focus:ring-2 focus:ring-[#7c5cff]/20 focus:border-[#7c5cff] outline-none text-sm"
                   />
                 </div>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">New Password</label>
+                  <label className="block text-sm font-medium text-[#33312e] mb-1">New Password</label>
                   <input
                     type="password"
                     value={newPassword}
@@ -363,27 +363,27 @@ export default function SettingsPage() {
                     required
                     minLength={8}
                     placeholder="Min. 8 characters"
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
+                    className="w-full px-4 py-2.5 border border-[#a39a88] rounded-xl bg-[#fff7ed] focus:ring-2 focus:ring-[#7c5cff]/20 focus:border-[#7c5cff] outline-none text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Confirm New Password</label>
+                  <label className="block text-sm font-medium text-[#33312e] mb-1">Confirm New Password</label>
                   <input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm"
+                    className="w-full px-4 py-2.5 border border-[#a39a88] rounded-xl bg-[#fff7ed] focus:ring-2 focus:ring-[#7c5cff]/20 focus:border-[#7c5cff] outline-none text-sm"
                   />
                 </div>
               </div>
-              {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
-              {passwordMessage && <p className="text-sm text-green-600">{passwordMessage}</p>}
+              {passwordError && <p className="text-sm text-[#ff5d8f]">{passwordError}</p>}
+              {passwordMessage && <p className="text-sm text-[#2ec4b6]">{passwordMessage}</p>}
               <div className="flex gap-3">
                 <button
                   type="submit"
                   disabled={passwordSaving}
-                  className="px-5 py-2.5 bg-indigo-600 text-white text-sm rounded-xl font-semibold hover:bg-indigo-700 disabled:opacity-50"
+                  className="px-5 py-2.5 bg-[#7c5cff] text-white text-sm rounded-xl font-semibold hover:bg-[#7c5cff] disabled:opacity-50"
                 >
                   {passwordSaving ? "Updating..." : "Update Password"}
                 </button>
@@ -397,7 +397,7 @@ export default function SettingsPage() {
                     setPasswordError("");
                     setPasswordMessage("");
                   }}
-                  className="px-5 py-2.5 text-slate-600 text-sm font-medium hover:text-slate-800"
+                  className="px-5 py-2.5 text-[#33312e] text-sm font-medium hover:text-[#33312e]"
                 >
                   Cancel
                 </button>
@@ -407,20 +407,20 @@ export default function SettingsPage() {
         </div>
 
         {/* Plan & Subscription Section */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Plan & Billing</h2>
+        <div className="bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
+          <h2 className="text-lg font-semibold text-[#33312e] mb-4">Plan & Billing</h2>
 
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
                 isPremium
-                  ? "bg-gradient-to-r from-violet-100 to-indigo-100 text-indigo-700"
-                  : "bg-slate-100 text-slate-600"
+                  ? "bg-gradient-to-r from-[#7c5cff]/15 to-[#7c5cff]/15 text-[#7c5cff]"
+                  : "bg-[#fff7ed] text-[#33312e]"
               }`}>
                 {planInfo?.planType || "FREE"} Plan
               </span>
               {isPremium && (
-                <span className={`text-xs font-medium ${cancelPending ? "text-amber-600" : "text-green-600"}`}>
+                <span className={`text-xs font-medium ${cancelPending ? "text-[#ffb800]" : "text-[#2ec4b6]"}`}>
                   {cancelPending ? "Scheduled to end" :"Active"}
                 </span>
               )}
@@ -428,7 +428,7 @@ export default function SettingsPage() {
             {!isPremium && (
               <button
                 onClick={redirectToCheckout}
-                className="text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+                className="text-sm font-semibold text-[#7c5cff] hover:text-[#7c5cff]"
               >
                 Upgrade
               </button>
@@ -436,16 +436,16 @@ export default function SettingsPage() {
           </div>
 
           {/* Usage bar */}
-          <div className="bg-slate-50 rounded-xl p-4 mb-4">
+          <div className="bg-[#fff7ed] rounded-xl p-4 mb-4">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-slate-600">Cards Created This Month</span>
-              <span className="text-sm font-semibold text-slate-900">
+              <span className="text-sm text-[#33312e]">Cards Created This Month</span>
+              <span className="text-sm font-semibold text-[#33312e]">
                 {planInfo?.cardsCreatedThisMonth || 0} / {planInfo?.cardsLimit === -1 ? "Unlimited" : planInfo?.cardsLimit || 3}
               </span>
             </div>
-            <div className="w-full bg-slate-200 rounded-full h-2">
+            <div className="w-full bg-[#a39a88] rounded-full h-2">
               <div
-                className="bg-gradient-to-r from-violet-600 to-indigo-600 h-2 rounded-full transition-all duration-300"
+                className="bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] h-2 rounded-full transition-all duration-300"
                 style={{
                   width: planInfo?.cardsLimit === -1
                     ? "10%"
@@ -461,12 +461,12 @@ export default function SettingsPage() {
               <button
                 onClick={handleManageSubscription}
                 disabled={portalLoading}
-                className="w-full sm:w-auto px-5 py-2.5 border border-slate-200 text-slate-700 text-sm rounded-xl font-semibold hover:bg-slate-50 disabled:opacity-50"
+                className="w-full sm:w-auto px-5 py-2.5 border border-[#a39a88] text-[#33312e] text-sm rounded-xl font-semibold hover:bg-[#fff7ed] disabled:opacity-50"
               >
                 {portalLoading ? "Opening..." : "Manage Subscription & Billing"}
               </button>
               {subscriptionEndsOn && (
-                <p className={`mt-3 text-sm ${cancelPending ? "text-amber-600" : "text-slate-500"}`}>
+                <p className={`mt-3 text-sm ${cancelPending ? "text-[#ffb800]" : "text-[#6b6459]"}`}>
                   {cancelPending
                     ? `Your premium access is scheduled to end on ${subscriptionEndsOn}. It will not renew unless you restart it in billing.`
                       : `Your next renewal is ${subscriptionEndsOn}.`}
@@ -477,52 +477,52 @@ export default function SettingsPage() {
         </div>
 
         {/* Email Preferences */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+        <div className="bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">Email Preferences</h2>
+            <h2 className="text-lg font-semibold text-[#33312e]">Email Preferences</h2>
             {emailPrefMessage && (
-              <span className="text-xs text-green-600 font-medium">{emailPrefMessage}</span>
+              <span className="text-xs text-[#2ec4b6] font-medium">{emailPrefMessage}</span>
             )}
           </div>
 
           <div className="space-y-3">
-            <label className="flex items-center justify-between p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+            <label className="flex items-center justify-between p-3 border border-[#a39a88] rounded-xl cursor-pointer hover:bg-[#fff7ed] transition-colors">
               <div>
-                <div className="text-sm font-medium text-slate-700">Marketing Emails</div>
-                <div className="text-xs text-slate-500">Tips, promotions, and bingo inspiration</div>
+                <div className="text-sm font-medium text-[#33312e]">Marketing Emails</div>
+                <div className="text-xs text-[#6b6459]">Tips, promotions, and bingo inspiration</div>
               </div>
               <input
                 type="checkbox"
                 checked={marketingEmails}
                 onChange={(e) => handleEmailPrefSave(e.target.checked, productUpdates)}
                 disabled={emailPrefSaving}
-                className="w-5 h-5 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                className="w-5 h-5 text-[#7c5cff] border-[#a39a88] rounded focus:ring-[#7c5cff]"
               />
             </label>
 
-            <label className="flex items-center justify-between p-3 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+            <label className="flex items-center justify-between p-3 border border-[#a39a88] rounded-xl cursor-pointer hover:bg-[#fff7ed] transition-colors">
               <div>
-                <div className="text-sm font-medium text-slate-700">Product Updates</div>
-                <div className="text-xs text-slate-500">New features and improvements</div>
+                <div className="text-sm font-medium text-[#33312e]">Product Updates</div>
+                <div className="text-xs text-[#6b6459]">New features and improvements</div>
               </div>
               <input
                 type="checkbox"
                 checked={productUpdates}
                 onChange={(e) => handleEmailPrefSave(marketingEmails, e.target.checked)}
                 disabled={emailPrefSaving}
-                className="w-5 h-5 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
+                className="w-5 h-5 text-[#7c5cff] border-[#a39a88] rounded focus:ring-[#7c5cff]"
               />
             </label>
           </div>
         </div>
 
         {/* Community */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Community</h2>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50 mb-3">
+        <div className="bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
+          <h2 className="text-lg font-semibold text-[#33312e] mb-4">Community</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-[#a39a88] rounded-xl bg-[#fff7ed] mb-3">
             <div>
-              <div className="text-sm font-medium text-slate-700">Facebook Page</div>
-              <div className="text-xs text-slate-500">Follow MyBingoCard for new templates, game ideas, and updates.</div>
+              <div className="text-sm font-medium text-[#33312e]">Facebook Page</div>
+              <div className="text-xs text-[#6b6459]">Follow MyBingoCard for new templates, game ideas, and updates.</div>
             </div>
             <a
               href={FACEBOOK_PAGE_URL}
@@ -534,10 +534,10 @@ export default function SettingsPage() {
               Follow on Facebook
             </a>
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-slate-200 rounded-xl bg-slate-50">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-[#a39a88] rounded-xl bg-[#fff7ed]">
             <div>
-              <div className="text-sm font-medium text-slate-700">Reddit Community</div>
-              <div className="text-xs text-slate-500">Ask for card ideas, share use cases, and get MyBingoCard help.</div>
+              <div className="text-sm font-medium text-[#33312e]">Reddit Community</div>
+              <div className="text-xs text-[#6b6459]">Ask for card ideas, share use cases, and get MyBingoCard help.</div>
             </div>
             <a
               href={REDDIT_COMMUNITY_URL}
@@ -552,11 +552,11 @@ export default function SettingsPage() {
         </div>
 
         {/* Connected Accounts */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Connected Accounts</h2>
+        <div className="bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
+          <h2 className="text-lg font-semibold text-[#33312e] mb-4">Connected Accounts</h2>
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 border border-slate-200 rounded-xl">
+            <div className="flex items-center justify-between p-3 border border-[#a39a88] rounded-xl">
               <div className="flex items-center gap-3">
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -565,37 +565,37 @@ export default function SettingsPage() {
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
                 <div>
-                  <div className="text-sm font-medium text-slate-700">Google</div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-sm font-medium text-[#33312e]">Google</div>
+                  <div className="text-xs text-[#6b6459]">
                     {connectedAccounts.includes("google") ? "Connected" : "Not connected"}
                   </div>
                 </div>
               </div>
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                 connectedAccounts.includes("google")
-                  ? "bg-green-50 text-green-700"
-                  : "bg-slate-100 text-slate-500"
+                  ? "bg-[#2ec4b6]/10 text-[#2ec4b6]"
+                  : "bg-[#fff7ed] text-[#6b6459]"
               }`}>
                 {connectedAccounts.includes("google") ? "Linked" : "Not linked"}
               </span>
             </div>
 
-            <div className="flex items-center justify-between p-3 border border-slate-200 rounded-xl">
+            <div className="flex items-center justify-between p-3 border border-[#a39a88] rounded-xl">
               <div className="flex items-center gap-3">
-                <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-[#33312e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 <div>
-                  <div className="text-sm font-medium text-slate-700">Email & Password</div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-sm font-medium text-[#33312e]">Email & Password</div>
+                  <div className="text-xs text-[#6b6459]">
                     {hasPassword ? "Password set" : "No password set"}
                   </div>
                 </div>
               </div>
               <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                 hasPassword
-                  ? "bg-green-50 text-green-700"
-                  : "bg-amber-50 text-amber-700"
+                  ? "bg-[#2ec4b6]/10 text-[#2ec4b6]"
+                  : "bg-[#ffb800]/10 text-[#ffb800]"
               }`}>
                 {hasPassword ? "Active" : "Set up"}
               </span>
@@ -604,24 +604,24 @@ export default function SettingsPage() {
         </div>
 
         {/* Legal */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Legal</h2>
+        <div className="bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
+          <h2 className="text-lg font-semibold text-[#33312e] mb-4">Legal</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Link
               href="/privacy"
-              className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-center"
+              className="px-4 py-3 border border-[#a39a88] rounded-xl text-sm font-semibold text-[#33312e] hover:bg-[#fff7ed] transition-colors text-center"
             >
               Privacy Policy
             </Link>
             <Link
               href="/terms"
-              className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-center"
+              className="px-4 py-3 border border-[#a39a88] rounded-xl text-sm font-semibold text-[#33312e] hover:bg-[#fff7ed] transition-colors text-center"
             >
               Terms of Service
             </Link>
             <Link
               href="/contact"
-              className="px-4 py-3 border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors text-center"
+              className="px-4 py-3 border border-[#a39a88] rounded-xl text-sm font-semibold text-[#33312e] hover:bg-[#fff7ed] transition-colors text-center"
             >
               Contact Support
             </Link>
@@ -629,31 +629,31 @@ export default function SettingsPage() {
         </div>
 
         {/* Sign Out & Delete Account */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Account</h2>
+        <div className="bg-white rounded-2xl border border-[#a39a88] p-6">
+          <h2 className="text-lg font-semibold text-[#33312e] mb-4">Account</h2>
 
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleSignOut}
-              className="px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors text-sm"
+              className="px-6 py-3 bg-[#fff7ed] text-[#33312e] rounded-xl font-semibold hover:bg-[#a39a88] transition-colors text-sm"
             >
               Sign Out
             </button>
 
             <button
               onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
-              className="px-6 py-3 bg-red-50 text-red-600 rounded-xl font-semibold hover:bg-red-100 transition-colors text-sm"
+              className="px-6 py-3 bg-[#ff5d8f]/10 text-[#ff5d8f] rounded-xl font-semibold hover:bg-[#ff5d8f]/15 transition-colors text-sm"
             >
               Delete Account
             </button>
           </div>
 
           {showDeleteConfirm && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-              <p className="text-sm text-red-800 font-medium mb-1">
+            <div className="mt-4 p-4 bg-[#ff5d8f]/10 border border-[#ff5d8f] rounded-xl">
+              <p className="text-sm text-[#ff5d8f] font-medium mb-1">
                 This will permanently delete your account and all your data.
               </p>
-              <p className="text-xs text-red-600 mb-4">
+              <p className="text-xs text-[#ff5d8f] mb-4">
                 All cards, game history, and subscription will be removed. This cannot be undone.
               </p>
               <div className="flex items-center gap-3">
@@ -662,17 +662,17 @@ export default function SettingsPage() {
                   value={deleteConfirmText}
                   onChange={(e) => setDeleteConfirmText(e.target.value)}
                   placeholder='Type "DELETE" to confirm'
-                  className="flex-1 px-3 py-2 border border-red-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-red-500/20 focus:border-red-500 outline-none"
+                  className="flex-1 px-3 py-2 border border-[#ff5d8f] rounded-lg text-sm bg-white focus:ring-2 focus:ring-[#ff5d8f]/20 focus:border-[#ff5d8f] outline-none"
                 />
                 <button
                   onClick={handleDeleteAccount}
                   disabled={deleteConfirmText !== "DELETE" || deleting}
-                  className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg font-semibold hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-[#ff5d8f] text-white text-sm rounded-lg font-semibold hover:bg-[#ff5d8f] disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {deleting ? "Deleting..." : "Delete Forever"}
                 </button>
               </div>
-              {deleteError && <p className="text-sm text-red-600 mt-2">{deleteError}</p>}
+              {deleteError && <p className="text-sm text-[#ff5d8f] mt-2">{deleteError}</p>}
             </div>
           )}
         </div>

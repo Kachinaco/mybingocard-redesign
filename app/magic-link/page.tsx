@@ -40,9 +40,9 @@ function MagicLinkContent() {
   return (
     <main className="min-h-screen bg-white flex items-center justify-center px-4">
       <div className="w-full max-w-md text-center">
-        <div className="mx-auto mb-5 h-12 w-12 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin" />
-        <h1 className="text-2xl font-bold text-slate-900">Magic link</h1>
-        <p className="mt-3 text-slate-600">{message}</p>
+        <div className="mx-auto mb-5 h-12 w-12 rounded-full border-4 border-[#7c5cff] border-t-violet-600 animate-spin" />
+        <h1 className="text-2xl font-bold text-[#33312e]">Magic link</h1>
+        <p className="mt-3 text-[#33312e]">{message}</p>
       </div>
     </main>
   );

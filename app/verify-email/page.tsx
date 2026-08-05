@@ -56,33 +56,33 @@ function VerifyEmailContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 max-w-md w-full text-center">
+      <div className="min-h-screen bg-[#fff7ed] flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#fff7ed] p-8 max-w-md w-full text-center">
           <div className="text-5xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Verification failed</h1>
-          <p className="text-slate-500 mb-6">{errorMessages[error] || "Something went wrong."}</p>
+          <h1 className="text-2xl font-bold text-[#33312e] mb-2">Verification failed</h1>
+          <p className="text-[#6b6459] mb-6">{errorMessages[error] || "Something went wrong."}</p>
 
           {signupEmail && (error === "expired_token" || error === "invalid_token") ? (
             <div className="space-y-3">
               {resendState === "sent" ? (
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm font-medium">
+                <div className="p-4 bg-[#2ec4b6]/10 border border-[#2ec4b6] rounded-xl text-[#2ec4b6] text-sm font-medium">
                   ✅ New verification link sent! Check your inbox.
                 </div>
               ) : (
                 <button
                   onClick={handleResend}
                   disabled={resendState === "sending"}
-                  className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition disabled:opacity-70"
+                  className="inline-flex items-center px-6 py-3 bg-[#7c5cff] text-white rounded-xl font-semibold hover:bg-[#7c5cff] transition disabled:opacity-70"
                 >
                   {resendState === "sending" ? "Sending..." : "Resend Verification Email"}
                 </button>
               )}
               {resendState === "error" && (
-                <p className="text-red-500 text-sm">Failed to resend. Please try again.</p>
+                <p className="text-[#ff5d8f] text-sm">Failed to resend. Please try again.</p>
               )}
             </div>
           ) : (
-            <Link href="/signup" className="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition">
+            <Link href="/signup" className="inline-flex items-center px-6 py-3 bg-[#7c5cff] text-white rounded-xl font-semibold hover:bg-[#7c5cff] transition">
               Sign up again
             </Link>
           )}
@@ -92,45 +92,45 @@ function VerifyEmailContent() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 max-w-md w-full text-center">
+    <div className="min-h-screen bg-[#fff7ed] flex items-center justify-center px-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#fff7ed] p-8 max-w-md w-full text-center">
         <div className="text-5xl mb-4">📧</div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Check your inbox</h1>
-        <p className="text-slate-500 mb-2">
+        <h1 className="text-2xl font-bold text-[#33312e] mb-2">Check your inbox</h1>
+        <p className="text-[#6b6459] mb-2">
           We sent a verification link to your email address. Click it to activate your account.
         </p>
         {signupEmail && (
-          <p className="text-slate-700 font-medium mb-2">{signupEmail}</p>
+          <p className="text-[#33312e] font-medium mb-2">{signupEmail}</p>
         )}
-        <p className="text-slate-400 text-sm mb-4">
+        <p className="text-[#6b6459] text-sm mb-4">
           Didn&apos;t get it? Check your spam folder, or resend the link below.
         </p>
 
         {signupEmail && (
           <div className="mb-6">
             {resendState === "sent" ? (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-sm font-medium">
+              <div className="p-3 bg-[#2ec4b6]/10 border border-[#2ec4b6] rounded-xl text-[#2ec4b6] text-sm font-medium">
                 ✅ New verification link sent! Check your inbox.
               </div>
             ) : (
               <button
                 onClick={handleResend}
                 disabled={resendState === "sending"}
-                className="text-indigo-600 hover:text-indigo-700 font-medium text-sm hover:underline transition-colors disabled:opacity-70"
+                className="text-[#7c5cff] hover:text-[#7c5cff] font-medium text-sm hover:underline transition-colors disabled:opacity-70"
               >
                 {resendState === "sending" ? "Sending..." : "Resend verification email"}
               </button>
             )}
             {resendState === "error" && (
-              <p className="text-red-500 text-sm mt-1">Failed to resend. Please try again.</p>
+              <p className="text-[#ff5d8f] text-sm mt-1">Failed to resend. Please try again.</p>
             )}
           </div>
         )}
 
-        <div className="border-t border-slate-100 pt-6">
-          <p className="text-slate-400 text-sm">
+        <div className="border-t border-[#fff7ed] pt-6">
+          <p className="text-[#6b6459] text-sm">
             Already verified?{" "}
-            <Link href={signInHref} className="text-indigo-600 hover:underline font-medium">
+            <Link href={signInHref} className="text-[#7c5cff] hover:underline font-medium">
               Sign in
             </Link>
           </p>

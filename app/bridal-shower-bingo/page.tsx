@@ -75,7 +75,7 @@ function BingoGrid({ squares }: { squares: string[] }) {
         <div className="text-center mb-4">
           <div className="flex justify-center gap-3 text-4xl font-black tracking-widest">
             {["B","I","N","G","O"].map((l, i) => {
-              const colors = ["from-rose-400 to-pink-500","from-pink-500 to-fuchsia-500","from-fuchsia-500 to-purple-500","from-purple-500 to-rose-500","from-rose-500 to-pink-400"];
+              const colors = ["from-[#ff5d8f] to-[#ff5d8f]","from-[#ff5d8f] to-[#ff5d8f]","from-[#ff5d8f] to-[#7c5cff]","from-[#7c5cff] to-[#ff5d8f]","from-[#ff5d8f] to-[#ff5d8f]"];
               return <span key={i} className={["text-[#ff5d8f]", "text-[#7c5cff]", "text-[#2ec4b6]", "text-[#ff8a3d]", "text-[#ffb800]"][i % 5]}>{l}</span>;
             })}
           </div>
@@ -148,7 +148,7 @@ export default function BridalShowerBingoPage() {
 
           <section className="max-w-5xl mx-auto mb-20">
             <div className="grid lg:grid-cols-2 gap-8">
-              <article className="bg-white rounded-2xl border border-rose-100 p-8 shadow-sm">
+              <article className="bg-white rounded-2xl border border-[#ff5d8f]/15 p-8 shadow-sm">
                 <h2 className="text-2xl font-heading font-bold text-[#33312e] mb-4">How to set up bridal shower gift bingo</h2>
                 <p className="font-semibold text-[#6b6459] leading-relaxed mb-5">
                   The easiest format is a quiet table game: guests mark a square when the bride opens a matching gift or when a planned shower moment happens. Start with broad categories so the game does not reveal registry surprises.
@@ -160,20 +160,20 @@ export default function BridalShowerBingoPage() {
                   <li>Keep a short list of opened gifts so a winning card is easy to verify.</li>
                 </ol>
               </article>
-              <article className="bg-white rounded-2xl border border-rose-100 p-8 shadow-sm">
+              <article className="bg-white rounded-2xl border border-[#ff5d8f]/15 p-8 shadow-sm">
                 <h2 className="text-2xl font-heading font-bold text-[#33312e] mb-4">Square ideas that feel personal</h2>
                 <p className="font-semibold text-[#6b6459] leading-relaxed mb-5">
                   Mix dependable gift categories with details that fit the couple. Avoid exact brand names or overly specific gifts, then edit the list once you know the shower plan.
                 </p>
                 <div className="grid sm:grid-cols-2 gap-3 text-sm font-bold text-[#33312e]">
                   {["Cookware", "Bath towels", "Serving tray", "Gift card", "Wedding date", "Honeymoon hint", "Something blue", "Advice card", "Champagne toast", "Group photo"].map((idea) => (
-                    <div key={idea} className="rounded-xl bg-rose-50 px-4 py-3">{idea}</div>
+                    <div key={idea} className="rounded-xl bg-[#ff5d8f]/10 px-4 py-3">{idea}</div>
                   ))}
                 </div>
               </article>
             </div>
 
-            <div className="mt-8 bg-white rounded-2xl border border-rose-100 p-8 shadow-sm">
+            <div className="mt-8 bg-white rounded-2xl border border-[#ff5d8f]/15 p-8 shadow-sm">
               <h2 className="text-2xl font-heading font-bold text-[#33312e] mb-5">Bridal shower bingo FAQs</h2>
               <div className="grid md:grid-cols-3 gap-6 font-semibold text-[#6b6459] leading-relaxed">
                 <div>
@@ -190,7 +190,7 @@ export default function BridalShowerBingoPage() {
                 </div>
               </div>
               <p className="mt-6 font-semibold text-[#6b6459]">
-                For a gift-only list, start with <Link href="/bridal-shower-gift-bingo" className="font-semibold text-rose-600 hover:text-rose-700">bridal shower gift bingo</Link>. For reception moments, use <Link href="/wedding-reception-bingo" className="font-semibold text-rose-600 hover:text-rose-700">wedding reception bingo</Link>.
+                For a gift-only list, start with <Link href="/bridal-shower-gift-bingo" className="font-semibold text-[#ff5d8f] hover:text-[#ff5d8f]">bridal shower gift bingo</Link>. For reception moments, use <Link href="/wedding-reception-bingo" className="font-semibold text-[#ff5d8f] hover:text-[#ff5d8f]">wedding reception bingo</Link>.
               </p>
             </div>
           </section>

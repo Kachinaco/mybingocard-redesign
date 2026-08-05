@@ -1681,9 +1681,9 @@ function CreateCardContent() {
 
   return (
     <>
-    <div className="notranslate min-h-screen bg-[#f2f2f7] selection:bg-blue-100 selection:text-blue-900" translate="no">
+    <div className="notranslate min-h-screen bg-[#f2f2f7] selection:bg-[#7c5cff]/15 selection:text-[#7c5cff]" translate="no">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50">
+      <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-[#a39a88]/50">
         <div className="container mx-auto px-3 sm:px-4 lg:px-8 h-14 flex items-center justify-between gap-2">
           <Link href="/" className="flex min-w-0 items-center gap-2 group">
             <div className="w-8 h-8 shrink-0 bg-[#007AFF] rounded-lg flex items-center justify-center shadow-sm transition-all duration-300">
@@ -1691,7 +1691,7 @@ function CreateCardContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
             </div>
-            <span className="hidden min-[390px]:inline truncate text-lg sm:text-xl font-bold text-gray-900">
+            <span className="hidden min-[390px]:inline truncate text-lg sm:text-xl font-bold text-[#33312e]">
               MyBingoCard
             </span>
           </Link>
@@ -1703,7 +1703,7 @@ function CreateCardContent() {
                 setShowPreview(nextPreview);
                 trackClientActivity("preview_toggled", { enabled: nextPreview });
               }}
-              className="px-2 py-2 text-sm font-semibold text-gray-600 hover:text-[#007AFF] transition-colors"
+              className="px-2 py-2 text-sm font-semibold text-[#33312e] hover:text-[#007AFF] transition-colors"
             >
               <span className="sm:hidden">{showPreview ? "Edit" : "Preview"}</span>
               <span className="hidden sm:inline">{showPreview ? "Back to Edit" : "Preview Card"}</span>
@@ -1711,7 +1711,7 @@ function CreateCardContent() {
             {editorUnlocked && (
               <Link
                 href="/dashboard"
-                className="px-3 sm:px-5 py-2.5 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-all duration-200"
+                className="px-3 sm:px-5 py-2.5 rounded-lg text-sm font-semibold text-[#33312e] hover:bg-[#fff7ed] transition-all duration-200"
               >
                 Cancel
               </Link>
@@ -1725,16 +1725,16 @@ function CreateCardContent() {
           <div className="mb-2 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div>
-                <h1 className="text-xl font-bold text-gray-900">
+                <h1 className="text-xl font-bold text-[#33312e]">
                   {isEditingExistingCard ? "Edit Bingo Card" : "Create Bingo Cards Online"}
                 </h1>
                 {!isEditingExistingCard ? (
-                  <p className="hidden text-xs text-gray-500 sm:block">
+                  <p className="hidden text-xs text-[#6b6459] sm:block">
                     Customize a printable bingo card, start from a template, or prepare an online game.
                   </p>
                 ) : null}
               </div>
-              <span className="text-xs text-gray-400" title={autoSaveLabel}>
+              <span className="text-xs text-[#6b6459]" title={autoSaveLabel}>
                 {session?.user
                   ? autoSaveState === "saving"
                     ? "Saving..."
@@ -1754,8 +1754,8 @@ function CreateCardContent() {
             {!checkingPermission && permissionStatus && (
               <div className={`hidden md:flex items-center gap-4 px-4 py-2 rounded-full border ${
                 permissionStatus.allowed || isEditingExistingCard
-                  ? "bg-emerald-50 border-emerald-100 text-emerald-800"
-                  : "bg-amber-50 border-amber-100 text-amber-800"
+                  ? "bg-[#2ec4b6]/10 border-[#2ec4b6]/15 text-[#2ec4b6]"
+                  : "bg-[#ffb800]/10 border-[#ffb800]/15 text-[#ffb800]"
               }`}>
                   <span className="text-sm font-semibold">
                      {permissionStatus.planType || "FREE"} Plan
@@ -1779,7 +1779,7 @@ function CreateCardContent() {
           </div>
 
           {error && (
-            <div id="create-card-error" role="alert" className="mb-4 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 flex items-center gap-3">
+            <div id="create-card-error" role="alert" className="mb-4 p-4 bg-[#ff5d8f]/10 border border-[#ff5d8f]/15 rounded-xl text-[#ff5d8f] flex items-center gap-3">
               <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -1788,20 +1788,20 @@ function CreateCardContent() {
           )}
 
           {isLoadingCard && (
-            <div className="mb-4 p-4 bg-white border border-gray-200 rounded-xl text-gray-600 flex items-center gap-3">
-              <div className="w-5 h-5 border-2 border-gray-300 border-t-[#007AFF] rounded-full animate-spin"></div>
+            <div className="mb-4 p-4 bg-white border border-[#a39a88] rounded-xl text-[#33312e] flex items-center gap-3">
+              <div className="w-5 h-5 border-2 border-[#a39a88] border-t-[#007AFF] rounded-full animate-spin"></div>
               {t("label.loading")}
             </div>
           )}
 
           {/* Fallback account gate */}
           {isPremiumGateActive && (
-            <div className="mb-6 bg-blue-50 border-2 border-blue-200 rounded-2xl p-6 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+            <div className="mb-6 bg-[#7c5cff]/10 border-2 border-[#7c5cff] rounded-2xl p-6 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-[#7c5cff]/15 rounded-full flex items-center justify-center">
                 <svg className="w-8 h-8 text-[#007AFF]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Sign in to keep creating</h2>
-              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              <h2 className="text-2xl font-bold text-[#33312e] mb-2">Sign in to keep creating</h2>
+              <p className="text-[#33312e] mb-6 max-w-md mx-auto">
                 The free plan includes one saved card, templates, images, AI ideas, and individual PDF/PNG exports. Printable batch packs, share links, and hosted bingo events are paid tools.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -1814,7 +1814,7 @@ function CreateCardContent() {
                 <button
                       type="button"
                       onClick={continueAnonymousDraft}
-                  className="px-6 py-4 text-gray-600 hover:text-gray-900 font-semibold transition-colors"
+                  className="px-6 py-4 text-[#33312e] hover:text-[#33312e] font-semibold transition-colors"
                 >
                   Keep drafting
                 </button>
@@ -1828,7 +1828,7 @@ function CreateCardContent() {
             {/* Left Panel - Card Details */}
             <div className="order-2 lg:order-1 space-y-4 lg:sticky lg:top-16 lg:max-h-[calc(100vh-11.5rem)] lg:space-y-3 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 min-w-0">
               {!session?.user && !checkingPermission && (
-                <div className="px-3 py-2.5 bg-blue-50 border border-blue-100 rounded-lg text-[#007AFF] flex items-start gap-2.5">
+                <div className="px-3 py-2.5 bg-[#7c5cff]/10 border border-[#7c5cff]/15 rounded-lg text-[#007AFF] flex items-start gap-2.5">
                   <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -1845,8 +1845,8 @@ function CreateCardContent() {
                 </div>
               )}
               {showNewUserTip && !isPremiumGateActive && (
-                <div className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex items-start justify-between gap-3 animate-fade-in-up">
-                  <p className="text-sm text-gray-600 leading-snug">
+                <div className="bg-[#fff7ed] border border-[#a39a88] rounded-xl px-4 py-3 flex items-start justify-between gap-3 animate-fade-in-up">
+                  <p className="text-sm text-[#33312e] leading-snug">
                     First time? Type a title above and fill in the squares, or{" "}
                     <Link href="/templates" className="text-[#007AFF] font-semibold hover:underline">
                       start from a template
@@ -1854,7 +1854,7 @@ function CreateCardContent() {
                   </p>
                   <button
                     onClick={() => { setShowNewUserTip(false); setBrowserStorageItem("localStorage", "new_user_tip_dismissed", "1"); }}
-                    className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+                    className="p-1.5 text-[#6b6459] hover:text-[#33312e] transition-colors flex-shrink-0"
                     title="Dismiss"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1864,15 +1864,15 @@ function CreateCardContent() {
                 </div>
               )}
               {/* Basic Info */}
-              <div className="bg-white/60 rounded-2xl border border-gray-200/50 p-4 lg:p-3">
-                <h2 className="text-base font-bold text-gray-900 mb-3 lg:mb-2">
+              <div className="bg-white/60 rounded-2xl border border-[#a39a88]/50 p-4 lg:p-3">
+                <h2 className="text-base font-bold text-[#33312e] mb-3 lg:mb-2">
                    Card Details
                 </h2>
 
                 <div className="space-y-3 lg:space-y-2.5">
                   <div>
-                    <label htmlFor="card-title" className="block text-xs font-semibold text-gray-700 mb-1">
-                      Card Title <span className="text-red-500">*</span>
+                    <label htmlFor="card-title" className="block text-xs font-semibold text-[#33312e] mb-1">
+                      Card Title <span className="text-[#ff5d8f]">*</span>
                     </label>
                     <input
                       ref={titleInputRef}
@@ -1888,27 +1888,27 @@ function CreateCardContent() {
                       placeholder="e.g., Wedding Bingo"
                       aria-invalid={Boolean(error && !title.trim())}
                       aria-describedby={error && !title.trim() ? "create-card-error" : undefined}
-                      className="w-full px-3 py-2 bg-[#f2f2f7] border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] outline-none transition-all duration-200 placeholder:text-gray-400 text-sm"
+                      className="w-full px-3 py-2 bg-[#f2f2f7] border border-[#a39a88] rounded-xl focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] outline-none transition-all duration-200 placeholder:text-[#6b6459] text-sm"
                       disabled={showPreview}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
-                      Description <span className="font-normal text-gray-500">(optional)</span>
+                    <label className="block text-xs font-semibold text-[#33312e] mb-1">
+                      Description <span className="font-normal text-[#6b6459]">(optional)</span>
                     </label>
                     <textarea
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Add some instructions for your players..."
                       rows={2}
-                      className="w-full px-3 py-2 bg-[#f2f2f7] border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] outline-none transition-all duration-200 placeholder:text-gray-400 resize-none text-sm"
+                      className="w-full px-3 py-2 bg-[#f2f2f7] border border-[#a39a88] rounded-xl focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF] outline-none transition-all duration-200 placeholder:text-[#6b6459] resize-none text-sm"
                       disabled={showPreview}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    <label className="block text-xs font-semibold text-[#33312e] mb-1">
                       Bingo Type
                     </label>
                     <div className="grid grid-cols-3 gap-2">
@@ -1924,15 +1924,15 @@ function CreateCardContent() {
                           disabled={showPreview}
                           className={`w-full rounded-lg border px-2 py-2 text-sm font-semibold transition-all duration-200 ${
                             bingoVariant === variant
-                              ? "border-[#007AFF] bg-blue-50 text-[#007AFF] ring-1 ring-[#007AFF]"
-                              : "border-gray-200 bg-white text-gray-600 hover:border-[#007AFF]/30 hover:bg-gray-50"
+                              ? "border-[#007AFF] bg-[#7c5cff]/10 text-[#007AFF] ring-1 ring-[#007AFF]"
+                              : "border-[#a39a88] bg-white text-[#33312e] hover:border-[#007AFF]/30 hover:bg-[#fff7ed]"
                           }`}
                         >
                           {label}
                         </button>
                       ))}
                     </div>
-                    <p className="mt-1.5 text-xs text-gray-500">
+                    <p className="mt-1.5 text-xs text-[#6b6459]">
                       {bingoVariant === "classic75" && "Strict B-I-N-G-O columns, 1-75 call pool, center FREE."}
                       {bingoVariant === "classic90" && "Traditional 3x9 ticket, 15 numbers, 1-90 call pool."}
                       {bingoVariant === "custom" && "Use your own words, images, numbers, or prompts."}
@@ -1941,7 +1941,7 @@ function CreateCardContent() {
 
                   {bingoVariant === "custom" && (
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    <label className="block text-xs font-semibold text-[#33312e] mb-1">
                       Grid Size
                     </label>
                     <div className="grid grid-cols-3 gap-2">
@@ -1966,16 +1966,16 @@ function CreateCardContent() {
                               disabled={showPreview || !isAllowed}
                               className={`w-full py-1.5 rounded-lg border transition-all duration-200 font-medium text-sm ${
                                 size === s
-                                  ? "border-[#007AFF] bg-blue-50 text-[#007AFF] ring-1 ring-[#007AFF]"
+                                  ? "border-[#007AFF] bg-[#7c5cff]/10 text-[#007AFF] ring-1 ring-[#007AFF]"
                                   : isAllowed
-                                  ? "border-gray-200 bg-white text-gray-600 hover:border-[#007AFF]/30 hover:bg-gray-50"
-                                  : "border-gray-200 bg-[#f2f2f7] text-gray-300 cursor-not-allowed"
+                                  ? "border-[#a39a88] bg-white text-[#33312e] hover:border-[#007AFF]/30 hover:bg-[#fff7ed]"
+                                  : "border-[#a39a88] bg-[#f2f2f7] text-[#a39a88] cursor-not-allowed"
                               }`}
                             >
                               {s}×{s}
                             </button>
                             {!isAllowed && tooltip && (
-                              <div className="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-800 text-white text-xs rounded-lg whitespace-nowrap z-10 shadow-lg">
+                              <div className="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-[#33312e] text-white text-xs rounded-lg whitespace-nowrap z-10 shadow-lg">
                                 {tooltip}
                                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-800"></div>
                               </div>
@@ -1993,18 +1993,18 @@ function CreateCardContent() {
                         type="button"
                         onClick={handleShuffleCells}
                         disabled={showPreview}
-                        className="flex items-center gap-3 p-3 w-full border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center gap-3 p-3 w-full border border-[#a39a88] rounded-xl cursor-pointer hover:bg-[#fff7ed] transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <div className="w-5 h-5 flex items-center justify-center text-[#007AFF]">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                           </svg>
                         </div>
-                        <span className="text-sm font-medium text-gray-700">Regenerate classic card</span>
+                        <span className="text-sm font-medium text-[#33312e]">Regenerate classic card</span>
                       </button>
                     )}
                     {bingoVariant === "custom" && (
-                     <label htmlFor="free-space-toggle" className={`flex items-center gap-3 p-3 lg:p-2.5 border border-gray-200 rounded-xl transition-colors ${showPreview ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"}`}>
+                     <label htmlFor="free-space-toggle" className={`flex items-center gap-3 p-3 lg:p-2.5 border border-[#a39a88] rounded-xl transition-colors ${showPreview ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-[#fff7ed]"}`}>
                       <div className="relative flex items-center">
                         <input
                             id="free-space-toggle"
@@ -2015,10 +2015,10 @@ function CreateCardContent() {
                               trackClientActivity("free_space_toggled", { enabled: e.target.checked });
                             }}
                             disabled={showPreview}
-                            className="w-5 h-5 text-[#007AFF] border-gray-300 rounded focus:ring-[#007AFF]"
+                            className="w-5 h-5 text-[#007AFF] border-[#a39a88] rounded focus:ring-[#007AFF]"
                         />
                       </div>
-                      <span className="text-sm font-medium text-gray-700">Include free space</span>
+                      <span className="text-sm font-medium text-[#33312e]">Include free space</span>
                     </label>
                     )}
 
@@ -2027,18 +2027,18 @@ function CreateCardContent() {
                       type="button"
                       onClick={handleShuffleCells}
                       disabled={showPreview}
-                      className="flex items-center gap-3 p-3 lg:p-2.5 w-full border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-3 p-3 lg:p-2.5 w-full border border-[#a39a88] rounded-xl cursor-pointer hover:bg-[#fff7ed] transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <div className="w-5 h-5 flex items-center justify-center text-[#007AFF]">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                         </svg>
                       </div>
-                      <span className="text-sm font-medium text-gray-700">Shuffle cells</span>
+                      <span className="text-sm font-medium text-[#33312e]">Shuffle cells</span>
                     </button>
                     )}
 
-                    <label htmlFor="public-toggle" className={`flex items-center gap-3 p-3 lg:p-2.5 border border-gray-200 rounded-xl transition-colors ${showPreview ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-gray-50"}`}>
+                    <label htmlFor="public-toggle" className={`flex items-center gap-3 p-3 lg:p-2.5 border border-[#a39a88] rounded-xl transition-colors ${showPreview ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-[#fff7ed]"}`}>
                       <div className="relative flex items-center">
                          <input
                             id="public-toggle"
@@ -2046,12 +2046,12 @@ function CreateCardContent() {
                             checked={isPublic}
                             onChange={(e) => setIsPublic(e.target.checked)}
                             disabled={showPreview}
-                            className="w-5 h-5 text-[#007AFF] border-gray-300 rounded focus:ring-[#007AFF]"
+                            className="w-5 h-5 text-[#007AFF] border-[#a39a88] rounded focus:ring-[#007AFF]"
                         />
                       </div>
                       <div>
-                          <div className="text-sm font-medium text-gray-700">Make Public</div>
-                          <div className="text-xs text-gray-500">Allow anyone with the link to view</div>
+                          <div className="text-sm font-medium text-[#33312e]">Make Public</div>
+                          <div className="text-xs text-[#6b6459]">Allow anyone with the link to view</div>
                       </div>
                     </label>
                   </div>
@@ -2079,15 +2079,15 @@ function CreateCardContent() {
               )}
 
               {/* Style Customization */}
-              <div className="bg-white/60 rounded-2xl border border-gray-200/50 p-4 lg:p-3">
-                <h2 className="text-base font-bold text-gray-900 mb-3 lg:mb-2">
+              <div className="bg-white/60 rounded-2xl border border-[#a39a88]/50 p-4 lg:p-3">
+                <h2 className="text-base font-bold text-[#33312e] mb-3 lg:mb-2">
                    Style & Colors
                 </h2>
 
                 <div className="space-y-4 lg:space-y-3">
                   {/* Theme Presets */}
                   <div>
-                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                    <label className="block text-xs font-semibold text-[#6b6459] uppercase tracking-wide mb-2">
                       Quick Themes
                     </label>
                     <div className="grid grid-cols-4 gap-1.5">
@@ -2115,7 +2115,7 @@ function CreateCardContent() {
                           className={`group relative flex flex-col items-center gap-0.5 p-1.5 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
                             style.backgroundColor === theme.bg && style.textColor === theme.text
                               ? "border-[#007AFF] ring-2 ring-[#007AFF]/20"
-                              : "border-gray-200 hover:border-gray-300"
+                              : "border-[#a39a88] hover:border-[#a39a88]"
                           }`}
                         >
                           <div
@@ -2124,7 +2124,7 @@ function CreateCardContent() {
                           >
                             <span className="text-[8px] font-bold" style={{ color: theme.text }}>BINGO</span>
                           </div>
-                          <span className="text-[9px] font-medium text-gray-500 leading-none">{theme.name}</span>
+                          <span className="text-[9px] font-medium text-[#6b6459] leading-none">{theme.name}</span>
                         </button>
                       ))}
                     </div>
@@ -2132,7 +2132,7 @@ function CreateCardContent() {
 
                   {/* Custom Colors (collapsed by default) */}
                   <details className="group">
-                    <summary className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-500 uppercase tracking-wide select-none hover:text-[#007AFF] transition-colors">
+                    <summary className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#6b6459] uppercase tracking-wide select-none hover:text-[#007AFF] transition-colors">
                       <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
@@ -2150,24 +2150,24 @@ function CreateCardContent() {
                             value={style[key]}
                             onChange={(e) => setStyle({ ...style, [key]: e.target.value })}
                             disabled={showPreview}
-                            className="w-9 h-9 rounded-lg cursor-pointer border border-gray-200 p-0.5 bg-white flex-shrink-0"
+                            className="w-9 h-9 rounded-lg cursor-pointer border border-[#a39a88] p-0.5 bg-white flex-shrink-0"
                           />
-                          <span className="text-sm text-gray-600 w-20">{label}</span>
+                          <span className="text-sm text-[#33312e] w-20">{label}</span>
                           <div
-                            className="flex-1 h-6 rounded-md border border-gray-200"
+                            className="flex-1 h-6 rounded-md border border-[#a39a88]"
                             style={{ backgroundColor: style[key] }}
                           ></div>
                         </div>
                       ))}
                       {/* Font Controls — inside collapsible */}
-                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100">
+                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#fff7ed]">
                         <div>
-                          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Font</label>
+                          <label className="block text-xs font-semibold text-[#6b6459] uppercase tracking-wide mb-1.5">Font</label>
                           <select
                             value={style.fontFamily}
                             onChange={(e) => setStyle({ ...style, fontFamily: e.target.value })}
                             disabled={showPreview}
-                            className="w-full px-2 py-2 bg-[#f2f2f7] border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF]"
+                            className="w-full px-2 py-2 bg-[#f2f2f7] border border-[#a39a88] rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#007AFF]/20 focus:border-[#007AFF]"
                             style={{ fontFamily: style.fontFamily }}
                           >
                             <option value="Arial" style={{ fontFamily: "Arial" }}>Arial</option>
@@ -2179,8 +2179,8 @@ function CreateCardContent() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Size</label>
-                          <div className="flex items-center gap-0.5 bg-[#f2f2f7] border border-gray-200 rounded-lg p-0.5">
+                          <label className="block text-xs font-semibold text-[#6b6459] uppercase tracking-wide mb-1.5">Size</label>
+                          <div className="flex items-center gap-0.5 bg-[#f2f2f7] border border-[#a39a88] rounded-lg p-0.5">
                             {[
                               { value: "12px", label: "S" },
                               { value: "14px", label: "M" },
@@ -2194,7 +2194,7 @@ function CreateCardContent() {
                                 className={`flex-1 py-1.5 rounded-md text-xs font-bold transition-all ${
                                   style.fontSize === s.value
                                     ? "bg-white text-[#007AFF] shadow-sm"
-                                    : "text-gray-500 hover:text-gray-700"
+                                    : "text-[#6b6459] hover:text-[#33312e]"
                                 }`}
                               >
                                 {s.label}
@@ -2210,16 +2210,16 @@ function CreateCardContent() {
               </div>
 
               {/* Batch Generation — Always visible, prominent */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-sm border border-blue-200/60 p-4 lg:p-3">
-                <h2 className="text-base font-bold text-gray-900 mb-2 flex items-center gap-2">
-                   <span className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm">
+              <div className="bg-gradient-to-br from-[#7c5cff]/10 to-[#7c5cff]/10 rounded-2xl shadow-sm border border-[#7c5cff]/60 p-4 lg:p-3">
+                <h2 className="text-base font-bold text-[#33312e] mb-2 flex items-center gap-2">
+                   <span className="w-7 h-7 rounded-lg bg-[#7c5cff] text-white flex items-center justify-center text-sm">
                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                      </svg>
                    </span>
                    Print Multiple Cards
                 </h2>
-                <p className="text-xs text-gray-500 mb-3">Generate up to 500 unique shuffled cards.</p>
+                <p className="text-xs text-[#6b6459] mb-3">Generate up to 500 unique shuffled cards.</p>
 
                 {/* Tier selection — always visible */}
                 <div className="grid grid-cols-4 gap-1.5 mb-3">
@@ -2240,22 +2240,22 @@ function CreateCardContent() {
                         }}
                         className={`relative py-1.5 px-1 rounded-lg border-2 text-center transition-all ${
                           isSelected
-                            ? "border-blue-500 bg-white shadow-md ring-1 ring-blue-500/20"
-                            : "border-gray-200/80 bg-white/70 hover:border-blue-300 hover:bg-white"
+                            ? "border-[#7c5cff] bg-white shadow-md ring-1 ring-[#7c5cff]/20"
+                            : "border-[#a39a88]/80 bg-white/70 hover:border-[#7c5cff] hover:bg-white"
                         }`}
                       >
-                        <div className="text-sm font-bold text-gray-900">{n}</div>
-                        <div className="text-[10px] font-medium text-gray-500">cards</div>
+                        <div className="text-sm font-bold text-[#33312e]">{n}</div>
+                        <div className="text-[10px] font-medium text-[#6b6459]">cards</div>
                         {!isPremiumBatchUser && (
-                          <div className="mt-1 text-xs font-bold text-blue-600">
+                          <div className="mt-1 text-xs font-bold text-[#7c5cff]">
                             {BATCH_PACKS[n].label}
                           </div>
                         )}
                         {isPremiumBatchUser && (
-                          <div className="mt-1 text-[10px] font-semibold text-emerald-600">Included</div>
+                          <div className="mt-1 text-[10px] font-semibold text-[#2ec4b6]">Included</div>
                         )}
                         {hasReady && (
-                          <div className="absolute -top-1.5 -right-1.5 bg-emerald-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                          <div className="absolute -top-1.5 -right-1.5 bg-[#2ec4b6] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
                             Ready
                           </div>
                         )}
@@ -2268,13 +2268,13 @@ function CreateCardContent() {
                   <div
                     className={`rounded-xl border px-3 py-2 text-xs mb-3 ${
                       batchPurchaseStatus === "success"
-                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                        : "border-amber-200 bg-amber-50 text-amber-700"
+                        ? "border-[#2ec4b6] bg-[#2ec4b6]/10 text-[#2ec4b6]"
+                        : "border-[#ffb800] bg-[#ffb800]/10 text-[#ffb800]"
                     }`}
                   >
                     {batchStatusMessage}
                     {batchPurchaseStatus === "success" && (
-                      <p className="mt-1 font-medium text-emerald-800">
+                      <p className="mt-1 font-medium text-[#2ec4b6]">
                         Next: generate the batch, then send players unique cards or host a live game. Use PDFs only when you need paper copies.
                       </p>
                     )}
@@ -2282,38 +2282,38 @@ function CreateCardContent() {
                 )}
 
                 {isPremiumBatchUser && batchMode && (
-                  <p className="text-xs text-gray-500 mb-3">
+                  <p className="text-xs text-[#6b6459] mb-3">
                     Every card gets a unique shuffled arrangement. Included with Premium.
                   </p>
                 )}
 
                 {!isPremiumBatchUser && !session?.user && batchMode && (
-                  <p className="text-xs text-gray-500 mb-3">
+                  <p className="text-xs text-[#6b6459] mb-3">
                     Sign up to purchase batch packs, or upgrade to Premium for included batches.
                   </p>
                 )}
 
                 {availableBatchSummary && !isPremiumBatchUser && (
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700 mb-3">
+                  <div className="rounded-xl border border-[#2ec4b6] bg-[#2ec4b6]/10 px-3 py-2 text-xs text-[#2ec4b6] mb-3">
                     Purchased: {availableBatchSummary}
                   </div>
                 )}
 
                 {batchResult && (
-                  <div className="bg-white border border-emerald-200 rounded-xl p-4 space-y-3 mb-3">
-                    <p className="text-sm font-bold text-emerald-800 flex items-center gap-2">
+                  <div className="bg-white border border-[#2ec4b6] rounded-xl p-4 space-y-3 mb-3">
+                    <p className="text-sm font-bold text-[#2ec4b6] flex items-center gap-2">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       {batchResult.count} cards generated!
                     </p>
                     {batchShareBatchId && (
-                      <div className="rounded-xl border border-indigo-100 bg-indigo-50 p-3 space-y-3">
+                      <div className="rounded-xl border border-[#7c5cff]/15 bg-[#7c5cff]/10 p-3 space-y-3">
                         <div>
-                          <p className="text-sm font-bold text-indigo-950">
+                          <p className="text-sm font-bold text-[#7c5cff]">
                             Make the batch playable before you print.
                           </p>
-                          <p className="text-xs text-indigo-700 mt-1">
+                          <p className="text-xs text-[#7c5cff] mt-1">
                             Each player gets a unique card link they can open on their phone. PDF is still here for paper backups.
                           </p>
                         </div>
@@ -2335,7 +2335,7 @@ function CreateCardContent() {
                       </div>
                     )}
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-[#6b6459] mb-2">
                         Need paper copies?
                       </p>
                       <div className="grid grid-cols-2 gap-2">
@@ -2343,7 +2343,7 @@ function CreateCardContent() {
                         onClick={() => handleBatchPdfDownload(1)}
                         disabled={batchPdfLoading !== null}
                         className={`py-2.5 rounded-lg text-xs font-semibold transition ${
-                          batchPdfLoading === "pdf-1" ? "bg-blue-700 text-white cursor-wait" : "bg-blue-600 text-white hover:bg-blue-700"
+                          batchPdfLoading === "pdf-1" ? "bg-[#7c5cff] text-white cursor-wait" : "bg-[#7c5cff] text-white hover:bg-[#7c5cff]"
                         }`}
                       >
                         {batchPdfLoading === "pdf-1" ? "..." : "1 per page"}
@@ -2352,7 +2352,7 @@ function CreateCardContent() {
                         onClick={() => handleBatchPdfDownload(2)}
                         disabled={batchPdfLoading !== null}
                         className={`py-2.5 rounded-lg text-xs font-semibold transition ${
-                          batchPdfLoading === "pdf-2" ? "bg-blue-600 text-white cursor-wait" : "bg-blue-500 text-white hover:bg-blue-600"
+                          batchPdfLoading === "pdf-2" ? "bg-[#7c5cff] text-white cursor-wait" : "bg-[#7c5cff] text-white hover:bg-[#7c5cff]"
                         }`}
                       >
                         {batchPdfLoading === "pdf-2" ? "..." : "2 per page"}
@@ -2361,7 +2361,7 @@ function CreateCardContent() {
                         onClick={() => handleBatchPdfDownload(4)}
                         disabled={batchPdfLoading !== null}
                         className={`py-2.5 rounded-lg text-xs font-semibold transition ${
-                          batchPdfLoading === "pdf-4" ? "bg-blue-500 text-white cursor-wait" : "bg-blue-400 text-white hover:bg-blue-500"
+                          batchPdfLoading === "pdf-4" ? "bg-[#7c5cff] text-white cursor-wait" : "bg-[#7c5cff] text-white hover:bg-[#7c5cff]"
                         }`}
                       >
                         {batchPdfLoading === "pdf-4" ? "..." : "4 per page"}
@@ -2370,7 +2370,7 @@ function CreateCardContent() {
                         onClick={() => handleBatchPdfDownload(1, true)}
                         disabled={batchPdfLoading !== null}
                         className={`py-2.5 rounded-lg text-xs font-semibold transition ${
-                          batchPdfLoading === "pdf-gray" ? "bg-slate-700 text-white cursor-wait" : "bg-slate-500 text-white hover:bg-slate-600"
+                          batchPdfLoading === "pdf-gray" ? "bg-[#33312e] text-white cursor-wait" : "bg-[#6b6459] text-white hover:bg-[#33312e]"
                         }`}
                       >
                         {batchPdfLoading === "pdf-gray" ? "..." : "Grayscale"}
@@ -2390,7 +2390,7 @@ function CreateCardContent() {
                   <button
                     onClick={handleBatchPrimaryAction}
                     disabled={batchActionDisabled}
-                    className="w-full bg-blue-600 text-white px-4 py-3 rounded-xl hover:bg-blue-700 hover:shadow-md transition-all disabled:opacity-50 font-bold text-sm"
+                    className="w-full bg-[#7c5cff] text-white px-4 py-3 rounded-xl hover:bg-[#7c5cff] hover:shadow-md transition-all disabled:opacity-50 font-bold text-sm"
                   >
                     {batchActionLabel}
                   </button>
@@ -2410,7 +2410,7 @@ function CreateCardContent() {
                       setBatchMode(true);
                       setBatchResult(null);
                     }}
-                    className="w-full bg-blue-600 text-white px-4 py-3 rounded-xl hover:bg-blue-700 hover:shadow-md transition-all font-bold text-sm flex items-center justify-center gap-2"
+                    className="w-full bg-[#7c5cff] text-white px-4 py-3 rounded-xl hover:bg-[#7c5cff] hover:shadow-md transition-all font-bold text-sm flex items-center justify-center gap-2"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -2423,24 +2423,24 @@ function CreateCardContent() {
 
             {/* Center Panel - Bingo Grid */}
             <div className="order-1 lg:order-2 lg:sticky lg:top-16 lg:self-start min-w-0">
-              <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200 p-3 lg:max-w-[500px] 2xl:max-w-[540px] lg:mx-auto flex flex-col">
+              <div className="bg-white rounded-2xl shadow-lg ring-1 ring-[#a39a88] p-3 lg:max-w-[500px] 2xl:max-w-[540px] lg:mx-auto flex flex-col">
                 <div className="flex justify-between items-center mb-3">
-                  <h2 className="text-base font-bold text-gray-900">
+                  <h2 className="text-base font-bold text-[#33312e]">
                     {showPreview ? "Card Preview" : "Edit Content"}
                   </h2>
                   {!showPreview && (
-                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider bg-gray-100 px-3 py-1 rounded-full">
+                    <span className="text-xs font-semibold text-[#6b6459] uppercase tracking-wider bg-[#fff7ed] px-3 py-1 rounded-full">
                       {rows}×{columns} grid • {cells.length} cells
                     </span>
                   )}
                 </div>
 
                 {/* Bingo Grid */}
-                <div className="flex-grow flex items-center justify-center bg-[#f2f2f7] rounded-xl border border-gray-200 p-2 lg:p-3 mb-2">
+                <div className="flex-grow flex items-center justify-center bg-[#f2f2f7] rounded-xl border border-[#a39a88] p-2 lg:p-3 mb-2">
                    <div className="w-full">
                       {/* Grid Header - matches grid columns */}
                       <div
-                        className="grid mb-1.5 md:mb-2 text-center font-bold tracking-widest text-gray-900 opacity-90"
+                        className="grid mb-1.5 md:mb-2 text-center font-bold tracking-widest text-[#33312e] opacity-90"
                         style={{ gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: columns >= 5 ? "3px" : "8px" }}
                       >
                          <div
@@ -2450,12 +2450,12 @@ function CreateCardContent() {
                            {title || "My Bingo Card"}
                          </div>
                          {bingoVariant === "classic75" && "BINGO".split("").map((letter) => (
-                           <div key={letter} className="rounded-md bg-blue-50 py-1 text-xs font-black text-[#007AFF]">
+                           <div key={letter} className="rounded-md bg-[#7c5cff]/10 py-1 text-xs font-black text-[#007AFF]">
                              {letter}
                            </div>
                          ))}
                          {bingoVariant === "classic90" && ["1-9", "10s", "20s", "30s", "40s", "50s", "60s", "70s", "80-90"].map((label) => (
-                           <div key={label} className="rounded-md bg-amber-50 py-1 text-[10px] font-black text-amber-700">
+                           <div key={label} className="rounded-md bg-[#ffb800]/10 py-1 text-[10px] font-black text-[#ffb800]">
                              {label}
                            </div>
                          ))}
@@ -2488,7 +2488,7 @@ function CreateCardContent() {
                               }}
                             >
                               {isBlank90 ? (
-                                <div className="w-full h-full rounded-md md:rounded-lg border border-dashed border-amber-100 bg-amber-50/50" />
+                                <div className="w-full h-full rounded-md md:rounded-lg border border-dashed border-[#ffb800]/15 bg-[#ffb800]/50" />
                               ) : isFreeSpace ? (
                                 <div
                                   className={`w-full h-full flex items-center justify-center border-2 font-bold p-1 text-center shadow-inner bg-opacity-90 ${size === 5 ? "rounded-md md:rounded-xl text-xs md:text-base" : "rounded-lg md:rounded-xl"}`}
@@ -2524,7 +2524,7 @@ function CreateCardContent() {
                                     />
                                   )}
                                   {imageData.label && imageData.fit !== "cover" && (
-                                    <span className="text-[9px] md:text-[10px] font-medium text-gray-700 mt-0.5 line-clamp-1 w-full text-center">
+                                    <span className="text-[9px] md:text-[10px] font-medium text-[#33312e] mt-0.5 line-clamp-1 w-full text-center">
                                       {imageData.label}
                                     </span>
                                   )}
@@ -2540,7 +2540,7 @@ function CreateCardContent() {
                                       className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
                                       title="Change image"
                                     >
-                                      <svg className="w-3.5 h-3.5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <svg className="w-3.5 h-3.5 text-[#33312e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                       </svg>
                                     </button>
@@ -2549,13 +2549,13 @@ function CreateCardContent() {
                                       className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
                                       title={imageData.fit === "cover" ? "Original size" : "Fill square"}
                                     >
-                                      <svg className="w-3.5 h-3.5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <svg className="w-3.5 h-3.5 text-[#33312e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                                       </svg>
                                     </button>
                                     <button
                                       onClick={() => handleClearImageCell(index)}
-                                      className="w-7 h-7 bg-red-500 rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+                                      className="w-7 h-7 bg-[#ff5d8f] rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
                                       title="Remove image"
                                     >
                                       <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2567,7 +2567,7 @@ function CreateCardContent() {
                               ) : (
                                 /* Text cell in edit mode — has camera button to add image */
                                 <div className="relative w-full h-full flex flex-col">
-                                  <div className={`flex-1 flex items-center justify-center border overflow-y-auto transition-colors hover:bg-gray-50/50 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#007AFF] focus-within:ring-offset-1 ${size === 5 ? "rounded-md md:rounded-xl" : "rounded-lg md:rounded-xl"}`}
+                                  <div className={`flex-1 flex items-center justify-center border overflow-y-auto transition-colors hover:bg-[#fff7ed]/50 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#007AFF] focus-within:ring-offset-1 ${size === 5 ? "rounded-md md:rounded-xl" : "rounded-lg md:rounded-xl"}`}
                                     style={{ borderColor: style.borderColor }}
                                   >
                                     <textarea
@@ -2589,7 +2589,7 @@ function CreateCardContent() {
                                       }}
                                       placeholder={`${index + 1}`}
                                       rows={1}
-                                      className={`w-full text-center bg-transparent resize-none focus:outline-none placeholder:text-gray-300 leading-tight ${size === 5 ? "text-[11px] md:text-sm p-0.5 md:p-1" : "text-sm p-1"}`}
+                                      className={`w-full text-center bg-transparent resize-none focus:outline-none placeholder:text-[#a39a88] leading-tight ${size === 5 ? "text-[11px] md:text-sm p-0.5 md:p-1" : "text-sm p-1"}`}
                                       style={{
                                         color: style.textColor,
                                         fontFamily: style.fontFamily,
@@ -2602,7 +2602,7 @@ function CreateCardContent() {
                                   {/* Camera button — hidden on mobile 5x5 until focused, always visible otherwise */}
                                   <button
                                     onClick={() => openImagePicker(index)}
-                                    className={`absolute bottom-0.5 md:bottom-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-gray-200/80 hover:bg-[#007AFF] text-gray-400 hover:text-white flex items-center justify-center transition-all ${size === 5 ? "opacity-0 group-focus-within:opacity-100 md:opacity-100" : ""}`}
+                                    className={`absolute bottom-0.5 md:bottom-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-[#a39a88]/80 hover:bg-[#007AFF] text-[#6b6459] hover:text-white flex items-center justify-center transition-all ${size === 5 ? "opacity-0 group-focus-within:opacity-100 md:opacity-100" : ""}`}
                                     title="Add image"
                                     type="button"
                                   >
@@ -2621,12 +2621,12 @@ function CreateCardContent() {
                 </div>
 
                 {/* Desktop sticky bottom CTA bar */}
-                <div className="hidden md:block fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+                <div className="hidden md:block fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-[#a39a88] shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
                   <div className="container mx-auto max-w-xl px-4 py-3 flex items-center justify-center">
                     {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
                       <button
                         onClick={redirectToCheckout}
-                        className="w-full max-w-md bg-gradient-to-r from-orange-500 to-pink-600 text-white px-6 py-3 rounded-xl hover:shadow-lg hover:shadow-orange-500/20 transition-all font-bold text-base shadow-md shadow-orange-200 text-center"
+                        className="w-full max-w-md bg-gradient-to-r from-[#ff8a3d] to-[#ff5d8f] text-white px-6 py-3 rounded-xl hover:shadow-lg hover:shadow-[#ff8a3d]/20 transition-all font-bold text-base shadow-md shadow-[#ff8a3d] text-center"
                       >
                         {t("btn.limit_reached")}
                       </button>
@@ -2638,7 +2638,7 @@ function CreateCardContent() {
                         showPreview ||
                         isLoadingCard
                       }
-                      className="w-full max-w-md bg-[#007AFF] text-white px-6 py-3 rounded-xl hover:bg-[#0066DD] hover:shadow-lg hover:shadow-blue-500/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-base shadow-md"
+                      className="w-full max-w-md bg-[#007AFF] text-white px-6 py-3 rounded-xl hover:bg-[#0066DD] hover:shadow-lg hover:shadow-[#7c5cff]/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-base shadow-md"
                     >
                       {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save_dashboard") : session?.user ? "Save Card" : "Save This Card Free"}
                     </button>
@@ -2663,7 +2663,7 @@ function CreateCardContent() {
           {mobileToast && (
             <div
               key={mobileToastKey}
-              className="mx-4 mb-2 p-3 bg-red-600 text-white rounded-xl text-sm font-semibold text-center shadow-lg animate-[slideUp_0.25s_ease-out,fadeOut_0.4s_ease-in_3s_forwards]"
+              className="mx-4 mb-2 p-3 bg-[#ff5d8f] text-white rounded-xl text-sm font-semibold text-center shadow-lg animate-[slideUp_0.25s_ease-out,fadeOut_0.4s_ease-in_3s_forwards]"
               style={{ animation: "slideUp 0.25s ease-out, fadeOut 0.4s ease-in 3s forwards" }}
             >
               <div className="flex items-center justify-center gap-2">
@@ -2674,12 +2674,12 @@ function CreateCardContent() {
               </div>
             </div>
           )}
-          <div className="bg-white border-t border-gray-200 shadow-lg">
+          <div className="bg-white border-t border-[#a39a88] shadow-lg">
             <div className="container mx-auto px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
                 {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
                   <button
                     onClick={redirectToCheckout}
-                    className="w-full bg-gradient-to-r from-orange-500 to-pink-600 text-white px-4 py-3.5 rounded-lg font-bold text-base shadow-md text-center"
+                    className="w-full bg-gradient-to-r from-[#ff8a3d] to-[#ff5d8f] text-white px-4 py-3.5 rounded-lg font-bold text-base shadow-md text-center"
                   >
                     {t("btn.upgrade")}
                   </button>
@@ -2986,16 +2986,16 @@ function CreateCardContent() {
 
 function CreatePageSkeleton() {
   return (
-    <div className="notranslate min-h-screen bg-[#f2f2f7] text-slate-900" translate="no">
-      <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-gray-200/50">
+    <div className="notranslate min-h-screen bg-[#f2f2f7] text-[#33312e]" translate="no">
+      <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-[#a39a88]/50">
         <div className="container mx-auto px-3 sm:px-4 lg:px-8 h-14 flex items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
             <div className="w-8 h-8 shrink-0 bg-[#007AFF] rounded-lg opacity-90" />
-            <div className="hidden min-[390px]:block h-5 w-32 rounded bg-slate-200" />
+            <div className="hidden min-[390px]:block h-5 w-32 rounded bg-[#a39a88]" />
           </div>
           <div className="flex shrink-0 items-center gap-3">
-            <div className="h-4 w-20 rounded bg-slate-200" />
-            <div className="h-4 w-12 rounded bg-slate-200" />
+            <div className="h-4 w-20 rounded bg-[#a39a88]" />
+            <div className="h-4 w-12 rounded bg-[#a39a88]" />
           </div>
         </div>
       </header>
@@ -3003,58 +3003,58 @@ function CreatePageSkeleton() {
       <main className="pt-16 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-16 px-3 sm:px-4 lg:px-5">
         <div className="container mx-auto max-w-7xl">
           <div className="mb-2">
-            <h1 className="text-xl font-bold text-gray-900">Create Bingo Cards Online</h1>
-            <p className="mt-1 text-xs text-gray-500">
+            <h1 className="text-xl font-bold text-[#33312e]">Create Bingo Cards Online</h1>
+            <p className="mt-1 text-xs text-[#6b6459]">
               Customize a printable bingo card, start from a template, or prepare an online game.
             </p>
           </div>
 
           <div className="grid lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)_minmax(0,300px)] xl:grid-cols-[minmax(0,240px)_minmax(500px,520px)_minmax(0,320px)] 2xl:grid-cols-[minmax(0,240px)_minmax(520px,560px)_minmax(0,340px)] gap-3 lg:gap-4 xl:justify-center items-start">
-            <div className="order-2 lg:order-1 hidden lg:block rounded-2xl border border-gray-200/50 bg-white/60 p-3">
-              <div className="mb-3 h-5 w-28 rounded bg-slate-200" />
+            <div className="order-2 lg:order-1 hidden lg:block rounded-2xl border border-[#a39a88]/50 bg-white/60 p-3">
+              <div className="mb-3 h-5 w-28 rounded bg-[#a39a88]" />
               <div className="space-y-3">
-                <div className="h-10 rounded-xl bg-slate-200/80" />
-                <div className="h-16 rounded-xl bg-slate-200/80" />
+                <div className="h-10 rounded-xl bg-[#a39a88]/80" />
+                <div className="h-16 rounded-xl bg-[#a39a88]/80" />
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="h-9 rounded-lg bg-blue-100" />
-                  <div className="h-9 rounded-lg bg-slate-200/80" />
-                  <div className="h-9 rounded-lg bg-slate-200/80" />
+                  <div className="h-9 rounded-lg bg-[#7c5cff]/15" />
+                  <div className="h-9 rounded-lg bg-[#a39a88]/80" />
+                  <div className="h-9 rounded-lg bg-[#a39a88]/80" />
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="h-8 rounded-lg bg-blue-100" />
-                  <div className="h-8 rounded-lg bg-slate-200/80" />
-                  <div className="h-8 rounded-lg bg-slate-200/80" />
+                  <div className="h-8 rounded-lg bg-[#7c5cff]/15" />
+                  <div className="h-8 rounded-lg bg-[#a39a88]/80" />
+                  <div className="h-8 rounded-lg bg-[#a39a88]/80" />
                 </div>
               </div>
             </div>
 
             <div className="order-3 lg:order-3 hidden lg:block space-y-3">
-              <div className="rounded-2xl border border-gray-200/50 bg-white/60 p-3">
-                <div className="mb-3 h-5 w-28 rounded bg-slate-200" />
-                <div className="h-10 rounded-xl bg-slate-200/80" />
-                <div className="mt-3 h-10 rounded-xl bg-violet-200" />
+              <div className="rounded-2xl border border-[#a39a88]/50 bg-white/60 p-3">
+                <div className="mb-3 h-5 w-28 rounded bg-[#a39a88]" />
+                <div className="h-10 rounded-xl bg-[#a39a88]/80" />
+                <div className="mt-3 h-10 rounded-xl bg-[#7c5cff]" />
               </div>
-              <div className="rounded-2xl border border-gray-200/50 bg-white/60 p-3">
-                <div className="mb-3 h-5 w-32 rounded bg-slate-200" />
+              <div className="rounded-2xl border border-[#a39a88]/50 bg-white/60 p-3">
+                <div className="mb-3 h-5 w-32 rounded bg-[#a39a88]" />
                 <div className="grid grid-cols-4 gap-1.5">
                   {Array.from({ length: 8 }).map((_, index) => (
-                    <div key={index} className="h-12 rounded-lg bg-slate-200/80" />
+                    <div key={index} className="h-12 rounded-lg bg-[#a39a88]/80" />
                   ))}
                 </div>
               </div>
             </div>
 
             <div className="order-1 lg:order-2 min-w-0">
-              <div className="bg-white rounded-2xl shadow-lg ring-1 ring-gray-200 p-3 lg:max-w-[500px] 2xl:max-w-[540px] lg:mx-auto flex flex-col">
+              <div className="bg-white rounded-2xl shadow-lg ring-1 ring-[#a39a88] p-3 lg:max-w-[500px] 2xl:max-w-[540px] lg:mx-auto flex flex-col">
                 <div className="flex justify-between items-center mb-3">
-                  <div className="h-5 w-28 rounded bg-slate-200" />
-                  <div className="h-6 w-28 rounded-full bg-slate-100" />
+                  <div className="h-5 w-28 rounded bg-[#a39a88]" />
+                  <div className="h-6 w-28 rounded-full bg-[#fff7ed]" />
                 </div>
-                <div className="flex-grow bg-[#f2f2f7] rounded-xl border border-gray-200 p-2 lg:p-3 mb-2">
-                  <div className="mb-2 h-7 rounded-md bg-blue-100" />
+                <div className="flex-grow bg-[#f2f2f7] rounded-xl border border-[#a39a88] p-2 lg:p-3 mb-2">
+                  <div className="mb-2 h-7 rounded-md bg-[#7c5cff]/15" />
                   <div className="grid grid-cols-3 gap-2">
                     {Array.from({ length: 9 }).map((_, index) => (
-                      <div key={index} className="aspect-square rounded-xl border border-slate-200 bg-white" />
+                      <div key={index} className="aspect-square rounded-xl border border-[#a39a88] bg-white" />
                     ))}
                   </div>
                 </div>
@@ -3064,7 +3064,7 @@ function CreatePageSkeleton() {
         </div>
       </main>
 
-      <div className="hidden md:block fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+      <div className="hidden md:block fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-[#a39a88] shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
         <div className="container mx-auto max-w-xl px-4 py-3">
           <div className="mx-auto h-12 max-w-md rounded-xl bg-[#007AFF]/80" />
         </div>

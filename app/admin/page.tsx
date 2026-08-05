@@ -67,12 +67,12 @@ const SUBSCRIPTION_STATUSES: {
   barClass: string;
   dotClass: string;
 }[] = [
-  { key: "active", label: "Active", barClass: "bg-emerald-500", dotClass: "bg-emerald-500" },
-  { key: "trialing", label: "Trialing", barClass: "bg-amber-400", dotClass: "bg-amber-400" },
-  { key: "lifetime", label: "Lifetime", barClass: "bg-violet-500", dotClass: "bg-violet-500" },
-  { key: "past_due", label: "Past Due", barClass: "bg-orange-500", dotClass: "bg-orange-500" },
-  { key: "canceled", label: "Canceled", barClass: "bg-red-500", dotClass: "bg-red-500" },
-  { key: "none", label: "Free / Inactive", barClass: "bg-slate-300", dotClass: "bg-slate-400" },
+  { key: "active", label: "Active", barClass: "bg-[#2ec4b6]", dotClass: "bg-[#2ec4b6]" },
+  { key: "trialing", label: "Trialing", barClass: "bg-[#ffb800]", dotClass: "bg-[#ffb800]" },
+  { key: "lifetime", label: "Lifetime", barClass: "bg-[#7c5cff]", dotClass: "bg-[#7c5cff]" },
+  { key: "past_due", label: "Past Due", barClass: "bg-[#ff8a3d]", dotClass: "bg-[#ff8a3d]" },
+  { key: "canceled", label: "Canceled", barClass: "bg-[#ff5d8f]", dotClass: "bg-[#ff5d8f]" },
+  { key: "none", label: "Free / Inactive", barClass: "bg-[#a39a88]", dotClass: "bg-[#6b6459]" },
 ];
 
 async function getPageData() {
@@ -191,15 +191,15 @@ export default async function AdminOverviewPage() {
   ];
 
   const colorClasses = {
-    indigo: { bg: "bg-indigo-50", text: "text-indigo-600", iconBg: "bg-indigo-100" },
-    emerald: { bg: "bg-emerald-50", text: "text-emerald-600", iconBg: "bg-emerald-100" },
-    violet: { bg: "bg-violet-50", text: "text-violet-600", iconBg: "bg-violet-100" },
-    sky: { bg: "bg-sky-50", text: "text-sky-600", iconBg: "bg-sky-100" },
-    rose: { bg: "bg-rose-50", text: "text-rose-600", iconBg: "bg-rose-100" },
-    teal: { bg: "bg-teal-50", text: "text-teal-600", iconBg: "bg-teal-100" },
-    purple: { bg: "bg-purple-50", text: "text-purple-600", iconBg: "bg-purple-100" },
-    orange: { bg: "bg-orange-50", text: "text-orange-600", iconBg: "bg-orange-100" },
-    red: { bg: "bg-red-50", text: "text-red-600", iconBg: "bg-red-100" },
+    indigo: { bg: "bg-[#7c5cff]/10", text: "text-[#7c5cff]", iconBg: "bg-[#7c5cff]/15" },
+    emerald: { bg: "bg-[#2ec4b6]/10", text: "text-[#2ec4b6]", iconBg: "bg-[#2ec4b6]/15" },
+    violet: { bg: "bg-[#7c5cff]/10", text: "text-[#7c5cff]", iconBg: "bg-[#7c5cff]/15" },
+    sky: { bg: "bg-[#2ec4b6]/10", text: "text-[#2ec4b6]", iconBg: "bg-[#2ec4b6]/15" },
+    rose: { bg: "bg-[#ff5d8f]/10", text: "text-[#ff5d8f]", iconBg: "bg-[#ff5d8f]/15" },
+    teal: { bg: "bg-[#2ec4b6]/10", text: "text-[#2ec4b6]", iconBg: "bg-[#2ec4b6]/15" },
+    purple: { bg: "bg-[#7c5cff]/10", text: "text-[#7c5cff]", iconBg: "bg-[#7c5cff]/15" },
+    orange: { bg: "bg-[#ff8a3d]/10", text: "text-[#ff8a3d]", iconBg: "bg-[#ff8a3d]/15" },
+    red: { bg: "bg-[#ff5d8f]/10", text: "text-[#ff5d8f]", iconBg: "bg-[#ff5d8f]/15" },
   } as const;
 
   const animationDelays = [
@@ -225,19 +225,19 @@ export default async function AdminOverviewPage() {
       {/* Header */}
       <div className="mb-8 sm:mb-10 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Dashboard Overview</h1>
-          <p className="text-slate-500 mt-1">
+          <h1 className="text-2xl font-bold text-[#33312e]">Dashboard Overview</h1>
+          <p className="text-[#6b6459] mt-1">
             Key metrics and recent activity for MyBingoCard.
           </p>
         </div>
-        <p className="text-xs text-slate-400 mt-2 sm:mt-0">
+        <p className="text-xs text-[#6b6459] mt-2 sm:mt-0">
           Last updated {updatedAt} MST
         </p>
       </div>
 
       {/* MRR + Revenue Hero Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8 opacity-0 animate-fade-in-up">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 via-amber-400 to-yellow-400 p-6 sm:p-8 shadow-lg shadow-amber-200/50">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#ffb800] via-[#ffb800] to-[#ffb800] p-6 sm:p-8 shadow-lg shadow-[#ffb800]/50">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/3" />
           <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -262,7 +262,7 @@ export default async function AdminOverviewPage() {
             </div>
           </div>
         </div>
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-400 p-6 sm:p-8 shadow-lg shadow-emerald-200/50">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#2ec4b6] via-[#2ec4b6] to-[#2ec4b6] p-6 sm:p-8 shadow-lg shadow-[#2ec4b6]/50">
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/3" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/3" />
           <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -296,18 +296,18 @@ export default async function AdminOverviewPage() {
           return (
             <div
               key={stat.label}
-              className={`bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow opacity-0 animate-fade-in-up ${animationDelays[i] ?? ""}`}
+              className={`bg-white rounded-xl border border-[#a39a88] p-5 shadow-sm hover:shadow-md transition-shadow opacity-0 animate-fade-in-up ${animationDelays[i] ?? ""}`}
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#6b6459]">
                   {stat.label}
                 </span>
                 <div className={`w-8 h-8 rounded-lg ${colors.iconBg} ${colors.text} flex items-center justify-center`}>
                   {stat.icon}
                 </div>
               </div>
-              <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
-              <p className="text-xs text-slate-400 mt-1">{stat.description}</p>
+              <p className="text-2xl font-bold text-[#33312e]">{stat.value}</p>
+              <p className="text-xs text-[#6b6459] mt-1">{stat.description}</p>
             </div>
           );
         })}
@@ -330,24 +330,24 @@ export default async function AdminOverviewPage() {
             segments.push({
               key,
               label: key.charAt(0).toUpperCase() + key.slice(1),
-              barClass: "bg-slate-400",
-              dotClass: "bg-slate-400",
+              barClass: "bg-[#6b6459]",
+              dotClass: "bg-[#6b6459]",
               count,
             });
           }
         }
 
         return (
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
-            <div className="border-b border-slate-100 p-4 sm:p-6">
-              <h2 className="text-lg font-bold text-slate-900">Subscription Overview</h2>
-              <p className="text-sm text-slate-400 mt-0.5">
+          <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
+            <div className="border-b border-[#fff7ed] p-4 sm:p-6">
+              <h2 className="text-lg font-bold text-[#33312e]">Subscription Overview</h2>
+              <p className="text-sm text-[#6b6459] mt-0.5">
                 {total.toLocaleString()} total users by subscription status
               </p>
             </div>
             <div className="p-4 sm:p-6">
               {/* Stacked bar */}
-              <div className="flex h-6 rounded-full overflow-hidden bg-slate-100">
+              <div className="flex h-6 rounded-full overflow-hidden bg-[#fff7ed]">
                 {segments.map((seg) => (
                   <div
                     key={seg.key}
@@ -365,13 +365,13 @@ export default async function AdminOverviewPage() {
                   return (
                     <div key={seg.key} className="flex items-center gap-2">
                       <span className={`w-2.5 h-2.5 rounded-full ${seg.dotClass}`} />
-                      <span className="text-sm text-slate-700">
+                      <span className="text-sm text-[#33312e]">
                         {seg.label}
                       </span>
-                      <span className="text-sm font-semibold text-slate-900">
+                      <span className="text-sm font-semibold text-[#33312e]">
                         {seg.count.toLocaleString()}
                       </span>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-[#6b6459]">
                         ({pct}%)
                       </span>
                     </div>
@@ -384,17 +384,17 @@ export default async function AdminOverviewPage() {
       })()}
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
-        <div className="border-b border-slate-100 p-4 sm:p-6">
-          <h2 className="text-lg font-bold text-slate-900">Quick Actions</h2>
-          <p className="text-sm text-slate-400 mt-0.5">Common admin tasks</p>
+      <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
+        <div className="border-b border-[#fff7ed] p-4 sm:p-6">
+          <h2 className="text-lg font-bold text-[#33312e]">Quick Actions</h2>
+          <p className="text-sm text-[#6b6459] mt-0.5">Common admin tasks</p>
         </div>
         <div className="p-4 sm:p-6 flex flex-wrap gap-3">
           <a
             href="https://dashboard.stripe.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-violet-50 text-violet-700 text-sm font-medium hover:bg-violet-100 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#7c5cff]/10 text-[#7c5cff] text-sm font-medium hover:bg-[#7c5cff]/15 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -405,7 +405,7 @@ export default async function AdminOverviewPage() {
             href="https://discord.com/channels/@me"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium hover:bg-indigo-100 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#7c5cff]/10 text-[#7c5cff] text-sm font-medium hover:bg-[#7c5cff]/15 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -414,56 +414,56 @@ export default async function AdminOverviewPage() {
           </a>
           <Link
             href="/api/admin/export-users"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-50 text-emerald-700 text-sm font-medium hover:bg-emerald-100 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#2ec4b6]/10 text-[#2ec4b6] text-sm font-medium hover:bg-[#2ec4b6]/15 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             Export Users CSV
           </Link>
-          <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-amber-50 text-amber-700 text-sm font-medium">
+          <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#ffb800]/10 text-[#ffb800] text-sm font-medium">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             Trial Expiry Check
-            <span className="text-xs text-amber-500 font-normal ml-1">
-              via <code className="bg-amber-100 px-1 py-0.5 rounded text-[11px]">scripts/expire-trials.cjs</code>
+            <span className="text-xs text-[#ffb800] font-normal ml-1">
+              via <code className="bg-[#ffb800]/15 px-1 py-0.5 rounded text-[11px]">scripts/expire-trials.cjs</code>
             </span>
           </div>
         </div>
       </div>
 
       {/* Trial Funnel */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
-        <div className="border-b border-slate-100 p-4 sm:p-6">
-          <h2 className="text-lg font-bold text-slate-900">Trial Funnel</h2>
-          <p className="text-sm text-slate-400 mt-0.5">
+      <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
+        <div className="border-b border-[#fff7ed] p-4 sm:p-6">
+          <h2 className="text-lg font-bold text-[#33312e]">Trial Funnel</h2>
+          <p className="text-sm text-[#6b6459] mt-0.5">
             Lifetime trial starts, current status, and conversion
           </p>
         </div>
         <div className="p-4 sm:p-6">
           {/* Conversion rate hero */}
           <div className="text-center mb-8">
-            <p className="text-5xl font-extrabold text-emerald-600">
+            <p className="text-5xl font-extrabold text-[#2ec4b6]">
               {stats.trialConversionRate}%
             </p>
-            <p className="text-sm text-slate-400 mt-1">Trial-to-Paid Conversion Rate</p>
+            <p className="text-sm text-[#6b6459] mt-1">Trial-to-Paid Conversion Rate</p>
           </div>
 
           {/* Funnel steps */}
           <div className="max-w-lg mx-auto space-y-3">
             {/* Total trials */}
             <div className="relative">
-              <div className="w-full bg-indigo-50 rounded-lg px-4 py-3 flex items-center justify-between">
-                <span className="text-sm font-medium text-indigo-700">Started a Trial</span>
-                <span className="text-lg font-bold text-indigo-700">
+              <div className="w-full bg-[#7c5cff]/10 rounded-lg px-4 py-3 flex items-center justify-between">
+                <span className="text-sm font-medium text-[#7c5cff]">Started a Trial</span>
+                <span className="text-lg font-bold text-[#7c5cff]">
                   {stats.totalTrialsEver.toLocaleString()}
                 </span>
               </div>
             </div>
 
             {/* Arrow */}
-            <div className="flex justify-center text-slate-300">
+            <div className="flex justify-center text-[#a39a88]">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
@@ -471,16 +471,16 @@ export default async function AdminOverviewPage() {
 
             {/* Currently trialing */}
             <div className="relative">
-              <div className="w-[90%] mx-auto bg-sky-50 rounded-lg px-4 py-3 flex items-center justify-between">
-                <span className="text-sm font-medium text-sky-700">Currently Trialing</span>
-                <span className="text-lg font-bold text-sky-700">
+              <div className="w-[90%] mx-auto bg-[#2ec4b6]/10 rounded-lg px-4 py-3 flex items-center justify-between">
+                <span className="text-sm font-medium text-[#2ec4b6]">Currently Trialing</span>
+                <span className="text-lg font-bold text-[#2ec4b6]">
                   {stats.trialingUsers.toLocaleString()}
                 </span>
               </div>
             </div>
 
             {/* Arrow */}
-            <div className="flex justify-center text-slate-300">
+            <div className="flex justify-center text-[#a39a88]">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
@@ -488,15 +488,15 @@ export default async function AdminOverviewPage() {
 
             {/* Converted + Churned side by side */}
             <div className="flex gap-3">
-              <div className="flex-1 bg-emerald-50 rounded-lg px-4 py-3 flex items-center justify-between">
-                <span className="text-sm font-medium text-emerald-700">Converted to Paid</span>
-                <span className="text-lg font-bold text-emerald-700">
+              <div className="flex-1 bg-[#2ec4b6]/10 rounded-lg px-4 py-3 flex items-center justify-between">
+                <span className="text-sm font-medium text-[#2ec4b6]">Converted to Paid</span>
+                <span className="text-lg font-bold text-[#2ec4b6]">
                   {stats.convertedTrials.toLocaleString()}
                 </span>
               </div>
-              <div className="flex-1 bg-rose-50 rounded-lg px-4 py-3 flex items-center justify-between">
-                <span className="text-sm font-medium text-rose-700">Churned</span>
-                <span className="text-lg font-bold text-rose-700">
+              <div className="flex-1 bg-[#ff5d8f]/10 rounded-lg px-4 py-3 flex items-center justify-between">
+                <span className="text-sm font-medium text-[#ff5d8f]">Churned</span>
+                <span className="text-lg font-bold text-[#ff5d8f]">
                   {stats.unconvertedTrials.toLocaleString()}
                 </span>
               </div>
@@ -508,10 +508,10 @@ export default async function AdminOverviewPage() {
       {/* Signup Sources */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
         {/* By Method */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm opacity-0 animate-fade-in-up animation-delay-600">
-          <div className="border-b border-slate-100 p-4 sm:p-6">
-            <h2 className="text-lg font-bold text-slate-900">Signup Sources</h2>
-            <p className="text-sm text-slate-400 mt-0.5">By authentication method</p>
+        <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm opacity-0 animate-fade-in-up animation-delay-600">
+          <div className="border-b border-[#fff7ed] p-4 sm:p-6">
+            <h2 className="text-lg font-bold text-[#33312e]">Signup Sources</h2>
+            <p className="text-sm text-[#6b6459] mt-0.5">By authentication method</p>
           </div>
           <div className="p-4 sm:p-6 space-y-3">
             {stats.signupMethods
@@ -531,23 +531,23 @@ export default async function AdminOverviewPage() {
                         : m.method.charAt(0).toUpperCase() + m.method.slice(1);
                 const barColor =
                   m.method === "google"
-                    ? "bg-blue-500"
+                    ? "bg-[#7c5cff]"
                     : m.method === "credentials"
-                      ? "bg-emerald-500"
+                      ? "bg-[#2ec4b6]"
                       : m.method === "magic-link"
-                        ? "bg-violet-500"
-                        : "bg-slate-400";
+                        ? "bg-[#7c5cff]"
+                        : "bg-[#6b6459]";
                 return (
                   <div key={m.method}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-slate-700">
+                      <span className="text-sm font-medium text-[#33312e]">
                         {label}
                       </span>
-                      <span className="text-sm text-slate-500">
+                      <span className="text-sm text-[#6b6459]">
                         {m.count.toLocaleString()} ({pct}%)
                       </span>
                     </div>
-                    <div className="w-full bg-slate-100 rounded-full h-2.5">
+                    <div className="w-full bg-[#fff7ed] rounded-full h-2.5">
                       <div
                         className={`${barColor} h-2.5 rounded-full transition-all`}
                         style={{ width: `${pct}%` }}
@@ -557,7 +557,7 @@ export default async function AdminOverviewPage() {
                 );
               })}
             {stats.signupMethods.length === 0 && (
-              <p className="text-sm text-slate-400 text-center py-4">
+              <p className="text-sm text-[#6b6459] text-center py-4">
                 No signup method data available.
               </p>
             )}
@@ -565,10 +565,10 @@ export default async function AdminOverviewPage() {
         </div>
 
         {/* By UTM Source */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm opacity-0 animate-fade-in-up animation-delay-600">
-          <div className="border-b border-slate-100 p-4 sm:p-6">
-            <h2 className="text-lg font-bold text-slate-900">Top Traffic Sources</h2>
-            <p className="text-sm text-slate-400 mt-0.5">
+        <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm opacity-0 animate-fade-in-up animation-delay-600">
+          <div className="border-b border-[#fff7ed] p-4 sm:p-6">
+            <h2 className="text-lg font-bold text-[#33312e]">Top Traffic Sources</h2>
+            <p className="text-sm text-[#6b6459] mt-0.5">
               Top 5 UTM sources by signup count
             </p>
           </div>
@@ -585,16 +585,16 @@ export default async function AdminOverviewPage() {
               return (
                 <div key={s.source}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-slate-700">
+                    <span className="text-sm font-medium text-[#33312e]">
                       {label}
                     </span>
-                    <span className="text-sm text-slate-500">
+                    <span className="text-sm text-[#6b6459]">
                       {s.count.toLocaleString()} ({pct}%)
                     </span>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2.5">
+                  <div className="w-full bg-[#fff7ed] rounded-full h-2.5">
                     <div
-                      className="bg-indigo-500 h-2.5 rounded-full transition-all"
+                      className="bg-[#7c5cff] h-2.5 rounded-full transition-all"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
@@ -602,7 +602,7 @@ export default async function AdminOverviewPage() {
               );
             })}
             {stats.utmSources.length === 0 && (
-              <p className="text-sm text-slate-400 text-center py-4">
+              <p className="text-sm text-[#6b6459] text-center py-4">
                 No UTM source data available.
               </p>
             )}
@@ -611,15 +611,15 @@ export default async function AdminOverviewPage() {
       </div>
 
       {/* Recent Users */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+      <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
+        <div className="flex flex-col gap-3 border-b border-[#fff7ed] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
           <div>
-            <h2 className="text-lg font-bold text-slate-900">Recent Signups</h2>
-            <p className="text-sm text-slate-400 mt-0.5">Newest registered users</p>
+            <h2 className="text-lg font-bold text-[#33312e]">Recent Signups</h2>
+            <p className="text-sm text-[#6b6459] mt-0.5">Newest registered users</p>
           </div>
           <Link
             href="/admin/users"
-            className="text-sm font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
+            className="text-sm font-medium text-[#7c5cff] hover:text-[#7c5cff] hover:underline"
           >
             View all users
           </Link>
@@ -627,17 +627,17 @@ export default async function AdminOverviewPage() {
         <div className="hidden overflow-x-auto sm:block">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-100">
-                <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              <tr className="border-b border-[#fff7ed]">
+                <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                   User
                 </th>
-                <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                   Email
                 </th>
-                <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                   Plan
                 </th>
-                <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                   Joined
                 </th>
               </tr>
@@ -646,33 +646,33 @@ export default async function AdminOverviewPage() {
               {stats.recentUsers.map((user) => (
                 <tr
                   key={user._id.toString()}
-                  className="border-b border-slate-50 hover:bg-slate-50 transition-colors"
+                  className="border-b border-[#fff7ed] hover:bg-[#fff7ed] transition-colors"
                 >
                   <td className="py-3.5 px-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500">
+                      <div className="w-8 h-8 rounded-full bg-[#fff7ed] flex items-center justify-center text-xs font-bold text-[#6b6459]">
                         {(user.name || user.email || "?").charAt(0).toUpperCase()}
                       </div>
-                      <span className="text-sm font-medium text-slate-900">
+                      <span className="text-sm font-medium text-[#33312e]">
                         {user.name || "No name"}
                       </span>
                     </div>
                   </td>
-                  <td className="py-3.5 px-6 text-sm text-slate-500">
+                  <td className="py-3.5 px-6 text-sm text-[#6b6459]">
                     {user.email}
                   </td>
                   <td className="py-3.5 px-6">
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
                         user.planType === "PREMIUM"
-                          ? "bg-indigo-50 text-indigo-700"
-                          : "bg-slate-100 text-slate-600"
+                          ? "bg-[#7c5cff]/10 text-[#7c5cff]"
+                          : "bg-[#fff7ed] text-[#33312e]"
                       }`}
                     >
                       {user.planType || "FREE"}
                     </span>
                   </td>
-                  <td className="py-3.5 px-6 text-sm text-slate-400">
+                  <td className="py-3.5 px-6 text-sm text-[#6b6459]">
                     {user.createdAt
                       ? new Date(user.createdAt).toLocaleDateString("en-US", {
                           month: "short",
@@ -687,7 +687,7 @@ export default async function AdminOverviewPage() {
                 <tr>
                   <td
                     colSpan={4}
-                    className="py-12 text-center text-sm text-slate-400"
+                    className="py-12 text-center text-sm text-[#6b6459]"
                   >
                     No users found.
                   </td>
@@ -697,35 +697,35 @@ export default async function AdminOverviewPage() {
           </table>
         </div>
 
-        <div className="divide-y divide-slate-100 sm:hidden">
+        <div className="divide-y divide-[#fff7ed] sm:hidden">
           {stats.recentUsers.length === 0 ? (
-            <div className="px-4 py-12 text-center text-sm text-slate-400">
+            <div className="px-4 py-12 text-center text-sm text-[#6b6459]">
               No users found.
             </div>
           ) : (
             stats.recentUsers.map((user) => (
               <div key={user._id.toString()} className="px-4 py-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 shrink-0">
+                  <div className="w-9 h-9 rounded-full bg-[#fff7ed] flex items-center justify-center text-xs font-bold text-[#6b6459] shrink-0">
                     {(user.name || user.email || "?").charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="truncate text-sm font-semibold text-slate-900">
+                      <p className="truncate text-sm font-semibold text-[#33312e]">
                         {user.name || "No name"}
                       </p>
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${
                           user.planType === "PREMIUM"
-                            ? "bg-indigo-50 text-indigo-700"
-                            : "bg-slate-100 text-slate-600"
+                            ? "bg-[#7c5cff]/10 text-[#7c5cff]"
+                            : "bg-[#fff7ed] text-[#33312e]"
                         }`}
                       >
                         {user.planType || "FREE"}
                       </span>
                     </div>
-                    <p className="mt-1 break-all text-xs text-slate-500">{user.email}</p>
-                    <p className="mt-2 text-xs text-slate-400">
+                    <p className="mt-1 break-all text-xs text-[#6b6459]">{user.email}</p>
+                    <p className="mt-2 text-xs text-[#6b6459]">
                       Joined{" "}
                       {user.createdAt
                         ? new Date(user.createdAt).toLocaleDateString("en-US", {
@@ -744,14 +744,14 @@ export default async function AdminOverviewPage() {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
-        <div className="border-b border-slate-100 p-4 sm:p-6">
-          <h2 className="text-lg font-bold text-slate-900">Recent Activity</h2>
-          <p className="text-sm text-slate-400 mt-0.5">Last 15 high-value events</p>
+      <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
+        <div className="border-b border-[#fff7ed] p-4 sm:p-6">
+          <h2 className="text-lg font-bold text-[#33312e]">Recent Activity</h2>
+          <p className="text-sm text-[#6b6459] mt-0.5">Last 15 high-value events</p>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-[#fff7ed]">
           {stats.recentActivity.length === 0 ? (
-            <div className="px-4 py-12 text-center text-sm text-slate-400">
+            <div className="px-4 py-12 text-center text-sm text-[#6b6459]">
               No activity events yet.
             </div>
           ) : (
@@ -770,14 +770,14 @@ export default async function AdminOverviewPage() {
               return (
                 <div
                   key={evt._id.toString()}
-                  className="flex items-center gap-3 px-4 py-3 sm:px-6 hover:bg-slate-50 transition-colors"
+                  className="flex items-center gap-3 px-4 py-3 sm:px-6 hover:bg-[#fff7ed] transition-colors"
                 >
                   <span className="text-lg shrink-0 w-8 text-center">{icon}</span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm text-slate-700 truncate">{description}</p>
-                    <p className="text-xs text-slate-400 truncate">{evt.email || "unknown"}</p>
+                    <p className="text-sm text-[#33312e] truncate">{description}</p>
+                    <p className="text-xs text-[#6b6459] truncate">{evt.email || "unknown"}</p>
                   </div>
-                  <span className="text-xs text-slate-400 whitespace-nowrap shrink-0">
+                  <span className="text-xs text-[#6b6459] whitespace-nowrap shrink-0">
                     {evt.createdAt ? timeAgo(new Date(evt.createdAt)) : "N/A"}
                   </span>
                 </div>
@@ -788,16 +788,16 @@ export default async function AdminOverviewPage() {
       </div>
 
       {/* Dead Click Hotspots */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
-        <div className="border-b border-slate-100 p-4 sm:p-6">
-          <h2 className="text-lg font-bold text-slate-900">Dead Click Hotspots</h2>
-          <p className="text-sm text-slate-400 mt-0.5">
+      <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm mb-10 opacity-0 animate-fade-in-up animation-delay-600">
+        <div className="border-b border-[#fff7ed] p-4 sm:p-6">
+          <h2 className="text-lg font-bold text-[#33312e]">Dead Click Hotspots</h2>
+          <p className="text-sm text-[#6b6459] mt-0.5">
             Most-clicked non-interactive targets from the last 14 days
           </p>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-[#fff7ed]">
           {stats.deadClickHotspots.length === 0 ? (
-            <div className="px-4 py-12 text-center text-sm text-slate-400">
+            <div className="px-4 py-12 text-center text-sm text-[#6b6459]">
               No dead click hotspots yet.
             </div>
           ) : (
@@ -805,8 +805,8 @@ export default async function AdminOverviewPage() {
               const label = formatDeadClickLabel(hotspot);
               const badgeClass =
                 hotspot.popularity === "very_popular"
-                  ? "bg-rose-50 text-rose-700"
-                  : "bg-amber-50 text-amber-700";
+                  ? "bg-[#ff5d8f]/10 text-[#ff5d8f]"
+                  : "bg-[#ffb800]/10 text-[#ffb800]";
               const badgeText =
                 hotspot.popularity === "very_popular"
                   ? "Very Popular Dead Click"
@@ -815,32 +815,32 @@ export default async function AdminOverviewPage() {
               return (
                 <div
                   key={`${hotspot.page}-${hotspot.tag}-${hotspot.className}-${index}`}
-                  className="px-4 py-4 sm:px-6 hover:bg-slate-50 transition-colors"
+                  className="px-4 py-4 sm:px-6 hover:bg-[#fff7ed] transition-colors"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-500">
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#fff7ed] text-xs font-bold text-[#6b6459]">
                           {index + 1}
                         </span>
-                        <p className="text-sm font-semibold text-slate-900 break-words">
+                        <p className="text-sm font-semibold text-[#33312e] break-words">
                           {label}
                         </p>
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${badgeClass}`}>
                           {badgeText}
                         </span>
                       </div>
-                      <p className="mt-2 text-xs text-slate-500 break-all">
+                      <p className="mt-2 text-xs text-[#6b6459] break-all">
                         {hotspot.page || "Unknown page"}
                       </p>
-                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#6b6459]">
                         <span>{hotspot.count.toLocaleString()} dead clicks</span>
                         <span>{hotspot.uniqueSessions.toLocaleString()} sessions</span>
                         {hotspot.tag && <span>tag: {hotspot.tag}</span>}
                         {hotspot.className && <span>class: {hotspot.className}</span>}
                       </div>
                     </div>
-                    <span className="shrink-0 text-xs text-slate-400">
+                    <span className="shrink-0 text-xs text-[#6b6459]">
                       {hotspot.lastSeenAt ? timeAgo(new Date(hotspot.lastSeenAt)) : "N/A"}
                     </span>
                   </div>
@@ -852,25 +852,25 @@ export default async function AdminOverviewPage() {
       </div>
 
       {/* At Risk / Recently Canceled */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm opacity-0 animate-fade-in-up animation-delay-600">
-        <div className="border-b border-slate-100 p-4 sm:p-6">
+      <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm opacity-0 animate-fade-in-up animation-delay-600">
+        <div className="border-b border-[#fff7ed] p-4 sm:p-6">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-[#ff5d8f]/15 text-[#ff5d8f] flex items-center justify-center">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">At Risk / Recently Canceled</h2>
-              <p className="text-sm text-slate-400 mt-0.5">
+              <h2 className="text-lg font-bold text-[#33312e]">At Risk / Recently Canceled</h2>
+              <p className="text-sm text-[#6b6459] mt-0.5">
                 Users who canceled or are scheduled to cancel
               </p>
             </div>
           </div>
         </div>
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-[#fff7ed]">
           {stats.canceledUsers.length === 0 ? (
-            <div className="px-4 py-12 text-center text-sm text-slate-400">
+            <div className="px-4 py-12 text-center text-sm text-[#6b6459]">
               No canceled or at-risk users.
             </div>
           ) : (
@@ -908,27 +908,27 @@ export default async function AdminOverviewPage() {
               return (
                 <div
                   key={user._id.toString()}
-                  className="px-4 py-4 sm:px-6 hover:bg-slate-50 transition-colors"
+                  className="px-4 py-4 sm:px-6 hover:bg-[#fff7ed] transition-colors"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-full bg-red-50 flex items-center justify-center text-xs font-bold text-red-500 shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-[#ff5d8f]/10 flex items-center justify-center text-xs font-bold text-[#ff5d8f] shrink-0">
                       {((user as any).name || (user as any).email || "?").charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-slate-900 truncate">
+                          <p className="text-sm font-semibold text-[#33312e] truncate">
                             {(user as any).name || "No name"}
                           </p>
-                          <p className="text-xs text-slate-400 truncate">
+                          <p className="text-xs text-[#6b6459] truncate">
                             {(user as any).email}
                           </p>
                         </div>
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0 ${
                             isCanceled
-                              ? "bg-red-50 text-red-700"
-                              : "bg-amber-50 text-amber-700"
+                              ? "bg-[#ff5d8f]/10 text-[#ff5d8f]"
+                              : "bg-[#ffb800]/10 text-[#ffb800]"
                           }`}
                         >
                           {isCanceled ? "Canceled" : "Canceling at period end"}
@@ -936,22 +936,22 @@ export default async function AdminOverviewPage() {
                       </div>
 
                       {(reason || feedback) && (
-                        <div className="mt-2 rounded-lg bg-slate-50 px-3 py-2">
+                        <div className="mt-2 rounded-lg bg-[#fff7ed] px-3 py-2">
                           {reason && (
-                            <p className="text-xs text-slate-600">
+                            <p className="text-xs text-[#33312e]">
                               <span className="font-medium">Reason:</span>{" "}
                               {reason.replace(/_/g, " ")}
                             </p>
                           )}
                           {feedback && (
-                            <p className="text-xs text-slate-500 mt-0.5 italic">
+                            <p className="text-xs text-[#6b6459] mt-0.5 italic">
                               &ldquo;{feedback}&rdquo;
                             </p>
                           )}
                         </div>
                       )}
 
-                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#6b6459]">
                         <span>
                           {cancelDate
                             ? `${isCanceled ? "Canceled" : "Cancels"} ${cancelDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`

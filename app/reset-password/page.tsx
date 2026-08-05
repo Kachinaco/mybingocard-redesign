@@ -57,37 +57,37 @@ function ResetPasswordContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Set a new password</h1>
-        <p className="text-slate-600 mb-6">Choose a secure password for your account.</p>
+    <div className="min-h-screen flex items-center justify-center bg-[#fff7ed] p-6">
+      <div className="w-full max-w-md rounded-2xl border border-[#a39a88] bg-white p-8 shadow-sm">
+        <h1 className="text-2xl font-bold text-[#33312e] mb-2">Set a new password</h1>
+        <p className="text-[#33312e] mb-6">Choose a secure password for your account.</p>
 
-        {message && <div className="mb-4 rounded-lg bg-green-50 text-green-700 px-3 py-2 text-sm">{message}</div>}
-        {error && <div className="mb-4 rounded-lg bg-red-50 text-red-700 px-3 py-2 text-sm">{error}</div>}
+        {message && <div className="mb-4 rounded-lg bg-[#2ec4b6]/10 text-[#2ec4b6] px-3 py-2 text-sm">{message}</div>}
+        {error && <div className="mb-4 rounded-lg bg-[#ff5d8f]/10 text-[#ff5d8f] px-3 py-2 text-sm">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">New password</label>
+            <label htmlFor="password" className="block text-sm font-medium text-[#33312e] mb-1">New password</label>
             <input
               id="password"
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-lg border border-[#a39a88] px-3 py-2 outline-none focus:border-[#7c5cff] focus:ring-2 focus:ring-[#7c5cff]/15"
               placeholder="At least 8 characters"
             />
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">Confirm password</label>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-[#33312e] mb-1">Confirm password</label>
             <input
               id="confirmPassword"
               type="password"
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              className="w-full rounded-lg border border-[#a39a88] px-3 py-2 outline-none focus:border-[#7c5cff] focus:ring-2 focus:ring-[#7c5cff]/15"
               placeholder="Repeat your password"
             />
           </div>
@@ -95,14 +95,14 @@ function ResetPasswordContent() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-lg bg-indigo-600 text-white py-2.5 font-semibold hover:bg-indigo-700 disabled:opacity-60"
+            className="w-full rounded-lg bg-[#7c5cff] text-white py-2.5 font-semibold hover:bg-[#7c5cff] disabled:opacity-60"
           >
             {isSubmitting ? "Saving..." : "Reset password"}
           </button>
         </form>
 
-        <p className="mt-6 text-sm text-slate-600 text-center">
-          <Link href="/login" className="text-indigo-600 hover:text-indigo-700 font-semibold">Back to login</Link>
+        <p className="mt-6 text-sm text-[#33312e] text-center">
+          <Link href="/login" className="text-[#7c5cff] hover:text-[#7c5cff] font-semibold">Back to login</Link>
         </p>
       </div>
     </div>
@@ -111,7 +111,7 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#fff7ed] flex items-center justify-center">Loading...</div>}>
       <ResetPasswordContent />
     </Suspense>
   );
