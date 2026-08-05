@@ -43,7 +43,7 @@ function MiniCardPreview({ cardId }: { cardId: string }) {
     return (
       <div className="grid gap-px" style={{ gridTemplateColumns: `repeat(5, 1fr)` }}>
         {Array.from({ length: 25 }, (_, i) => (
-          <div key={i} className={"aspect-square rounded-sm " + (markedSet.has(i) ? "bg-indigo-500" : "bg-slate-200")} />
+          <div key={i} className={"aspect-square rounded-sm " + (markedSet.has(i) ? "bg-[#7c5cff]" : "bg-[#a39a88]")} />
         ))}
       </div>
     );
@@ -60,10 +60,10 @@ function MiniCardPreview({ cardId }: { cardId: string }) {
             key={index}
             className={`aspect-square flex items-center justify-center text-center overflow-hidden font-semibold rounded-sm
               ${isFreeSpace
-                ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white"
+                ? "bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] text-white"
                 : isMarked
-                  ? "bg-gradient-to-br from-violet-500 to-indigo-500 text-white ring-1 ring-indigo-300"
-                  : "bg-slate-50 text-slate-700 border border-slate-200"
+                  ? "bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] text-white ring-1 ring-[#7c5cff]"
+                  : "bg-[#fff7ed] text-[#33312e] border border-[#a39a88]"
               }`}
             style={{ fontSize: `${size <= 3 ? 6 : size <= 4 ? 4.5 : 3.5}px`, padding: "1px", lineHeight: 1.1 }}
           >
@@ -112,9 +112,9 @@ export default function DashboardEngagement() {
   if (recentlyPlayed.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8 mb-10 animate-fade-in-up animation-delay-250">
-      <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-        <svg className="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="bg-white rounded-2xl shadow-sm border border-[#a39a88] p-6 md:p-8 mb-10 animate-fade-in-up animation-delay-250">
+      <h2 className="text-xl font-bold text-[#33312e] mb-6 flex items-center gap-2">
+        <svg className="w-5 h-5 text-[#7c5cff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         Recently Played
@@ -124,18 +124,18 @@ export default function DashboardEngagement() {
           <Link
             key={item.cardId}
             href={`/cards/${item.cardId}`}
-            className="group p-4 bg-slate-50 hover:bg-indigo-50 rounded-xl border border-slate-100 hover:border-indigo-200 transition-all"
+            className="group p-4 bg-[#fff7ed] hover:bg-[#7c5cff]/10 rounded-xl border border-[#fff7ed] hover:border-[#7c5cff] transition-all"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="min-w-0">
-                <h3 className="font-semibold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
+                <h3 className="font-semibold text-[#33312e] group-hover:text-[#7c5cff] transition-colors truncate">
                   {item.cardName}
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-[#6b6459] mt-0.5">
                   {new Date(item.lastPlayed).toLocaleDateString()}
                 </p>
               </div>
-              <span className="ml-3 text-xs font-medium text-indigo-600 bg-indigo-50 group-hover:bg-indigo-100 px-2.5 py-1 rounded-full whitespace-nowrap transition-colors">
+              <span className="ml-3 text-xs font-medium text-[#7c5cff] bg-[#7c5cff]/10 group-hover:bg-[#7c5cff]/15 px-2.5 py-1 rounded-full whitespace-nowrap transition-colors">
                 Resume
               </span>
             </div>

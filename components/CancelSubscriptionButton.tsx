@@ -14,7 +14,7 @@ export default function CancelSubscriptionButton() {
           setShowModal(true);
           trackClientActivity("cancel_subscription_initiated");
         }}
-        className="text-sm text-slate-500 hover:text-red-600 transition-colors underline"
+        className="text-sm text-[#6b6459] hover:text-[#ff5d8f] transition-colors underline"
       >
         Cancel subscription
       </button>

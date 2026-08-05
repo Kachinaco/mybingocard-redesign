@@ -230,11 +230,11 @@ export default function ImagePickerModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900">Pick an Image</h3>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#fff7ed]">
+          <h3 className="text-lg font-bold text-[#33312e]">Pick an Image</h3>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#fff7ed] text-[#6b6459] hover:text-[#33312e] transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -244,11 +244,11 @@ export default function ImagePickerModal({
 
         {/* Selected image preview + label */}
         {selectedImage && (
-          <div className="px-5 py-3 bg-blue-50 border-b border-blue-100 flex items-center gap-3">
+          <div className="px-5 py-3 bg-[#7c5cff]/10 border-b border-[#7c5cff]/15 flex items-center gap-3">
             <img
               src={selectedImage.thumbnailUrl || selectedImage.imageUrl}
               alt=""
-              className="w-12 h-12 rounded-lg object-cover border border-blue-200"
+              className="w-12 h-12 rounded-lg object-cover border border-[#7c5cff]"
             />
             <div className="flex-1 min-w-0">
               <input
@@ -257,13 +257,13 @@ export default function ImagePickerModal({
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
                 placeholder="Add a label (optional)"
-                className="w-full px-3 py-2 text-sm bg-white border border-blue-200 rounded-lg focus:ring-2 focus:ring-[#007AFF]/30 focus:border-[#007AFF] outline-none"
+                className="w-full px-3 py-2 text-sm bg-white border border-[#7c5cff] rounded-lg focus:ring-2 focus:ring-[#7c5cff]/30 focus:border-[#7c5cff] outline-none"
                 onKeyDown={(e) => { if (e.key === "Enter") handleConfirm(); }}
               />
             </div>
             <button
               onClick={handleConfirm}
-              className="px-4 py-2 bg-[#007AFF] text-white text-sm font-bold rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap"
+              className="px-4 py-2 bg-[#7c5cff] text-white text-sm font-bold rounded-lg hover:bg-[#7c5cff] transition-colors whitespace-nowrap"
             >
               Add
             </button>
@@ -276,8 +276,8 @@ export default function ImagePickerModal({
             onClick={() => setTab("library")}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
               tab === "library"
-                ? "bg-[#007AFF] text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-[#7c5cff] text-white"
+                : "bg-[#fff7ed] text-[#33312e] hover:bg-[#a39a88]"
             }`}
           >
             Clip Art
@@ -287,8 +287,8 @@ export default function ImagePickerModal({
               onClick={() => setTab("upload")}
               className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
                 tab === "upload"
-                  ? "bg-[#007AFF] text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  ? "bg-[#7c5cff] text-white"
+                  : "bg-[#fff7ed] text-[#33312e] hover:bg-[#a39a88]"
               }`}
             >
               My Uploads
@@ -303,8 +303,8 @@ export default function ImagePickerModal({
               onClick={() => setSelectedCategory("")}
               className={`px-3 py-1 text-xs font-semibold rounded-full transition-all ${
                 !selectedCategory
-                  ? "bg-gray-900 text-white"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  ? "bg-[#33312e] text-white"
+                  : "bg-[#fff7ed] text-[#33312e] hover:bg-[#a39a88]"
               }`}
             >
               All
@@ -315,8 +315,8 @@ export default function ImagePickerModal({
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-3 py-1 text-xs font-semibold rounded-full capitalize transition-all ${
                   selectedCategory === cat
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "bg-[#33312e] text-white"
+                    : "bg-[#fff7ed] text-[#33312e] hover:bg-[#a39a88]"
                 }`}
               >
                 {cat}
@@ -334,7 +334,7 @@ export default function ImagePickerModal({
               onClick={() => !uploading && fileInputRef.current?.click()}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); !uploading && fileInputRef.current?.click(); } }}
               className={`border-2 border-dashed rounded-xl p-3 text-center cursor-pointer transition-all ${
-                uploading ? "border-gray-200 bg-gray-50" : "border-gray-300 hover:border-[#007AFF] hover:bg-blue-50/30"
+                uploading ? "border-[#a39a88] bg-[#fff7ed]" : "border-[#a39a88] hover:border-[#7c5cff] hover:bg-[#7c5cff]/30"
               }`}
             >
               <input
@@ -349,15 +349,15 @@ export default function ImagePickerModal({
                 className="hidden"
               />
               {uploading ? (
-                <div className="flex items-center justify-center gap-2 text-gray-500">
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-[#007AFF] rounded-full animate-spin" />
+                <div className="flex items-center justify-center gap-2 text-[#6b6459]">
+                  <div className="w-4 h-4 border-2 border-[#a39a88] border-t-[#7c5cff] rounded-full animate-spin" />
                   <span className="text-sm">Uploading...</span>
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">Click to upload an image</p>
+                <p className="text-sm text-[#6b6459]">Click to upload an image</p>
               )}
             </div>
-            {uploadError && <p className="mt-1 text-xs text-red-600">{uploadError}</p>}
+            {uploadError && <p className="mt-1 text-xs text-[#ff5d8f]">{uploadError}</p>}
           </div>
         )}
 
@@ -365,10 +365,10 @@ export default function ImagePickerModal({
         <div className="flex-1 overflow-y-auto p-5">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="w-6 h-6 border-2 border-gray-300 border-t-[#007AFF] rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-[#a39a88] border-t-[#7c5cff] rounded-full animate-spin" />
             </div>
           ) : displayImages.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-12">
+            <p className="text-sm text-[#6b6459] text-center py-12">
               {tab === "library" ? "No clip art available yet" : "No uploads yet — upload your first image above"}
             </p>
           ) : (
@@ -379,8 +379,8 @@ export default function ImagePickerModal({
                   onClick={() => setSelectedImage(img)}
                   className={`aspect-square rounded-xl border-2 overflow-hidden transition-all hover:scale-105 ${
                     selectedImage?.imageId === img.imageId
-                      ? "border-[#007AFF] ring-2 ring-[#007AFF]/30 scale-105"
-                      : "border-transparent hover:border-gray-300"
+                      ? "border-[#7c5cff] ring-2 ring-[#7c5cff]/30 scale-105"
+                      : "border-transparent hover:border-[#a39a88]"
                   }`}
                 >
                   <img

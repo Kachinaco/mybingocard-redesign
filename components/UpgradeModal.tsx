@@ -282,7 +282,7 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
         className={`bg-white rounded-2xl shadow-2xl w-full relative animate-fade-in-up ${showCheckout ? "max-w-lg" : "max-w-md"} max-h-[90dvh] overflow-y-auto p-5 sm:p-8`}
         onClick={e => e.stopPropagation()}
       >
-        <button onClick={() => dismiss("x_button")} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors z-10">
+        <button onClick={() => dismiss("x_button")} className="absolute top-4 right-4 text-[#6b6459] hover:text-[#33312e] transition-colors z-10">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -291,8 +291,8 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
         {showCheckout && clientSecret && stripe ? (
           <div>
             <div className="text-center mb-4">
-              <h2 className="text-xl font-bold text-slate-900">Complete Your Upgrade</h2>
-              <p className="text-slate-500 text-sm mt-1">{checkoutType === "lifetime" ? "Premium Lifetime for $29.99 once" : "Premium monthly, $7.99/mo"}</p>
+              <h2 className="text-xl font-bold text-[#33312e]">Complete Your Upgrade</h2>
+              <p className="text-[#6b6459] text-sm mt-1">{checkoutType === "lifetime" ? "Premium Lifetime for $29.99 once" : "Premium monthly, $7.99/mo"}</p>
             </div>
             <EmbeddedCheckoutProvider stripe={stripe} options={{ clientSecret }}>
               <EmbeddedCheckout />
@@ -301,19 +301,19 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
         ) : (
           <>
             <div className="text-center mb-5">
-              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-violet-100 to-indigo-100 rounded-full flex items-center justify-center">
-                <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-[#7c5cff]/15 to-[#7c5cff]/15 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-[#7c5cff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold text-slate-900">{reasonContent.title}</h2>
-              <p className="text-slate-500 mt-2">{reasonContent.description}</p>
+              <h2 className="text-2xl font-bold text-[#33312e]">{reasonContent.title}</h2>
+              <p className="text-[#6b6459] mt-2">{reasonContent.description}</p>
             </div>
 
             <ul className="space-y-2.5 mb-5">
               {reasonContent.features.map(f => (
-                <li key={f} className="flex items-center gap-3 text-sm text-slate-700">
-                  <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <li key={f} className="flex items-center gap-3 text-sm text-[#33312e]">
+                  <svg className="w-5 h-5 text-[#2ec4b6] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   {f}
@@ -322,27 +322,27 @@ export default function UpgradeModal({ isOpen, onClose, reason = "modal", trigge
             </ul>
 
             {error && (
-              <p className="text-red-500 text-sm text-center mb-3">{error}</p>
+              <p className="text-[#ff5d8f] text-sm text-center mb-3">{error}</p>
             )}
 
-            <div className="sticky bottom-0 -mx-5 -mb-5 border-t border-slate-100 bg-white/95 px-5 pb-5 pt-4 backdrop-blur sm:-mx-8 sm:-mb-8 sm:px-8 sm:pb-8">
+            <div className="sticky bottom-0 -mx-5 -mb-5 border-t border-[#fff7ed] bg-white/95 px-5 pb-5 pt-4 backdrop-blur sm:-mx-8 sm:-mb-8 sm:px-8 sm:pb-8">
               <div className="space-y-3">
               <button
                 onClick={handleLifetime}
                 disabled={loading}
-                className="w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-indigo-200 transition-all disabled:opacity-70"
+                className="w-full py-3.5 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl font-bold text-lg hover:shadow-lg hover:shadow-[#7c5cff] transition-all disabled:opacity-70"
               >
                 {loading ? "Loading..." : "Get Lifetime Hosting for $29.99"}
               </button>
               <button
                 onClick={handleUpgrade}
                 disabled={loading}
-                className="w-full py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-all disabled:opacity-70 border border-slate-200"
+                className="w-full py-3 bg-[#fff7ed] text-[#33312e] rounded-xl font-semibold hover:bg-[#a39a88] transition-all disabled:opacity-70 border border-[#a39a88]"
               >
                 {loading ? "Loading..." : "Subscribe Monthly for $7.99/mo"}
               </button>
               </div>
-              <p className="text-center text-xs text-slate-400 mt-3">Lifetime is one payment. Monthly bills immediately at $7.99/month.</p>
+              <p className="text-center text-xs text-[#6b6459] mt-3">Lifetime is one payment. Monthly bills immediately at $7.99/month.</p>
             </div>
           </>
         )}

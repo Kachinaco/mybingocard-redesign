@@ -29,7 +29,7 @@ export default function FavCardPreview({ card }: { card: any }) {
   return (
     <div className="mb-3">
       <div className="text-center mb-1.5">
-        <p className="text-[7px] font-bold text-slate-600 truncate">{card.title}</p>
+        <p className="text-[7px] font-bold text-[#33312e] truncate">{card.title}</p>
       </div>
       <ThemedCardWrapper theme={card.style?.theme} title={card.title} size="mini">
       <div
@@ -47,10 +47,10 @@ export default function FavCardPreview({ card }: { card: any }) {
                 aspect-square flex items-center justify-center text-center overflow-hidden font-semibold
                 ${size <= 3 ? "rounded-md" : "rounded-sm"}
                 ${isFreeSpace
-                  ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-sm"
+                  ? "bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] text-white shadow-sm"
                   : isMarked
-                    ? "bg-gradient-to-br from-violet-500 to-indigo-500 text-white shadow-sm ring-1 ring-indigo-300"
-                    : "bg-slate-50 text-slate-700 border border-slate-200"
+                    ? "bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] text-white shadow-sm ring-1 ring-[#7c5cff]"
+                    : "bg-[#fff7ed] text-[#33312e] border border-[#a39a88]"
                 }
               `}
               style={{

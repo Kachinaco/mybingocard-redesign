@@ -62,7 +62,7 @@ export default function BestBingoCardGeneratorPage() {
         date="April 14, 2026"
         readTime="8 min read"
         category="Comparison"
-        categoryGradient="from-indigo-500 to-sky-500"
+        categoryGradient="from-[#7c5cff] to-[#2ec4b6]"
       >
         <p>
           If you need the best bingo card generator in 2026, the real question is not just who can make a printable card. It is who can help you create custom bingo cards quickly, print them cleanly, share them online, and reuse them across different events without friction.

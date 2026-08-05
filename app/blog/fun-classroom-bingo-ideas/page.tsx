@@ -44,7 +44,7 @@ export default function FunClassroomBingoIdeas() {
         date="February 18, 2026"
         readTime="7 min read"
         category="Education"
-        categoryGradient="from-blue-500 to-cyan-500"
+        categoryGradient="from-[#7c5cff] to-[#2ec4b6]"
       >
         <p>
           Bingo is one of the most effective teaching tools because it disguises learning as a game. Students think they&apos;re just playing — but they&apos;re actually reviewing, memorizing, and reinforcing key concepts. Here are 15 classroom bingo ideas organized by subject that teachers swear by.

@@ -128,28 +128,28 @@ function JoinGameContent() {
   };
 
   return (
-    <div className="min-h-screen bg-emerald-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#2ec4b6]/10 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
-            <span className="text-3xl font-black text-emerald-700">
+            <span className="text-3xl font-black text-[#2ec4b6]">
               MyBingoCard
             </span>
           </Link>
-          <p className="text-emerald-800 mt-2 font-semibold">Tap one button to join</p>
+          <p className="text-[#2ec4b6] mt-2 font-semibold">Tap one button to join</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-emerald-100 p-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-[#2ec4b6]/15 p-6">
           <form onSubmit={handleJoin} className="space-y-5">
             {session?.user?.email && (
-              <div className="text-xs text-slate-500 text-center">
+              <div className="text-xs text-[#6b6459] text-center">
                 Signed in as {session.user.email}
               </div>
             )}
             {/* Room Code */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <label className="block text-sm font-semibold text-[#33312e] mb-2">
                 Room Code
               </label>
               <input
@@ -158,15 +158,15 @@ function JoinGameContent() {
                 onChange={(e) => handleCodeChange(e.target.value)}
                 placeholder="ABCDEF"
                 maxLength={6}
-                className="w-full px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center text-2xl font-mono font-bold tracking-[0.3em] uppercase focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                className="w-full px-4 py-3 bg-[#2ec4b6]/10 border border-[#2ec4b6] rounded-xl text-center text-2xl font-mono font-bold tracking-[0.3em] uppercase focus:ring-2 focus:ring-[#2ec4b6]/20 focus:border-[#2ec4b6] outline-none"
               />
               {roomInfo && (
-                <div className="mt-2 p-2 bg-emerald-50 border border-emerald-100 rounded-lg text-sm text-emerald-700 text-center">
+                <div className="mt-2 p-2 bg-[#2ec4b6]/10 border border-[#2ec4b6]/15 rounded-lg text-sm text-[#2ec4b6] text-center">
                   <span className="font-semibold">{roomInfo.title}</span>
-                  <span className="text-emerald-500 mx-1">&bull;</span>
+                  <span className="text-[#2ec4b6] mx-1">&bull;</span>
                   <span>{roomInfo.playerCount} player{roomInfo.playerCount !== 1 ? "s" : ""}</span>
                   {roomInfo.status === "finished" && (
-                    <span className="text-red-500 ml-1">(Game ended)</span>
+                    <span className="text-[#ff5d8f] ml-1">(Game ended)</span>
                   )}
                 </div>
               )}
@@ -174,7 +174,7 @@ function JoinGameContent() {
 
             {/* Player Name */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <label className="block text-sm font-semibold text-[#33312e] mb-2">
                 Name
               </label>
               <input
@@ -183,19 +183,19 @@ function JoinGameContent() {
                 onChange={(e) => handlePlayerNameChange(e.target.value)}
                 placeholder="Player name"
                 maxLength={30}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"
+                className="w-full px-4 py-3 bg-[#fff7ed] border border-[#a39a88] rounded-xl focus:ring-2 focus:ring-[#2ec4b6]/20 focus:border-[#2ec4b6] outline-none"
               />
               <button
                 type="button"
                 onClick={pickGuestName}
-                className="mt-2 text-xs font-semibold text-emerald-700 hover:text-emerald-800"
+                className="mt-2 text-xs font-semibold text-[#2ec4b6] hover:text-[#2ec4b6]"
               >
                 Pick a simple name
               </button>
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm">
+              <div className="p-3 bg-[#ff5d8f]/10 border border-[#ff5d8f]/15 rounded-xl text-[#ff5d8f] text-sm">
                 {error}
               </div>
             )}
@@ -203,7 +203,7 @@ function JoinGameContent() {
             <button
               type="submit"
               disabled={loading || roomCode.length !== 6 || roomInfo?.status === "finished"}
-              className="w-full py-5 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition font-black text-2xl disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-5 bg-[#2ec4b6] text-white rounded-2xl hover:bg-[#2ec4b6] transition font-black text-2xl disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Joining..." : "Join"}
             </button>
@@ -211,7 +211,7 @@ function JoinGameContent() {
         </div>
 
         <div className="text-center mt-6">
-          <Link href="/create" className="text-sm text-emerald-700 hover:text-emerald-800 font-medium">
+          <Link href="/create" className="text-sm text-[#2ec4b6] hover:text-[#2ec4b6] font-medium">
             Or create your own bingo card
           </Link>
         </div>
@@ -222,7 +222,7 @@ function JoinGameContent() {
 
 export default function JoinGamePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-slate-50 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#fff7ed] flex items-center justify-center">Loading...</div>}>
       <JoinGameContent />
     </Suspense>
   );

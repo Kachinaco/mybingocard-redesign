@@ -333,10 +333,10 @@ export default function PlayClient({ linkId }: PlayClientProps) {
 
   if (viewState === "loading" || sessionStatus === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-indigo-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#fff7ed] to-[#7c5cff]/10">
         <div className="text-center">
-          <div className="inline-block w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-slate-500">Loading your bingo card...</p>
+          <div className="inline-block w-12 h-12 border-4 border-[#7c5cff] border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-[#6b6459]">Loading your bingo card...</p>
         </div>
       </div>
     );
@@ -344,23 +344,23 @@ export default function PlayClient({ linkId }: PlayClientProps) {
 
   if (viewState === "invalid") {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-50 to-indigo-50">
+      <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-[#fff7ed] to-[#7c5cff]/10">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
           <div className="text-5xl mb-4">😕</div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Link Unavailable</h2>
-          <p className="text-slate-500 mb-6">
+          <h2 className="text-2xl font-bold text-[#33312e] mb-2">Link Unavailable</h2>
+          <p className="text-[#6b6459] mb-6">
             {errorMessage || "This share link is not available."}
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Link
               href="/"
-              className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-semibold"
+              className="inline-block px-6 py-3 bg-[#7c5cff] text-white rounded-xl hover:bg-[#7c5cff] transition font-semibold"
             >
               Go to Homepage
             </Link>
             <Link
               href="/create"
-              className="inline-block px-6 py-3 bg-white text-indigo-600 border border-indigo-200 rounded-xl hover:bg-indigo-50 transition font-semibold"
+              className="inline-block px-6 py-3 bg-white text-[#7c5cff] border border-[#7c5cff] rounded-xl hover:bg-[#7c5cff]/10 transition font-semibold"
             >
               Create Your Own Card
             </Link>
@@ -372,18 +372,18 @@ export default function PlayClient({ linkId }: PlayClientProps) {
 
   if (viewState === "owner") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50">
-        <header className="backdrop-blur-sm border-b sticky top-0 z-10 bg-white/80 border-slate-100">
+      <div className="min-h-screen bg-gradient-to-br from-[#fff7ed] to-[#7c5cff]/10">
+        <header className="backdrop-blur-sm border-b sticky top-0 z-10 bg-white/80 border-[#fff7ed]">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">
             <Link
               href="/"
-              className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600"
+              className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cff] to-[#7c5cff]"
             >
               MyBingoCard
             </Link>
             <Link
               href="/dashboard"
-              className="px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition font-semibold text-sm"
+              className="px-4 py-2 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl hover:shadow-lg transition font-semibold text-sm"
             >
               Back to Dashboard
             </Link>
@@ -393,10 +393,10 @@ export default function PlayClient({ linkId }: PlayClientProps) {
         <main className="container mx-auto px-4 py-8 md:py-12 max-w-xl">
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 text-center mb-6">
             <div className="text-5xl mb-4">👀</div>
-            <h1 className="text-2xl md:text-3xl font-black text-slate-900 mb-2">
+            <h1 className="text-2xl md:text-3xl font-black text-[#33312e] mb-2">
               Preview only
             </h1>
-            <p className="text-slate-500 mb-6">
+            <p className="text-[#6b6459] mb-6">
               This is your own share link. Recipients will see and play this card.
             </p>
 
@@ -408,12 +408,12 @@ export default function PlayClient({ linkId }: PlayClientProps) {
 
             <button
               onClick={handleCopyLink}
-              className="w-full px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition font-semibold"
+              className="w-full px-6 py-3 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl hover:shadow-lg transition font-semibold"
             >
               Copy share link
             </button>
             {copyFeedback && (
-              <p className="text-xs text-slate-500 mt-3">{copyFeedback}</p>
+              <p className="text-xs text-[#6b6459] mt-3">{copyFeedback}</p>
             )}
           </div>
         </main>
@@ -423,10 +423,10 @@ export default function PlayClient({ linkId }: PlayClientProps) {
 
   if (viewState === "claiming" && claimMode === "auto") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-indigo-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#fff7ed] to-[#7c5cff]/10">
         <div className="text-center">
-          <div className="inline-block w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-slate-500">Setting things up...</p>
+          <div className="inline-block w-12 h-12 border-4 border-[#7c5cff] border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-[#6b6459]">Setting things up...</p>
         </div>
       </div>
     );
@@ -434,18 +434,18 @@ export default function PlayClient({ linkId }: PlayClientProps) {
 
   if (viewState === "unclaimed" || viewState === "claiming") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50">
-        <header className="backdrop-blur-sm border-b sticky top-0 z-10 bg-white/80 border-slate-100">
+      <div className="min-h-screen bg-gradient-to-br from-[#fff7ed] to-[#7c5cff]/10">
+        <header className="backdrop-blur-sm border-b sticky top-0 z-10 bg-white/80 border-[#fff7ed]">
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">
             <Link
               href="/"
-              className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600"
+              className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cff] to-[#7c5cff]"
             >
               MyBingoCard
             </Link>
             <Link
               href="/create"
-              className="px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition font-semibold text-sm"
+              className="px-4 py-2 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl hover:shadow-lg transition font-semibold text-sm"
             >
               Create Your Own
             </Link>
@@ -455,14 +455,14 @@ export default function PlayClient({ linkId }: PlayClientProps) {
         <main className="container mx-auto px-4 py-8 md:py-12 max-w-xl">
           <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 text-center mb-6">
             <div className="text-5xl mb-4">🎟️</div>
-            <h1 className="text-2xl md:text-3xl font-black text-slate-900 mb-2">
+            <h1 className="text-2xl md:text-3xl font-black text-[#33312e] mb-2">
               You've been invited to play
             </h1>
             {card?.title && (
-              <p className="text-lg font-semibold text-indigo-600 mb-2">{card.title}</p>
+              <p className="text-lg font-semibold text-[#7c5cff] mb-2">{card.title}</p>
             )}
             {ownerName && (
-              <p className="text-slate-500 mb-6">Sent by {ownerName}</p>
+              <p className="text-[#6b6459] mb-6">Sent by {ownerName}</p>
             )}
             {!ownerName && <div className="mb-6" />}
 
@@ -473,7 +473,7 @@ export default function PlayClient({ linkId }: PlayClientProps) {
             )}
 
             {claimError && (
-              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm">
+              <div className="mb-4 p-3 rounded-xl bg-[#ff5d8f]/10 border border-[#ff5d8f]/15 text-[#ff5d8f] text-sm">
                 {claimError}
               </div>
             )}
@@ -482,20 +482,20 @@ export default function PlayClient({ linkId }: PlayClientProps) {
               <button
                 onClick={handleSignIn}
                 disabled={viewState === "claiming"}
-                className="w-full px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full px-6 py-3 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl hover:shadow-lg transition font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 Sign in to play
               </button>
               <button
                 onClick={handleContinueAsGuest}
                 disabled={viewState === "claiming"}
-                className="w-full px-6 py-3 bg-white text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-50 transition font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full px-6 py-3 bg-white text-[#33312e] border border-[#a39a88] rounded-xl hover:bg-[#fff7ed] transition font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {viewState === "claiming" ? "Setting things up..." : "Continue as guest"}
               </button>
             </div>
 
-            <p className="text-xs text-slate-400 mt-4">
+            <p className="text-xs text-[#6b6459] mt-4">
               Signing in lets you sync your progress across devices.
             </p>
           </div>
@@ -507,26 +507,26 @@ export default function PlayClient({ linkId }: PlayClientProps) {
   // playing
   if (!card) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-indigo-50">
-        <div className="text-slate-500">Loading card...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#fff7ed] to-[#7c5cff]/10">
+        <div className="text-[#6b6459]">Loading card...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50">
-      <header className="backdrop-blur-sm border-b sticky top-0 z-10 bg-white/80 border-slate-100 print:hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#fff7ed] to-[#7c5cff]/10">
+      <header className="backdrop-blur-sm border-b sticky top-0 z-10 bg-white/80 border-[#fff7ed] print:hidden">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link
             href="/"
-            className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600"
+            className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cff] to-[#7c5cff]"
           >
             MyBingoCard
           </Link>
           <div className="flex gap-2 items-center">
             <Link
               href="/create"
-              className="px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition font-semibold text-sm"
+              className="px-4 py-2 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl hover:shadow-lg transition font-semibold text-sm"
             >
               Create Your Own
             </Link>
@@ -537,21 +537,21 @@ export default function PlayClient({ linkId }: PlayClientProps) {
       <main className="container mx-auto px-3 md:px-4 py-6 md:py-8 max-w-2xl">
         <PlayCard linkId={linkId} card={card} />
 
-        <div className="mt-6 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-2xl shadow-lg p-6 md:p-8 text-center">
+        <div className="mt-6 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-2xl shadow-lg p-6 md:p-8 text-center">
           <h2 className="text-xl font-black mb-2">Love this card?</h2>
-          <p className="text-indigo-100 mb-4 text-sm">
+          <p className="text-[#7c5cff]/15 mb-4 text-sm">
             Design your own bingo cards for parties, classrooms, and team events.
           </p>
           <div className="flex gap-3 justify-center flex-wrap">
             <Link
               href="/create"
-              className="px-5 py-2.5 bg-white text-indigo-600 rounded-xl hover:bg-indigo-50 transition font-semibold text-sm"
+              className="px-5 py-2.5 bg-white text-[#7c5cff] rounded-xl hover:bg-[#7c5cff]/10 transition font-semibold text-sm"
             >
               Create a Card
             </Link>
             <Link
               href="/templates"
-              className="px-5 py-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-400 transition font-semibold text-sm"
+              className="px-5 py-2.5 bg-[#7c5cff] text-white rounded-xl hover:bg-[#7c5cff] transition font-semibold text-sm"
             >
               Browse Templates
             </Link>
@@ -559,7 +559,7 @@ export default function PlayClient({ linkId }: PlayClientProps) {
         </div>
       </main>
 
-      <footer className="text-center text-xs py-6 text-slate-400">
+      <footer className="text-center text-xs py-6 text-[#6b6459]">
         © {new Date().getFullYear()} MyBingoCard.com
       </footer>
     </div>

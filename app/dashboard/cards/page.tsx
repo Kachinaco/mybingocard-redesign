@@ -291,27 +291,27 @@ function MyCardsPageInner() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#fff7ed] flex items-center justify-center">
         <div className="text-center">
-            <div className="inline-block w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-slate-500 font-medium">Loading your cards...</p>
+            <div className="inline-block w-12 h-12 border-4 border-[#7c5cff] border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-4 text-[#6b6459] font-medium">Loading your cards...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-[#fff7ed] selection:bg-[#7c5cff]/15 selection:text-[#7c5cff]">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
+      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-[#a39a88]/50">
         <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:shadow-indigo-300 transition-all duration-300">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-xl flex items-center justify-center shadow-lg shadow-[#7c5cff] group-hover:shadow-[#7c5cff] transition-all duration-300">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
               </svg>
             </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
+            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#33312e] to-[#33312e]">
               MyBingoCard
             </span>
           </Link>
@@ -319,25 +319,25 @@ function MyCardsPageInner() {
           <div className="flex gap-2 md:gap-4 items-center">
              <Link
               href="/create"
-              className="bg-slate-900 text-white px-4 py-2.5 md:px-5 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20"
+              className="bg-[#33312e] text-white px-4 py-2.5 md:px-5 rounded-lg text-sm font-semibold hover:bg-[#33312e] transition-all duration-200 shadow-lg shadow-[#33312e]/20"
             >
               <span className="hidden sm:inline">Create New</span>
               <span className="sm:hidden">+ Create</span>
             </Link>
             <Link
               href="/dashboard/share-links"
-              className="hidden md:inline-flex px-3 md:px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-all duration-200"
+              className="hidden md:inline-flex px-3 md:px-5 py-2.5 rounded-lg text-sm font-semibold text-[#33312e] hover:bg-[#fff7ed] transition-all duration-200"
             >
               Share Links
             </Link>
             <Link
               href="/dashboard"
-              className="px-3 md:px-5 py-2.5 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100 transition-all duration-200"
+              className="px-3 md:px-5 py-2.5 rounded-lg text-sm font-semibold text-[#33312e] hover:bg-[#fff7ed] transition-all duration-200"
             >
               <span className="hidden sm:inline">Dashboard</span>
               <span className="sm:hidden">Home</span>
             </Link>
-             <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-500 ml-2">
+             <div className="w-8 h-8 rounded-full bg-[#a39a88] flex items-center justify-center text-xs font-bold text-[#6b6459] ml-2">
                 {session?.user?.name?.charAt(0) || session?.user?.email?.charAt(0) || "U"}
             </div>
           </div>
@@ -348,8 +348,8 @@ function MyCardsPageInner() {
         <div className="container mx-auto max-w-7xl">
           <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
              <div>
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">My Bingo Cards</h1>
-                <p className="text-slate-600">
+                <h1 className="text-3xl font-bold text-[#33312e] mb-2">My Bingo Cards</h1>
+                <p className="text-[#33312e]">
                     Manage and share your created cards.
                 </p>
              </div>
@@ -359,14 +359,14 @@ function MyCardsPageInner() {
                     onClick={() => selectMode ? exitSelectMode() : setSelectMode(true)}
                     className={`text-sm font-semibold px-4 py-2 rounded-lg border transition-colors ${
                       selectMode
-                        ? "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100"
-                        : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                        ? "bg-[#7c5cff]/10 text-[#7c5cff] border-[#7c5cff] hover:bg-[#7c5cff]/15"
+                        : "bg-white text-[#33312e] border-[#a39a88] hover:bg-[#fff7ed]"
                     }`}
                   >
                     {selectMode ? "Cancel" : "Select"}
                   </button>
                 )}
-                <div className="text-sm font-medium text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                <div className="text-sm font-medium text-[#6b6459] bg-white px-4 py-2 rounded-lg border border-[#a39a88] shadow-sm">
                    {cards.length} card{cards.length !== 1 ? "s" : ""} total
                 </div>
              </div>
@@ -374,22 +374,22 @@ function MyCardsPageInner() {
 
           {/* Batch action toolbar */}
           {selectMode && (
-            <div className="mb-6 flex items-center justify-between bg-white rounded-xl border border-slate-200 shadow-sm px-5 py-3 animate-fade-in-up">
+            <div className="mb-6 flex items-center justify-between bg-white rounded-xl border border-[#a39a88] shadow-sm px-5 py-3 animate-fade-in-up">
               <div className="flex items-center gap-4">
                 <button
                   onClick={selectAll}
-                  className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+                  className="text-sm font-semibold text-[#7c5cff] hover:text-[#7c5cff] transition-colors"
                 >
                   {selected.size === cards.length ? "Deselect All" : "Select All"}
                 </button>
-                <span className="text-sm text-slate-500">
+                <span className="text-sm text-[#6b6459]">
                   {selected.size} of {cards.length} selected
                 </span>
               </div>
               <button
                 onClick={handleBatchDelete}
                 disabled={selected.size === 0 || batchDeleting}
-                className="text-sm font-bold px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                className="text-sm font-bold px-4 py-2 bg-[#ff5d8f] text-white rounded-lg hover:bg-[#ff5d8f] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {batchDeleting ? (
                   <>
@@ -412,7 +412,7 @@ function MyCardsPageInner() {
           )}
 
           {error && (
-            <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 flex items-center gap-3">
+            <div className="mb-8 p-4 bg-[#ff5d8f]/10 border border-[#ff5d8f] rounded-xl text-[#ff5d8f] flex items-center gap-3">
                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -421,20 +421,20 @@ function MyCardsPageInner() {
           )}
 
           {sharedBanner !== null && (
-            <div className="mb-8 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 flex items-center justify-between gap-3 animate-fade-in-up">
+            <div className="mb-8 p-4 bg-[#2ec4b6]/10 border border-[#2ec4b6] rounded-xl text-[#2ec4b6] flex items-center justify-between gap-3 animate-fade-in-up">
               <div className="flex items-center gap-3">
-                <svg className="w-5 h-5 flex-shrink-0 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 flex-shrink-0 text-[#2ec4b6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div>
                   <p className="font-semibold">Your share links are ready</p>
-                  <p className="text-sm text-emerald-800">
+                  <p className="text-sm text-[#2ec4b6]">
                     {sharedBanner.count > 0
                       ? `${sharedBanner.count} unique link${sharedBanner.count !== 1 ? "s" : ""} created.`
                       : "Your share links are being generated."}
                   </p>
                   {sharedBanner.count > 0 && (
-                    <p className="text-sm text-emerald-800 mt-1">
+                    <p className="text-sm text-[#2ec4b6] mt-1">
                       {sharedBanner.recipientCount > 0
                         ? `We’ll email ${sharedBanner.recipientCount} recipient${sharedBanner.recipientCount !== 1 ? "s" : ""}${sharedBanner.selfCount > 0 ? ` and send ${sharedBanner.selfCount} link${sharedBanner.selfCount !== 1 ? "s" : ""} to you.` : "."}`
                         : `We created ${sharedBanner.count} unique player link${sharedBanner.count !== 1 ? "s" : ""}. Copy one group invite from the dashboard.`}{" "}
@@ -447,7 +447,7 @@ function MyCardsPageInner() {
               </div>
               <button
                 onClick={() => setSharedBanner(null)}
-                className="text-emerald-600 hover:text-emerald-800 transition-colors"
+                className="text-[#2ec4b6] hover:text-[#2ec4b6] transition-colors"
                 aria-label="Dismiss"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -458,17 +458,17 @@ function MyCardsPageInner() {
           )}
 
           {batchGroups.length > 0 && (
-            <div className="mb-10 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+            <div className="mb-10 bg-white rounded-2xl shadow-sm border border-[#a39a88] p-6 md:p-8">
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">Your Batches</h2>
-                  <p className="text-sm text-slate-500 mt-1">
+                  <h2 className="text-xl font-bold text-[#33312e]">Your Batches</h2>
+                  <p className="text-sm text-[#6b6459] mt-1">
                     Send unique cards from a batch to friends, coworkers, or classmates. Starts at $0.50 for up to 5 links.
                   </p>
                 </div>
                 <Link
                   href="/dashboard/share-links"
-                  className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+                  className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-[#7c5cff] hover:text-[#7c5cff]"
                 >
                   View sent links
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -480,11 +480,11 @@ function MyCardsPageInner() {
                 {batchGroups.map((group) => (
                   <div
                     key={group.batchId}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-slate-50 rounded-xl border border-slate-100"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-[#fff7ed] rounded-xl border border-[#fff7ed]"
                   >
                     <div className="min-w-0">
-                      <p className="font-semibold text-slate-900 truncate">{group.title}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="font-semibold text-[#33312e] truncate">{group.title}</p>
+                      <p className="text-xs text-[#6b6459]">
                         {group.cards.length} cards ·{" "}
                         {new Date(group.cards[0]!.createdAt).toLocaleDateString()}
                       </p>
@@ -504,10 +504,10 @@ function MyCardsPageInner() {
           )}
 
           {cards.length === 0 ? (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 border-dashed p-16 text-center">
-              <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="bg-white rounded-3xl shadow-sm border border-[#a39a88] border-dashed p-16 text-center">
+              <div className="w-20 h-20 bg-[#7c5cff]/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg
-                    className="w-10 h-10 text-indigo-400"
+                    className="w-10 h-10 text-[#7c5cff]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -520,13 +520,13 @@ function MyCardsPageInner() {
                     />
                 </svg>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">You haven't created any cards yet</h3>
-              <p className="text-slate-500 mb-8 max-w-md mx-auto">
+              <h3 className="text-xl font-bold text-[#33312e] mb-2">You haven't created any cards yet</h3>
+              <p className="text-[#6b6459] mb-8 max-w-md mx-auto">
                 Get started by creating your first custom bingo card. It only takes a minute!
               </p>
               <Link
                 href="/create"
-                className="inline-flex items-center justify-center px-8 py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all font-bold text-lg"
+                className="inline-flex items-center justify-center px-8 py-3.5 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl hover:shadow-lg hover:shadow-[#7c5cff]/30 hover:-translate-y-0.5 transition-all font-bold text-lg"
               >
                 Create Your First Card
               </Link>
@@ -536,20 +536,20 @@ function MyCardsPageInner() {
               {cards.map((card) => (
                 <div
                   key={card._id}
-                  className="group bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-100 transition-all duration-300 overflow-hidden flex flex-col"
+                  className="group bg-white rounded-2xl shadow-sm border border-[#a39a88] hover:shadow-xl hover:shadow-[#7c5cff]/10 hover:border-[#7c5cff]/15 transition-all duration-300 overflow-hidden flex flex-col"
                 >
                   {/* Card Preview */}
                   <div
-                    className={`p-6 bg-slate-50 border-b border-slate-100 relative overflow-hidden ${selectMode ? "cursor-pointer" : ""}`}
+                    className={`p-6 bg-[#fff7ed] border-b border-[#fff7ed] relative overflow-hidden ${selectMode ? "cursor-pointer" : ""}`}
                     onClick={selectMode ? () => toggleSelect(card._id) : undefined}
                   >
-                     <div className="absolute inset-0 bg-gradient-to-br from-slate-50 to-white opacity-50"></div>
+                     <div className="absolute inset-0 bg-gradient-to-br from-[#fff7ed] to-white opacity-50"></div>
                      {selectMode && (
                        <div className="absolute top-3 left-3 z-20">
                          <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
                            selected.has(card._id)
-                             ? "bg-indigo-600 border-indigo-600"
-                             : "bg-white border-slate-300 hover:border-indigo-400"
+                             ? "bg-[#7c5cff] border-[#7c5cff]"
+                             : "bg-white border-[#a39a88] hover:border-[#7c5cff]"
                          }`}>
                            {selected.has(card._id) && (
                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -567,18 +567,18 @@ function MyCardsPageInner() {
                   {/* Card Info */}
                   <div className="p-5 flex flex-col flex-grow">
                     <div className="mb-4">
-                       <h3 className="font-bold text-slate-900 text-lg mb-1 line-clamp-1">{card.title}</h3>
+                       <h3 className="font-bold text-[#33312e] text-lg mb-1 line-clamp-1">{card.title}</h3>
                         {card.description ? (
-                            <p className="text-sm text-slate-500 line-clamp-2 min-h-[2.5em]">
+                            <p className="text-sm text-[#6b6459] line-clamp-2 min-h-[2.5em]">
                             {card.description}
                             </p>
                         ) : (
-                             <p className="text-sm text-slate-400 italic min-h-[2.5em]">No description</p>
+                             <p className="text-sm text-[#6b6459] italic min-h-[2.5em]">No description</p>
                         )}
                     </div>
 
-                    <div className="flex items-center justify-between text-xs font-medium text-slate-400 mb-6 mt-auto">
-                      <span className="bg-slate-100 px-2 py-1 rounded text-slate-500">{card.size}×{card.size}</span>
+                    <div className="flex items-center justify-between text-xs font-medium text-[#6b6459] mb-6 mt-auto">
+                      <span className="bg-[#fff7ed] px-2 py-1 rounded text-[#6b6459]">{card.size}×{card.size}</span>
                       <span>
                         {new Date(card.createdAt).toLocaleDateString()}
                       </span>
@@ -591,7 +591,7 @@ function MyCardsPageInner() {
                         <StartGameButton cardId={card._id} label="Friends" compact />
                         <Link
                           href={`/cards/${card._id}?next=share`}
-                          className="text-center px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg hover:bg-emerald-100 hover:border-emerald-200 transition-colors text-sm font-semibold"
+                          className="text-center px-3 py-2 bg-[#2ec4b6]/10 text-[#2ec4b6] border border-[#2ec4b6]/15 rounded-lg hover:bg-[#2ec4b6]/15 hover:border-[#2ec4b6] transition-colors text-sm font-semibold"
                         >
                           Share
                         </Link>
@@ -600,13 +600,13 @@ function MyCardsPageInner() {
                       <div className="grid grid-cols-2 gap-2">
                           <Link
                             href={`/cards/${card._id}`}
-                            className="text-center px-4 py-2 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-lg hover:bg-indigo-100 hover:border-indigo-200 transition-colors text-sm font-semibold"
+                            className="text-center px-4 py-2 bg-[#7c5cff]/10 text-[#7c5cff] border border-[#7c5cff]/15 rounded-lg hover:bg-[#7c5cff]/15 hover:border-[#7c5cff] transition-colors text-sm font-semibold"
                           >
                             Open
                           </Link>
                           <Link
                             href={`/create?cardId=${card._id}`}
-                            className="text-center px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors text-sm font-semibold"
+                            className="text-center px-4 py-2 bg-white text-[#33312e] border border-[#a39a88] rounded-lg hover:bg-[#fff7ed] hover:border-[#a39a88] transition-colors text-sm font-semibold"
                           >
                             Edit
                           </Link>
@@ -614,7 +614,7 @@ function MyCardsPageInner() {
 
                       <Link
                         href={`/create?cardId=${card._id}&batchMode=1`}
-                        className="w-full px-4 py-2.5 bg-violet-50 text-violet-700 border border-violet-200 rounded-lg hover:bg-violet-100 hover:border-violet-300 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+                        className="w-full px-4 py-2.5 bg-[#7c5cff]/10 text-[#7c5cff] border border-[#7c5cff] rounded-lg hover:bg-[#7c5cff]/15 hover:border-[#7c5cff] transition-colors text-sm font-semibold flex items-center justify-center gap-2"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7h16M4 12h16M4 17h16" />
@@ -625,7 +625,7 @@ function MyCardsPageInner() {
                       {card.isPublic && card.shareLink && (
                         <button
                           onClick={() => copyShareLink(card)}
-                          className="w-full px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg hover:bg-emerald-100 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
+                          className="w-full px-4 py-2 bg-[#2ec4b6]/10 text-[#2ec4b6] border border-[#2ec4b6]/15 rounded-lg hover:bg-[#2ec4b6]/15 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -638,13 +638,13 @@ function MyCardsPageInner() {
                         <div className="flex gap-2 animate-fade-in">
                           <button
                             onClick={() => handleDelete(card._id)}
-                            className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-xs font-bold"
+                            className="flex-1 px-3 py-2 bg-[#ff5d8f] text-white rounded-lg hover:bg-[#ff5d8f] transition text-xs font-bold"
                           >
                             Confirm
                           </button>
                           <button
                             onClick={() => setDeleteConfirm(null)}
-                            className="flex-1 px-3 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition text-xs font-bold"
+                            className="flex-1 px-3 py-2 bg-[#a39a88] text-[#33312e] rounded-lg hover:bg-[#a39a88] transition text-xs font-bold"
                           >
                             Cancel
                           </button>
@@ -652,7 +652,7 @@ function MyCardsPageInner() {
                       ) : (
                         <button
                           onClick={() => setDeleteConfirm(card._id)}
-                          className="w-full px-4 py-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors text-xs font-medium"
+                          className="w-full px-4 py-2 text-[#6b6459] hover:text-[#ff5d8f] hover:bg-[#ff5d8f]/10 rounded-lg transition-colors text-xs font-medium"
                         >
                           Delete Card
                         </button>

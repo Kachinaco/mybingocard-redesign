@@ -91,13 +91,13 @@ export default function AdminCouponsPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold text-slate-900">
+      <h1 className="mb-6 text-2xl font-bold text-[#33312e]">
         Coupon Management
       </h1>
 
       {/* Create Form */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
-        <h2 className="text-lg font-bold text-slate-900 mb-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#a39a88] p-6 mb-8">
+        <h2 className="text-lg font-bold text-[#33312e] mb-4">
           Create New Coupon
         </h2>
         <form
@@ -105,7 +105,7 @@ export default function AdminCouponsPage() {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
         >
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-[#33312e] mb-1">
               Coupon Code
             </label>
             <input
@@ -113,25 +113,25 @@ export default function AdminCouponsPage() {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+              className="w-full px-3 py-2 border border-[#a39a88] rounded-lg focus:ring-2 focus:ring-[#7c5cff]/20 focus:border-[#7c5cff] outline-none"
               placeholder="e.g. WELCOME20"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-[#33312e] mb-1">
               Discount Type
             </label>
             <select
               value={discountType}
               onChange={(e) => setDiscountType(e.target.value as any)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+              className="w-full px-3 py-2 border border-[#a39a88] rounded-lg focus:ring-2 focus:ring-[#7c5cff]/20 focus:border-[#7c5cff] outline-none"
             >
               <option value="percent">Percentage (%)</option>
               <option value="amount">Fixed Amount ($)</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-[#33312e] mb-1">
               {discountType === "percent" ? "Discount %" : "Discount $"}
             </label>
             <input
@@ -139,69 +139,69 @@ export default function AdminCouponsPage() {
               value={discountValue}
               onChange={(e) => setDiscountValue(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+              className="w-full px-3 py-2 border border-[#a39a88] rounded-lg focus:ring-2 focus:ring-[#7c5cff]/20 focus:border-[#7c5cff] outline-none"
               placeholder={discountType === "percent" ? "20" : "1.00"}
               step="0.01"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-[#33312e] mb-1">
               Max Uses (0 = unlimited)
             </label>
             <input
               type="number"
               value={maxUses}
               onChange={(e) => setMaxUses(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+              className="w-full px-3 py-2 border border-[#a39a88] rounded-lg focus:ring-2 focus:ring-[#7c5cff]/20 focus:border-[#7c5cff] outline-none"
               placeholder="100"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-[#33312e] mb-1">
               Expires At (optional)
             </label>
             <input
               type="date"
               value={expiresAt}
               onChange={(e) => setExpiresAt(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+              className="w-full px-3 py-2 border border-[#a39a88] rounded-lg focus:ring-2 focus:ring-[#7c5cff]/20 focus:border-[#7c5cff] outline-none"
             />
           </div>
           <div className="flex items-end">
             <button
               type="submit"
               disabled={creating}
-              className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition disabled:opacity-50"
+              className="w-full px-4 py-2 bg-[#7c5cff] text-white rounded-lg font-medium hover:bg-[#7c5cff] transition disabled:opacity-50"
             >
               {creating ? "Creating..." : "Create Coupon"}
             </button>
           </div>
         </form>
-        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+        {error && <p className="mt-3 text-sm text-[#ff5d8f]">{error}</p>}
       </div>
 
       {/* Coupons Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#a39a88] overflow-hidden">
         <div className="hidden overflow-x-auto md:block">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="text-left py-3 px-4 font-semibold text-slate-600">
+              <tr className="bg-[#fff7ed] border-b border-[#a39a88]">
+                <th className="text-left py-3 px-4 font-semibold text-[#33312e]">
                   Code
                 </th>
-                <th className="text-left py-3 px-4 font-semibold text-slate-600">
+                <th className="text-left py-3 px-4 font-semibold text-[#33312e]">
                   Discount
                 </th>
-                <th className="text-left py-3 px-4 font-semibold text-slate-600">
+                <th className="text-left py-3 px-4 font-semibold text-[#33312e]">
                   Usage
                 </th>
-                <th className="text-left py-3 px-4 font-semibold text-slate-600">
+                <th className="text-left py-3 px-4 font-semibold text-[#33312e]">
                   Expires
                 </th>
-                <th className="text-left py-3 px-4 font-semibold text-slate-600">
+                <th className="text-left py-3 px-4 font-semibold text-[#33312e]">
                   Status
                 </th>
-                <th className="text-left py-3 px-4 font-semibold text-slate-600">
+                <th className="text-left py-3 px-4 font-semibold text-[#33312e]">
                   Actions
                 </th>
               </tr>
@@ -209,13 +209,13 @@ export default function AdminCouponsPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400">
+                  <td colSpan={6} className="py-8 text-center text-[#6b6459]">
                     Loading...
                   </td>
                 </tr>
               ) : coupons.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400">
+                  <td colSpan={6} className="py-8 text-center text-[#6b6459]">
                     No coupons yet
                   </td>
                 </tr>
@@ -223,9 +223,9 @@ export default function AdminCouponsPage() {
                 coupons.map((c) => (
                   <tr
                     key={c._id}
-                    className="border-b border-slate-100 hover:bg-slate-50"
+                    className="border-b border-[#fff7ed] hover:bg-[#fff7ed]"
                   >
-                    <td className="py-3 px-4 font-mono font-bold text-indigo-600">
+                    <td className="py-3 px-4 font-mono font-bold text-[#7c5cff]">
                       {c.code}
                     </td>
                     <td className="py-3 px-4">
@@ -245,7 +245,7 @@ export default function AdminCouponsPage() {
                     </td>
                     <td className="py-3 px-4">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-xs font-semibold ${c.active ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}
+                        className={`px-2 py-0.5 rounded-full text-xs font-semibold ${c.active ? "bg-[#2ec4b6]/10 text-[#2ec4b6]" : "bg-[#ff5d8f]/10 text-[#ff5d8f]"}`}
                       >
                         {c.active ? "Active" : "Disabled"}
                       </span>
@@ -253,7 +253,7 @@ export default function AdminCouponsPage() {
                     <td className="py-3 px-4">
                       <button
                         onClick={() => handleToggle(c._id, c.active)}
-                        className={`text-xs font-medium ${c.active ? "text-red-600 hover:text-red-700" : "text-emerald-600 hover:text-emerald-700"}`}
+                        className={`text-xs font-medium ${c.active ? "text-[#ff5d8f] hover:text-[#ff5d8f]" : "text-[#2ec4b6] hover:text-[#2ec4b6]"}`}
                       >
                         {c.active ? "Disable" : "Enable"}
                       </button>
@@ -265,18 +265,18 @@ export default function AdminCouponsPage() {
           </table>
         </div>
 
-        <div className="divide-y divide-slate-100 md:hidden">
+        <div className="divide-y divide-[#fff7ed] md:hidden">
           {loading ? (
-            <div className="py-8 text-center text-slate-400">Loading...</div>
+            <div className="py-8 text-center text-[#6b6459]">Loading...</div>
           ) : coupons.length === 0 ? (
-            <div className="py-8 text-center text-slate-400">No coupons yet</div>
+            <div className="py-8 text-center text-[#6b6459]">No coupons yet</div>
           ) : (
             coupons.map((c) => (
               <div key={c._id} className="px-4 py-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="font-mono text-sm font-bold text-indigo-600">{c.code}</p>
-                    <p className="mt-1 text-xs text-slate-500">
+                    <p className="font-mono text-sm font-bold text-[#7c5cff]">{c.code}</p>
+                    <p className="mt-1 text-xs text-[#6b6459]">
                       {c.discountPercent
                         ? `${c.discountPercent}% off`
                         : c.discountAmount
@@ -285,12 +285,12 @@ export default function AdminCouponsPage() {
                     </p>
                   </div>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${c.active ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}
+                    className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${c.active ? "bg-[#2ec4b6]/10 text-[#2ec4b6]" : "bg-[#ff5d8f]/10 text-[#ff5d8f]"}`}
                   >
                     {c.active ? "Active" : "Disabled"}
                   </span>
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-400">
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-[#6b6459]">
                   <span>
                     {c.usedCount} / {c.maxUses || "\u221E"} used
                   </span>
@@ -302,7 +302,7 @@ export default function AdminCouponsPage() {
                 </div>
                 <button
                   onClick={() => handleToggle(c._id, c.active)}
-                  className={`mt-3 text-xs font-medium ${c.active ? "text-red-600 hover:text-red-700" : "text-emerald-600 hover:text-emerald-700"}`}
+                  className={`mt-3 text-xs font-medium ${c.active ? "text-[#ff5d8f] hover:text-[#ff5d8f]" : "text-[#2ec4b6] hover:text-[#2ec4b6]"}`}
                 >
                   {c.active ? "Disable" : "Enable"}
                 </button>

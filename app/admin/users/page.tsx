@@ -50,11 +50,11 @@ function getCustomerTypeBadge(customerType?: string): {
 } | null {
   switch (customerType) {
     case "admin":
-      return { label: "Admin", bgColor: "bg-rose-50", textColor: "text-rose-700" };
+      return { label: "Admin", bgColor: "bg-[#ff5d8f]/10", textColor: "text-[#ff5d8f]" };
     case "complimentary":
-      return { label: "Comp", bgColor: "bg-cyan-50", textColor: "text-cyan-700" };
+      return { label: "Comp", bgColor: "bg-[#2ec4b6]/10", textColor: "text-[#2ec4b6]" };
     case "test":
-      return { label: "Test", bgColor: "bg-orange-50", textColor: "text-orange-700" };
+      return { label: "Test", bgColor: "bg-[#ff8a3d]/10", textColor: "text-[#ff8a3d]" };
     default:
       return null;
   }
@@ -77,53 +77,53 @@ function getPlanBadge(user: AdminUser): {
     );
     return {
       label: `Trial Day ${trialDay}`,
-      dotColor: "bg-amber-500",
-      bgColor: "bg-amber-50",
-      textColor: "text-amber-700",
+      dotColor: "bg-[#ffb800]",
+      bgColor: "bg-[#ffb800]/10",
+      textColor: "text-[#ffb800]",
     };
   }
 
   if (subscriptionStatus === "lifetime" || planType === "LIFETIME") {
     return {
       label: "Lifetime",
-      dotColor: "bg-purple-500",
-      bgColor: "bg-purple-50",
-      textColor: "text-purple-700",
+      dotColor: "bg-[#7c5cff]",
+      bgColor: "bg-[#7c5cff]/10",
+      textColor: "text-[#7c5cff]",
     };
   }
 
   if (planType === "PREMIUM" && subscriptionStatus === "active") {
     return {
       label: "Premium",
-      dotColor: "bg-emerald-500",
-      bgColor: "bg-indigo-50",
-      textColor: "text-indigo-700",
+      dotColor: "bg-[#2ec4b6]",
+      bgColor: "bg-[#7c5cff]/10",
+      textColor: "text-[#7c5cff]",
     };
   }
 
   if (subscriptionStatus === "past_due") {
     return {
       label: "Past Due",
-      dotColor: "bg-red-500",
-      bgColor: "bg-red-50",
-      textColor: "text-red-700",
+      dotColor: "bg-[#ff5d8f]",
+      bgColor: "bg-[#ff5d8f]/10",
+      textColor: "text-[#ff5d8f]",
     };
   }
 
   if (subscriptionStatus === "canceled") {
     return {
       label: "Canceled",
-      dotColor: "bg-slate-400",
-      bgColor: "bg-slate-100",
-      textColor: "text-slate-600",
+      dotColor: "bg-[#6b6459]",
+      bgColor: "bg-[#fff7ed]",
+      textColor: "text-[#33312e]",
     };
   }
 
   return {
     label: "Free",
-    dotColor: "bg-slate-400",
-    bgColor: "bg-slate-100",
-    textColor: "text-slate-600",
+    dotColor: "bg-[#6b6459]",
+    bgColor: "bg-[#fff7ed]",
+    textColor: "text-[#33312e]",
   };
 }
 
@@ -190,8 +190,8 @@ export default function AdminUsersPage() {
   return (
     <div>
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Users</h1>
-        <p className="text-slate-500 mt-1">
+        <h1 className="text-2xl font-bold text-[#33312e]">Users</h1>
+        <p className="text-[#6b6459] mt-1">
           {data
             ? `${data.totalUsers.toLocaleString()} total users`
             : "Loading users..."}
@@ -199,7 +199,7 @@ export default function AdminUsersPage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+        <div className="mb-6 p-4 bg-[#ff5d8f]/10 border border-[#ff5d8f] rounded-xl text-sm text-[#ff5d8f]">
           {error}
         </div>
       )}
@@ -208,7 +208,7 @@ export default function AdminUsersPage() {
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
           <svg
-            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#6b6459]"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={2}
@@ -225,13 +225,13 @@ export default function AdminUsersPage() {
             placeholder="Search by name or email..."
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+            className="w-full rounded-lg border border-[#a39a88] bg-white py-2 pl-10 pr-4 text-sm text-[#33312e] placeholder:text-[#6b6459] focus:border-[#7c5cff] focus:outline-none focus:ring-2 focus:ring-[#7c5cff]/15"
           />
         </div>
         <select
           value={plan}
           onChange={(e) => handlePlanChange(e.target.value)}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          className="rounded-lg border border-[#a39a88] bg-white px-3 py-2 text-sm text-[#33312e] focus:border-[#7c5cff] focus:outline-none focus:ring-2 focus:ring-[#7c5cff]/15"
         >
           {PLAN_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -242,7 +242,7 @@ export default function AdminUsersPage() {
         <select
           value={sortBy}
           onChange={(e) => handleSortChange(e.target.value)}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          className="rounded-lg border border-[#a39a88] bg-white px-3 py-2 text-sm text-[#33312e] focus:border-[#7c5cff] focus:outline-none focus:ring-2 focus:ring-[#7c5cff]/15"
         >
           {SORT_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -252,34 +252,34 @@ export default function AdminUsersPage() {
         </select>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-12 text-center">
-            <div className="inline-block w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-3 text-sm text-slate-400">Loading users...</p>
+            <div className="inline-block w-6 h-6 border-2 border-[#7c5cff] border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-3 text-sm text-[#6b6459]">Loading users...</p>
           </div>
         ) : (
           <>
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50">
-                    <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <tr className="border-b border-[#fff7ed] bg-[#fff7ed]">
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                       User
                     </th>
-                    <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                       Email
                     </th>
-                    <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                       Plan
                     </th>
-                    <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                       Cards
                     </th>
-                    <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                       Joined
                     </th>
-                    <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                       Last Active
                     </th>
                   </tr>
@@ -288,24 +288,24 @@ export default function AdminUsersPage() {
                   {data?.users.map((user) => (
                     <tr
                       key={user._id}
-                      className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer"
+                      className="border-b border-[#fff7ed] hover:bg-[#fff7ed] transition-colors cursor-pointer"
                     >
                       <td className="py-3.5 px-6">
                         <Link
                           href={`/admin/users/${user._id}`}
                           className="flex items-center gap-3"
                         >
-                          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-[#fff7ed] flex items-center justify-center text-xs font-bold text-[#6b6459] flex-shrink-0">
                             {(user.name || user.email || "?")
                               .charAt(0)
                               .toUpperCase()}
                           </div>
-                          <span className="text-sm font-medium text-slate-900 hover:text-indigo-600 transition-colors">
+                          <span className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff] transition-colors">
                             {user.name}
                           </span>
                         </Link>
                       </td>
-                      <td className="py-3.5 px-6 text-sm text-slate-500">
+                      <td className="py-3.5 px-6 text-sm text-[#6b6459]">
                         {user.email}
                       </td>
                       <td className="py-3.5 px-6">
@@ -336,10 +336,10 @@ export default function AdminUsersPage() {
                           })()}
                         </div>
                       </td>
-                      <td className="py-3.5 px-6 text-sm text-slate-600 font-medium">
+                      <td className="py-3.5 px-6 text-sm text-[#33312e] font-medium">
                         {user.cardCount}
                       </td>
-                      <td className="py-3.5 px-6 text-sm text-slate-400">
+                      <td className="py-3.5 px-6 text-sm text-[#6b6459]">
                         {user.createdAt
                           ? new Date(user.createdAt).toLocaleDateString(
                               "en-US",
@@ -351,7 +351,7 @@ export default function AdminUsersPage() {
                             )
                           : "N/A"}
                       </td>
-                      <td className="py-3.5 px-6 text-sm text-slate-400">
+                      <td className="py-3.5 px-6 text-sm text-[#6b6459]">
                         {user.lastActive
                           ? new Date(user.lastActive).toLocaleDateString(
                               "en-US",
@@ -369,7 +369,7 @@ export default function AdminUsersPage() {
                     <tr>
                       <td
                         colSpan={6}
-                        className="py-12 text-center text-sm text-slate-400"
+                        className="py-12 text-center text-sm text-[#6b6459]"
                       >
                         No users found.
                       </td>
@@ -379,24 +379,24 @@ export default function AdminUsersPage() {
               </table>
             </div>
 
-            <div className="divide-y divide-slate-100 md:hidden">
+            <div className="divide-y divide-[#fff7ed] md:hidden">
               {data?.users.map((user) => (
                 <Link
                   key={user._id}
                   href={`/admin/users/${user._id}`}
-                  className="block px-4 py-4 transition-colors hover:bg-slate-50"
+                  className="block px-4 py-4 transition-colors hover:bg-[#fff7ed]"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 flex-shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-[#fff7ed] flex items-center justify-center text-xs font-bold text-[#6b6459] flex-shrink-0">
                       {(user.name || user.email || "?").charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-slate-900">
+                          <p className="truncate text-sm font-semibold text-[#33312e]">
                             {user.name || "No name"}
                           </p>
-                          <p className="mt-1 break-all text-xs text-slate-500">
+                          <p className="mt-1 break-all text-xs text-[#6b6459]">
                             {user.email}
                           </p>
                         </div>
@@ -427,7 +427,7 @@ export default function AdminUsersPage() {
                           })()}
                         </div>
                       </div>
-                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-400">
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-[#6b6459]">
                         <span>{user.cardCount} cards</span>
                         <span>
                           Joined{" "}
@@ -454,7 +454,7 @@ export default function AdminUsersPage() {
                 </Link>
               ))}
               {data?.users.length === 0 && (
-                <div className="py-12 text-center text-sm text-slate-400">
+                <div className="py-12 text-center text-sm text-[#6b6459]">
                   No users found.
                 </div>
               )}
@@ -462,15 +462,15 @@ export default function AdminUsersPage() {
 
             {/* Pagination */}
             {data && data.totalPages > 1 && (
-              <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <p className="text-sm text-slate-400">
+              <div className="flex flex-col gap-3 border-t border-[#fff7ed] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                <p className="text-sm text-[#6b6459]">
                   Page {data.page} of {data.totalPages} ({data.totalUsers} total)
                 </p>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page <= 1}
-                    className="px-3 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 py-1.5 text-sm font-medium text-[#33312e] bg-white border border-[#a39a88] rounded-lg hover:bg-[#fff7ed] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     Previous
                   </button>
@@ -479,7 +479,7 @@ export default function AdminUsersPage() {
                       setPage((p) => Math.min(data.totalPages, p + 1))
                     }
                     disabled={page >= data.totalPages}
-                    className="px-3 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 py-1.5 text-sm font-medium text-[#33312e] bg-white border border-[#a39a88] rounded-lg hover:bg-[#fff7ed] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   >
                     Next
                   </button>

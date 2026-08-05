@@ -81,13 +81,13 @@ export default function HomeQuickStart() {
 
   return (
     <div className="relative animate-fade-in-up animation-delay-200">
-      <div className="relative bg-white rounded-2xl shadow-2xl shadow-indigo-500/10 border border-indigo-100 overflow-hidden">
-        <div className="border-b border-slate-100 px-5 py-4 flex items-center justify-between gap-3">
+      <div className="relative bg-white rounded-2xl shadow-2xl shadow-[#7c5cff]/10 border border-[#7c5cff]/15 overflow-hidden">
+        <div className="border-b border-[#fff7ed] px-5 py-4 flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-indigo-600">Quick Start</p>
-            <h2 className="text-lg font-bold text-slate-900">Make your first card</h2>
+            <p className="text-xs font-bold uppercase tracking-wide text-[#7c5cff]">Quick Start</p>
+            <h2 className="text-lg font-bold text-[#33312e]">Make your first card</h2>
           </div>
-          <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-1" aria-label="Grid size">
+          <div className="flex rounded-xl border border-[#a39a88] bg-[#fff7ed] p-1" aria-label="Grid size">
             {GRID_SIZES.map((gridSize) => (
               <button
                 key={gridSize}
@@ -95,8 +95,8 @@ export default function HomeQuickStart() {
                 onClick={() => setSize(gridSize)}
                 className={`h-9 min-w-12 rounded-lg px-3 text-sm font-bold transition-colors ${
                   size === gridSize
-                    ? "bg-indigo-600 text-white shadow-sm"
-                    : "text-slate-600 hover:bg-white"
+                    ? "bg-[#7c5cff] text-white shadow-sm"
+                    : "text-[#33312e] hover:bg-white"
                 }`}
               >
                 {gridSize}x{gridSize}
@@ -108,22 +108,22 @@ export default function HomeQuickStart() {
         <div className="grid gap-5 p-5 lg:grid-cols-[1fr_0.92fr]">
           <div className="space-y-4">
             <label className="block">
-              <span className="mb-1.5 block text-sm font-semibold text-slate-700">Card title</span>
+              <span className="mb-1.5 block text-sm font-semibold text-[#33312e]">Card title</span>
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+                className="w-full rounded-xl border border-[#a39a88] bg-[#fff7ed] px-4 py-3 text-sm font-semibold text-[#33312e] outline-none transition focus:border-[#7c5cff] focus:bg-white focus:ring-4 focus:ring-[#7c5cff]/15"
                 placeholder="Baby Shower Bingo"
               />
             </label>
 
             <label className="block">
-              <span className="mb-1.5 block text-sm font-semibold text-slate-700">Square ideas</span>
+              <span className="mb-1.5 block text-sm font-semibold text-[#33312e]">Square ideas</span>
               <textarea
                 value={squareText}
                 onChange={(event) => setSquareText(event.target.value)}
                 rows={7}
-                className="min-h-[170px] w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+                className="min-h-[170px] w-full resize-none rounded-xl border border-[#a39a88] bg-[#fff7ed] px-4 py-3 text-sm leading-6 text-[#33312e] outline-none transition focus:border-[#7c5cff] focus:bg-white focus:ring-4 focus:ring-[#7c5cff]/15"
                 placeholder="Paste words or phrases, one per line"
               />
             </label>
@@ -131,7 +131,7 @@ export default function HomeQuickStart() {
             <button
               type="button"
               onClick={handleGenerate}
-              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-4 text-base font-bold text-white shadow-lg shadow-indigo-500/25 transition hover:-translate-y-0.5 hover:shadow-indigo-500/35"
+              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] px-5 py-4 text-base font-bold text-white shadow-lg shadow-[#7c5cff]/25 transition hover:-translate-y-0.5 hover:shadow-[#7c5cff]/35"
             >
               <svg className="h-5 w-5 transition group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -140,10 +140,10 @@ export default function HomeQuickStart() {
             </button>
           </div>
 
-          <div className="rounded-2xl bg-slate-50 p-4">
+          <div className="rounded-2xl bg-[#fff7ed] p-4">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="text-sm font-bold text-slate-900 truncate">{title || "Custom Bingo"}</div>
-              <div className="shrink-0 text-xs font-semibold text-slate-500">{filledCount}/{size * size}</div>
+              <div className="text-sm font-bold text-[#33312e] truncate">{title || "Custom Bingo"}</div>
+              <div className="shrink-0 text-xs font-semibold text-[#6b6459]">{filledCount}/{size * size}</div>
             </div>
             <div
               className="grid gap-1.5 rounded-xl bg-white p-2 shadow-sm"
@@ -155,15 +155,15 @@ export default function HomeQuickStart() {
                   key={`${index}-${cell}`}
                   className={`aspect-square rounded-lg border p-1 text-center text-[9px] font-semibold leading-tight flex items-center justify-center overflow-hidden ${
                     cell === "FREE"
-                      ? "border-indigo-500 bg-indigo-600 text-white"
-                      : "border-indigo-100 bg-white text-slate-700"
+                      ? "border-[#7c5cff] bg-[#7c5cff] text-white"
+                      : "border-[#7c5cff]/15 bg-white text-[#33312e]"
                   }`}
                 >
                   {cell || " "}
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-xs font-medium text-slate-500">
+            <p className="mt-3 text-xs font-medium text-[#6b6459]">
               Use at least {size * size - 1} ideas for a full {size}x{size} card.
             </p>
           </div>

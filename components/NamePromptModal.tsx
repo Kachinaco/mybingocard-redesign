@@ -73,8 +73,8 @@ export default function NamePromptModal() {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
         <div className="text-center mb-5">
           <div className="text-3xl mb-2">👋</div>
-          <h2 className="text-xl font-bold text-slate-800">What should we call you?</h2>
-          <p className="text-sm text-slate-500 mt-1">Just your first name is fine.</p>
+          <h2 className="text-xl font-bold text-[#33312e]">What should we call you?</h2>
+          <p className="text-sm text-[#6b6459] mt-1">Just your first name is fine.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -85,17 +85,17 @@ export default function NamePromptModal() {
             placeholder="Your name"
             autoFocus
             maxLength={100}
-            className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+            className="w-full border border-[#a39a88] rounded-xl px-4 py-3 text-sm text-[#33312e] focus:outline-none focus:ring-2 focus:ring-[#7c5cff] focus:border-transparent"
           />
 
           {error && (
-            <p className="text-xs text-rose-500">{error}</p>
+            <p className="text-xs text-[#ff5d8f]">{error}</p>
           )}
 
           <button
             type="submit"
             disabled={saving}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl py-3 text-sm transition-colors disabled:opacity-60"
+            className="w-full bg-[#7c5cff] hover:bg-[#7c5cff] text-white font-semibold rounded-xl py-3 text-sm transition-colors disabled:opacity-60"
           >
             {saving ? "Saving…" : "Save name"}
           </button>
@@ -103,7 +103,7 @@ export default function NamePromptModal() {
           <button
             type="button"
             onClick={handleSkip}
-            className="w-full text-slate-400 hover:text-slate-600 text-xs py-1 transition-colors"
+            className="w-full text-[#6b6459] hover:text-[#33312e] text-xs py-1 transition-colors"
           >
             Skip for now
           </button>

@@ -373,10 +373,10 @@ export default function SharedCardPage() {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${"bg-gradient-to-br from-slate-50 to-indigo-50"}`}>
+      <div className={`min-h-screen flex items-center justify-center ${"bg-gradient-to-br from-[#fff7ed] to-[#7c5cff]/10"}`}>
         <div className="text-center">
-          <div className="inline-block w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className={"text-slate-500"}>Loading bingo card...</p>
+          <div className="inline-block w-12 h-12 border-4 border-[#7c5cff] border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className={"text-[#6b6459]"}>Loading bingo card...</p>
         </div>
       </div>
     );
@@ -384,12 +384,12 @@ export default function SharedCardPage() {
 
   if (expired) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-50 to-indigo-50">
+      <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-[#fff7ed] to-[#7c5cff]/10">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
           <div className="text-5xl mb-4">&#x23F3;</div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Link Expired</h2>
-          <p className="text-slate-500 mb-6">This share link has expired and is no longer available.</p>
-          <Link href="/create" className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-semibold">
+          <h2 className="text-2xl font-bold text-[#33312e] mb-2">Link Expired</h2>
+          <p className="text-[#6b6459] mb-6">This share link has expired and is no longer available.</p>
+          <Link href="/create" className="inline-block px-6 py-3 bg-[#7c5cff] text-white rounded-xl hover:bg-[#7c5cff] transition font-semibold">
             Create Your Own Card
           </Link>
         </div>
@@ -399,13 +399,13 @@ export default function SharedCardPage() {
 
   if (requiresPassword) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-slate-50 to-indigo-50">
+      <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-[#fff7ed] to-[#7c5cff]/10">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
           <div className="text-5xl mb-4">&#x1F512;</div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">Password Protected</h2>
-          <p className="text-slate-500 mb-6">This bingo card requires a password to view.</p>
+          <h2 className="text-2xl font-bold text-[#33312e] mb-2">Password Protected</h2>
+          <p className="text-[#6b6459] mb-6">This bingo card requires a password to view.</p>
           {passwordTitle && (
-            <p className="text-lg font-semibold text-slate-700 mb-6">{passwordTitle}</p>
+            <p className="text-lg font-semibold text-[#33312e] mb-6">{passwordTitle}</p>
           )}
           <form onSubmit={submitPassword}>
             <input
@@ -413,15 +413,15 @@ export default function SharedCardPage() {
               placeholder="Enter password"
               value={passwordInput}
               onChange={(e) => setPasswordInput(e.target.value)}
-              className="w-full px-4 py-3 border border-slate-200 rounded-xl text-center text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-[#a39a88] rounded-xl text-center text-[#33312e] placeholder-[#6b6459] focus:outline-none focus:ring-2 focus:ring-[#7c5cff] focus:border-transparent"
               autoFocus
             />
             {passwordError && (
-              <p className="text-red-500 text-sm mt-2">{passwordError}</p>
+              <p className="text-[#ff5d8f] text-sm mt-2">{passwordError}</p>
             )}
             <button
               type="submit"
-              className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition font-semibold"
+              className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl hover:shadow-lg transition font-semibold"
             >
               View Card
             </button>
@@ -433,12 +433,12 @@ export default function SharedCardPage() {
 
   if (error || !card) {
     return (
-      <div className={`min-h-screen flex items-center justify-center px-4 ${"bg-gradient-to-br from-slate-50 to-indigo-50"}`}>
+      <div className={`min-h-screen flex items-center justify-center px-4 ${"bg-gradient-to-br from-[#fff7ed] to-[#7c5cff]/10"}`}>
         <div className={`max-w-md w-full rounded-2xl shadow-lg p-8 text-center ${"bg-white"}`}>
           <div className="text-5xl mb-4">😕</div>
-          <h2 className={`text-2xl font-bold mb-2 ${"text-slate-900"}`}>Card Not Found</h2>
-          <p className={`mb-6 ${"text-slate-500"}`}>{error || "This card doesn't exist or is no longer shared."}</p>
-          <Link href="/create" className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-semibold">
+          <h2 className={`text-2xl font-bold mb-2 ${"text-[#33312e]"}`}>Card Not Found</h2>
+          <p className={`mb-6 ${"text-[#6b6459]"}`}>{error || "This card doesn't exist or is no longer shared."}</p>
+          <Link href="/create" className="inline-block px-6 py-3 bg-[#7c5cff] text-white rounded-xl hover:bg-[#7c5cff] transition font-semibold">
             Create Your Own Card
           </Link>
         </div>
@@ -458,14 +458,14 @@ export default function SharedCardPage() {
     <div
       ref={cardContainerRef}
       className={`min-h-screen transition-colors duration-200 ${
-        "bg-gradient-to-br from-slate-50 to-indigo-50"
+        "bg-gradient-to-br from-[#fff7ed] to-[#7c5cff]/10"
       } ${isFullscreen ? "fullscreen-card" : ""}`}
     >
       {/* Confetti burst on BINGO */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
           <div className="text-center animate-bounce">
-            <div className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 drop-shadow-lg">BINGO!</div>
+            <div className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ffb800] via-[#ff5d8f] to-[#7c5cff] drop-shadow-lg">BINGO!</div>
             <div className="text-4xl mt-2">🎉🎊🎉</div>
           </div>
         </div>
@@ -474,14 +474,14 @@ export default function SharedCardPage() {
       {/* Header */}
       {!isFullscreen && (
         <header className={`backdrop-blur-sm border-b sticky top-0 z-10 print:hidden ${
-          "bg-white/80 border-slate-100"
+          "bg-white/80 border-[#fff7ed]"
         }`}>
           <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-            <Link href="/" className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
+            <Link href="/" className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cff] to-[#7c5cff]">
               MyBingoCard
             </Link>
             <div className="flex gap-2 items-center">
-              <Link href="/create" className="px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition font-semibold text-sm">
+              <Link href="/create" className="px-4 py-2 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl hover:shadow-lg transition font-semibold text-sm">
                 Create Your Own
               </Link>
             </div>
@@ -492,10 +492,10 @@ export default function SharedCardPage() {
       <main className="container mx-auto px-3 md:px-4 py-6 md:py-8 max-w-2xl">
         {/* Bingo Banner */}
         {bingo && !isFullscreen && (
-          <div className="mb-6 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl p-6 text-center shadow-lg print:hidden">
+          <div className="mb-6 bg-gradient-to-r from-[#ffb800] to-[#ff8a3d] text-white rounded-2xl p-6 text-center shadow-lg print:hidden">
             <div className="font-black text-2xl animate-pulse mb-3">🎉 BINGO! You won! 🎉</div>
-            <p className="text-yellow-100 text-sm mb-3">Want to make your own bingo cards for your next event?</p>
-            <Link href="/create" className="inline-block px-5 py-2 bg-white text-orange-600 rounded-xl font-bold text-sm hover:bg-orange-50 transition shadow-md">
+            <p className="text-[#ffb800]/15 text-sm mb-3">Want to make your own bingo cards for your next event?</p>
+            <Link href="/create" className="inline-block px-5 py-2 bg-white text-[#ff8a3d] rounded-xl font-bold text-sm hover:bg-[#ff8a3d]/10 transition shadow-md">
               Create Your Own Card
             </Link>
           </div>
@@ -508,18 +508,18 @@ export default function SharedCardPage() {
         }`}>
           {/* Title */}
           <div className="text-center mb-4 md:mb-6">
-            <h1 className={`text-xl md:text-2xl font-black ${"text-slate-900"}`}>{card.title}</h1>
-            {card.description && <p className={`text-xs md:text-sm mt-1 ${"text-slate-500"}`}>{card.description}</p>}
-            <p className={`text-xs mt-2 print:hidden ${"text-slate-400"}`}>Tap cells to mark • {markedCount}/{totalCells} marked</p>
+            <h1 className={`text-xl md:text-2xl font-black ${"text-[#33312e]"}`}>{card.title}</h1>
+            {card.description && <p className={`text-xs md:text-sm mt-1 ${"text-[#6b6459]"}`}>{card.description}</p>}
+            <p className={`text-xs mt-2 print:hidden ${"text-[#6b6459]"}`}>Tap cells to mark • {markedCount}/{totalCells} marked</p>
           </div>
 
           {variant === "classic75" && (
             <div
-              className="grid gap-1.5 md:gap-2 w-full mb-1 text-center text-sm md:text-base font-black text-emerald-700"
+              className="grid gap-1.5 md:gap-2 w-full mb-1 text-center text-sm md:text-base font-black text-[#2ec4b6]"
               style={{ gridTemplateColumns: `repeat(${shape.columns}, 1fr)` }}
             >
               {"BINGO".split("").map((letter) => (
-                <div key={letter} className="rounded-lg bg-emerald-50 py-1">
+                <div key={letter} className="rounded-lg bg-[#2ec4b6]/10 py-1">
                   {letter}
                 </div>
               ))}
@@ -528,11 +528,11 @@ export default function SharedCardPage() {
 
           {variant === "classic90" && (
             <div
-              className="grid gap-1.5 md:gap-2 w-full mb-1 text-center text-[10px] md:text-xs font-bold text-amber-700"
+              className="grid gap-1.5 md:gap-2 w-full mb-1 text-center text-[10px] md:text-xs font-bold text-[#ffb800]"
               style={{ gridTemplateColumns: `repeat(${shape.columns}, 1fr)` }}
             >
               {["1-9", "10s", "20s", "30s", "40s", "50s", "60s", "70s", "80-90"].map((label) => (
-                <div key={label} className="rounded-md bg-amber-50 py-1">
+                <div key={label} className="rounded-md bg-[#ffb800]/10 py-1">
                   {label}
                 </div>
               ))}
@@ -559,12 +559,12 @@ export default function SharedCardPage() {
                   className={`
                     aspect-square flex items-center justify-center text-center rounded-xl font-semibold transition-all duration-150 select-none touch-manipulation overflow-hidden
                     ${isBlank
-                      ? "bg-amber-50/70 text-amber-300 border border-dashed border-amber-200 cursor-default"
+                      ? "bg-[#ffb800]/70 text-[#ffb800] border border-dashed border-[#ffb800] cursor-default"
                       : isFreeSpace
-                      ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-indigo-200 shadow-md cursor-default"
+                      ? "bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] text-white shadow-[#7c5cff] shadow-md cursor-default"
                       : isMarked
-                        ? "bg-gradient-to-br from-violet-500 to-indigo-500 text-white shadow-indigo-200 shadow-md ring-2 ring-indigo-300"
-                        : "bg-slate-50 text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 active:scale-95"
+                        ? "bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] text-white shadow-[#7c5cff] shadow-md ring-2 ring-[#7c5cff]"
+                        : "bg-[#fff7ed] text-[#33312e] border border-[#a39a88] hover:border-[#7c5cff] hover:bg-[#7c5cff]/50 active:scale-95"
                     }
                   `}
                   style={{
@@ -605,18 +605,18 @@ export default function SharedCardPage() {
           {/* Fullscreen controls */}
           {isFullscreen && (
             <div className="mt-4 flex justify-center gap-3 print:hidden">
-              <button onClick={undoLast} disabled={undoStack.length === 0} className="px-4 py-2 bg-amber-500 text-white rounded-xl font-semibold text-sm disabled:opacity-30 transition-all">↩ Undo</button>
-              <button onClick={resetCard} className="px-4 py-2 bg-slate-600 text-white rounded-xl font-semibold text-sm">🔄 Reset</button>
-              <button onClick={toggleFullscreen} className="px-4 py-2 bg-red-500 text-white rounded-xl font-semibold text-sm">✕ Exit</button>
+              <button onClick={undoLast} disabled={undoStack.length === 0} className="px-4 py-2 bg-[#ffb800] text-white rounded-xl font-semibold text-sm disabled:opacity-30 transition-all">↩ Undo</button>
+              <button onClick={resetCard} className="px-4 py-2 bg-[#33312e] text-white rounded-xl font-semibold text-sm">🔄 Reset</button>
+              <button onClick={toggleFullscreen} className="px-4 py-2 bg-[#ff5d8f] text-white rounded-xl font-semibold text-sm">✕ Exit</button>
             </div>
           )}
 
           {/* Progress bar */}
           {!isFullscreen && (
             <div className="mt-5 print:hidden">
-              <div className={`h-1.5 rounded-full overflow-hidden ${"bg-slate-100"}`}>
+              <div className={`h-1.5 rounded-full overflow-hidden ${"bg-[#fff7ed]"}`}>
                 <div
-                  className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-300"
+                  className="h-full bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] rounded-full transition-all duration-300"
                   style={{ width: `${(markedCount / totalCells) * 100}%` }}
                 />
               </div>
@@ -635,10 +635,10 @@ export default function SharedCardPage() {
           )}
 
           {/* Print-only QR code */}
-          <div className="print-only mt-6 text-center border-t border-slate-200 pt-4">
-            <p className="text-xs text-slate-500 mb-2">Play this card digitally:</p>
+          <div className="print-only mt-6 text-center border-t border-[#a39a88] pt-4">
+            <p className="text-xs text-[#6b6459] mb-2">Play this card digitally:</p>
             <img src={qrCodeUrl} alt="QR Code" className="mx-auto" width={120} height={120} />
-            <p className="text-xs text-slate-400 mt-1">{currentUrl}</p>
+            <p className="text-xs text-[#6b6459] mt-1">{currentUrl}</p>
           </div>
         </div>
         </ThemedCardWrapper>
@@ -650,7 +650,7 @@ export default function SharedCardPage() {
               onClick={undoLast}
               disabled={undoStack.length === 0}
               className={`text-sm font-medium px-4 py-2 rounded-xl transition-all disabled:opacity-30 ${
-                "bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
+                "bg-white text-[#33312e] hover:bg-[#fff7ed] shadow-sm"
               }`}
             >
               ↩ Undo
@@ -658,7 +658,7 @@ export default function SharedCardPage() {
             <button
               onClick={resetCard}
               className={`text-sm font-medium px-4 py-2 rounded-xl transition-all ${
-                "bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
+                "bg-white text-[#33312e] hover:bg-[#fff7ed] shadow-sm"
               }`}
             >
               🔄 Reset
@@ -666,7 +666,7 @@ export default function SharedCardPage() {
             <button
               onClick={toggleFullscreen}
               className={`text-sm font-medium px-4 py-2 rounded-xl transition-all ${
-                "bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
+                "bg-white text-[#33312e] hover:bg-[#fff7ed] shadow-sm"
               }`}
             >
               ⛶ Fullscreen
@@ -683,9 +683,9 @@ export default function SharedCardPage() {
 
         {/* Upgrade CTA for non-shuffled cards */}
         {!isFullscreen && !shuffleEnabled && (
-          <div className="mb-6 text-center text-sm text-slate-400 print:hidden">
+          <div className="mb-6 text-center text-sm text-[#6b6459] print:hidden">
             <p>Everyone sees the same card layout.</p>
-            <Link href="/pricing" className="text-indigo-500 hover:underline font-medium">
+            <Link href="/pricing" className="text-[#7c5cff] hover:underline font-medium">
               Upgrade to Premium
             </Link>{" "}
             for unique cards per viewer.
@@ -694,16 +694,16 @@ export default function SharedCardPage() {
 
         {/* CTA */}
         {!isFullscreen && (
-          <div className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-2xl shadow-lg p-8 text-center print:hidden">
+          <div className="bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-2xl shadow-lg p-8 text-center print:hidden">
             <h2 className="text-xl font-black mb-2">Create Your Own Bingo Card</h2>
-            <p className="text-indigo-100 mb-6 text-sm">
+            <p className="text-[#7c5cff]/15 mb-6 text-sm">
               Design custom bingo cards in seconds. Perfect for parties, classrooms, and team events.
             </p>
             <div className="flex gap-3 justify-center flex-wrap">
-              <Link href="/create" className="px-5 py-2.5 bg-white text-indigo-600 rounded-xl hover:bg-indigo-50 transition font-semibold text-sm">
+              <Link href="/create" className="px-5 py-2.5 bg-white text-[#7c5cff] rounded-xl hover:bg-[#7c5cff]/10 transition font-semibold text-sm">
                 Create a Card
               </Link>
-              <Link href="/templates" className="px-5 py-2.5 bg-indigo-500 text-white rounded-xl hover:bg-indigo-400 transition font-semibold text-sm">
+              <Link href="/templates" className="px-5 py-2.5 bg-[#7c5cff] text-white rounded-xl hover:bg-[#7c5cff] transition font-semibold text-sm">
                 Browse Templates
               </Link>
             </div>
@@ -712,7 +712,7 @@ export default function SharedCardPage() {
       </main>
 
       {!isFullscreen && (
-        <footer className={`text-center text-xs py-6 print:hidden ${"text-slate-400"}`}>
+        <footer className={`text-center text-xs py-6 print:hidden ${"text-[#6b6459]"}`}>
           © {new Date().getFullYear()} MyBingoCard.com
         </footer>
       )}

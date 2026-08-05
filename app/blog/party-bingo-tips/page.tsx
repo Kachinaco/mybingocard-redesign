@@ -44,7 +44,7 @@ export default function PartyBingoTips() {
         date="January 27, 2026"
         readTime="6 min read"
         category="Party"
-        categoryGradient="from-emerald-500 to-teal-500"
+        categoryGradient="from-[#2ec4b6] to-[#2ec4b6]"
       >
         <p>
           Bingo is one of the most reliable party games ever invented. It works for groups of 5 or 50, requires almost no explanation, and creates genuine excitement. But there&apos;s a difference between a good bingo game and a great one. Here&apos;s how to make yours unforgettable.

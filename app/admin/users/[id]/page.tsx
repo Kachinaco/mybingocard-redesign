@@ -124,7 +124,7 @@ function getEventDotColor(event: string): string {
     event === "ai_cells_generated" ||
     event === "first_ai_generation"
   )
-    return "bg-emerald-500";
+    return "bg-[#2ec4b6]";
   if (
     event.includes("login") ||
     event.includes("signup") ||
@@ -133,15 +133,15 @@ function getEventDotColor(event: string): string {
     event.includes("verification") ||
     event === "profile_updated"
   )
-    return "bg-blue-500";
+    return "bg-[#7c5cff]";
   if (
     event.includes("coupon") ||
     event.includes("cancel") ||
     event.includes("subscription") ||
     event === "account_deleted"
   )
-    return "bg-amber-500";
-  return "bg-slate-400";
+    return "bg-[#ffb800]";
+  return "bg-[#6b6459]";
 }
 
 function formatEventLabel(event: string): string {
@@ -266,8 +266,8 @@ export default function AdminUserDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="inline-block w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="ml-3 text-sm text-slate-400">Loading user...</p>
+        <div className="inline-block w-6 h-6 border-2 border-[#7c5cff] border-t-transparent rounded-full animate-spin"></div>
+        <p className="ml-3 text-sm text-[#6b6459]">Loading user...</p>
       </div>
     );
   }
@@ -275,10 +275,10 @@ export default function AdminUserDetailPage() {
   if (error || !user) {
     return (
       <div className="text-center py-20">
-        <p className="text-red-600 mb-4">{error || "User not found"}</p>
+        <p className="text-[#ff5d8f] mb-4">{error || "User not found"}</p>
         <Link
           href="/admin/users"
-          className="text-sm font-medium text-indigo-600 hover:underline"
+          className="text-sm font-medium text-[#7c5cff] hover:underline"
         >
           Back to users
         </Link>
@@ -442,44 +442,44 @@ export default function AdminUserDetailPage() {
       <div className="mb-6 flex flex-wrap items-center gap-2 text-sm">
         <Link
           href="/admin/users"
-          className="text-slate-400 hover:text-indigo-600 transition-colors"
+          className="text-[#6b6459] hover:text-[#7c5cff] transition-colors"
         >
           Users
         </Link>
-        <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 text-[#a39a88]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
-        <span className="text-slate-700 font-medium">
+        <span className="text-[#33312e] font-medium">
           {user.name || user.email}
         </span>
       </div>
 
       {/* User Header */}
-      <div className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      <div className="mb-6 rounded-xl border border-[#a39a88] bg-white p-4 shadow-sm sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] flex items-center justify-center text-white text-xl font-bold flex-shrink-0">
             {(user.name || user.email || "?").charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold text-slate-900">
+            <h1 className="text-xl font-bold text-[#33312e]">
               {user.name || "No name"}
             </h1>
-            <p className="text-slate-500 mt-0.5">{user.email}</p>
+            <p className="text-[#6b6459] mt-0.5">{user.email}</p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <span
                 className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
                   user.planType === "PREMIUM"
-                    ? "bg-indigo-50 text-indigo-700 border border-indigo-100"
-                    : "bg-slate-100 text-slate-600 border border-slate-200"
+                    ? "bg-[#7c5cff]/10 text-[#7c5cff] border border-[#7c5cff]/15"
+                    : "bg-[#fff7ed] text-[#33312e] border border-[#a39a88]"
                 }`}
               >
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
                     user.planType === "PREMIUM"
                       ? user.subscriptionStatus === "active"
-                        ? "bg-emerald-500"
-                        : "bg-amber-500"
-                      : "bg-slate-400"
+                        ? "bg-[#2ec4b6]"
+                        : "bg-[#ffb800]"
+                      : "bg-[#6b6459]"
                   }`}
                 ></span>
                 {user.planType || "FREE"}
@@ -488,18 +488,18 @@ export default function AdminUserDetailPage() {
                 <span
                   className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${
                     user.customerType === "admin"
-                      ? "bg-rose-50 text-rose-700 border-rose-100"
+                      ? "bg-[#ff5d8f]/10 text-[#ff5d8f] border-[#ff5d8f]/15"
                       : user.customerType === "complimentary"
-                        ? "bg-cyan-50 text-cyan-700 border-cyan-100"
+                        ? "bg-[#2ec4b6]/10 text-[#2ec4b6] border-[#2ec4b6]/15"
                         : user.customerType === "test"
-                          ? "bg-orange-50 text-orange-700 border-orange-100"
-                          : "bg-slate-100 text-slate-600 border-slate-200"
+                          ? "bg-[#ff8a3d]/10 text-[#ff8a3d] border-[#ff8a3d]/15"
+                          : "bg-[#fff7ed] text-[#33312e] border-[#a39a88]"
                   }`}
                 >
                   {user.customerType.charAt(0).toUpperCase() + user.customerType.slice(1)}
                 </span>
               )}
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-[#6b6459]">
                 {cards.length} card{cards.length !== 1 ? "s" : ""}
               </span>
             </div>
@@ -509,7 +509,7 @@ export default function AdminUserDetailPage() {
               <button
                 type="button"
                 onClick={() => { setShowEmailModal(true); setEmailStatus(null); }}
-                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                className="rounded-lg border border-[#a39a88] bg-white px-4 py-2 text-sm font-semibold text-[#33312e] transition-colors hover:bg-[#fff7ed]"
               >
                 Send Email
               </button>
@@ -517,7 +517,7 @@ export default function AdminUserDetailPage() {
                 type="button"
                 onClick={startImpersonation}
                 disabled={impersonating || isViewingAsThisUser}
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-lg bg-[#7c5cff] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#7c5cff] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isViewingAsThisUser
                   ? "Already Impersonating"
@@ -530,7 +530,7 @@ export default function AdminUserDetailPage() {
                   href={`https://dashboard.stripe.com/customers/${user.stripeCustomerId}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#7c5cff] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#7c5cff]"
                 >
                   View in Stripe
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -543,14 +543,14 @@ export default function AdminUserDetailPage() {
                   type="button"
                   onClick={cancelSubscription}
                   disabled={cancelingSub}
-                  className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-lg bg-[#ff5d8f] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#ff5d8f] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {cancelingSub ? "Canceling..." : "Cancel Subscription"}
                 </button>
               )}
             </div>
             {actionError ? (
-              <p className="max-w-xs text-xs text-red-600 sm:text-right">
+              <p className="max-w-xs text-xs text-[#ff5d8f] sm:text-right">
                 {actionError}
               </p>
             ) : null}
@@ -560,20 +560,20 @@ export default function AdminUserDetailPage() {
 
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
         {/* User Info */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-          <div className="px-6 py-4 border-b border-slate-100">
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+        <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm">
+          <div className="px-6 py-4 border-b border-[#fff7ed]">
+            <h2 className="text-sm font-bold text-[#33312e] uppercase tracking-wider">
               Account Details
             </h2>
           </div>
-          <div className="divide-y divide-slate-50">
+          <div className="divide-y divide-[#fff7ed]">
             {infoFields.map((field) => (
               <div
                 key={field.label}
                 className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6"
               >
-                <span className="text-sm text-slate-400">{field.label}</span>
-                <span className="max-w-full break-all text-sm font-medium text-slate-700 sm:max-w-[60%] sm:text-right sm:truncate">
+                <span className="text-sm text-[#6b6459]">{field.label}</span>
+                <span className="max-w-full break-all text-sm font-medium text-[#33312e] sm:max-w-[60%] sm:text-right sm:truncate">
                   {field.value}
                 </span>
               </div>
@@ -581,8 +581,8 @@ export default function AdminUserDetailPage() {
 
             {/* Trial End Date */}
             <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-              <span className="text-sm text-slate-400">Trial End Date</span>
-              <span className="flex items-center gap-2 text-sm font-medium text-slate-700">
+              <span className="text-sm text-[#6b6459]">Trial End Date</span>
+              <span className="flex items-center gap-2 text-sm font-medium text-[#33312e]">
                 {trialEnd
                   ? trialEnd.toLocaleDateString("en-US", {
                       month: "long",
@@ -594,10 +594,10 @@ export default function AdminUserDetailPage() {
                   <span
                     className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
                       trialDaysRemaining >= 3
-                        ? "bg-emerald-50 text-emerald-700"
+                        ? "bg-[#2ec4b6]/10 text-[#2ec4b6]"
                         : trialDaysRemaining >= 1
-                          ? "bg-amber-50 text-amber-700"
-                          : "bg-red-50 text-red-700"
+                          ? "bg-[#ffb800]/10 text-[#ffb800]"
+                          : "bg-[#ff5d8f]/10 text-[#ff5d8f]"
                     }`}
                   >
                     {trialDaysRemaining > 0
@@ -610,8 +610,8 @@ export default function AdminUserDetailPage() {
 
             {/* Trial Status */}
             <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-              <span className="text-sm text-slate-400">Trial Status</span>
-              <span className="text-sm font-medium text-slate-700">
+              <span className="text-sm text-[#6b6459]">Trial Status</span>
+              <span className="text-sm font-medium text-[#33312e]">
                 {trialIsActive
                   ? `Active Trial (Day ${trialDayNumber} of 7)`
                   : trialIsExpired
@@ -624,28 +624,28 @@ export default function AdminUserDetailPage() {
         </div>
 
         {/* Attribution */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-          <div className="px-6 py-4 border-b border-slate-100">
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+        <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm">
+          <div className="px-6 py-4 border-b border-[#fff7ed]">
+            <h2 className="text-sm font-bold text-[#33312e] uppercase tracking-wider">
               Attribution
             </h2>
           </div>
           {attributionFields.length > 0 ? (
-            <div className="divide-y divide-slate-50">
+            <div className="divide-y divide-[#fff7ed]">
               {attributionFields.map((field) => (
                 <div
                   key={field.label}
                   className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6"
                 >
-                  <span className="text-sm text-slate-400">{field.label}</span>
-                  <span className="max-w-full break-all text-sm font-medium text-slate-700 sm:max-w-[60%] sm:text-right sm:truncate">
+                  <span className="text-sm text-[#6b6459]">{field.label}</span>
+                  <span className="max-w-full break-all text-sm font-medium text-[#33312e] sm:max-w-[60%] sm:text-right sm:truncate">
                     {field.value}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="px-6 py-8 text-center text-sm text-slate-400">
+            <div className="px-6 py-8 text-center text-sm text-[#6b6459]">
               No attribution data available.
             </div>
           )}
@@ -653,23 +653,23 @@ export default function AdminUserDetailPage() {
       </div>
 
       {/* Activity & Engagement */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm mb-6">
-        <div className="px-6 py-4 border-b border-slate-100">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+      <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm mb-6">
+        <div className="px-6 py-4 border-b border-[#fff7ed]">
+          <h2 className="text-sm font-bold text-[#33312e] uppercase tracking-wider">
             Activity &amp; Engagement
           </h2>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-3">
-          <div className="px-6 py-4 border-b border-slate-50">
-            <p className="text-xs text-slate-400">Login Count</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">
+          <div className="px-6 py-4 border-b border-[#fff7ed]">
+            <p className="text-xs text-[#6b6459]">Login Count</p>
+            <p className="mt-1 text-lg font-semibold text-[#33312e]">
               {user.loginCount ?? 0}{" "}
-              <span className="text-sm font-normal text-slate-400">logins</span>
+              <span className="text-sm font-normal text-[#6b6459]">logins</span>
             </p>
           </div>
-          <div className="px-6 py-4 border-b border-slate-50">
-            <p className="text-xs text-slate-400">Last Login</p>
-            <p className="mt-1 text-sm font-medium text-slate-700">
+          <div className="px-6 py-4 border-b border-[#fff7ed]">
+            <p className="text-xs text-[#6b6459]">Last Login</p>
+            <p className="mt-1 text-sm font-medium text-[#33312e]">
               {user.lastLoginAt
                 ? new Date(user.lastLoginAt).toLocaleDateString("en-US", {
                     month: "short",
@@ -681,15 +681,15 @@ export default function AdminUserDetailPage() {
                 : "Never"}
             </p>
           </div>
-          <div className="px-6 py-4 border-b border-slate-50">
-            <p className="text-xs text-slate-400">Cards Created</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">
+          <div className="px-6 py-4 border-b border-[#fff7ed]">
+            <p className="text-xs text-[#6b6459]">Cards Created</p>
+            <p className="mt-1 text-lg font-semibold text-[#33312e]">
               {user.totalCardsCreated ?? 0}
             </p>
           </div>
-          <div className="px-6 py-4 border-b border-slate-50">
-            <p className="text-xs text-slate-400">Last Card Created</p>
-            <p className="mt-1 text-sm font-medium text-slate-700">
+          <div className="px-6 py-4 border-b border-[#fff7ed]">
+            <p className="text-xs text-[#6b6459]">Last Card Created</p>
+            <p className="mt-1 text-sm font-medium text-[#33312e]">
               {user.lastCardCreatedAt
                 ? new Date(user.lastCardCreatedAt).toLocaleDateString("en-US", {
                     month: "short",
@@ -701,15 +701,15 @@ export default function AdminUserDetailPage() {
                 : "Never"}
             </p>
           </div>
-          <div className="px-6 py-4 border-b border-slate-50">
-            <p className="text-xs text-slate-400">Total Exports</p>
-            <p className="mt-1 text-lg font-semibold text-slate-900">
+          <div className="px-6 py-4 border-b border-[#fff7ed]">
+            <p className="text-xs text-[#6b6459]">Total Exports</p>
+            <p className="mt-1 text-lg font-semibold text-[#33312e]">
               {user.totalExports ?? 0}
             </p>
           </div>
-          <div className="px-6 py-4 border-b border-slate-50">
-            <p className="text-xs text-slate-400">Last Export</p>
-            <p className="mt-1 text-sm font-medium text-slate-700">
+          <div className="px-6 py-4 border-b border-[#fff7ed]">
+            <p className="text-xs text-[#6b6459]">Last Export</p>
+            <p className="mt-1 text-sm font-medium text-[#33312e]">
               {user.lastExportAt
                 ? new Date(user.lastExportAt).toLocaleDateString("en-US", {
                     month: "short",
@@ -723,13 +723,13 @@ export default function AdminUserDetailPage() {
           </div>
         </div>
         {user.featuresUsed && user.featuresUsed.length > 0 && (
-          <div className="border-t border-slate-100 px-6 py-4">
-            <p className="text-xs text-slate-400 mb-2">Features Used</p>
+          <div className="border-t border-[#fff7ed] px-6 py-4">
+            <p className="text-xs text-[#6b6459] mb-2">Features Used</p>
             <div className="flex flex-wrap gap-2">
               {user.featuresUsed.map((feature) => (
                 <span
                   key={feature}
-                  className="inline-flex items-center rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-semibold text-violet-700 border border-violet-100"
+                  className="inline-flex items-center rounded-full bg-[#7c5cff]/10 px-2.5 py-0.5 text-xs font-semibold text-[#7c5cff] border border-[#7c5cff]/15"
                 >
                   {feature}
                 </span>
@@ -740,18 +740,18 @@ export default function AdminUserDetailPage() {
       </div>
 
       {/* Signup Context */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm mb-6">
-        <div className="px-6 py-4 border-b border-slate-100">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+      <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm mb-6">
+        <div className="px-6 py-4 border-b border-[#fff7ed]">
+          <h2 className="text-sm font-bold text-[#33312e] uppercase tracking-wider">
             Signup Context
           </h2>
         </div>
         {(user.signupMethod || user.signupDevice || user.signupLanguage || user.signupCountry || user.createdByIp || user.referrerDomain || user.anonymousId) ? (
-          <div className="divide-y divide-slate-50">
+          <div className="divide-y divide-[#fff7ed]">
             {user.signupMethod && (
               <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <span className="text-sm text-slate-400">Signup Method</span>
-                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700">
+                <span className="text-sm text-[#6b6459]">Signup Method</span>
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-[#33312e]">
                   {user.signupMethod === "google" && (
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none">
                       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
@@ -761,12 +761,12 @@ export default function AdminUserDetailPage() {
                     </svg>
                   )}
                   {user.signupMethod === "credentials" && (
-                    <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-[#6b6459]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                     </svg>
                   )}
                   {user.signupMethod === "email" && (
-                    <svg className="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-[#7c5cff]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   )}
@@ -776,54 +776,54 @@ export default function AdminUserDetailPage() {
             )}
             {user.signupDevice && (
               <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <span className="text-sm text-slate-400">Device</span>
-                <span className="max-w-full break-all text-sm font-medium text-slate-700 sm:max-w-[60%] sm:text-right sm:truncate">
+                <span className="text-sm text-[#6b6459]">Device</span>
+                <span className="max-w-full break-all text-sm font-medium text-[#33312e] sm:max-w-[60%] sm:text-right sm:truncate">
                   {user.signupDevice}
                 </span>
               </div>
             )}
             {user.signupLanguage && (
               <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <span className="text-sm text-slate-400">Language</span>
-                <span className="text-sm font-medium text-slate-700">{user.signupLanguage}</span>
+                <span className="text-sm text-[#6b6459]">Language</span>
+                <span className="text-sm font-medium text-[#33312e]">{user.signupLanguage}</span>
               </div>
             )}
             {user.signupCountry && (
               <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <span className="text-sm text-slate-400">Country</span>
-                <span className="text-sm font-medium text-slate-700">{user.signupCountry}</span>
+                <span className="text-sm text-[#6b6459]">Country</span>
+                <span className="text-sm font-medium text-[#33312e]">{user.signupCountry}</span>
               </div>
             )}
             {user.createdByIp && (
               <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <span className="text-sm text-slate-400">IP Address</span>
-                <span className="text-sm font-medium text-slate-700 font-mono">{user.createdByIp}</span>
+                <span className="text-sm text-[#6b6459]">IP Address</span>
+                <span className="text-sm font-medium text-[#33312e] font-mono">{user.createdByIp}</span>
               </div>
             )}
             {user.referrerDomain && (
               <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <span className="text-sm text-slate-400">Referrer Domain</span>
-                <span className="text-sm font-medium text-slate-700">{user.referrerDomain}</span>
+                <span className="text-sm text-[#6b6459]">Referrer Domain</span>
+                <span className="text-sm font-medium text-[#33312e]">{user.referrerDomain}</span>
               </div>
             )}
             {user.anonymousId && (
               <div className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <span className="text-sm text-slate-400">Anonymous ID</span>
-                <span className="text-xs font-mono text-slate-400">{user.anonymousId}</span>
+                <span className="text-sm text-[#6b6459]">Anonymous ID</span>
+                <span className="text-xs font-mono text-[#6b6459]">{user.anonymousId}</span>
               </div>
             )}
           </div>
         ) : (
-          <div className="px-6 py-8 text-center text-sm text-slate-400">
+          <div className="px-6 py-8 text-center text-sm text-[#6b6459]">
             No signup context data available.
           </div>
         )}
       </div>
 
       {/* User's Cards */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-100">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+      <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm">
+        <div className="px-6 py-4 border-b border-[#fff7ed]">
+          <h2 className="text-sm font-bold text-[#33312e] uppercase tracking-wider">
             Cards ({cards.length})
           </h2>
         </div>
@@ -832,23 +832,23 @@ export default function AdminUserDetailPage() {
             <div className="hidden overflow-x-auto sm:block">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50">
-                    <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                  <tr className="border-b border-[#fff7ed] bg-[#fff7ed]">
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                       Title
                     </th>
-                    <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                       Size
                     </th>
-                    <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                       Public
                     </th>
-                    <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                       Views
                     </th>
-                    <th className="text-left py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-left py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                       Created
                     </th>
-                    <th className="text-right py-3 px-6 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    <th className="text-right py-3 px-6 text-xs font-semibold text-[#6b6459] uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -857,31 +857,31 @@ export default function AdminUserDetailPage() {
                   {cards.map((card) => (
                     <tr
                       key={card._id}
-                      className="border-b border-slate-50 hover:bg-slate-50 transition-colors"
+                      className="border-b border-[#fff7ed] hover:bg-[#fff7ed] transition-colors"
                     >
                       <td className="py-3.5 px-6">
-                        <span className="text-sm font-medium text-slate-900">
+                        <span className="text-sm font-medium text-[#33312e]">
                           {card.title || "Untitled"}
                         </span>
                       </td>
-                      <td className="py-3.5 px-6 text-sm text-slate-500">
+                      <td className="py-3.5 px-6 text-sm text-[#6b6459]">
                         {card.size}x{card.size}
                       </td>
                       <td className="py-3.5 px-6">
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
                             card.isPublic
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-slate-100 text-slate-500"
+                              ? "bg-[#2ec4b6]/10 text-[#2ec4b6]"
+                              : "bg-[#fff7ed] text-[#6b6459]"
                           }`}
                         >
                           {card.isPublic ? "Public" : "Private"}
                         </span>
                       </td>
-                      <td className="py-3.5 px-6 text-sm text-slate-500">
+                      <td className="py-3.5 px-6 text-sm text-[#6b6459]">
                         {card.views || 0}
                       </td>
-                      <td className="py-3.5 px-6 text-sm text-slate-400">
+                      <td className="py-3.5 px-6 text-sm text-[#6b6459]">
                         {card.createdAt
                           ? new Date(card.createdAt).toLocaleDateString("en-US", {
                               month: "short",
@@ -896,7 +896,7 @@ export default function AdminUserDetailPage() {
                             href={`/cards/${card._id}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
+                            className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#7c5cff] hover:bg-[#7c5cff]/10 transition-colors"
                           >
                             View
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -907,7 +907,7 @@ export default function AdminUserDetailPage() {
                             type="button"
                             onClick={() => deleteCard(card._id, card.title)}
                             disabled={deletingCardId === card._id}
-                            className="inline-flex items-center rounded-md px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                            className="inline-flex items-center rounded-md px-2.5 py-1.5 text-xs font-medium text-[#ff5d8f] hover:bg-[#ff5d8f]/10 transition-colors disabled:opacity-50"
                           >
                             {deletingCardId === card._id ? "Deleting..." : "Delete"}
                           </button>
@@ -918,31 +918,31 @@ export default function AdminUserDetailPage() {
                 </tbody>
               </table>
             </div>
-            <div className="divide-y divide-slate-100 sm:hidden">
+            <div className="divide-y divide-[#fff7ed] sm:hidden">
               {cards.map((card) => (
                 <div key={card._id} className="px-4 py-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-slate-900">
+                      <p className="truncate text-sm font-semibold text-[#33312e]">
                         {card.title || "Untitled"}
                       </p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
                         <span
                           className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                             card.isPublic
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-slate-100 text-slate-500"
+                              ? "bg-[#2ec4b6]/10 text-[#2ec4b6]"
+                              : "bg-[#fff7ed] text-[#6b6459]"
                           }`}
                         >
                           {card.isPublic ? "Public" : "Private"}
                         </span>
-                        <span className="text-xs text-slate-400">{card.size}x{card.size}</span>
+                        <span className="text-xs text-[#6b6459]">{card.size}x{card.size}</span>
                       </div>
                     </div>
-                    <span className="text-xs text-slate-400">{card.views || 0} views</span>
+                    <span className="text-xs text-[#6b6459]">{card.views || 0} views</span>
                   </div>
                   <div className="mt-3 flex items-center justify-between">
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-[#6b6459]">
                       Created{" "}
                       {card.createdAt
                         ? new Date(card.createdAt).toLocaleDateString("en-US", {
@@ -957,7 +957,7 @@ export default function AdminUserDetailPage() {
                         href={`/cards/${card._id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition-colors"
+                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-[#7c5cff] hover:bg-[#7c5cff]/10 transition-colors"
                       >
                         View
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -968,7 +968,7 @@ export default function AdminUserDetailPage() {
                         type="button"
                         onClick={() => deleteCard(card._id, card.title)}
                         disabled={deletingCardId === card._id}
-                        className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                        className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-[#ff5d8f] hover:bg-[#ff5d8f]/10 transition-colors disabled:opacity-50"
                       >
                         {deletingCardId === card._id ? "Deleting..." : "Delete"}
                       </button>
@@ -979,7 +979,7 @@ export default function AdminUserDetailPage() {
             </div>
           </>
         ) : (
-          <div className="px-6 py-12 text-center text-sm text-slate-400">
+          <div className="px-6 py-12 text-center text-sm text-[#6b6459]">
             This user has not created any cards yet.
           </div>
         )}
@@ -987,13 +987,13 @@ export default function AdminUserDetailPage() {
 
 
       {/* Recent Activity Timeline */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm mt-6">
-        <div className="px-6 py-4 border-b border-slate-100">
+      <div className="bg-white rounded-xl border border-[#a39a88] shadow-sm mt-6">
+        <div className="px-6 py-4 border-b border-[#fff7ed]">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+            <h2 className="text-sm font-bold text-[#33312e] uppercase tracking-wider">
               Recent Activity
             </h2>
-            <span className="text-xs text-slate-400">Latest {activityEvents.length} events</span>
+            <span className="text-xs text-[#6b6459]">Latest {activityEvents.length} events</span>
           </div>
         </div>
         {activityEvents.length > 0 ? (
@@ -1005,33 +1005,33 @@ export default function AdminUserDetailPage() {
                 return (
                   <div key={evt._id} className="relative flex gap-3 pb-4 last:pb-0">
                     {i < activityEvents.length - 1 && (
-                      <div className="absolute left-[7px] top-4 bottom-0 w-px bg-slate-100" />
+                      <div className="absolute left-[7px] top-4 bottom-0 w-px bg-[#fff7ed]" />
                     )}
                     <div className="relative flex-shrink-0 mt-1.5">
-                      <div className={`w-[15px] h-[15px] rounded-full border-2 border-white ring-1 ring-slate-100 ${getEventDotColor(evt.event)}`} />
+                      <div className={`w-[15px] h-[15px] rounded-full border-2 border-white ring-1 ring-[#fff7ed] ${getEventDotColor(evt.event)}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline justify-between gap-2">
-                        <p className="text-sm font-medium text-slate-800 truncate">
+                        <p className="text-sm font-medium text-[#33312e] truncate">
                           {formatEventLabel(evt.event)}
                         </p>
-                        <span className="text-xs text-slate-400 whitespace-nowrap flex-shrink-0" title={new Date(evt.createdAt).toLocaleString()}>
+                        <span className="text-xs text-[#6b6459] whitespace-nowrap flex-shrink-0" title={new Date(evt.createdAt).toLocaleString()}>
                           {timeAgo(evt.createdAt)}
                         </span>
                       </div>
                       {meta && (
-                        <p className="text-xs text-slate-500 mt-0.5 truncate">{meta}</p>
+                        <p className="text-xs text-[#6b6459] mt-0.5 truncate">{meta}</p>
                       )}
-                      <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-slate-400">
-                        {evt.source && <span className="rounded bg-slate-100 px-1.5 py-0.5">{evt.source}</span>}
-                        {evt.pathname && <span className="max-w-full truncate rounded bg-slate-100 px-1.5 py-0.5">{evt.pathname}</span>}
-                        {evt.sessionId && <span className="rounded bg-slate-100 px-1.5 py-0.5">session {evt.sessionId.slice(0, 16)}</span>}
+                      <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-[#6b6459]">
+                        {evt.source && <span className="rounded bg-[#fff7ed] px-1.5 py-0.5">{evt.source}</span>}
+                        {evt.pathname && <span className="max-w-full truncate rounded bg-[#fff7ed] px-1.5 py-0.5">{evt.pathname}</span>}
+                        {evt.sessionId && <span className="rounded bg-[#fff7ed] px-1.5 py-0.5">session {evt.sessionId.slice(0, 16)}</span>}
                       </div>
-                      <details className="mt-2 rounded-lg border border-slate-100 bg-slate-50/70">
-                        <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700">
+                      <details className="mt-2 rounded-lg border border-[#fff7ed] bg-[#fff7ed]/70">
+                        <summary className="cursor-pointer px-3 py-2 text-xs font-semibold text-[#6b6459] hover:text-[#33312e]">
                           Raw event data
                         </summary>
-                        <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words border-t border-slate-100 px-3 py-2 text-[11px] leading-relaxed text-slate-600">
+                        <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words border-t border-[#fff7ed] px-3 py-2 text-[11px] leading-relaxed text-[#33312e]">
                           {JSON.stringify(details, null, 2)}
                         </pre>
                       </details>
@@ -1042,7 +1042,7 @@ export default function AdminUserDetailPage() {
             </div>
           </div>
         ) : (
-          <div className="px-6 py-8 text-center text-sm text-slate-400">
+          <div className="px-6 py-8 text-center text-sm text-[#6b6459]">
             No activity events recorded yet.
           </div>
         )}
@@ -1052,14 +1052,14 @@ export default function AdminUserDetailPage() {
       {showEmailModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-lg rounded-xl bg-white shadow-xl">
-            <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-              <h3 className="text-base font-bold text-slate-900">
+            <div className="flex items-center justify-between border-b border-[#fff7ed] px-6 py-4">
+              <h3 className="text-base font-bold text-[#33312e]">
                 Send Email to {user.name || user.email}
               </h3>
               <button
                 type="button"
                 onClick={() => setShowEmailModal(false)}
-                className="rounded-md p-1 text-slate-400 hover:text-slate-600 transition-colors"
+                className="rounded-md p-1 text-[#6b6459] hover:text-[#33312e] transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1067,11 +1067,11 @@ export default function AdminUserDetailPage() {
               </button>
             </div>
             <div className="px-6 py-4 space-y-4">
-              <p className="text-sm text-slate-500">
-                To: <span className="font-medium text-slate-700">{user.email}</span>
+              <p className="text-sm text-[#6b6459]">
+                To: <span className="font-medium text-[#33312e]">{user.email}</span>
               </p>
               <div>
-                <label htmlFor="email-subject" className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor="email-subject" className="block text-sm font-medium text-[#33312e] mb-1">
                   Subject
                 </label>
                 <input
@@ -1080,11 +1080,11 @@ export default function AdminUserDetailPage() {
                   value={emailSubject}
                   onChange={(e) => setEmailSubject(e.target.value)}
                   placeholder="Email subject"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-lg border border-[#a39a88] px-3 py-2 text-sm text-[#33312e] placeholder-[#6b6459] focus:border-[#7c5cff] focus:outline-none focus:ring-1 focus:ring-[#7c5cff]"
                 />
               </div>
               <div>
-                <label htmlFor="email-body" className="block text-sm font-medium text-slate-700 mb-1">
+                <label htmlFor="email-body" className="block text-sm font-medium text-[#33312e] mb-1">
                   Message
                 </label>
                 <textarea
@@ -1093,20 +1093,20 @@ export default function AdminUserDetailPage() {
                   onChange={(e) => setEmailBody(e.target.value)}
                   placeholder="Write your message..."
                   rows={6}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-y"
+                  className="w-full rounded-lg border border-[#a39a88] px-3 py-2 text-sm text-[#33312e] placeholder-[#6b6459] focus:border-[#7c5cff] focus:outline-none focus:ring-1 focus:ring-[#7c5cff] resize-y"
                 />
               </div>
               {emailStatus && (
-                <p className={`text-sm font-medium ${emailStatus.type === "success" ? "text-emerald-600" : "text-red-600"}`}>
+                <p className={`text-sm font-medium ${emailStatus.type === "success" ? "text-[#2ec4b6]" : "text-[#ff5d8f]"}`}>
                   {emailStatus.message}
                 </p>
               )}
             </div>
-            <div className="flex items-center justify-end gap-3 border-t border-slate-100 px-6 py-4">
+            <div className="flex items-center justify-end gap-3 border-t border-[#fff7ed] px-6 py-4">
               <button
                 type="button"
                 onClick={() => setShowEmailModal(false)}
-                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                className="rounded-lg border border-[#a39a88] px-4 py-2 text-sm font-medium text-[#33312e] hover:bg-[#fff7ed] transition-colors"
               >
                 Cancel
               </button>
@@ -1114,7 +1114,7 @@ export default function AdminUserDetailPage() {
                 type="button"
                 onClick={handleSendEmail}
                 disabled={sendingEmail || !emailSubject.trim() || !emailBody.trim()}
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-lg bg-[#7c5cff] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#7c5cff] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {sendingEmail ? "Sending..." : "Send Email"}
               </button>

@@ -38,8 +38,8 @@ export default function FavoriteButton({ cardId }: { cardId: string }) {
       disabled={loading}
       className={`p-2 rounded-lg transition-all ${
         favorited
-          ? "text-red-500 hover:text-red-600"
-          : "text-slate-400 hover:text-red-400"
+          ? "text-[#ff5d8f] hover:text-[#ff5d8f]"
+          : "text-[#6b6459] hover:text-[#ff5d8f]"
       } ${loading ? "opacity-50" : ""}`}
       title={favorited ? "Remove from favorites" : "Add to favorites"}
     >

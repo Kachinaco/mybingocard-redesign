@@ -19,9 +19,9 @@ const themes: Record<string, {
   logoMaxWidth?: string;
 }> = {
   "hannah-montana": {
-    outerBg: "bg-gradient-to-br from-pink-400 via-purple-500 to-pink-500",
-    borderStyle: "border-4 border-pink-300 shadow-[0_0_30px_rgba(236,72,153,0.4)]",
-    borderStyleMini: "border-2 border-pink-300",
+    outerBg: "bg-gradient-to-br from-[#ff5d8f] via-[#7c5cff] to-[#ff5d8f]",
+    borderStyle: "border-4 border-[#ff5d8f] shadow-[0_0_30px_rgba(236,72,153,0.4)]",
+    borderStyleMini: "border-2 border-[#ff5d8f]",
     cornerEmoji: "\u2728",
     footerText: "You get the best of both worlds!",
     glow: "shadow-[0_0_60px_rgba(168,85,247,0.4),0_0_120px_rgba(236,72,153,0.2)]",
@@ -97,7 +97,7 @@ export default function ThemedCardWrapper({ theme, title, children, size = "full
           </h2>
         )}
         {t.footerText && (
-          <p className="text-pink-100 text-xs md:text-sm mt-2 italic opacity-80">
+          <p className="text-[#ff5d8f]/15 text-xs md:text-sm mt-2 italic opacity-80">
             {t.footerText}
           </p>
         )}

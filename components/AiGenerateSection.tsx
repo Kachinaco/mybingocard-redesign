@@ -190,22 +190,22 @@ export default function AiGenerateSection({
   };
 
   return (
-    <div className="notranslate bg-white rounded-2xl shadow-sm border border-gray-200 p-4" translate="no">
-      <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
-        <span className="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-sm">
+    <div className="notranslate bg-white rounded-2xl shadow-sm border border-[#a39a88] p-4" translate="no">
+      <h2 className="text-base font-bold text-[#33312e] mb-3 flex items-center gap-2">
+        <span className="w-7 h-7 rounded-lg bg-[#7c5cff]/10 text-[#7c5cff] flex items-center justify-center text-sm">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
           </svg>
         </span>
         AI Generate
         {!isPremium && (
-          <span className="text-[10px] font-normal text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded-full">Free</span>
+          <span className="text-[10px] font-normal text-[#7c5cff] bg-[#7c5cff]/10 px-1.5 py-0.5 rounded-full">Free</span>
         )}
       </h2>
 
       <div className="space-y-3">
         <div>
-          <label htmlFor="ai-use-case" className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+          <label htmlFor="ai-use-case" className="block text-xs font-semibold text-[#6b6459] uppercase tracking-wide mb-1.5">
             Use case
           </label>
           <select
@@ -213,7 +213,7 @@ export default function AiGenerateSection({
             value={useCase}
             onChange={(e) => handleUseCaseChange(e.target.value as AiUseCase)}
             disabled={disabled || generating}
-            className="w-full px-3 py-2 bg-[#f2f2f7] border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#007AFF] focus:border-transparent disabled:opacity-50"
+            className="w-full px-3 py-2 bg-[#fff7ed] border border-[#a39a88] rounded-xl text-sm text-[#33312e] focus:outline-none focus:ring-2 focus:ring-[#7c5cff] focus:border-transparent disabled:opacity-50"
           >
             {USE_CASES.map((item) => (
               <option key={item.value} value={item.value}>{item.label}</option>
@@ -222,7 +222,7 @@ export default function AiGenerateSection({
         </div>
 
         <div>
-          <label htmlFor="ai-theme" className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+          <label htmlFor="ai-theme" className="block text-xs font-semibold text-[#6b6459] uppercase tracking-wide mb-1.5">
             Theme
           </label>
           <textarea
@@ -232,7 +232,7 @@ export default function AiGenerateSection({
             placeholder={currentUseCase.placeholder}
             rows={1}
             disabled={disabled || generating}
-            className="w-full px-3 py-2 bg-[#f2f2f7] border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007AFF] focus:border-transparent resize-none disabled:opacity-50"
+            className="w-full px-3 py-2 bg-[#fff7ed] border border-[#a39a88] rounded-xl text-sm text-[#33312e] placeholder-[#6b6459] focus:outline-none focus:ring-2 focus:ring-[#7c5cff] focus:border-transparent resize-none disabled:opacity-50"
             maxLength={500}
           />
         </div>
@@ -241,7 +241,7 @@ export default function AiGenerateSection({
           <div className="space-y-2">
             {fields.map((field) => (
               <div key={field.key}>
-                <label htmlFor={`ai-detail-${field.key}`} className="block text-xs font-medium text-gray-500 mb-1">
+                <label htmlFor={`ai-detail-${field.key}`} className="block text-xs font-medium text-[#6b6459] mb-1">
                   {field.label}
                 </label>
                 {field.kind === "select" ? (
@@ -250,7 +250,7 @@ export default function AiGenerateSection({
                     value={promptDetails[field.key] || ""}
                     onChange={(e) => updatePromptDetail(field.key, e.target.value)}
                     disabled={disabled || generating}
-                    className="w-full px-3 py-2 bg-[#f2f2f7] border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#007AFF] focus:border-transparent disabled:opacity-50"
+                    className="w-full px-3 py-2 bg-[#fff7ed] border border-[#a39a88] rounded-xl text-sm text-[#33312e] focus:outline-none focus:ring-2 focus:ring-[#7c5cff] focus:border-transparent disabled:opacity-50"
                   >
                     <option value="">Choose format</option>
                     {field.options?.map((option) => (
@@ -265,7 +265,7 @@ export default function AiGenerateSection({
                     placeholder={field.placeholder}
                     rows={2}
                     disabled={disabled || generating}
-                    className="w-full px-3 py-2 bg-[#f2f2f7] border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007AFF] focus:border-transparent resize-none disabled:opacity-50"
+                    className="w-full px-3 py-2 bg-[#fff7ed] border border-[#a39a88] rounded-xl text-sm text-[#33312e] placeholder-[#6b6459] focus:outline-none focus:ring-2 focus:ring-[#7c5cff] focus:border-transparent resize-none disabled:opacity-50"
                     maxLength={500}
                   />
                 ) : (
@@ -276,7 +276,7 @@ export default function AiGenerateSection({
                     onChange={(e) => updatePromptDetail(field.key, e.target.value)}
                     placeholder={field.placeholder}
                     disabled={disabled || generating}
-                    className="w-full px-3 py-2 bg-[#f2f2f7] border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007AFF] focus:border-transparent disabled:opacity-50"
+                    className="w-full px-3 py-2 bg-[#fff7ed] border border-[#a39a88] rounded-xl text-sm text-[#33312e] placeholder-[#6b6459] focus:outline-none focus:ring-2 focus:ring-[#7c5cff] focus:border-transparent disabled:opacity-50"
                     maxLength={300}
                   />
                 )}
@@ -286,7 +286,7 @@ export default function AiGenerateSection({
         )}
 
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-medium text-gray-500">Tone</span>
+          <span className="text-xs font-medium text-[#6b6459]">Tone</span>
           <div className="flex gap-1.5">
             {TONES.map((t) => (
               <button
@@ -296,8 +296,8 @@ export default function AiGenerateSection({
                 disabled={disabled || generating}
                 className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${
                   tone === t.value
-                    ? "bg-[#007AFF] text-white shadow-sm"
-                    : "bg-[#f2f2f7] text-gray-600 hover:bg-gray-200"
+                    ? "bg-[#7c5cff] text-white shadow-sm"
+                    : "bg-[#fff7ed] text-[#33312e] hover:bg-[#a39a88]"
                 } disabled:opacity-50`}
               >
                 {t.label}
@@ -311,7 +311,7 @@ export default function AiGenerateSection({
               onChange={(e) => setCustomTone(e.target.value)}
               placeholder="Describe the tone you want..."
               disabled={disabled || generating}
-              className="mt-2 w-full px-3 py-2 bg-[#f2f2f7] border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#007AFF] focus:border-transparent disabled:opacity-50"
+              className="mt-2 w-full px-3 py-2 bg-[#fff7ed] border border-[#a39a88] rounded-xl text-sm text-[#33312e] placeholder-[#6b6459] focus:outline-none focus:ring-2 focus:ring-[#7c5cff] focus:border-transparent disabled:opacity-50"
               maxLength={200}
             />
           )}
@@ -323,8 +323,8 @@ export default function AiGenerateSection({
           disabled={disabled || generating || !hasPromptContext}
           className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
             isPremium
-              ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:shadow-lg"
-              : "bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:shadow-lg"
+              ? "bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white hover:shadow-lg"
+              : "bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white hover:shadow-lg"
           }`}
         >
           {generating ? (
@@ -343,11 +343,11 @@ export default function AiGenerateSection({
         </button>
 
         {!isPremium && (
-          <p className="text-xs text-center text-gray-400">Free visitors include a daily AI generation limit.</p>
+          <p className="text-xs text-center text-[#6b6459]">Free visitors include a daily AI generation limit.</p>
         )}
 
-        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
-        {success && <p className="text-sm text-green-600 text-center">Cells generated! Edit any cell below.</p>}
+        {error && <p className="text-sm text-[#ff5d8f] text-center">{error}</p>}
+        {success && <p className="text-sm text-[#2ec4b6] text-center">Cells generated! Edit any cell below.</p>}
       </div>
     </div>
   );

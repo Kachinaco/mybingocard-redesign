@@ -44,7 +44,7 @@ export default function BestBingoGamesBabyShowers() {
         date="February 24, 2026"
         readTime="8 min read"
         category="Baby Shower"
-        categoryGradient="from-pink-500 to-rose-500"
+        categoryGradient="from-[#ff5d8f] to-[#ff5d8f]"
       >
         <p>
           Baby shower bingo is the one game that never fails. It keeps guests engaged, requires zero setup stress, and works for groups of every size. But not all baby shower bingo is created equal — some variations are far more fun than others.

@@ -87,22 +87,22 @@ export default function NotFoundBingo() {
     <>
       {/* Bingo Card */}
       <div className="relative w-full max-w-sm mx-auto animate-fade-in-up">
-        <div className="absolute -top-8 -left-8 w-32 h-32 bg-violet-300 rounded-full blur-3xl opacity-20"></div>
-        <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-indigo-300 rounded-full blur-3xl opacity-20"></div>
+        <div className="absolute -top-8 -left-8 w-32 h-32 bg-[#7c5cff] rounded-full blur-3xl opacity-20"></div>
+        <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-[#7c5cff] rounded-full blur-3xl opacity-20"></div>
 
-        <div className="relative bg-white rounded-2xl shadow-xl shadow-indigo-500/10 p-5 border border-slate-200/80">
+        <div className="relative bg-white rounded-2xl shadow-xl shadow-[#7c5cff]/10 p-5 border border-[#a39a88]/80">
           <div className="text-center mb-4">
             <div className="flex justify-center gap-2 text-2xl font-black tracking-[0.2em]">
               {"BINGO".split("").map((letter, i) => (
                 <span
                   key={i}
-                  className="text-transparent bg-clip-text bg-gradient-to-br from-violet-600 to-indigo-600"
+                  className="text-transparent bg-clip-text bg-gradient-to-br from-[#7c5cff] to-[#7c5cff]"
                 >
                   {letter}
                 </span>
               ))}
             </div>
-            <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-semibold mt-1">
+            <p className="text-[10px] uppercase tracking-[0.3em] text-[#6b6459] font-semibold mt-1">
               404 Edition
             </p>
           </div>
@@ -122,10 +122,10 @@ export default function NotFoundBingo() {
                     transition-all duration-200 cursor-pointer select-none
                     ${
                       isWinCell
-                        ? "bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-200 scale-105 ring-2 ring-emerald-300"
+                        ? "bg-gradient-to-br from-[#2ec4b6] to-[#2ec4b6] text-white shadow-lg shadow-[#2ec4b6] scale-105 ring-2 ring-[#2ec4b6]"
                         : isSelected
-                        ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-lg shadow-indigo-200 scale-[1.02]"
-                        : "bg-slate-50 text-slate-600 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 hover:shadow-sm"
+                        ? "bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] text-white shadow-lg shadow-[#7c5cff] scale-[1.02]"
+                        : "bg-[#fff7ed] text-[#33312e] border border-[#a39a88] hover:border-[#7c5cff] hover:bg-[#7c5cff]/50 hover:shadow-sm"
                     }
                   `}
                 >
@@ -147,23 +147,23 @@ export default function NotFoundBingo() {
           <div className="mt-4 text-center">
             {winLine ? (
               <div className="space-y-3">
-                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-                  <p className="text-emerald-700 font-bold text-sm">
+                <div className="bg-[#2ec4b6]/10 border border-[#2ec4b6] rounded-xl p-3">
+                  <p className="text-[#2ec4b6] font-bold text-sm">
                     BINGO! You won in {moveCount} moves!
                   </p>
-                  <p className="text-emerald-600 text-xs mt-1">
+                  <p className="text-[#2ec4b6] text-xs mt-1">
                     Now that&apos;s a productive 404 error.
                   </p>
                 </div>
                 <button
                   onClick={resetGame}
-                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
+                  className="text-xs font-semibold text-[#7c5cff] hover:text-[#7c5cff] transition-colors"
                 >
                   Play again
                 </button>
               </div>
             ) : (
-              <p className="text-slate-400 text-xs font-medium">
+              <p className="text-[#6b6459] text-xs font-medium">
                 Get 4 in a row to win! ({selected.size}/16 selected)
               </p>
             )}

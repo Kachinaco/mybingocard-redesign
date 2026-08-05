@@ -58,21 +58,21 @@ export default function OnboardingChecklist() {
   };
 
   return (
-    <div className="mb-8 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 animate-fade-in-up">
+    <div className="mb-8 bg-white rounded-2xl shadow-sm border border-[#a39a88] p-6 animate-fade-in-up">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-bold text-slate-900">Getting Started</h3>
-          <p className="text-sm text-slate-500">{data.completedCount} of {data.totalSteps} steps completed</p>
+          <h3 className="text-lg font-bold text-[#33312e]">Getting Started</h3>
+          <p className="text-sm text-[#6b6459]">{data.completedCount} of {data.totalSteps} steps completed</p>
         </div>
-        <button onClick={handleDismiss} className="text-slate-400 hover:text-slate-600 text-sm">
+        <button onClick={handleDismiss} className="text-[#6b6459] hover:text-[#33312e] text-sm">
           Dismiss
         </button>
       </div>
 
       {/* Progress bar */}
-      <div className="h-2 bg-slate-100 rounded-full mb-5 overflow-hidden">
+      <div className="h-2 bg-[#fff7ed] rounded-full mb-5 overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-500"
+          className="h-full bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] rounded-full transition-all duration-500"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -83,15 +83,15 @@ export default function OnboardingChecklist() {
           const content = (
             <div className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
               isCompleted
-                ? "bg-emerald-50 border border-emerald-100"
-                : "bg-slate-50 border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50"
+                ? "bg-[#2ec4b6]/10 border border-[#2ec4b6]/15"
+                : "bg-[#fff7ed] border border-[#fff7ed] hover:border-[#7c5cff] hover:bg-[#7c5cff]/10"
             }`}>
               <span className="text-lg">{isCompleted ? "\u2705" : step.icon}</span>
-              <span className={`text-sm font-medium ${isCompleted ? "text-emerald-700 line-through" : "text-slate-700"}`}>
+              <span className={`text-sm font-medium ${isCompleted ? "text-[#2ec4b6] line-through" : "text-[#33312e]"}`}>
                 {step.label}
               </span>
               {!isCompleted && step.href && (
-                <svg className="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 text-[#6b6459] ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               )}

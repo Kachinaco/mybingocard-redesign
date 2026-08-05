@@ -99,10 +99,10 @@ export default function CopyGroupInviteButton({
         disabled={disabled}
         className={`inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
           disabled
-            ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+            ? "cursor-not-allowed border-[#a39a88] bg-[#fff7ed] text-[#6b6459]"
             : copied
-              ? "border-emerald-100 bg-emerald-50 text-emerald-700"
-              : "border-indigo-100 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+              ? "border-[#2ec4b6]/15 bg-[#2ec4b6]/10 text-[#2ec4b6]"
+              : "border-[#7c5cff]/15 bg-[#7c5cff]/10 text-[#7c5cff] hover:bg-[#7c5cff]/15"
         }`}
       >
         {copied ? (
@@ -127,10 +127,10 @@ export default function CopyGroupInviteButton({
         disabled={disabled}
         className={`inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${
           disabled
-            ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+            ? "cursor-not-allowed border-[#a39a88] bg-[#fff7ed] text-[#6b6459]"
             : shared
-              ? "border-emerald-100 bg-emerald-50 text-emerald-700"
-              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              ? "border-[#2ec4b6]/15 bg-[#2ec4b6]/10 text-[#2ec4b6]"
+              : "border-[#a39a88] bg-white text-[#33312e] hover:bg-[#fff7ed]"
         }`}
       >
         {shared ? (
@@ -149,7 +149,7 @@ export default function CopyGroupInviteButton({
           </>
         )}
       </button>
-      <code className="max-w-[280px] truncate rounded bg-slate-50 px-2 py-1 text-[11px] text-slate-500">
+      <code className="max-w-[280px] truncate rounded bg-[#fff7ed] px-2 py-1 text-[11px] text-[#6b6459]">
         /b/{inviteCode}
       </code>
     </div>

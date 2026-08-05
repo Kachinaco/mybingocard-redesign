@@ -25,8 +25,8 @@ export default function ShareBatchButton({
 
   const variantClasses =
     variant === "primary"
-      ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:shadow-lg hover:shadow-indigo-200"
-      : "bg-indigo-50 text-indigo-700 border border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200";
+      ? "bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white hover:shadow-lg hover:shadow-[#7c5cff]"
+      : "bg-[#7c5cff]/10 text-[#7c5cff] border border-[#7c5cff]/15 hover:bg-[#7c5cff]/15 hover:border-[#7c5cff]";
 
   return (
     <>
@@ -53,7 +53,7 @@ export default function ShareBatchButton({
 
         {/* Tooltip */}
         <span
-          className="pointer-events-none absolute -top-11 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg z-20"
+          className="pointer-events-none absolute -top-11 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-[#33312e] text-white text-xs font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg z-20"
           role="tooltip"
         >
           One link for your group chat. Starts at $0.50 for up to 5 cards.

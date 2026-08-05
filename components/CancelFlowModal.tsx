@@ -130,7 +130,7 @@ export default function CancelFlowModal({ isOpen, onClose }: CancelFlowModalProp
         {/* Close button */}
         <button
           onClick={resetAndClose}
-          className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 transition-colors"
+          className="absolute right-4 top-4 text-[#6b6459] hover:text-[#33312e] transition-colors"
           aria-label="Close"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -143,24 +143,24 @@ export default function CancelFlowModal({ isOpen, onClose }: CancelFlowModalProp
           {/* Step 1: Pause suggestion */}
           {step === "pause" && (
             <div>
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#7c5cff]/15">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#7c5cff]">
                   <rect x="6" y="4" width="4" height="16" />
                   <rect x="14" y="4" width="4" height="16" />
                 </svg>
               </div>
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-xl font-bold text-[#33312e]">
                 Before you go...
               </h2>
-              <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+              <p className="mt-2 text-sm text-[#33312e] leading-relaxed">
                 Did you know you can <strong>pause your subscription</strong> instead of canceling?
                 Your cards and settings will be saved, and you can resume anytime.
               </p>
-              <div className="mt-4 rounded-xl border border-indigo-200 bg-indigo-50 p-4">
-                <p className="text-sm font-semibold text-indigo-900">
+              <div className="mt-4 rounded-xl border border-[#7c5cff] bg-[#7c5cff]/10 p-4">
+                <p className="text-sm font-semibold text-[#7c5cff]">
                   How pausing works:
                 </p>
-                <ul className="mt-2 space-y-1 text-sm text-indigo-800">
+                <ul className="mt-2 space-y-1 text-sm text-[#7c5cff]">
                   <li>Your billing stops immediately</li>
                   <li>All your cards are preserved</li>
                   <li>Resume with one click when you are ready</li>
@@ -169,13 +169,13 @@ export default function CancelFlowModal({ isOpen, onClose }: CancelFlowModalProp
               <div className="mt-6 flex flex-col gap-3">
                 <button
                   onClick={proceedToStripePortal}
-                  className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+                  className="w-full rounded-lg bg-[#7c5cff] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#7c5cff] transition-colors"
                 >
                   Pause my subscription
                 </button>
                 <button
                   onClick={() => setStep("survey")}
-                  className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                  className="w-full rounded-lg border border-[#a39a88] px-4 py-2.5 text-sm font-semibold text-[#33312e] hover:bg-[#fff7ed] transition-colors"
                 >
                   I still want to cancel
                 </button>
@@ -186,10 +186,10 @@ export default function CancelFlowModal({ isOpen, onClose }: CancelFlowModalProp
           {/* Step 2: Exit survey */}
           {step === "survey" && (
             <div>
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-xl font-bold text-[#33312e]">
                 Help us improve
               </h2>
-              <p className="mt-2 text-sm text-slate-600">
+              <p className="mt-2 text-sm text-[#33312e]">
                 We are sorry to see you go. Could you tell us why you are canceling?
               </p>
               <div className="mt-4 space-y-2">
@@ -198,8 +198,8 @@ export default function CancelFlowModal({ isOpen, onClose }: CancelFlowModalProp
                     key={r.value}
                     className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors ${
                       reason === r.value
-                        ? "border-indigo-500 bg-indigo-50"
-                        : "border-slate-200 hover:border-slate-300"
+                        ? "border-[#7c5cff] bg-[#7c5cff]/10"
+                        : "border-[#a39a88] hover:border-[#a39a88]"
                     }`}
                   >
                     <input
@@ -208,9 +208,9 @@ export default function CancelFlowModal({ isOpen, onClose }: CancelFlowModalProp
                       value={r.value}
                       checked={reason === r.value}
                       onChange={() => setReason(r.value)}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                      className="h-4 w-4 text-[#7c5cff] focus:ring-[#7c5cff]"
                     />
-                    <span className="text-sm text-slate-700">{r.label}</span>
+                    <span className="text-sm text-[#33312e]">{r.label}</span>
                   </label>
                 ))}
               </div>
@@ -224,20 +224,20 @@ export default function CancelFlowModal({ isOpen, onClose }: CancelFlowModalProp
                       : "Tell us more..."
                   }
                   rows={3}
-                  className="mt-3 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="mt-3 w-full rounded-lg border border-[#a39a88] px-3 py-2 text-sm text-[#33312e] placeholder:text-[#6b6459] focus:border-[#7c5cff] focus:outline-none focus:ring-1 focus:ring-[#7c5cff]"
                 />
               )}
               <div className="mt-6 flex flex-col gap-3">
                 <button
                   onClick={submitSurvey}
                   disabled={!reason || loading}
-                  className="w-full rounded-lg bg-slate-800 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full rounded-lg bg-[#33312e] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#33312e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? "Submitting..." : "Continue"}
                 </button>
                 <button
                   onClick={() => setStep("pause")}
-                  className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                  className="w-full text-sm text-[#6b6459] hover:text-[#33312e] transition-colors"
                 >
                   Go back
                 </button>
@@ -250,21 +250,21 @@ export default function CancelFlowModal({ isOpen, onClose }: CancelFlowModalProp
             <div>
               {offerApplied ? (
                 <>
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#2ec4b6]/15">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#2ec4b6]">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </div>
-                  <h2 className="text-xl font-bold text-slate-900">
+                  <h2 className="text-xl font-bold text-[#33312e]">
                     Discount applied!
                   </h2>
-                  <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                  <p className="mt-2 text-sm text-[#33312e] leading-relaxed">
                     Your next bill will be <strong>20% off</strong>. We are glad you are staying with us!
                   </p>
                   <div className="mt-6">
                     <button
                       onClick={resetAndClose}
-                      className="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
+                      className="w-full rounded-lg bg-[#2ec4b6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#2ec4b6] transition-colors"
                     >
                       Great, keep my subscription
                     </button>
@@ -272,51 +272,51 @@ export default function CancelFlowModal({ isOpen, onClose }: CancelFlowModalProp
                 </>
               ) : (
                 <>
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#ffb800]/15">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#ffb800]">
                       <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
                       <line x1="7" y1="7" x2="7.01" y2="7" />
                     </svg>
                   </div>
-                  <h2 className="text-xl font-bold text-slate-900">
+                  <h2 className="text-xl font-bold text-[#33312e]">
                     Wait — how about 20% off?
                   </h2>
-                  <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                  <p className="mt-2 text-sm text-[#33312e] leading-relaxed">
                     We would hate to lose you. Stay and get <strong>20% off your next month</strong> as
                     a thank-you for being part of MyBingoCard.
                   </p>
-                  <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                  <div className="mt-4 rounded-xl border border-[#2ec4b6] bg-[#2ec4b6]/10 p-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-emerald-700">20% OFF</span>
-                      <span className="text-sm text-emerald-600">your next billing cycle</span>
+                      <span className="text-lg font-bold text-[#2ec4b6]">20% OFF</span>
+                      <span className="text-sm text-[#2ec4b6]">your next billing cycle</span>
                     </div>
-                    <p className="mt-1 text-xs text-emerald-600">
+                    <p className="mt-1 text-xs text-[#2ec4b6]">
                       Applied automatically. No action needed after accepting.
                     </p>
                   </div>
 
                   {error && (
-                    <p className="mt-3 text-sm text-red-600">{error}</p>
+                    <p className="mt-3 text-sm text-[#ff5d8f]">{error}</p>
                   )}
 
                   <div className="mt-6 flex flex-col gap-3">
                     <button
                       onClick={applyRetentionOffer}
                       disabled={loading}
-                      className="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full rounded-lg bg-[#2ec4b6] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#2ec4b6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? "Applying discount..." : "Apply Discount & Stay"}
                     </button>
                     <button
                       onClick={proceedToStripePortal}
                       disabled={loading}
-                      className="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full rounded-lg border border-[#a39a88] px-4 py-2.5 text-sm font-semibold text-[#33312e] hover:bg-[#fff7ed] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       No thanks, proceed to cancel
                     </button>
                     <button
                       onClick={() => setStep("survey")}
-                      className="w-full text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                      className="w-full text-sm text-[#6b6459] hover:text-[#33312e] transition-colors"
                     >
                       Go back
                     </button>
@@ -329,8 +329,8 @@ export default function CancelFlowModal({ isOpen, onClose }: CancelFlowModalProp
           {/* Step 4: Redirecting to Stripe */}
           {step === "redirecting" && (
             <div className="flex flex-col items-center py-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-600" />
-              <p className="mt-4 text-sm text-slate-600">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#a39a88] border-t-indigo-600" />
+              <p className="mt-4 text-sm text-[#33312e]">
                 Redirecting to billing portal...
               </p>
             </div>

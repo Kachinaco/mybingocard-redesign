@@ -325,13 +325,13 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
   return (
     <div
       ref={cardContainerRef}
-      className={`transition-colors duration-200 ${isFullscreen ? "fullscreen-card min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50 flex items-center justify-center" : ""}`}
+      className={`transition-colors duration-200 ${isFullscreen ? "fullscreen-card min-h-screen bg-gradient-to-br from-[#fff7ed] to-[#7c5cff]/10 flex items-center justify-center" : ""}`}
     >
       {/* Confetti burst on BINGO */}
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
           <div className="text-center animate-bounce">
-            <div className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 drop-shadow-lg">
+            <div className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ffb800] via-[#ff5d8f] to-[#7c5cff] drop-shadow-lg">
               BINGO!
             </div>
             <div className="text-4xl mt-2">🎉🎊🎉</div>
@@ -341,9 +341,9 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
 
       {/* Bingo Banner */}
       {bingo && !isFullscreen && (
-        <div className="mb-6 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl p-6 text-center shadow-lg">
+        <div className="mb-6 bg-gradient-to-r from-[#ffb800] to-[#ff8a3d] text-white rounded-2xl p-6 text-center shadow-lg">
           <div className="font-black text-2xl animate-pulse mb-1">🎉 BINGO! You won! 🎉</div>
-          <p className="text-yellow-100 text-sm">Nice work — keep marking or reset to play again.</p>
+          <p className="text-[#ffb800]/15 text-sm">Nice work — keep marking or reset to play again.</p>
         </div>
       )}
 
@@ -351,20 +351,20 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
         <div className="rounded-2xl shadow-lg p-4 md:p-6 mb-4 bg-white">
           {/* Title */}
           <div className="text-center mb-4 md:mb-6">
-            <h1 className="text-xl md:text-2xl font-black text-slate-900">{card.title}</h1>
+            <h1 className="text-xl md:text-2xl font-black text-[#33312e]">{card.title}</h1>
             {card.description && (
-              <p className="text-xs md:text-sm mt-1 text-slate-500">{card.description}</p>
+              <p className="text-xs md:text-sm mt-1 text-[#6b6459]">{card.description}</p>
             )}
-            <p className="text-xs mt-2 text-slate-400">
+            <p className="text-xs mt-2 text-[#6b6459]">
               Tap cells to mark • {markedCount}/{totalCells} marked
             </p>
           </div>
 
           {/* Grid */}
           {variant === "classic75" && (
-            <div className="mb-2 grid gap-1.5 md:gap-2 text-center text-sm font-black text-indigo-700" style={{ gridTemplateColumns: `repeat(${shape.columns}, 1fr)` }}>
+            <div className="mb-2 grid gap-1.5 md:gap-2 text-center text-sm font-black text-[#7c5cff]" style={{ gridTemplateColumns: `repeat(${shape.columns}, 1fr)` }}>
               {"BINGO".split("").map((letter) => (
-                <div key={letter} className="rounded-lg bg-indigo-50 py-1">{letter}</div>
+                <div key={letter} className="rounded-lg bg-[#7c5cff]/10 py-1">{letter}</div>
               ))}
             </div>
           )}
@@ -386,12 +386,12 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
                     aspect-square flex items-center justify-center text-center rounded-xl font-semibold transition-all duration-150 select-none touch-manipulation overflow-hidden
                     ${
                       isBlank90
-                        ? "bg-amber-50 border border-dashed border-amber-100 text-transparent cursor-default"
+                        ? "bg-[#ffb800]/10 border border-dashed border-[#ffb800]/15 text-transparent cursor-default"
                         : isFreeSpace
-                        ? "bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-indigo-200 shadow-md cursor-default"
+                        ? "bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] text-white shadow-[#7c5cff] shadow-md cursor-default"
                         : isMarked
-                          ? "bg-gradient-to-br from-violet-500 to-indigo-500 text-white shadow-indigo-200 shadow-md ring-2 ring-indigo-300"
-                          : "bg-slate-50 text-slate-700 border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 active:scale-95"
+                          ? "bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] text-white shadow-[#7c5cff] shadow-md ring-2 ring-[#7c5cff]"
+                          : "bg-[#fff7ed] text-[#33312e] border border-[#a39a88] hover:border-[#7c5cff] hover:bg-[#7c5cff]/50 active:scale-95"
                     }
                   `}
                   style={{
@@ -466,19 +466,19 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
               <button
                 onClick={undoLast}
                 disabled={undoStack.length === 0}
-                className="px-4 py-2 bg-amber-500 text-white rounded-xl font-semibold text-sm disabled:opacity-30 transition-all"
+                className="px-4 py-2 bg-[#ffb800] text-white rounded-xl font-semibold text-sm disabled:opacity-30 transition-all"
               >
                 ↩ Undo
               </button>
               <button
                 onClick={resetCard}
-                className="px-4 py-2 bg-slate-600 text-white rounded-xl font-semibold text-sm"
+                className="px-4 py-2 bg-[#33312e] text-white rounded-xl font-semibold text-sm"
               >
                 🔄 Reset
               </button>
               <button
                 onClick={toggleFullscreen}
-                className="px-4 py-2 bg-red-500 text-white rounded-xl font-semibold text-sm"
+                className="px-4 py-2 bg-[#ff5d8f] text-white rounded-xl font-semibold text-sm"
               >
                 ✕ Exit
               </button>
@@ -488,9 +488,9 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
           {/* Progress bar */}
           {!isFullscreen && (
             <div className="mt-5">
-              <div className="h-1.5 rounded-full overflow-hidden bg-slate-100">
+              <div className="h-1.5 rounded-full overflow-hidden bg-[#fff7ed]">
                 <div
-                  className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-300"
+                  className="h-full bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] rounded-full transition-all duration-300"
                   style={{ width: `${(markedCount / totalCells) * 100}%` }}
                 />
               </div>
@@ -505,19 +505,19 @@ export default function PlayCard({ linkId, card, onBingo }: PlayCardProps) {
           <button
             onClick={undoLast}
             disabled={undoStack.length === 0}
-            className="text-sm font-medium px-4 py-2 rounded-xl transition-all disabled:opacity-30 bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
+            className="text-sm font-medium px-4 py-2 rounded-xl transition-all disabled:opacity-30 bg-white text-[#33312e] hover:bg-[#fff7ed] shadow-sm"
           >
             ↩ Undo
           </button>
           <button
             onClick={resetCard}
-            className="text-sm font-medium px-4 py-2 rounded-xl transition-all bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
+            className="text-sm font-medium px-4 py-2 rounded-xl transition-all bg-white text-[#33312e] hover:bg-[#fff7ed] shadow-sm"
           >
             🔄 Reset
           </button>
           <button
             onClick={toggleFullscreen}
-            className="text-sm font-medium px-4 py-2 rounded-xl transition-all bg-white text-slate-600 hover:bg-slate-50 shadow-sm"
+            className="text-sm font-medium px-4 py-2 rounded-xl transition-all bg-white text-[#33312e] hover:bg-[#fff7ed] shadow-sm"
           >
             ⛶ Fullscreen
           </button>

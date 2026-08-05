@@ -36,20 +36,20 @@ export default function IosAppStorePromo() {
   return (
     <section
       data-ios-app-promo="visible"
-      className="mb-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:p-5"
+      className="mb-8 rounded-2xl border border-[#a39a88] bg-white p-4 shadow-sm md:p-5"
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Mobile app</p>
-          <h2 className="mt-1 text-lg font-black text-slate-950">MyBingoCard for iPhone</h2>
-          <p className="mt-1 text-sm leading-6 text-slate-600">Open your cards from the iPhone app.</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-[#6b6459]">Mobile app</p>
+          <h2 className="mt-1 text-lg font-black text-[#33312e]">MyBingoCard for iPhone</h2>
+          <p className="mt-1 text-sm leading-6 text-[#33312e]">Open your cards from the iPhone app.</p>
         </div>
         <a
           href={IOS_APP_STORE_URL}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Download MyBingoCard on the App Store"
-          className="inline-flex h-12 shrink-0 items-center justify-center rounded-lg px-1 transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          className="inline-flex h-12 shrink-0 items-center justify-center rounded-lg px-1 transition focus:outline-none focus:ring-2 focus:ring-[#7c5cff] focus:ring-offset-2"
         >
           <img
             src="/badges/download-on-the-app-store.svg"

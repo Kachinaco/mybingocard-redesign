@@ -235,27 +235,27 @@ export function CheckoutModalProvider({ children }: { children: ReactNode }) {
             className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 relative animate-fade-in-up"
             onClick={e => e.stopPropagation()}
           >
-            <button onClick={close} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors z-10">
+            <button onClick={close} className="absolute top-4 right-4 text-[#6b6459] hover:text-[#33312e] transition-colors z-10">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
             <div className="text-center mb-4">
-              <h2 className="text-xl font-bold text-slate-900">Complete Your Purchase</h2>
-              <p className="text-slate-500 text-sm mt-1">{state.label}</p>
+              <h2 className="text-xl font-bold text-[#33312e]">Complete Your Purchase</h2>
+              <p className="text-[#6b6459] text-sm mt-1">{state.label}</p>
             </div>
 
             {state.error && (
               <div className="text-center mb-4">
-                <p className="text-red-500 text-sm">{state.error}</p>
-                <button onClick={close} className="mt-3 text-sm text-indigo-600 hover:underline font-medium">Close</button>
+                <p className="text-[#ff5d8f] text-sm">{state.error}</p>
+                <button onClick={close} className="mt-3 text-sm text-[#7c5cff] hover:underline font-medium">Close</button>
               </div>
             )}
 
             {state.loading && (
               <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-[#7c5cff] border-t-indigo-600 rounded-full animate-spin" />
               </div>
             )}
 

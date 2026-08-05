@@ -68,7 +68,7 @@ export default function StartGameButton({
       <button
         onClick={handleClick}
         disabled={loading}
-        className={`${className || "w-full"} flex items-center justify-center gap-2 ${compact ? "px-2.5 py-2 text-xs sm:text-sm" : "px-5 py-3 text-base"} bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white font-bold ${compact ? "rounded-lg" : "rounded-xl"} transition-colors`}
+        className={`${className || "w-full"} flex items-center justify-center gap-2 ${compact ? "px-2.5 py-2 text-xs sm:text-sm" : "px-5 py-3 text-base"} bg-[#2ec4b6] hover:bg-[#2ec4b6] disabled:opacity-60 text-white font-bold ${compact ? "rounded-lg" : "rounded-xl"} transition-colors`}
       >
         <svg className={compact ? "h-4 w-4" : "h-5 w-5"} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -76,7 +76,7 @@ export default function StartGameButton({
         {loading ? "Starting..." : label}
       </button>
       {error ? (
-        <p className="text-xs text-red-600 leading-snug">{error}</p>
+        <p className="text-xs text-[#ff5d8f] leading-snug">{error}</p>
       ) : null}
     </div>
   );

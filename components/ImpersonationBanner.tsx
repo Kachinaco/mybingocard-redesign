@@ -50,25 +50,25 @@ export default function ImpersonationBanner() {
   };
 
   return (
-    <div className="border-b border-amber-300 bg-amber-100 text-amber-950">
+    <div className="border-b border-[#ffb800] bg-[#ffb800]/15 text-[#ffb800]">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between lg:px-8">
         <div>
           <div className="font-semibold">
             Viewing MyBingoCard as{" "}
             {impersonation.targetName || impersonation.targetEmail}
           </div>
-          <div className="text-amber-800">
+          <div className="text-[#ffb800]">
             Admin: {actorEmail || "unknown"}{" "}
             <span className="mx-1">•</span>
             Target: {impersonation.targetEmail}
           </div>
-          {error ? <div className="mt-1 text-red-700">{error}</div> : null}
+          {error ? <div className="mt-1 text-[#ff5d8f]">{error}</div> : null}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/admin/users/${impersonation.targetUserId}`}
-            className="rounded-md border border-amber-400 px-3 py-1.5 font-medium text-amber-900 transition-colors hover:bg-amber-200"
+            className="rounded-md border border-[#ffb800] px-3 py-1.5 font-medium text-[#ffb800] transition-colors hover:bg-[#ffb800]"
           >
             Open Admin Record
           </Link>
@@ -76,7 +76,7 @@ export default function ImpersonationBanner() {
             type="button"
             onClick={stopImpersonation}
             disabled={stopping}
-            className="rounded-md bg-amber-900 px-3 py-1.5 font-medium text-white transition-colors hover:bg-amber-950 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-md bg-[#ffb800] px-3 py-1.5 font-medium text-white transition-colors hover:bg-[#ffb800] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {stopping ? "Stopping..." : "Stop Impersonating"}
           </button>

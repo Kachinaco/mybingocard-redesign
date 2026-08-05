@@ -57,16 +57,16 @@ export function CheckoutReturnBanner() {
 
   if (success) {
     return (
-      <div className="max-w-4xl mx-auto mb-8 bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+      <div className="max-w-4xl mx-auto mb-8 bg-[#2ec4b6]/10 border border-[#2ec4b6]/15 rounded-xl p-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
-            <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-8 h-8 bg-[#2ec4b6]/15 rounded-full flex items-center justify-center flex-shrink-0">
+            <svg className="w-5 h-5 text-[#2ec4b6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
           <div>
-            <h3 className="font-bold text-emerald-900">Payment successful</h3>
-            <p className="text-emerald-700 text-sm">Your Premium features are now active.</p>
+            <h3 className="font-bold text-[#2ec4b6]">Payment successful</h3>
+            <p className="text-[#2ec4b6] text-sm">Your Premium features are now active.</p>
           </div>
         </div>
       </div>
@@ -74,16 +74,16 @@ export function CheckoutReturnBanner() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto mb-8 bg-amber-50 border border-amber-100 rounded-xl p-4">
+    <div className="max-w-4xl mx-auto mb-8 bg-[#ffb800]/10 border border-[#ffb800]/15 rounded-xl p-4">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-          <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-8 h-8 bg-[#ffb800]/15 rounded-full flex items-center justify-center flex-shrink-0">
+          <svg className="w-5 h-5 text-[#ffb800]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </div>
         <div>
-          <h3 className="font-bold text-amber-900">Checkout canceled</h3>
-          <p className="text-amber-700 text-sm">No payment was made. You can upgrade anytime.</p>
+          <h3 className="font-bold text-[#ffb800]">Checkout canceled</h3>
+          <p className="text-[#ffb800] text-sm">No payment was made. You can upgrade anytime.</p>
         </div>
       </div>
     </div>
@@ -159,7 +159,7 @@ export function PricingCheckoutButton({
 
   if (isPremium) {
     return (
-      <button disabled className="w-full py-4 px-6 bg-slate-100 text-slate-500 rounded-xl font-bold cursor-not-allowed border border-slate-200">
+      <button disabled className="w-full py-4 px-6 bg-[#fff7ed] text-[#6b6459] rounded-xl font-bold cursor-not-allowed border border-[#a39a88]">
         Current Plan
       </button>
     );

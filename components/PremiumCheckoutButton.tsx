@@ -45,7 +45,7 @@ export default function PremiumCheckoutButton({
       disabled={loading}
       className={
         className ||
-        "inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-sm font-semibold hover:shadow-lg transition-all"
+        "inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white text-sm font-semibold hover:shadow-lg transition-all"
       }
     >
       {loading ? "Loading..." : label}

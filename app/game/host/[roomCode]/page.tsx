@@ -493,10 +493,10 @@ export default function HostGamePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#fff7ed] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4 mx-auto" />
-          <p className="text-slate-500">Loading game room...</p>
+          <div className="w-12 h-12 border-4 border-[#7c5cff] border-t-transparent rounded-full animate-spin mb-4 mx-auto" />
+          <p className="text-[#6b6459]">Loading game room...</p>
         </div>
       </div>
     );
@@ -517,13 +517,13 @@ export default function HostGamePage() {
   const qrCodeUrl = joinUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(joinUrl)}` : "";
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#fff7ed]">
       <Confetti active={!!gameState?.winnerName || winners.length > 0} />
 
       {/* Header */}
-      <header className="bg-white border-b border-slate-100 sticky top-0 z-10">
+      <header className="bg-white border-b border-[#fff7ed] sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <Link href="/dashboard" className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
+          <Link href="/dashboard" className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cff] to-[#7c5cff]">
             MyBingoCard
           </Link>
           <div className="flex items-center gap-3">
@@ -531,9 +531,9 @@ export default function HostGamePage() {
             <span
               role="status"
               aria-label="Host status"
-              className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-slate-400 select-none pointer-events-none opacity-60"
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-[#6b6459] select-none pointer-events-none opacity-60"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#2ec4b6]" aria-hidden="true" />
               Hosting
             </span>
           </div>
@@ -542,36 +542,36 @@ export default function HostGamePage() {
 
       <main className="container mx-auto px-4 py-6 max-w-6xl">
         {showQrSheet && qrCodeUrl && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#33312e]/80 p-4">
             <div className="w-full max-w-lg rounded-3xl bg-white p-6 text-center shadow-2xl">
               <div className="flex items-center justify-between gap-4 text-left">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Scan to join</p>
-                  <h2 className="mt-1 text-2xl font-black text-slate-950">{title || "Bingo Game"}</h2>
+                  <p className="text-xs font-black uppercase tracking-[0.18em] text-[#2ec4b6]">Scan to join</p>
+                  <h2 className="mt-1 text-2xl font-black text-[#33312e]">{title || "Bingo Game"}</h2>
                 </div>
                 <button
                   onClick={() => setShowQrSheet(false)}
-                  className="rounded-full bg-slate-100 px-3 py-1.5 text-sm font-black text-slate-500 transition hover:bg-slate-200"
+                  className="rounded-full bg-[#fff7ed] px-3 py-1.5 text-sm font-black text-[#6b6459] transition hover:bg-[#a39a88]"
                   aria-label="Close QR display"
                 >
                   Close
                 </button>
               </div>
-              <div className="mt-6 rounded-3xl border border-emerald-100 bg-emerald-50 p-5">
+              <div className="mt-6 rounded-3xl border border-[#2ec4b6]/15 bg-[#2ec4b6]/10 p-5">
                 <img src={qrCodeUrl} alt="Join game QR code" className="mx-auto h-72 w-72 rounded-2xl bg-white p-3 shadow-sm" />
-                <div className="mt-5 font-mono text-5xl font-black tracking-[0.25em] text-emerald-700">{roomCode}</div>
-                <p className="mt-2 text-sm font-bold text-emerald-800">Each player gets a unique card. No app needed.</p>
+                <div className="mt-5 font-mono text-5xl font-black tracking-[0.25em] text-[#2ec4b6]">{roomCode}</div>
+                <p className="mt-2 text-sm font-bold text-[#2ec4b6]">Each player gets a unique card. No app needed.</p>
               </div>
               <div className="mt-5 grid gap-2 sm:grid-cols-2">
                 <button
                   onClick={copyRoomLink}
-                  className="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-700"
+                  className="rounded-xl bg-[#2ec4b6] px-4 py-3 text-sm font-black text-white transition hover:bg-[#2ec4b6]"
                 >
                   {copied ? "Copied" : "Copy invite"}
                 </button>
                 <button
                   onClick={printJoinSheet}
-                  className="rounded-xl bg-slate-950 px-4 py-3 text-sm font-black text-white transition hover:bg-slate-800"
+                  className="rounded-xl bg-[#33312e] px-4 py-3 text-sm font-black text-white transition hover:bg-[#33312e]"
                 >
                   Print join sheet
                 </button>
@@ -581,30 +581,30 @@ export default function HostGamePage() {
         )}
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm flex items-center gap-2">
+          <div className="mb-4 p-3 bg-[#ff5d8f]/10 border border-[#ff5d8f]/15 rounded-xl text-[#ff5d8f] text-sm flex items-center gap-2">
             <span>{error}</span>
-            <button onClick={() => setError("")} className="ml-auto text-red-400 hover:text-red-600">&times;</button>
+            <button onClick={() => setError("")} className="ml-auto text-[#ff5d8f] hover:text-[#ff5d8f]">&times;</button>
           </div>
         )}
 
         {/* Room Info Bar */}
-        <section className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm sm:p-5">
+        <section className="mb-6 rounded-2xl border border-[#2ec4b6] bg-[#2ec4b6]/10 p-4 shadow-sm sm:p-5">
           <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
             <div className="space-y-3">
               <div>
-                <h1 className="text-xl font-black text-slate-950">{title || "Bingo Game"}</h1>
+                <h1 className="text-xl font-black text-[#33312e]">{title || "Bingo Game"}</h1>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                    gameState?.status === "waiting" ? "bg-emerald-100 text-emerald-800" :
-                    gameState?.status === "active" ? "bg-green-600 text-white" :
-                    "bg-slate-200 text-slate-700"
+                    gameState?.status === "waiting" ? "bg-[#2ec4b6]/15 text-[#2ec4b6]" :
+                    gameState?.status === "active" ? "bg-[#2ec4b6] text-white" :
+                    "bg-[#a39a88] text-[#33312e]"
                   }`}>
                     {gameState?.status === "waiting" ? "Waiting room" :
                      gameState?.status === "active" ? "Live now" : "Game over"}
                   </span>
-                  <span className="text-sm font-semibold text-emerald-900">{playerCount} player{playerCount === 1 ? "" : "s"}</span>
+                  <span className="text-sm font-semibold text-[#2ec4b6]">{playerCount} player{playerCount === 1 ? "" : "s"}</span>
                   {gameState?.status === "active" && (
-                    <span className="text-xs font-semibold text-emerald-700">
+                    <span className="text-xs font-semibold text-[#2ec4b6]">
                       {winCondition === "four_corners" ? "Four Corners" :
                        winCondition === "blackout" ? "Blackout" :
                        winCondition === "one_line" ? "One Line" :
@@ -616,32 +616,32 @@ export default function HostGamePage() {
               </div>
 
               <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center">
-                <div className="rounded-2xl border border-emerald-200 bg-white px-5 py-3 text-center shadow-sm">
-                  <div className="font-mono text-4xl font-black tracking-[0.25em] text-emerald-700 sm:text-5xl">{roomCode}</div>
-                  <div className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-emerald-700">Room Code</div>
+                <div className="rounded-2xl border border-[#2ec4b6] bg-white px-5 py-3 text-center shadow-sm">
+                  <div className="font-mono text-4xl font-black tracking-[0.25em] text-[#2ec4b6] sm:text-5xl">{roomCode}</div>
+                  <div className="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-[#2ec4b6]">Room Code</div>
                 </div>
                 <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                   <button
                     onClick={copyRoomLink}
-                    className="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-700"
+                    className="rounded-xl bg-[#2ec4b6] px-4 py-3 text-sm font-black text-white transition hover:bg-[#2ec4b6]"
                   >
                     {copied ? "Copied" : "Copy invite"}
                   </button>
                   <button
                     onClick={shareRoom}
-                    className="rounded-xl bg-white px-4 py-3 text-sm font-black text-emerald-800 ring-1 ring-emerald-200 transition hover:bg-emerald-100"
+                    className="rounded-xl bg-white px-4 py-3 text-sm font-black text-[#2ec4b6] ring-1 ring-[#2ec4b6] transition hover:bg-[#2ec4b6]/15"
                   >
                     Share
                   </button>
                   <button
                     onClick={openQrSheet}
-                    className="rounded-xl bg-white px-4 py-3 text-sm font-black text-emerald-800 ring-1 ring-emerald-200 transition hover:bg-emerald-100"
+                    className="rounded-xl bg-white px-4 py-3 text-sm font-black text-[#2ec4b6] ring-1 ring-[#2ec4b6] transition hover:bg-[#2ec4b6]/15"
                   >
                     Show QR
                   </button>
                   <button
                     onClick={printJoinSheet}
-                    className="rounded-xl bg-white px-4 py-3 text-sm font-black text-emerald-800 ring-1 ring-emerald-200 transition hover:bg-emerald-100"
+                    className="rounded-xl bg-white px-4 py-3 text-sm font-black text-[#2ec4b6] ring-1 ring-[#2ec4b6] transition hover:bg-[#2ec4b6]/15"
                   >
                     Print join sheet
                   </button>
@@ -649,7 +649,7 @@ export default function HostGamePage() {
                     <button
                       onClick={startGame}
                       disabled={!canStartGame}
-                      className="col-span-2 rounded-xl bg-slate-950 px-5 py-3 text-base font-black text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 sm:col-auto"
+                      className="col-span-2 rounded-xl bg-[#33312e] px-5 py-3 text-base font-black text-white transition hover:bg-[#33312e] disabled:cursor-not-allowed disabled:opacity-50 sm:col-auto"
                     >
                       {startButtonLabel}
                     </button>
@@ -659,12 +659,12 @@ export default function HostGamePage() {
             </div>
 
             {qrCodeUrl && (
-              <div className="rounded-2xl border border-emerald-200 bg-white p-3 text-center shadow-sm">
+              <div className="rounded-2xl border border-[#2ec4b6] bg-white p-3 text-center shadow-sm">
                 <button onClick={openQrSheet} className="block transition hover:scale-[1.02]" aria-label="Show larger join QR code">
                   <img src={qrCodeUrl} alt="Join game QR code" className="h-36 w-36 rounded-lg" />
                 </button>
-                <p className="mt-2 text-xs font-black uppercase tracking-[0.12em] text-emerald-700">Scan to join</p>
-                <p className="mt-1 text-[11px] font-semibold text-slate-500">No app needed</p>
+                <p className="mt-2 text-xs font-black uppercase tracking-[0.12em] text-[#2ec4b6]">Scan to join</p>
+                <p className="mt-1 text-[11px] font-semibold text-[#6b6459]">No app needed</p>
               </div>
             )}
           </div>
@@ -674,24 +674,24 @@ export default function HostGamePage() {
           {/* Bingo Caller Panel */}
           <div className="lg:col-span-2 space-y-4">
             {/* Current Call Display / Waiting / Finished */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-[#fff7ed] p-6">
               {gameState?.status === "waiting" && (
                 <div className="py-4">
-                  <div className="mx-auto mb-6 max-w-xl rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-center">
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">Room ready</p>
-                    <h2 className="mt-1 text-2xl font-black text-slate-950">Friends join with the code above</h2>
-                    <p className="mt-2 text-sm font-semibold text-emerald-800">
+                  <div className="mx-auto mb-6 max-w-xl rounded-2xl border border-[#2ec4b6]/15 bg-[#2ec4b6]/10 p-4 text-center">
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#2ec4b6]">Room ready</p>
+                    <h2 className="mt-1 text-2xl font-black text-[#33312e]">Friends join with the code above</h2>
+                    <p className="mt-2 text-sm font-semibold text-[#2ec4b6]">
                       {canStartGame ? "Press Start game when everyone is in." : "A friend needs to join first, or turn on play along below."}
                     </p>
                   </div>
 
                   {/* Game Settings */}
-                  <details className="max-w-lg mx-auto mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <summary className="cursor-pointer text-sm font-bold text-slate-700">Game settings</summary>
+                  <details className="max-w-lg mx-auto mb-6 rounded-2xl border border-[#a39a88] bg-[#fff7ed] p-4">
+                    <summary className="cursor-pointer text-sm font-bold text-[#33312e]">Game settings</summary>
                     <div className="mt-4 space-y-4">
                     {/* Call Mode */}
-                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                      <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">How to call items</div>
+                    <div className="bg-[#fff7ed] rounded-xl p-4 border border-[#a39a88]">
+                      <div className="text-xs font-bold text-[#6b6459] uppercase tracking-wider mb-2">How to call items</div>
                       <div className="grid grid-cols-2 gap-2">
                         {([
                           ["random", "Random"],
@@ -704,8 +704,8 @@ export default function HostGamePage() {
                             onClick={() => { setCallMode(mode); saveSettings({ callMode: mode }); }}
                             className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
                               callMode === mode
-                                ? "bg-emerald-600 text-white shadow-sm"
-                                : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
+                                ? "bg-[#2ec4b6] text-white shadow-sm"
+                                : "bg-white text-[#33312e] border border-[#a39a88] hover:border-[#2ec4b6]"
                             }`}
                           >
                             {label}
@@ -714,7 +714,7 @@ export default function HostGamePage() {
                       </div>
                       {callMode === "auto" && (
                         <div className="mt-2 flex items-center gap-2">
-                          <span className="text-xs text-slate-500">Interval:</span>
+                          <span className="text-xs text-[#6b6459]">Interval:</span>
                           <select
                             value={autoInterval}
                             onChange={(e) => {
@@ -722,7 +722,7 @@ export default function HostGamePage() {
                               setAutoInterval(val);
                               saveSettings({ autoCallInterval: val });
                             }}
-                            className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-sm"
+                            className="px-2 py-1 bg-white border border-[#a39a88] rounded-lg text-sm"
                           >
                             <option value={3}>3 seconds</option>
                             <option value={5}>5 seconds</option>
@@ -735,8 +735,8 @@ export default function HostGamePage() {
                     </div>
 
                     {/* Win Condition */}
-                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                      <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Win condition</div>
+                    <div className="bg-[#fff7ed] rounded-xl p-4 border border-[#a39a88]">
+                      <div className="text-xs font-bold text-[#6b6459] uppercase tracking-wider mb-2">Win condition</div>
                       <div className="grid grid-cols-3 gap-2">
                         {(bingoVariant === "classic90"
                           ? ([
@@ -755,15 +755,15 @@ export default function HostGamePage() {
                             onClick={() => { setWinCondition(cond); saveSettings({ winCondition: cond }); }}
                             className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
                               winCondition === cond
-                                ? "bg-emerald-600 text-white shadow-sm"
-                                : "bg-white text-slate-600 border border-slate-200 hover:border-emerald-300"
+                                ? "bg-[#2ec4b6] text-white shadow-sm"
+                                : "bg-white text-[#33312e] border border-[#a39a88] hover:border-[#2ec4b6]"
                             }`}
                           >
                             {label}
                           </button>
                         ))}
                       </div>
-                      <p className="text-xs text-slate-400 mt-2">
+                      <p className="text-xs text-[#6b6459] mt-2">
                         {winCondition === "standard" && "Row, column, or diagonal"}
                         {winCondition === "four_corners" && "All four corner cells"}
                         {winCondition === "blackout" && "Every cell on the card"}
@@ -775,23 +775,23 @@ export default function HostGamePage() {
 
                     {/* Multiple Winners + Play Along */}
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <label className="flex-1 flex items-center gap-2 cursor-pointer bg-white rounded-xl px-4 py-3 border border-slate-200 hover:border-emerald-300 transition">
+                      <label className="flex-1 flex items-center gap-2 cursor-pointer bg-white rounded-xl px-4 py-3 border border-[#a39a88] hover:border-[#2ec4b6] transition">
                         <input
                           type="checkbox"
                           checked={allowMultipleWinners}
                           onChange={(e) => { setAllowMultipleWinners(e.target.checked); saveSettings({ allowMultipleWinners: e.target.checked }); }}
-                          className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
+                          className="w-4 h-4 text-[#2ec4b6] rounded border-[#a39a88] focus:ring-[#2ec4b6]"
                         />
-                        <span className="text-sm font-medium text-slate-700">Allow multiple winners</span>
+                        <span className="text-sm font-medium text-[#33312e]">Allow multiple winners</span>
                       </label>
-                      <label className="flex-1 flex items-center gap-2 cursor-pointer bg-white rounded-xl px-4 py-3 border border-slate-200 hover:border-emerald-300 transition">
+                      <label className="flex-1 flex items-center gap-2 cursor-pointer bg-white rounded-xl px-4 py-3 border border-[#a39a88] hover:border-[#2ec4b6] transition">
                         <input
                           type="checkbox"
                           checked={playAlong}
                           onChange={(e) => setPlayAlong(e.target.checked)}
-                          className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
+                          className="w-4 h-4 text-[#2ec4b6] rounded border-[#a39a88] focus:ring-[#2ec4b6]"
                         />
-                        <span className="text-sm font-medium text-slate-700">I want to play too</span>
+                        <span className="text-sm font-medium text-[#33312e]">I want to play too</span>
                       </label>
                     </div>
                     </div>
@@ -803,9 +803,9 @@ export default function HostGamePage() {
                 <div>
                   {/* Current called item */}
                   <div className={`text-center mb-6 transition-all duration-300 ${showCalledAnimation ? "scale-110" : ""}`}>
-                    <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Current Call</div>
+                    <div className="text-xs text-[#6b6459] uppercase tracking-wider mb-2">Current Call</div>
                     {lastCalledItem ? (
-                      <div className={`inline-block px-8 py-6 bg-emerald-600 text-white rounded-2xl shadow-lg transition-all duration-500 ${showCalledAnimation ? "animate-bounce shadow-xl shadow-emerald-200" : ""}`}>
+                      <div className={`inline-block px-8 py-6 bg-[#2ec4b6] text-white rounded-2xl shadow-lg transition-all duration-500 ${showCalledAnimation ? "animate-bounce shadow-xl shadow-[#2ec4b6]" : ""}`}>
                         <div className="text-3xl font-black">
                           {isImageCell(lastCalledItem!) ? (
                             <span className="flex flex-col items-center gap-1">
@@ -814,12 +814,12 @@ export default function HostGamePage() {
                             </span>
                           ) : formatCalledItemLabel(lastCalledItem!, bingoVariant)}
                         </div>
-                        <div className="text-emerald-100 text-sm mt-1">
+                        <div className="text-[#2ec4b6]/15 text-sm mt-1">
                           Call #{gameState.calledItems.length} of {gameState.wordListCount}
                         </div>
                       </div>
                     ) : (
-                      <div className="inline-block px-8 py-6 bg-slate-100 text-slate-400 rounded-2xl">
+                      <div className="inline-block px-8 py-6 bg-[#fff7ed] text-[#6b6459] rounded-2xl">
                         <div className="text-2xl font-bold">
                           {callMode === "manual" ? "Pick an item below" : "Press Call to begin"}
                         </div>
@@ -834,7 +834,7 @@ export default function HostGamePage() {
                       <button
                         onClick={callNextItem}
                         disabled={calling || remaining === 0}
-                        className="px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 hover:shadow-lg transition font-bold disabled:opacity-50"
+                        className="px-6 py-3 bg-[#2ec4b6] text-white rounded-xl hover:bg-[#2ec4b6] hover:shadow-lg transition font-bold disabled:opacity-50"
                       >
                         {calling ? "Calling..." : remaining === 0 ? "All Called!" : "Call Next"}
                       </button>
@@ -847,8 +847,8 @@ export default function HostGamePage() {
                           onClick={() => setAutoCalling(!autoCalling)}
                           className={`px-6 py-3 rounded-xl font-bold transition ${
                             autoCalling
-                              ? "bg-amber-500 text-white hover:bg-amber-600"
-                              : "bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-lg"
+                              ? "bg-[#ffb800] text-white hover:bg-[#ffb800]"
+                              : "bg-gradient-to-r from-[#2ec4b6] to-[#2ec4b6] text-white hover:shadow-lg"
                           }`}
                         >
                           {autoCalling ? "Pause" : "Resume"}
@@ -856,7 +856,7 @@ export default function HostGamePage() {
                         <select
                           value={autoInterval}
                           onChange={(e) => setAutoInterval(Number(e.target.value))}
-                          className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
+                          className="px-3 py-2 bg-[#fff7ed] border border-[#a39a88] rounded-xl text-sm"
                         >
                           <option value={3}>3s</option>
                           <option value={5}>5s</option>
@@ -865,15 +865,15 @@ export default function HostGamePage() {
                           <option value={15}>15s</option>
                         </select>
                         {autoCalling && (
-                          <span className="text-sm text-green-600 font-medium animate-pulse">Auto-calling...</span>
+                          <span className="text-sm text-[#2ec4b6] font-medium animate-pulse">Auto-calling...</span>
                         )}
                       </>
                     )}
 
                     {/* Random mode: also show auto-call toggle */}
                     {callMode === "random" && (
-                      <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-100">
-                        <label className="text-sm text-slate-600 font-medium whitespace-nowrap">Auto-Call</label>
+                      <div className="flex items-center gap-2 bg-[#fff7ed] rounded-xl px-3 py-2 border border-[#fff7ed]">
+                        <label className="text-sm text-[#33312e] font-medium whitespace-nowrap">Auto-Call</label>
                         <button
                           onClick={() => {
                             const newValue = !autoCalling;
@@ -884,7 +884,7 @@ export default function HostGamePage() {
                               roomCode,
                             });
                           }}
-                          className={`relative w-12 h-6 rounded-full transition-colors ${autoCalling ? "bg-green-500" : "bg-slate-300"}`}
+                          className={`relative w-12 h-6 rounded-full transition-colors ${autoCalling ? "bg-[#2ec4b6]" : "bg-[#a39a88]"}`}
                         >
                           <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${autoCalling ? "translate-x-6" : "translate-x-0.5"}`} />
                         </button>
@@ -892,7 +892,7 @@ export default function HostGamePage() {
                           <select
                             value={autoInterval}
                             onChange={(e) => setAutoInterval(Number(e.target.value))}
-                            className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-sm"
+                            className="px-2 py-1 bg-white border border-[#a39a88] rounded-lg text-sm"
                           >
                             <option value={3}>3s</option>
                             <option value={5}>5s</option>
@@ -904,7 +904,7 @@ export default function HostGamePage() {
                       </div>
                     )}
 
-                    <div className="text-sm text-slate-500">
+                    <div className="text-sm text-[#6b6459]">
                       {remaining} remaining
                     </div>
 
@@ -912,7 +912,7 @@ export default function HostGamePage() {
                     {allowMultipleWinners && winners.length > 0 && (
                       <button
                         onClick={endGameManually}
-                        className="px-4 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition font-semibold text-sm"
+                        className="px-4 py-2 bg-[#ff5d8f] text-white rounded-xl hover:bg-[#ff5d8f] transition font-semibold text-sm"
                       >
                         End Game
                       </button>
@@ -921,8 +921,8 @@ export default function HostGamePage() {
 
                   {/* Manual Pick Grid */}
                   {callMode === "manual" && (
-                    <div className="border-t border-slate-100 pt-4">
-                      <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                    <div className="border-t border-[#fff7ed] pt-4">
+                      <div className="text-xs font-bold text-[#6b6459] uppercase tracking-wider mb-2">
                         Tap an item to call it ({uncalledItems.length} remaining)
                       </div>
                       <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto">
@@ -931,7 +931,7 @@ export default function HostGamePage() {
                             key={i}
                             onClick={() => callSpecificItem(item)}
                             disabled={calling}
-                            className="px-3 py-2 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-medium hover:bg-indigo-100 hover:border-indigo-400 transition disabled:opacity-50 inline-flex items-center gap-1"
+                            className="px-3 py-2 bg-[#7c5cff]/10 text-[#7c5cff] border border-[#7c5cff] rounded-lg text-sm font-medium hover:bg-[#7c5cff]/15 hover:border-[#7c5cff] transition disabled:opacity-50 inline-flex items-center gap-1"
                           >
                             {isImageCell(item) ? (
                               <>
@@ -942,7 +942,7 @@ export default function HostGamePage() {
                           </button>
                         ))}
                         {uncalledItems.length === 0 && (
-                          <p className="text-sm text-slate-400">All items have been called!</p>
+                          <p className="text-sm text-[#6b6459]">All items have been called!</p>
                         )}
                       </div>
                     </div>
@@ -955,28 +955,28 @@ export default function HostGamePage() {
                   <div className="text-6xl mb-4">🏆</div>
                   {winners.length > 1 ? (
                     <>
-                      <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mb-4">
+                      <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ffb800] to-[#ff8a3d] mb-4">
                         Winners!
                       </h2>
                       <div className="flex flex-wrap justify-center gap-2 mb-6">
                         {winners.map((w, i) => (
-                          <span key={i} className="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-xl font-bold text-sm">
+                          <span key={i} className="px-4 py-2 bg-[#ffb800]/15 text-[#ffb800] rounded-xl font-bold text-sm">
                             {w.playerId === hostPlayer?.playerId ? "You" : w.playerName}
                           </span>
                         ))}
                       </div>
                     </>
                   ) : (
-                    <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mb-2">
+                    <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ffb800] to-[#ff8a3d] mb-2">
                       {isHostWinner ? "You Win!" : `${gameState.winnerName || "Game"} Wins!`}
                     </h2>
                   )}
-                  <p className="text-slate-500 mb-6">
+                  <p className="text-[#6b6459] mb-6">
                     After {gameState.calledItems.length} calls
                   </p>
                   <Link
                     href="/dashboard"
-                    className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition font-semibold"
+                    className="px-6 py-3 bg-[#7c5cff] text-white rounded-xl hover:bg-[#7c5cff] transition font-semibold"
                   >
                     Back to Dashboard
                   </Link>
@@ -989,7 +989,7 @@ export default function HostGamePage() {
               <button
                 onClick={claimHostBingo}
                 disabled={claimingBingo}
-                className="w-full py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-2xl font-black text-2xl shadow-lg hover:shadow-xl transition-all animate-pulse disabled:opacity-50"
+                className="w-full py-4 bg-gradient-to-r from-[#ffb800] to-[#ff8a3d] text-white rounded-2xl font-black text-2xl shadow-lg hover:shadow-xl transition-all animate-pulse disabled:opacity-50"
               >
                 {claimingBingo ? "Checking..." : "BINGO! Tap to claim!"}
               </button>
@@ -997,10 +997,10 @@ export default function HostGamePage() {
 
             {/* Host's Bingo Card (Play Along) */}
             {hostPlayer && gameState?.status !== "waiting" && (
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+              <div className="bg-white rounded-2xl shadow-sm border border-[#fff7ed] p-4">
                 <div className="text-center mb-3">
-                  <h3 className="text-sm font-bold text-slate-700">Your Card</h3>
-                  <p className="text-xs text-slate-400">
+                  <h3 className="text-sm font-bold text-[#33312e]">Your Card</h3>
+                  <p className="text-xs text-[#6b6459]">
                     {hostMarked.size}/{totalCells} marked
                   </p>
                 </div>
@@ -1023,12 +1023,12 @@ export default function HostGamePage() {
                         className={`
                           aspect-square flex items-center justify-center text-center rounded-lg font-semibold transition-all duration-150 select-none touch-manipulation overflow-hidden p-1
                           ${isFreeSpace
-                            ? "bg-emerald-600 text-white shadow-md cursor-default"
+                            ? "bg-[#2ec4b6] text-white shadow-md cursor-default"
                             : isMarked
-                              ? "bg-emerald-600 text-white shadow-md ring-2 ring-emerald-300"
+                              ? "bg-[#2ec4b6] text-white shadow-md ring-2 ring-[#2ec4b6]"
                               : isCalled
-                                ? "bg-emerald-50 text-emerald-700 border-2 border-emerald-300 animate-pulse"
-                                : "bg-slate-50 text-slate-500 border border-slate-200 opacity-60"
+                                ? "bg-[#2ec4b6]/10 text-[#2ec4b6] border-2 border-[#2ec4b6] animate-pulse"
+                                : "bg-[#fff7ed] text-[#6b6459] border border-[#a39a88] opacity-60"
                           }
                         `}
                         style={{
@@ -1063,9 +1063,9 @@ export default function HostGamePage() {
                 </div>
 
                 <div className="mt-3">
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-[#fff7ed] rounded-full overflow-hidden">
                     <div
-	                      className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+	                      className="h-full bg-[#2ec4b6] rounded-full transition-all duration-300"
                       style={{ width: `${(hostMarked.size / totalCells) * 100}%` }}
                     />
                   </div>
@@ -1075,14 +1075,14 @@ export default function HostGamePage() {
 
             {/* Called Items History */}
             {gameState && gameState.calledItems.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+              <div className="bg-white rounded-2xl shadow-sm border border-[#fff7ed] p-6">
                 <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <h3 className="text-sm font-bold text-slate-700">
+                  <h3 className="text-sm font-bold text-[#33312e]">
                     Called Items ({gameState.calledItems.length})
                   </h3>
                   <button
                     onClick={exportCalledList}
-                    className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:border-emerald-300 hover:text-emerald-700"
+                    className="rounded-lg border border-[#a39a88] px-3 py-2 text-xs font-black text-[#33312e] transition hover:border-[#2ec4b6] hover:text-[#2ec4b6]"
                   >
                     Export called list
                   </button>
@@ -1093,8 +1093,8 @@ export default function HostGamePage() {
                       key={i}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium inline-flex items-center gap-1 ${
                         i === 0
-	                          ? "bg-emerald-100 text-emerald-700 ring-2 ring-emerald-300"
-                          : "bg-slate-100 text-slate-600"
+	                          ? "bg-[#2ec4b6]/15 text-[#2ec4b6] ring-2 ring-[#2ec4b6]"
+                          : "bg-[#fff7ed] text-[#33312e]"
                       }`}
                     >
                       {isImageCell(item) ? (
@@ -1112,16 +1112,16 @@ export default function HostGamePage() {
 
           {/* Players Panel */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sticky top-20">
+            <div className="bg-white rounded-2xl shadow-sm border border-[#fff7ed] p-4 sticky top-20">
               {winners.length > 0 && (
-                <div className="mb-4 rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
-                  <p className="text-xs font-black uppercase tracking-[0.14em] text-yellow-700">Winner verification</p>
-                  <p className="mt-1 text-xs font-semibold text-yellow-800">Ask winners for this code before awarding a prize.</p>
+                <div className="mb-4 rounded-2xl border border-[#ffb800] bg-[#ffb800]/10 p-4">
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-[#ffb800]">Winner verification</p>
+                  <p className="mt-1 text-xs font-semibold text-[#ffb800]">Ask winners for this code before awarding a prize.</p>
                   <div className="mt-3 space-y-2">
                     {winners.map((winner) => (
                       <div key={winner.playerId} className="rounded-xl bg-white p-3 shadow-sm">
-                        <div className="text-sm font-bold text-slate-800">{winner.playerName}</div>
-                        <div className="mt-1 font-mono text-lg font-black tracking-[0.16em] text-yellow-700">
+                        <div className="text-sm font-bold text-[#33312e]">{winner.playerName}</div>
+                        <div className="mt-1 font-mono text-lg font-black tracking-[0.16em] text-[#ffb800]">
                           {winner.verificationCode || "LEGACY"}
                         </div>
                       </div>
@@ -1130,14 +1130,14 @@ export default function HostGamePage() {
                 </div>
               )}
 
-              <h3 className="text-sm font-bold text-slate-700 mb-3">
+              <h3 className="text-sm font-bold text-[#33312e] mb-3">
                 Players ({gameState?.players.length || 0})
               </h3>
 
               {!gameState?.players.length ? (
                 <div className="text-center py-8">
                   <div className="text-4xl mb-2">👥</div>
-                  <p className="text-slate-400 text-sm">Waiting for players to join...</p>
+                  <p className="text-[#6b6459] text-sm">Waiting for players to join...</p>
                 </div>
               ) : (
                 <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -1146,29 +1146,29 @@ export default function HostGamePage() {
                       key={player.playerId}
                       className={`flex items-center justify-between p-3 rounded-xl border ${
                         player.hasBingo
-                          ? "border-yellow-300 bg-yellow-50"
+                          ? "border-[#ffb800] bg-[#ffb800]/10"
                           : player.playerId === hostPlayer?.playerId
-                            ? "border-emerald-200 bg-emerald-50"
-                            : "border-slate-100 bg-slate-50"
+                            ? "border-[#2ec4b6] bg-[#2ec4b6]/10"
+                            : "border-[#fff7ed] bg-[#fff7ed]"
                       }`}
                     >
                       <div className="flex items-center gap-2">
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                           player.hasBingo
-                            ? "bg-yellow-400 text-yellow-900"
+                            ? "bg-[#ffb800] text-[#ffb800]"
                             : player.playerId === hostPlayer?.playerId
-                              ? "bg-emerald-200 text-emerald-700"
-                              : "bg-emerald-100 text-emerald-600"
+                              ? "bg-[#2ec4b6] text-[#2ec4b6]"
+                              : "bg-[#2ec4b6]/15 text-[#2ec4b6]"
                         }`}>
                           {player.playerName.charAt(0).toUpperCase()}
                         </div>
-                        <span className="font-medium text-slate-700 text-sm">{player.playerName}</span>
+                        <span className="font-medium text-[#33312e] text-sm">{player.playerName}</span>
                       </div>
                       <div className="text-right">
                         {player.hasBingo ? (
-                          <span className="text-xs font-bold text-yellow-600">BINGO!</span>
+                          <span className="text-xs font-bold text-[#ffb800]">BINGO!</span>
                         ) : (
-                          <span className="text-xs text-slate-400">{player.markedCount} marked</span>
+                          <span className="text-xs text-[#6b6459]">{player.markedCount} marked</span>
                         )}
                       </div>
                     </div>

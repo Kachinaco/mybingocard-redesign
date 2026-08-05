@@ -21,7 +21,7 @@ export default function UpgradeButton({ className, children }: { className?: str
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className={className || "inline-flex items-center justify-center px-6 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:shadow-lg hover:shadow-indigo-200 transition-all font-semibold text-sm"}
+      className={className || "inline-flex items-center justify-center px-6 py-2.5 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl hover:shadow-lg hover:shadow-[#7c5cff] transition-all font-semibold text-sm"}
     >
       {loading ? "Redirecting..." : (children || "Upgrade Now")}
     </button>

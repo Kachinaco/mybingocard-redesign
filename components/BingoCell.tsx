@@ -37,7 +37,7 @@ export default function BingoCell({
       onClick={onClick}
       className={`w-full h-full flex flex-col items-center justify-center border border-opacity-50 rounded-lg md:rounded-xl p-1.5 text-center break-words overflow-hidden shadow-sm relative ${
         onClick ? "cursor-pointer" : ""
-      } ${marked ? "ring-2 ring-[#007AFF]" : ""} ${className}`}
+      } ${marked ? "ring-2 ring-[#7c5cff]" : ""} ${className}`}
       style={{
         color: style.textColor,
         fontSize: effectiveFontSize,
@@ -82,14 +82,14 @@ export default function BingoCell({
           </>
         )
       ) : (
-        cell || <span className="text-gray-300 italic text-xs">Empty</span>
+        cell || <span className="text-[#a39a88] italic text-xs">Empty</span>
       )}
 
       {/* Marked overlay */}
       {marked && (
-        <div className="absolute inset-0 bg-[#007AFF]/10 rounded-lg md:rounded-xl flex items-center justify-center">
+        <div className="absolute inset-0 bg-[#7c5cff]/10 rounded-lg md:rounded-xl flex items-center justify-center">
           <svg
-            className="w-8 h-8 text-[#007AFF] drop-shadow"
+            className="w-8 h-8 text-[#7c5cff] drop-shadow"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

@@ -211,13 +211,13 @@ export default function SeoSupportBlock({ slug }: { slug: string }) {
   if (!content) return null;
 
   return (
-    <section className="mx-auto my-16 max-w-5xl rounded-3xl border border-slate-200 bg-white px-6 py-10 shadow-sm md:px-10">
+    <section className="mx-auto my-16 max-w-5xl rounded-3xl border border-[#a39a88] bg-white px-6 py-10 shadow-sm md:px-10">
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 md:text-3xl">
+          <h2 className="text-2xl font-black text-[#33312e] md:text-3xl">
             Planning better {content.label}
           </h2>
-          <div className="mt-5 space-y-4 text-sm leading-7 text-slate-600 md:text-base">
+          <div className="mt-5 space-y-4 text-sm leading-7 text-[#33312e] md:text-base">
             <p>
               A useful bingo page should do more than offer a blank grid. It should help {content.audience} decide what belongs on the card, how the game will be played, and whether the final version should be exported for free, shared online with paid links, or used during paid live play. This page is built for {content.setting}, so the square ideas and calls to action should support a real event instead of a generic worksheet.
             </p>
@@ -226,9 +226,9 @@ export default function SeoSupportBlock({ slug }: { slug: string }) {
             </p>
           </div>
         </div>
-        <div className="rounded-2xl bg-slate-50 p-6">
-          <h3 className="text-base font-bold text-slate-900">Setup tips</h3>
-          <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
+        <div className="rounded-2xl bg-[#fff7ed] p-6">
+          <h3 className="text-base font-bold text-[#33312e]">Setup tips</h3>
+          <ul className="mt-4 space-y-3 text-sm leading-6 text-[#33312e]">
             <li>Keep each square short enough to read quickly during the game.</li>
             <li>Use a mix of easy, medium, and rare squares so wins do not happen immediately.</li>
             <li>Make several unique cards when players are competing for prizes.</li>
@@ -236,11 +236,11 @@ export default function SeoSupportBlock({ slug }: { slug: string }) {
           </ul>
         </div>
       </div>
-      <p className="mt-8 text-sm leading-7 text-slate-600 md:text-base">
+      <p className="mt-8 text-sm leading-7 text-[#33312e] md:text-base">
         Before you publish or print, scan the card as if you were one of the players. Remove inside jokes that only one person understands, clarify any square that could be read two ways, and make sure the free space fits the tone of the event. If you need more ideas, compare this page with {content.related}; those pages can help you adapt the same bingo format for a different group, season, or playing style.
         {content.coreResource ? (
           <>
-            {" "}When you are ready to make it, start with our <Link href={content.coreResource.href} className="font-medium text-indigo-700 hover:text-indigo-800 hover:underline">{content.coreResource.label}</Link>.
+            {" "}When you are ready to make it, start with our <Link href={content.coreResource.href} className="font-medium text-[#7c5cff] hover:text-[#7c5cff] hover:underline">{content.coreResource.label}</Link>.
           </>
         ) : null}
         {" "}A final review also helps with practical details: confirm the card title, check spelling, decide whether duplicate cards are acceptable, and choose the export or sharing method before guests arrive. That small planning step makes the game easier to explain and keeps the host from fixing card issues during the event.

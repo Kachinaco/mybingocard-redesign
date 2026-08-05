@@ -53,6 +53,32 @@ COLOR_HEX = {
     "orange": ORANGE,
 }
 
+# Legacy hex colors seen in the codebase -> confetti tokens
+HEX_REPLACEMENTS = [
+    ("#f2f2f7", "#fff7ed"),
+    ("#007AFF", "#7c5cff"),
+    ("#E5E7EB", "#fff7ed"),
+    ("#e5e7eb", "#fff7ed"),
+    ("#6366F1", "#7c5cff"),
+    ("#8B5CF6", "#7c5cff"),
+    ("#000000", "#33312e"),
+    ("#1f2937", "#33312e"),
+    ("#374151", "#6b6459"),
+    ("#6b7280", "#6b6459"),
+    ("#9ca3af", "#a39a88"),
+    ("#d1d5db", "#a39a88"),
+    ("#f3f4f6", "#fff7ed"),
+    ("#f9fafb", "#fff7ed"),
+    ("#10b981", "#2ec4b6"),
+    ("#ef4444", "#ff5d8f"),
+    ("#f59e0b", "#ffb800"),
+    ("#ea580c", "#ff8a3d"),
+    ("#dbeafe", "#7c5cff/15"),
+    ("#dcfce7", "#2ec4b6/10"),
+    ("#fee2e2", "#ff5d8f/10"),
+    ("#ffedd5", "#ff8a3d/10"),
+]
+
 # For ink scale, choose value based on shade.
 def ink_value(shade: int) -> str:
     if shade <= 100:
@@ -110,6 +136,10 @@ def apply(text: str) -> str:
 
     text = COLOR_RE.sub(replace_color_class, text)
 
+    # Map common legacy hex colors inside arbitrary Tailwind values
+    for old, new in HEX_REPLACEMENTS:
+        text = text.replace(old, new)
+        text = text.replace(old.lower(), new)
     for i, val in enumerate(protected):
         text = text.replace(f"__PROT{i}__", val)
     return text

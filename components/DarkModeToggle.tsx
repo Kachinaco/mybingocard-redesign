@@ -16,8 +16,8 @@ export default function DarkModeToggle({ className = "" }: { className?: string 
       onClick={handleToggle}
       className={`p-2 rounded-lg transition-colors ${
         dark
-          ? "bg-slate-700 text-yellow-400 hover:bg-slate-600"
-          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          ? "bg-[#33312e] text-[#ffb800] hover:bg-[#33312e]"
+          : "bg-[#fff7ed] text-[#33312e] hover:bg-[#a39a88]"
       } ${className}`}
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
       title={dark ? "Light mode" : "Dark mode"}

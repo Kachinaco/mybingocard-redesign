@@ -315,8 +315,8 @@ export default function PlayGamePage() {
 
   if (!player) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#fff7ed] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#7c5cff] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -329,20 +329,20 @@ export default function PlayGamePage() {
   const visibleVerificationCode = currentPlayerWinner?.verificationCode || claimVerificationCode;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#fff7ed]">
       <Confetti active={showBingoAnim || (!!winnerName && winnerName === player.playerName)} />
 
       {/* Header */}
-      <header className="bg-white border-b border-slate-100 sticky top-0 z-10">
+      <header className="bg-white border-b border-[#fff7ed] sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div>
-            <Link href="/" className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
+            <Link href="/" className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cff] to-[#7c5cff]">
               MyBingoCard
             </Link>
           </div>
           <div className="flex items-center gap-2">
             <SoundToggle />
-            <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold">
+            <span className="px-3 py-1 bg-[#fff7ed] text-[#33312e] rounded-full text-xs font-bold">
               {player.playerName}
             </span>
           </div>
@@ -351,24 +351,24 @@ export default function PlayGamePage() {
 
       <main className="container mx-auto px-3 py-4 max-w-2xl">
         {error && (
-          <div className="mb-3 p-2.5 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm text-center">
+          <div className="mb-3 p-2.5 bg-[#ff5d8f]/10 border border-[#ff5d8f]/15 rounded-xl text-[#ff5d8f] text-sm text-center">
             {error}
           </div>
         )}
 
         {/* Game Status Bar */}
         {gameStatus === "waiting" && (
-          <div className="mb-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-center">
-            <p className="text-lg font-black text-emerald-900">You are in</p>
-            <p className="mt-1 text-sm font-semibold text-emerald-700">Waiting for the host to start</p>
-            <p className="mt-2 font-mono text-sm font-bold tracking-[0.2em] text-emerald-800">{roomCode}</p>
+          <div className="mb-4 rounded-2xl border border-[#2ec4b6]/15 bg-[#2ec4b6]/10 p-4 text-center">
+            <p className="text-lg font-black text-[#2ec4b6]">You are in</p>
+            <p className="mt-1 text-sm font-semibold text-[#2ec4b6]">Waiting for the host to start</p>
+            <p className="mt-2 font-mono text-sm font-bold tracking-[0.2em] text-[#2ec4b6]">{roomCode}</p>
           </div>
         )}
 
         {/* Win Condition Badge */}
         {gameStatus === "active" && winCondition !== "standard" && (
           <div className="mb-3 text-center">
-              <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
+              <span className="px-3 py-1 bg-[#2ec4b6]/15 text-[#2ec4b6] rounded-full text-xs font-bold">
               {winCondition === "four_corners" ? "Win: Four Corners" :
                winCondition === "blackout" ? "Win: Blackout" :
                winCondition === "one_line" ? "Win: One Line" :
@@ -380,7 +380,7 @@ export default function PlayGamePage() {
 
         {/* Winner Banner */}
         {winners.length > 0 && gameStatus === "finished" && (
-          <div className="mb-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl p-4 text-center font-black shadow-lg">
+          <div className="mb-4 bg-gradient-to-r from-[#ffb800] to-[#ff8a3d] text-white rounded-2xl p-4 text-center font-black shadow-lg">
             {winners.some(w => w.playerId === player.playerId) ? (
               <div>
                 <div className="text-xl">🎉 YOU WON! BINGO! 🎉</div>
@@ -402,7 +402,7 @@ export default function PlayGamePage() {
           </div>
         )}
         {winnerName && gameStatus === "active" && allowMultipleWinners && (
-          <div className="mb-3 p-2.5 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-800 text-sm text-center font-semibold">
+          <div className="mb-3 p-2.5 bg-[#ffb800]/10 border border-[#ffb800] rounded-xl text-[#ffb800] text-sm text-center font-semibold">
             {winners.some(w => w.playerId === player.playerId)
               ? (
                 <span>
@@ -414,7 +414,7 @@ export default function PlayGamePage() {
           </div>
         )}
         {winnerName && !allowMultipleWinners && (
-          <div className="mb-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl p-4 text-center font-black text-xl shadow-lg">
+          <div className="mb-4 bg-gradient-to-r from-[#ffb800] to-[#ff8a3d] text-white rounded-2xl p-4 text-center font-black text-xl shadow-lg">
             {winnerName === player.playerName
               ? (
                 <div>
@@ -433,9 +433,9 @@ export default function PlayGamePage() {
 
         {/* Current Call Display */}
         {gameStatus === "active" && lastCalledItem && (
-          <div className={`mb-4 bg-white rounded-2xl shadow-sm border border-slate-100 p-4 text-center transition-all ${showNewCall ? "ring-2 ring-emerald-400 shadow-lg" : ""}`}>
-            <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">Current Call</div>
-            <div className={`text-2xl font-black text-emerald-600 transition-all ${showNewCall ? "scale-110" : ""}`}>
+          <div className={`mb-4 bg-white rounded-2xl shadow-sm border border-[#fff7ed] p-4 text-center transition-all ${showNewCall ? "ring-2 ring-[#2ec4b6] shadow-lg" : ""}`}>
+            <div className="text-xs text-[#6b6459] uppercase tracking-wider mb-1">Current Call</div>
+            <div className={`text-2xl font-black text-[#2ec4b6] transition-all ${showNewCall ? "scale-110" : ""}`}>
               {lastCalledItem && isImageCell(lastCalledItem) ? (
                 <span className="flex flex-col items-center gap-1">
                   <img src={parseImageCell(lastCalledItem)?.imageUrl} alt="" className="w-16 h-16 object-contain" />
@@ -443,7 +443,7 @@ export default function PlayGamePage() {
                 </span>
               ) : formatCalledItemLabel(lastCalledItem, bingoVariant)}
             </div>
-            <div className="text-xs text-slate-400 mt-1">
+            <div className="text-xs text-[#6b6459] mt-1">
               {calledItems.length} called &bull; Tap matching cells to mark them
             </div>
           </div>
@@ -454,17 +454,17 @@ export default function PlayGamePage() {
           <button
             onClick={claimBingoWin}
             disabled={claimingBingo}
-            className="w-full mb-4 py-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-2xl font-black text-2xl shadow-lg hover:shadow-xl transition-all animate-pulse disabled:opacity-50"
+            className="w-full mb-4 py-4 bg-gradient-to-r from-[#ffb800] to-[#ff8a3d] text-white rounded-2xl font-black text-2xl shadow-lg hover:shadow-xl transition-all animate-pulse disabled:opacity-50"
           >
             {claimingBingo ? "Checking..." : "🎉 BINGO! Tap to claim!"}
           </button>
         )}
 
         {/* Card Grid */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-3 md:p-5">
+        <div className="bg-white rounded-2xl shadow-sm border border-[#fff7ed] p-3 md:p-5">
           <div className="text-center mb-3">
-            <h1 className="text-lg font-bold text-slate-900">{title}</h1>
-            <p className="text-xs text-slate-400">
+            <h1 className="text-lg font-bold text-[#33312e]">{title}</h1>
+            <p className="text-xs text-[#6b6459]">
               {marked.size}/{totalCells} marked
             </p>
           </div>
@@ -490,14 +490,14 @@ export default function PlayGamePage() {
                   className={`
                     flex items-center justify-center text-center rounded-xl font-semibold transition-all duration-150 select-none touch-manipulation overflow-hidden
                     ${isBlank90
-                      ? "bg-amber-50 border border-dashed border-amber-100 text-transparent cursor-default"
+                      ? "bg-[#ffb800]/10 border border-dashed border-[#ffb800]/15 text-transparent cursor-default"
                       : isFreeSpace
-                      ? "bg-emerald-600 text-white shadow-md cursor-default"
+                      ? "bg-[#2ec4b6] text-white shadow-md cursor-default"
                       : isMarked
-                        ? "bg-emerald-600 text-white shadow-md ring-2 ring-emerald-300"
+                        ? "bg-[#2ec4b6] text-white shadow-md ring-2 ring-[#2ec4b6]"
                         : isCalled
-                          ? "bg-emerald-50 text-emerald-700 border-2 border-emerald-300 animate-pulse"
-                          : "bg-slate-50 text-slate-500 border border-slate-200 opacity-60"
+                          ? "bg-[#2ec4b6]/10 text-[#2ec4b6] border-2 border-[#2ec4b6] animate-pulse"
+                          : "bg-[#fff7ed] text-[#6b6459] border border-[#a39a88] opacity-60"
                     }
                   `}
                   style={{
@@ -547,9 +547,9 @@ export default function PlayGamePage() {
 
           {/* Progress */}
           <div className="mt-4">
-            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-1.5 bg-[#fff7ed] rounded-full overflow-hidden">
               <div
-                className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                className="h-full bg-[#2ec4b6] rounded-full transition-all duration-300"
                 style={{ width: `${totalCells > 0 ? (marked.size / totalCells) * 100 : 0}%` }}
               />
             </div>
@@ -558,8 +558,8 @@ export default function PlayGamePage() {
 
         {/* Called Items History (collapsible) */}
         {calledItems.length > 0 && (
-          <details className="mt-4 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <summary className="px-4 py-3 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-50">
+          <details className="mt-4 bg-white rounded-2xl shadow-sm border border-[#fff7ed] overflow-hidden">
+            <summary className="px-4 py-3 text-sm font-semibold text-[#33312e] cursor-pointer hover:bg-[#fff7ed]">
               Called Items ({calledItems.length})
             </summary>
             <div className="px-4 pb-4">
@@ -572,12 +572,12 @@ export default function PlayGamePage() {
                       key={i}
                       className={`px-2 py-1 rounded-lg text-xs font-medium ${
                         i === 0
-                          ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-300"
+                          ? "bg-[#2ec4b6]/15 text-[#2ec4b6] ring-1 ring-[#2ec4b6]"
                           : isMarkedOnCard
-                            ? "bg-green-100 text-green-700"
+                            ? "bg-[#2ec4b6]/15 text-[#2ec4b6]"
                             : isOnCard
-                              ? "bg-amber-100 text-amber-700"
-                              : "bg-slate-100 text-slate-500"
+                              ? "bg-[#ffb800]/15 text-[#ffb800]"
+                              : "bg-[#fff7ed] text-[#6b6459]"
                       }`}
                     >
                       {formatCalledItemLabel(item, bingoVariant)}

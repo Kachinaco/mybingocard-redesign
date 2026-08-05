@@ -44,7 +44,7 @@ export default function HowToMakeCustomBingoCards() {
         date="March 1, 2026"
         readTime="6 min read"
         category="Guide"
-        categoryGradient="from-violet-500 to-indigo-500"
+        categoryGradient="from-[#7c5cff] to-[#7c5cff]"
       >
         <p>
           Whether you&apos;re planning a baby shower, classroom activity, wedding reception, or party game night, custom bingo cards are one of the easiest and most engaging activities you can add to any event. The best part? You can create printable or online bingo cards in less than 5 minutes, then customize them for your exact audience.

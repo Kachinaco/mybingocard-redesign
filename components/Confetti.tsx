@@ -20,7 +20,7 @@ export default function Confetti({ active }: { active: boolean }) {
       return;
     }
 
-    const colors = ["#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4", "#22c55e", "#ef4444", "#3b82f6"];
+    const colors = ["#ffb800", "#ec4899", "#7c5cff", "#06b6d4", "#22c55e", "#ff5d8f", "#3b82f6"];
     const newPieces: ConfettiPiece[] = [];
 
     for (let i = 0; i < 60; i++) {

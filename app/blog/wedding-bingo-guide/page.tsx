@@ -44,7 +44,7 @@ export default function WeddingBingoGuide() {
         date="February 10, 2026"
         readTime="9 min read"
         category="Wedding"
-        categoryGradient="from-violet-500 to-fuchsia-500"
+        categoryGradient="from-[#7c5cff] to-[#ff5d8f]"
       >
         <p>
           Wedding bingo has become one of the most popular reception games, and for good reason. It keeps guests entertained during downtime, works for every age group, and turns ordinary wedding moments into exciting, shared experiences. This guide covers the practical pieces for planning a wedding bingo game.

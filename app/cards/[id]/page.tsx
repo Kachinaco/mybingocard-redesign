@@ -786,21 +786,21 @@ export default function CardViewPage() {
   };
 
   if (loading) return (
-    <div className={`min-h-screen flex items-center justify-center ${"bg-slate-50"}`}>
+    <div className={`min-h-screen flex items-center justify-center ${"bg-[#fff7ed]"}`}>
       <div className="text-center">
-        <div className="inline-block w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className={"text-slate-500"}>Loading card...</p>
+        <div className="inline-block w-12 h-12 border-4 border-[#7c5cff] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className={"text-[#6b6459]"}>Loading card...</p>
       </div>
     </div>
   );
 
   if (error || !card) return (
-    <div className={`min-h-screen flex items-center justify-center px-4 ${"bg-slate-50"}`}>
+    <div className={`min-h-screen flex items-center justify-center px-4 ${"bg-[#fff7ed]"}`}>
       <div className={`max-w-md w-full rounded-2xl shadow p-8 text-center ${"bg-white"}`}>
         <div className="text-5xl mb-4">😕</div>
-        <h2 className={`text-2xl font-bold mb-2 ${"text-slate-900"}`}>Card Not Found</h2>
-        <p className={`mb-6 ${"text-slate-500"}`}>{error}</p>
-        <Link href="/dashboard/cards" className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-semibold">Back to My Cards</Link>
+        <h2 className={`text-2xl font-bold mb-2 ${"text-[#33312e]"}`}>Card Not Found</h2>
+        <p className={`mb-6 ${"text-[#6b6459]"}`}>{error}</p>
+        <Link href="/dashboard/cards" className="inline-block px-6 py-3 bg-[#7c5cff] text-white rounded-xl hover:bg-[#7c5cff] font-semibold">Back to My Cards</Link>
       </div>
     </div>
   );
@@ -839,16 +839,16 @@ export default function CardViewPage() {
       openEmailTrigger={shareEmailOpenTrigger}
     />
   ) : (
-    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-left">
+    <div className="rounded-2xl border border-[#2ec4b6] bg-[#2ec4b6]/10 p-4 text-left">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-bold text-slate-900">Create a player link</p>
-          <p className="text-xs text-slate-600">Players can open this card on any device and mark squares in their browser.</p>
+          <p className="text-sm font-bold text-[#33312e]">Create a player link</p>
+          <p className="text-xs text-[#33312e]">Players can open this card on any device and mark squares in their browser.</p>
         </div>
         <button
           onClick={() => generateShareLink("owner_share_panel")}
           disabled={generatingLink}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2ec4b6] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#2ec4b6] disabled:opacity-60"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 0 0-5.656 0l-4 4a4 4 0 1 0 5.656 5.656l1.102-1.101m-.758-4.899a4 4 0 0 0 5.656 0l4-4a4 4 0 0 0-5.656-5.656l-1.1 1.1" />
@@ -863,13 +863,13 @@ export default function CardViewPage() {
     <div
       ref={cardContainerRef}
       className={`min-h-screen transition-colors duration-200 ${
-        "bg-slate-50 text-slate-900"
+        "bg-[#fff7ed] text-[#33312e]"
       } ${isFullscreen ? "fullscreen-card" : ""}`}
     >
       {showBingo && (
         <div className="fixed inset-0 pointer-events-none z-50 flex items-center justify-center">
           <div className="text-center animate-bounce">
-            <div className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 drop-shadow-lg">BINGO!</div>
+            <div className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#ffb800] via-[#ff5d8f] to-[#7c5cff] drop-shadow-lg">BINGO!</div>
             <div className="text-4xl mt-2">🎉🎊🎉</div>
           </div>
         </div>
@@ -877,23 +877,23 @@ export default function CardViewPage() {
 
       {!isFullscreen && (
         <header className={`border-b sticky top-0 z-10 print:hidden ${
-          "bg-white border-slate-100"
+          "bg-white border-[#fff7ed]"
         }`}>
           <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex justify-between items-center gap-2">
             <div className="flex items-center gap-3">
-              <Link href="/dashboard" className="p-2 -ml-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+              <Link href="/dashboard" className="p-2 -ml-2 rounded-lg text-[#6b6459] hover:text-[#33312e] hover:bg-[#fff7ed] transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </Link>
-              <Link href="/dashboard" className="hidden min-[390px]:inline text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
+              <Link href="/dashboard" className="hidden min-[390px]:inline text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cff] to-[#7c5cff]">
                 MyBingoCard
               </Link>
             </div>
             <div className="flex shrink-0 gap-1.5 sm:gap-2 items-center">
               <FavoriteButton cardId={card._id} />
-              <Link href={`/create?cardId=${card._id}`} className="px-3 sm:px-4 py-2 text-sm border rounded-lg font-medium transition-colors border-slate-200 text-slate-700 hover:bg-slate-50">
+              <Link href={`/create?cardId=${card._id}`} className="px-3 sm:px-4 py-2 text-sm border rounded-lg font-medium transition-colors border-[#a39a88] text-[#33312e] hover:bg-[#fff7ed]">
                 Edit
               </Link>
-              <Link href="/dashboard/cards" className="hidden sm:inline px-4 py-2 text-sm transition-colors text-slate-500 hover:text-slate-700">
+              <Link href="/dashboard/cards" className="hidden sm:inline px-4 py-2 text-sm transition-colors text-[#6b6459] hover:text-[#33312e]">
                 My Cards
               </Link>
             </div>
@@ -904,19 +904,19 @@ export default function CardViewPage() {
 
       <main className={`container mx-auto px-4 py-4 sm:py-6 max-w-5xl ${isFullscreen ? "" : "pb-24 md:pb-6"}`}>
         {bingo && !isFullscreen && (
-          <div className="mb-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-2xl p-3 text-center font-black text-xl shadow-lg print:hidden">
+          <div className="mb-4 bg-gradient-to-r from-[#ffb800] to-[#ff8a3d] text-white rounded-2xl p-3 text-center font-black text-xl shadow-lg print:hidden">
             🎉 BINGO! You got it! 🎉
           </div>
         )}
 
         {entryNotice && !isFullscreen && (
-          <section className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm print:hidden">
+          <section className="mb-4 rounded-2xl border border-[#2ec4b6] bg-[#2ec4b6]/10 p-4 shadow-sm print:hidden">
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#2ec4b6]">
                   {entryNotice === "created" ? "Card created" : entryNotice === "saved" ? "Card saved" : "Continue"}
                 </p>
-                <h2 className="mt-1 text-lg font-black text-slate-900">{card.title}</h2>
+                <h2 className="mt-1 text-lg font-black text-[#33312e]">{card.title}</h2>
               </div>
               <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                 <button
@@ -925,7 +925,7 @@ export default function CardViewPage() {
                     setActiveTab("play");
                     cardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
                   }}
-                  className="rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700"
+                  className="rounded-xl bg-[#2ec4b6] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#2ec4b6]"
                 >
                   Play now
                 </button>
@@ -938,7 +938,7 @@ export default function CardViewPage() {
                     if (!card.shareLink) generateShareLink("post_save_notice");
                   }}
                   disabled={generatingLink}
-                  className="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-emerald-700 ring-1 ring-emerald-200 transition hover:bg-emerald-100 disabled:opacity-60"
+                  className="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-[#2ec4b6] ring-1 ring-[#2ec4b6] transition hover:bg-[#2ec4b6]/15 disabled:opacity-60"
                 >
                   {generatingLink ? "Creating link..." : "Share"}
                 </button>
@@ -949,14 +949,14 @@ export default function CardViewPage() {
                     handleExportPDF();
                   }}
                   disabled={exporting !== null}
-                  className="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:opacity-60"
+                  className="rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-[#33312e] ring-1 ring-[#a39a88] transition hover:bg-[#fff7ed] disabled:opacity-60"
                 >
                   Download Cards
                 </button>
                 <Link
                   href="/create"
                   onClick={() => trackNextStep("create_another")}
-                  className="rounded-xl bg-white px-4 py-2.5 text-center text-sm font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50"
+                  className="rounded-xl bg-white px-4 py-2.5 text-center text-sm font-bold text-[#33312e] ring-1 ring-[#a39a88] transition hover:bg-[#fff7ed]"
                 >
                   New card
                 </Link>
@@ -969,18 +969,18 @@ export default function CardViewPage() {
           {!isFullscreen && (
             <div className="hidden md:flex flex-wrap gap-3 items-start print:hidden">
               <div className={`flex-1 min-w-[300px] rounded-2xl shadow-sm border overflow-hidden ${
-                "bg-white border-slate-100"
+                "bg-white border-[#fff7ed]"
               }`}>
-                <div className={`flex border-b ${"border-slate-100"}`}>
+                <div className={`flex border-b ${"border-[#fff7ed]"}`}>
                   <button
                     onClick={() => setActiveTab("play")}
-                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "play" ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "play" ? "bg-[#2ec4b6] text-white" : "text-[#33312e] hover:bg-[#fff7ed]"}`}
                   >
                     🎮 Play
                   </button>
                   <button
                     onClick={() => setActiveTab("share")}
-                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "share" ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "share" ? "bg-[#2ec4b6] text-white" : "text-[#33312e] hover:bg-[#fff7ed]"}`}
                   >
                     🔗 Share
                   </button>
@@ -991,7 +991,7 @@ export default function CardViewPage() {
                       setActiveTab("download");
                       loadBatchPurchases();
                     }}
-                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "download" ? "bg-emerald-600 text-white" : "text-slate-600 hover:bg-slate-50"}`}
+                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "download" ? "bg-[#2ec4b6] text-white" : "text-[#33312e] hover:bg-[#fff7ed]"}`}
                   >
                     📄 Export
                   </button>
@@ -999,35 +999,35 @@ export default function CardViewPage() {
 
                 {activeTab === "play" && (
                   <div className="p-4 space-y-4">
-                    <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3">
-                      <p className="mb-2 text-sm font-bold text-emerald-900">Play together live</p>
+                    <div className="rounded-xl border border-[#2ec4b6]/15 bg-[#2ec4b6]/10 p-3">
+                      <p className="mb-2 text-sm font-bold text-[#2ec4b6]">Play together live</p>
                       <StartGameButton cardId={card._id} label="Start room" />
                     </div>
                     <div>
-                      <div className={`flex justify-between text-sm mb-1 ${"text-slate-500"}`}>
+                      <div className={`flex justify-between text-sm mb-1 ${"text-[#6b6459]"}`}>
                         <span>Progress</span>
                         <span>{markedCount}/{totalCells} marked</span>
                       </div>
-                      <div className={`h-2 rounded-full overflow-hidden ${"bg-slate-100"}`}>
-                        <div className="h-full bg-emerald-500 rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+                      <div className={`h-2 rounded-full overflow-hidden ${"bg-[#fff7ed]"}`}>
+                        <div className="h-full bg-[#2ec4b6] rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
                       </div>
                     </div>
-                    <p className={`text-xs ${"text-slate-400"}`}>Tap any cell on the card to mark it. Get a row, column, or diagonal to win!</p>
+                    <p className={`text-xs ${"text-[#6b6459]"}`}>Tap any cell on the card to mark it. Get a row, column, or diagonal to win!</p>
                     <div className="flex gap-2">
-                      <button onClick={resetGame} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl transition-all ${"border-slate-200 text-slate-600 hover:border-emerald-200 hover:text-emerald-600 hover:bg-emerald-50"}`}>
+                      <button onClick={resetGame} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl transition-all ${"border-[#a39a88] text-[#33312e] hover:border-[#2ec4b6] hover:text-[#2ec4b6] hover:bg-[#2ec4b6]/10"}`}>
                         🔄 Reset
                       </button>
-                      <button onClick={undoLast} disabled={undoStack.length === 0} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed ${"border-slate-200 text-slate-600 hover:border-amber-200 hover:text-amber-600 hover:bg-amber-50"}`}>
+                      <button onClick={undoLast} disabled={undoStack.length === 0} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed ${"border-[#a39a88] text-[#33312e] hover:border-[#ffb800] hover:text-[#ffb800] hover:bg-[#ffb800]/10"}`}>
                         ↩ Undo
                       </button>
                     </div>
-                    <button onClick={toggleFullscreen} className={`w-full py-2.5 text-sm font-semibold border-2 rounded-xl transition-all ${"border-slate-200 text-slate-600 hover:border-emerald-200 hover:text-emerald-600 hover:bg-emerald-50"}`}>
+                    <button onClick={toggleFullscreen} className={`w-full py-2.5 text-sm font-semibold border-2 rounded-xl transition-all ${"border-[#a39a88] text-[#33312e] hover:border-[#2ec4b6] hover:text-[#2ec4b6] hover:bg-[#2ec4b6]/10"}`}>
                       ⛶ Fullscreen
                     </button>
                     <button
                       onClick={() => card.shareLink ? copyShareLink("play_tab") : generateShareLink("play_tab")}
                       disabled={generatingLink}
-                      className="w-full py-2.5 text-sm font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-60"
+                      className="w-full py-2.5 text-sm font-semibold bg-gradient-to-r from-[#2ec4b6] to-[#2ec4b6] text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-60"
                     >
                       {generatingLink ? "Creating link..." : copied ? "Copied!" : card.shareLink ? "Copy Player Link" : "Create Player Link"}
                     </button>
@@ -1044,30 +1044,30 @@ export default function CardViewPage() {
                   <div className="p-4">
                     {/* Free single export */}
                     {!shouldUseBatchForPdf && (
-                      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm mb-4">
-                        <div className="border-b border-slate-200 bg-emerald-50 p-4">
+                      <div className="overflow-hidden rounded-2xl border border-[#a39a88] bg-white shadow-sm mb-4">
+                        <div className="border-b border-[#a39a88] bg-[#2ec4b6]/10 p-4">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black uppercase tracking-wide rounded-md bg-emerald-100 text-emerald-700 px-2 py-0.5">Free</span>
-                            <p className="text-xs font-semibold text-emerald-700">Single card export</p>
+                            <span className="text-[10px] font-black uppercase tracking-wide rounded-md bg-[#2ec4b6]/15 text-[#2ec4b6] px-2 py-0.5">Free</span>
+                            <p className="text-xs font-semibold text-[#2ec4b6]">Single card export</p>
                           </div>
-                          <h3 className="mt-1 text-lg font-black text-slate-950">
+                          <h3 className="mt-1 text-lg font-black text-[#33312e]">
                             Download this card
                           </h3>
-                          <p className="mt-1 text-sm text-slate-600">
+                          <p className="mt-1 text-sm text-[#33312e]">
                             Export a single PDF or PNG of this card at no cost.
                           </p>
                         </div>
                         <div className="p-4 space-y-2">
-                          <button onClick={handleExportPDF} disabled={exporting !== null} className="w-full px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition disabled:opacity-50 flex items-center justify-center gap-2 font-semibold text-sm">
+                          <button onClick={handleExportPDF} disabled={exporting !== null} className="w-full px-4 py-3 bg-[#ff5d8f] text-white rounded-xl hover:bg-[#ff5d8f] transition disabled:opacity-50 flex items-center justify-center gap-2 font-semibold text-sm">
                             {exporting === "pdf" ? (
                               <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Generating...</span></>
                             ) : (
                               <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 0 0 2-2V9.414a1 1 0 0 0-.293-.707l-5.414-5.414A1 1 0 0 0 12.586 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z" /></svg><span>Download PDF</span></>
                             )}
                           </button>
-                          <button onClick={handleExportPNG} disabled={exporting !== null} className="w-full px-4 py-3 border-2 border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition disabled:opacity-50 flex items-center justify-center gap-2 font-semibold text-sm">
+                          <button onClick={handleExportPNG} disabled={exporting !== null} className="w-full px-4 py-3 border-2 border-[#a39a88] text-[#33312e] rounded-xl hover:bg-[#fff7ed] transition disabled:opacity-50 flex items-center justify-center gap-2 font-semibold text-sm">
                             {exporting === "png" ? (
-                              <><div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" /><span>Generating...</span></>
+                              <><div className="w-4 h-4 border-2 border-[#6b6459] border-t-transparent rounded-full animate-spin" /><span>Generating...</span></>
                             ) : (
                               <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg><span>Download PNG</span></>
                             )}
@@ -1077,29 +1077,29 @@ export default function CardViewPage() {
                     )}
 
                     {/* Paid batch section */}
-                    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                      <div className="border-b border-slate-200 bg-amber-50 p-4">
+                    <div className="overflow-hidden rounded-2xl border border-[#a39a88] bg-white shadow-sm">
+                      <div className="border-b border-[#a39a88] bg-[#ffb800]/10 p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div>
-                            <p className="text-xs font-black uppercase tracking-wide text-amber-700">
+                            <p className="text-xs font-black uppercase tracking-wide text-[#ffb800]">
                               {isPremiumBatchUser ? "Premium batch packs" : "Paid batch packs"}
                             </p>
-                            <h3 className="mt-1 text-lg font-black text-slate-950">
+                            <h3 className="mt-1 text-lg font-black text-[#33312e]">
                               Generate multiple cards
                             </h3>
-                            <p className="mt-1 text-sm text-slate-600">
+                            <p className="mt-1 text-sm text-[#33312e]">
                               Need cards for a group? Generate a batch below.
                             </p>
                           </div>
                           {!isPremiumBatchUser && (
-                            <div className="shrink-0 rounded-xl bg-white px-3 py-2 text-right shadow-sm ring-1 ring-amber-200">
-                              <p className="text-[11px] font-black uppercase text-slate-500">
+                            <div className="shrink-0 rounded-xl bg-white px-3 py-2 text-right shadow-sm ring-1 ring-[#ffb800]">
+                              <p className="text-[11px] font-black uppercase text-[#6b6459]">
                                 {hasSelectedBatchPurchase ? "Paid" : "Due today"}
                               </p>
-                              <p className="text-2xl font-black text-slate-950">
+                              <p className="text-2xl font-black text-[#33312e]">
                                 {hasSelectedBatchPurchase ? "$0" : selectedBatchPrice}
                               </p>
-                              <p className="text-[11px] font-bold text-slate-500">
+                              <p className="text-[11px] font-bold text-[#6b6459]">
                                 {selectedPack.label}
                               </p>
                             </div>
@@ -1109,7 +1109,7 @@ export default function CardViewPage() {
 
                       <div className="p-4">
                         {shouldUseBatchForPdf && (
-                          <button onClick={handleExportPDF} disabled={exporting !== null} className="mb-4 w-full px-4 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition disabled:opacity-50 flex items-center justify-center gap-2 font-semibold text-sm">
+                          <button onClick={handleExportPDF} disabled={exporting !== null} className="mb-4 w-full px-4 py-3 bg-[#ff5d8f] text-white rounded-xl hover:bg-[#ff5d8f] transition disabled:opacity-50 flex items-center justify-center gap-2 font-semibold text-sm">
                             {exporting === "pdf" ? (
                               <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Generating batch...</span></>
                             ) : (
@@ -1131,44 +1131,44 @@ export default function CardViewPage() {
                                 className={`flex w-full items-center gap-3 rounded-xl border p-3 text-left transition ${
                                   isSelected
                                     ? isPremiumBatchUser || isReady
-                                      ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500"
-                                      : "border-amber-500 bg-amber-50 ring-1 ring-amber-500"
-                                    : "border-slate-200 bg-white hover:border-amber-300 hover:bg-amber-50/40"
+                                      ? "border-[#2ec4b6] bg-[#2ec4b6]/10 ring-1 ring-[#2ec4b6]"
+                                      : "border-[#ffb800] bg-[#ffb800]/10 ring-1 ring-[#ffb800]"
+                                    : "border-[#a39a88] bg-white hover:border-[#ffb800] hover:bg-[#ffb800]/40"
                                 }`}
                               >
                                 <span className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
                                   isSelected
                                     ? isPremiumBatchUser || isReady
-                                      ? "border-emerald-600 bg-emerald-600"
-                                      : "border-amber-600 bg-amber-600"
-                                    : "border-slate-300"
+                                      ? "border-[#2ec4b6] bg-[#2ec4b6]"
+                                      : "border-[#ffb800] bg-[#ffb800]"
+                                    : "border-[#a39a88]"
                                 }`}>
                                   {isSelected && <span className="h-2 w-2 rounded-full bg-white" />}
                                 </span>
                                 <span className="min-w-0 flex-1">
                                   <span className="flex flex-wrap items-center gap-2">
-                                    <span className="text-sm font-black text-slate-950">{n} printable cards</span>
+                                    <span className="text-sm font-black text-[#33312e]">{n} printable cards</span>
                                     {n === 500 && isPaidDue && (
-                                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black uppercase text-amber-700">Best value</span>
+                                      <span className="rounded-full bg-[#ffb800]/15 px-2 py-0.5 text-[10px] font-black uppercase text-[#ffb800]">Best value</span>
                                     )}
                                     {isReady && (
-                                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">Already paid</span>
+                                      <span className="rounded-full bg-[#2ec4b6]/15 px-2 py-0.5 text-[10px] font-black uppercase text-[#2ec4b6]">Already paid</span>
                                     )}
                                     {isPaidDue && (
-                                      <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-black uppercase text-white">Paid</span>
+                                      <span className="rounded-full bg-[#33312e] px-2 py-0.5 text-[10px] font-black uppercase text-white">Paid</span>
                                     )}
                                   </span>
-                                  <span className="mt-0.5 block text-xs font-semibold text-slate-500">
+                                  <span className="mt-0.5 block text-xs font-semibold text-[#6b6459]">
                                     {isPremiumBatchUser ? "Included with Premium" : isReady ? "Ready to generate" : `${formatPerCard(n)} one-time`}
                                   </span>
                                 </span>
                                 <span className="text-right">
-                                  <span className={`block text-lg font-black ${isPaidDue ? "text-amber-700" : "text-slate-950"}`}>
+                                  <span className={`block text-lg font-black ${isPaidDue ? "text-[#ffb800]" : "text-[#33312e]"}`}>
                                     {isPremiumBatchUser ? "Included" : isReady ? "$0" : BATCH_PACKS[n].label}
                                   </span>
                                   {isSelected && (
                                     <span className={`block text-[11px] font-black uppercase ${
-                                      isPremiumBatchUser || isReady ? "text-emerald-700" : "text-amber-700"
+                                      isPremiumBatchUser || isReady ? "text-[#2ec4b6]" : "text-[#ffb800]"
                                     }`}>
                                       Selected
                                     </span>
@@ -1180,12 +1180,12 @@ export default function CardViewPage() {
                         </div>
 
                         {batchResult ? (
-                          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 space-y-3">
+                          <div className="mt-4 rounded-2xl border border-[#2ec4b6] bg-[#2ec4b6]/10 p-4 space-y-3">
                             <div>
-                              <p className="text-sm font-black text-emerald-900">
+                              <p className="text-sm font-black text-[#2ec4b6]">
                                 {batchPdfDownloaded ? "Your PDF export started." : `${batchResult.count} cards are ready.`}
                               </p>
-                              <p className="mt-1 text-xs text-emerald-700">
+                              <p className="mt-1 text-xs text-[#2ec4b6]">
                                 {batchPdfDownloaded
                                   ? "You can go back to the card or download the PDF again."
                                   : "Download the PDF now or create another set."}
@@ -1195,7 +1195,7 @@ export default function CardViewPage() {
                               onClick={() => handleBatchPdfDownload(1)}
                               disabled={batchPdfLoading !== null}
                               className={`w-full rounded-xl py-3 text-sm font-black transition ${
-                                batchPdfLoading === "pdf-1" ? "bg-red-700 text-white cursor-wait" : "bg-red-600 text-white hover:bg-red-700"
+                                batchPdfLoading === "pdf-1" ? "bg-[#ff5d8f] text-white cursor-wait" : "bg-[#ff5d8f] text-white hover:bg-[#ff5d8f]"
                               }`}
                             >
                               {batchPdfLoading === "pdf-1"
@@ -1207,39 +1207,39 @@ export default function CardViewPage() {
                             {batchPdfDownloaded && (
                               <button
                                 onClick={returnToCard}
-                                className="w-full rounded-xl bg-emerald-700 py-3 text-sm font-black text-white transition hover:bg-emerald-800"
+                                className="w-full rounded-xl bg-[#2ec4b6] py-3 text-sm font-black text-white transition hover:bg-[#2ec4b6]"
                               >
                                 Back to Card
                               </button>
                             )}
                             <button
                               onClick={() => setBatchResult(null)}
-                              className="w-full py-2 text-sm font-semibold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+                              className="w-full py-2 text-sm font-semibold text-[#33312e] border border-[#a39a88] rounded-lg hover:bg-[#fff7ed] transition"
                             >
                               Create More
                             </button>
                           </div>
                         ) : (
-                          <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                          <div className="mt-4 rounded-2xl border border-[#a39a88] bg-[#fff7ed] p-3">
                             <div className="mb-3 flex items-center justify-between gap-3">
                               <div>
-                                <p className="text-xs font-black uppercase tracking-wide text-slate-500">
+                                <p className="text-xs font-black uppercase tracking-wide text-[#6b6459]">
                                   {isPremiumBatchUser || hasSelectedBatchPurchase ? "Ready to generate" : "Paid batch pack"}
                                 </p>
-                                <p className="mt-0.5 text-base font-black text-slate-950">{batchCount} cards</p>
-                                <p className="text-xs text-slate-600">
+                                <p className="mt-0.5 text-base font-black text-[#33312e]">{batchCount} cards</p>
+                                <p className="text-xs text-[#33312e]">
                                   Generate now, then export as PDF.
                                 </p>
                               </div>
                               {!isPremiumBatchUser && (
                                 <div className="text-right">
-                                  <p className="text-[11px] font-black uppercase text-slate-500">
+                                  <p className="text-[11px] font-black uppercase text-[#6b6459]">
                                     {hasSelectedBatchPurchase ? "Paid" : "Due today"}
                                   </p>
-                                  <p className="text-3xl font-black text-slate-950">
+                                  <p className="text-3xl font-black text-[#33312e]">
                                     {hasSelectedBatchPurchase ? "$0" : selectedBatchPrice}
                                   </p>
-                                  <p className="text-[11px] font-semibold text-slate-500">
+                                  <p className="text-[11px] font-semibold text-[#6b6459]">
                                     {hasSelectedBatchPurchase ? "Ready" : "One-time"}
                                   </p>
                                 </div>
@@ -1248,7 +1248,7 @@ export default function CardViewPage() {
                             <button
                               onClick={handleBatchPrimaryAction}
                               disabled={batchLoading || batchCheckoutLoading}
-                              className="w-full rounded-xl bg-slate-950 px-4 py-3 text-sm font-black text-white transition hover:bg-slate-800 disabled:opacity-50"
+                              className="w-full rounded-xl bg-[#33312e] px-4 py-3 text-sm font-black text-white transition hover:bg-[#33312e] disabled:opacity-50"
                             >
                               {batchActionLabel}
                             </button>
@@ -1266,36 +1266,36 @@ export default function CardViewPage() {
           {/* Card grid */}
           <div className={isFullscreen ? "bingo-container w-full max-w-2xl mx-auto" : "w-full"}>
            <ThemedCardWrapper theme={card.style?.theme} title={card.title}>
-            <div className={`rounded-2xl shadow-sm border p-3 md:p-6 print-card ${"bg-white border-slate-100"}`} ref={cardRef}>
+            <div className={`rounded-2xl shadow-sm border p-3 md:p-6 print-card ${"bg-white border-[#fff7ed]"}`} ref={cardRef}>
               <div className="text-center mb-3 md:mb-6">
                 <div className="flex flex-wrap items-center justify-center gap-2 mb-3 print:hidden">
-                  <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wide">
+                  <span className="px-3 py-1 rounded-full bg-[#2ec4b6]/10 text-[#2ec4b6] text-xs font-bold uppercase tracking-wide">
                     Solo Play
                   </span>
-                  <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
+                  <span className="px-3 py-1 rounded-full bg-[#fff7ed] text-[#33312e] text-xs font-semibold">
                     {markedCount}/{totalCells} marked
                   </span>
                   {bingo ? (
-                    <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase tracking-wide">
+                    <span className="px-3 py-1 rounded-full bg-[#ffb800]/15 text-[#ffb800] text-xs font-bold uppercase tracking-wide">
                       Bingo
                     </span>
                   ) : null}
                 </div>
-                <h1 className={`text-xl md:text-2xl font-black ${"text-slate-900"}`}>{card.title}</h1>
-                {card.description && <p className={`text-sm mt-1 ${"text-slate-500"}`}>{card.description}</p>}
-                <p className={`text-xs mt-1 print:hidden ${"text-slate-400"}`}>Tap a cell to mark it</p>
-                <div className="mt-3 h-2 rounded-full bg-slate-100 overflow-hidden print:hidden">
+                <h1 className={`text-xl md:text-2xl font-black ${"text-[#33312e]"}`}>{card.title}</h1>
+                {card.description && <p className={`text-sm mt-1 ${"text-[#6b6459]"}`}>{card.description}</p>}
+                <p className={`text-xs mt-1 print:hidden ${"text-[#6b6459]"}`}>Tap a cell to mark it</p>
+                <div className="mt-3 h-2 rounded-full bg-[#fff7ed] overflow-hidden print:hidden">
                   <div
-                    className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                    className="h-full bg-[#2ec4b6] rounded-full transition-all duration-300"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
               </div>
 
               {variant === "classic75" && (
-                <div className="mb-2 grid gap-1.5 md:gap-2 text-center text-sm font-black text-emerald-700" style={{ gridTemplateColumns: `repeat(${shape.columns}, 1fr)` }}>
+                <div className="mb-2 grid gap-1.5 md:gap-2 text-center text-sm font-black text-[#2ec4b6]" style={{ gridTemplateColumns: `repeat(${shape.columns}, 1fr)` }}>
                   {"BINGO".split("").map((letter) => (
-                    <div key={letter} className="rounded-lg bg-emerald-50 py-1">{letter}</div>
+                    <div key={letter} className="rounded-lg bg-[#2ec4b6]/10 py-1">{letter}</div>
                   ))}
                 </div>
               )}
@@ -1312,12 +1312,12 @@ export default function CardViewPage() {
                       className={`
                         aspect-square flex items-center justify-center text-center rounded-xl font-semibold transition-all duration-150 select-none touch-manipulation overflow-hidden
                         ${isBlank90
-                          ? "bg-amber-50 border border-dashed border-amber-100 text-transparent cursor-default"
+                          ? "bg-[#ffb800]/10 border border-dashed border-[#ffb800]/15 text-transparent cursor-default"
                           : isFreeSpace
-                          ? "bg-emerald-600 text-white cursor-default shadow-md"
+                          ? "bg-[#2ec4b6] text-white cursor-default shadow-md"
                           : isMarked
-                            ? "bg-emerald-600 text-white shadow-md ring-2 ring-emerald-300"
-                            : "bg-slate-50 text-slate-700 border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 active:scale-95"
+                            ? "bg-[#2ec4b6] text-white shadow-md ring-2 ring-[#2ec4b6]"
+                            : "bg-[#fff7ed] text-[#33312e] border border-[#a39a88] hover:border-[#2ec4b6] hover:bg-[#2ec4b6]/50 active:scale-95"
                         }
                       `}
                       style={{
@@ -1371,26 +1371,26 @@ export default function CardViewPage() {
 
               {isFullscreen && (
                 <div className="mt-4 flex justify-center gap-3 print:hidden">
-                  <button onClick={undoLast} disabled={undoStack.length === 0} className="px-4 py-2 bg-amber-500 text-white rounded-xl font-semibold text-sm disabled:opacity-30 transition-all">↩ Undo</button>
-                  <button onClick={resetGame} className="px-4 py-2 bg-slate-600 text-white rounded-xl font-semibold text-sm">🔄 Reset</button>
-                  <button onClick={toggleFullscreen} className="px-4 py-2 bg-red-500 text-white rounded-xl font-semibold text-sm">✕ Exit</button>
+                  <button onClick={undoLast} disabled={undoStack.length === 0} className="px-4 py-2 bg-[#ffb800] text-white rounded-xl font-semibold text-sm disabled:opacity-30 transition-all">↩ Undo</button>
+                  <button onClick={resetGame} className="px-4 py-2 bg-[#33312e] text-white rounded-xl font-semibold text-sm">🔄 Reset</button>
+                  <button onClick={toggleFullscreen} className="px-4 py-2 bg-[#ff5d8f] text-white rounded-xl font-semibold text-sm">✕ Exit</button>
                 </div>
               )}
 
               {!userPlan?.canRemoveBranding && (
                 <div className="text-center mt-4">
-                  <p className="text-xs text-slate-400 mb-1">Created with MyBingoCard.com</p>
-                  <button onClick={() => redirectToCheckout()} className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline transition-colors">
+                  <p className="text-xs text-[#6b6459] mb-1">Created with MyBingoCard.com</p>
+                  <button onClick={() => redirectToCheckout()} className="text-xs font-semibold text-[#7c5cff] hover:text-[#7c5cff] hover:underline transition-colors">
                     Remove watermark →
                   </button>
                 </div>
               )}
 
               {shareUrl && (
-                <div className="print-only mt-6 text-center border-t border-slate-200 pt-4">
-                  <p className="text-xs text-slate-500 mb-2">Play this card digitally:</p>
+                <div className="print-only mt-6 text-center border-t border-[#a39a88] pt-4">
+                  <p className="text-xs text-[#6b6459] mb-2">Play this card digitally:</p>
                   <img src={qrCodeUrl} alt="QR Code" className="mx-auto" width={120} height={120} />
-                  <p className="text-xs text-slate-400 mt-1">{shareUrl}</p>
+                  <p className="text-xs text-[#6b6459] mt-1">{shareUrl}</p>
                 </div>
               )}
             </div>
@@ -1405,24 +1405,24 @@ export default function CardViewPage() {
         )}
 
         {!isFullscreen && (
-          <div className={`md:hidden fixed bottom-0 left-0 right-0 border-t shadow-lg z-20 print:hidden ${"bg-white border-slate-200"}`}>
+          <div className={`md:hidden fixed bottom-0 left-0 right-0 border-t shadow-lg z-20 print:hidden ${"bg-white border-[#a39a88]"}`}>
             {barExpanded && (
               <div className="px-4 pt-3 pb-2">
                 {activeTab === "play" && (
                   <div className="space-y-2">
-                    <div className={`h-1.5 rounded-full overflow-hidden ${"bg-slate-100"}`}>
-                      <div className="h-full bg-emerald-500 rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
+                    <div className={`h-1.5 rounded-full overflow-hidden ${"bg-[#fff7ed]"}`}>
+                      <div className="h-full bg-[#2ec4b6] rounded-full transition-all duration-300" style={{ width: `${progressPercent}%` }} />
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={resetGame} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl ${"border-slate-200 text-slate-600"}`}>🔄 Reset</button>
-                      <button onClick={undoLast} disabled={undoStack.length === 0} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl disabled:opacity-30 ${"border-slate-200 text-slate-600"}`}>↩ Undo</button>
+                      <button onClick={resetGame} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl ${"border-[#a39a88] text-[#33312e]"}`}>🔄 Reset</button>
+                      <button onClick={undoLast} disabled={undoStack.length === 0} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl disabled:opacity-30 ${"border-[#a39a88] text-[#33312e]"}`}>↩ Undo</button>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={toggleFullscreen} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl ${"border-slate-200 text-slate-600"}`}>⛶ Fullscreen</button>
+                      <button onClick={toggleFullscreen} className={`flex-1 py-2.5 text-sm font-semibold border-2 rounded-xl ${"border-[#a39a88] text-[#33312e]"}`}>⛶ Fullscreen</button>
                       <button
                         onClick={openShareEmailFromMobile}
                         disabled={generatingLink}
-                        className="flex-1 py-2.5 text-sm font-semibold bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl disabled:opacity-60"
+                        className="flex-1 py-2.5 text-sm font-semibold bg-gradient-to-r from-[#2ec4b6] to-[#2ec4b6] text-white rounded-xl disabled:opacity-60"
                       >
                         {generatingLink ? "..." : "Email share"}
                       </button>
@@ -1438,33 +1438,33 @@ export default function CardViewPage() {
                   <div className="space-y-3">
                     {/* Free single export */}
                     {!shouldUseBatchForPdf && (
-                      <div className="rounded-2xl border border-slate-200 bg-emerald-50 p-3">
+                      <div className="rounded-2xl border border-[#a39a88] bg-[#2ec4b6]/10 p-3">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-[10px] font-black uppercase tracking-wide rounded-md bg-emerald-100 text-emerald-700 px-2 py-0.5">Free</span>
-                          <p className="text-[11px] font-semibold text-emerald-700">Single card</p>
+                          <span className="text-[10px] font-black uppercase tracking-wide rounded-md bg-[#2ec4b6]/15 text-[#2ec4b6] px-2 py-0.5">Free</span>
+                          <p className="text-[11px] font-semibold text-[#2ec4b6]">Single card</p>
                         </div>
-                        <button onClick={handleExportPDF} disabled={exporting !== null} className="w-full py-2.5 bg-red-600 text-white rounded-xl disabled:opacity-50 font-semibold text-sm mb-2">
+                        <button onClick={handleExportPDF} disabled={exporting !== null} className="w-full py-2.5 bg-[#ff5d8f] text-white rounded-xl disabled:opacity-50 font-semibold text-sm mb-2">
                           {exporting === "pdf" ? "..." : "📄 Download PDF"}
                         </button>
-                        <button onClick={handleExportPNG} disabled={exporting !== null} className="w-full py-2.5 border-2 border-slate-200 text-slate-700 rounded-xl disabled:opacity-50 font-semibold text-sm bg-white">
+                        <button onClick={handleExportPNG} disabled={exporting !== null} className="w-full py-2.5 border-2 border-[#a39a88] text-[#33312e] rounded-xl disabled:opacity-50 font-semibold text-sm bg-white">
                           {exporting === "png" ? "..." : "🖼 Download PNG"}
                         </button>
                       </div>
                     )}
 
                     {/* Paid batch section */}
-                    <div className="rounded-2xl border border-slate-200 bg-amber-50 p-3">
+                    <div className="rounded-2xl border border-[#a39a88] bg-[#ffb800]/10 p-3">
                       <div className="flex items-center justify-between gap-3">
                         <div>
-                          <p className="text-[11px] font-black uppercase tracking-wide text-amber-700">
+                          <p className="text-[11px] font-black uppercase tracking-wide text-[#ffb800]">
                             {isPremiumBatchUser ? "Premium batch packs" : "Paid batch packs"}
                           </p>
-                          <p className="mt-0.5 text-xs text-slate-700">
+                          <p className="mt-0.5 text-xs text-[#33312e]">
                             {isPremiumBatchUser ? "Included with Premium." : `Selected: ${selectedBatchPrice}`}
                           </p>
                         </div>
                         {!isPremiumBatchUser && (
-                          <div className="rounded-xl bg-white px-3 py-2 text-right text-slate-950 shadow-sm ring-1 ring-amber-200">
+                          <div className="rounded-xl bg-white px-3 py-2 text-right text-[#33312e] shadow-sm ring-1 ring-[#ffb800]">
                             <p className="text-[11px] font-black uppercase">{hasSelectedBatchPurchase ? "Paid" : "Due today"}</p>
                             <p className="text-xl font-black">{hasSelectedBatchPurchase ? "$0" : selectedBatchPrice}</p>
                           </div>
@@ -1472,7 +1472,7 @@ export default function CardViewPage() {
                       </div>
                     </div>
                     {shouldUseBatchForPdf && (
-                      <button onClick={handleExportPDF} disabled={exporting !== null} className="w-full py-2.5 bg-red-600 text-white rounded-xl disabled:opacity-50 font-semibold text-sm">
+                      <button onClick={handleExportPDF} disabled={exporting !== null} className="w-full py-2.5 bg-[#ff5d8f] text-white rounded-xl disabled:opacity-50 font-semibold text-sm">
                         {exporting === "pdf" ? "..." : "📄 Download Batch PDF"}
                       </button>
                     )}
@@ -1484,24 +1484,24 @@ export default function CardViewPage() {
                           className={`flex w-full items-center gap-2 rounded-xl border p-2 text-left text-xs transition-all ${
                             batchCount === n
                               ? isPremiumBatchUser || (availableBatchCounts[n] || 0) > 0
-                                ? "border-emerald-600 bg-emerald-50 text-emerald-800"
-                                : "border-amber-600 bg-amber-50 text-amber-900"
-                              : "border-slate-200 bg-white text-slate-600"
+                                ? "border-[#2ec4b6] bg-[#2ec4b6]/10 text-[#2ec4b6]"
+                                : "border-[#ffb800] bg-[#ffb800]/10 text-[#ffb800]"
+                              : "border-[#a39a88] bg-white text-[#33312e]"
                           }`}
                         >
                           <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
                             batchCount === n
                               ? isPremiumBatchUser || (availableBatchCounts[n] || 0) > 0
-                                ? "border-emerald-600 bg-emerald-600"
-                                : "border-amber-600 bg-amber-600"
-                              : "border-slate-300"
+                                ? "border-[#2ec4b6] bg-[#2ec4b6]"
+                                : "border-[#ffb800] bg-[#ffb800]"
+                              : "border-[#a39a88]"
                           }`}>
                             {batchCount === n && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
                           </span>
                           <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
                             <div>
-                              <p className="font-black text-slate-900">{n} cards</p>
-                              <p className="text-[11px] text-slate-500">
+                              <p className="font-black text-[#33312e]">{n} cards</p>
+                              <p className="text-[11px] text-[#6b6459]">
                                 {isPremiumBatchUser
                                   ? "Included"
                                   : (availableBatchCounts[n] || 0) > 0
@@ -1509,15 +1509,15 @@ export default function CardViewPage() {
                                     : `${formatPerCard(n)} one-time`}
                               </p>
                               {n === 500 && !isPremiumBatchUser && (
-                                <p className="mt-0.5 text-[10px] font-black uppercase text-amber-700">Best value</p>
+                                <p className="mt-0.5 text-[10px] font-black uppercase text-[#ffb800]">Best value</p>
                               )}
                             </div>
                             {!isPremiumBatchUser && (
                               <div className="text-right">
-                                <p className={`font-black ${(availableBatchCounts[n] || 0) > 0 ? "text-slate-900" : "text-amber-700"}`}>
+                                <p className={`font-black ${(availableBatchCounts[n] || 0) > 0 ? "text-[#33312e]" : "text-[#ffb800]"}`}>
                                   {(availableBatchCounts[n] || 0) > 0 ? "$0" : BATCH_PACKS[n].label}
                                 </p>
-                                <p className="text-[10px] text-slate-500">
+                                <p className="text-[10px] text-[#6b6459]">
                                   {batchCount === n ? "Selected" : (availableBatchCounts[n] || 0) > 0 ? "Paid" : "Paid"}
                                 </p>
                               </div>
@@ -1529,7 +1529,7 @@ export default function CardViewPage() {
                     {batchResult ? (
                       <div className="space-y-2">
                         {batchPdfDownloaded && (
-                          <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800">
+                          <p className="rounded-xl border border-[#2ec4b6] bg-[#2ec4b6]/10 px-3 py-2 text-xs font-bold text-[#2ec4b6]">
                             Download started. You can go back to the card or download again.
                           </p>
                         )}
@@ -1537,13 +1537,13 @@ export default function CardViewPage() {
                           <button
                             onClick={() => handleBatchPdfDownload(1)}
                             disabled={batchPdfLoading !== null}
-                            className="flex-1 py-2.5 bg-red-600 text-white rounded-xl disabled:opacity-50 font-semibold text-sm"
+                            className="flex-1 py-2.5 bg-[#ff5d8f] text-white rounded-xl disabled:opacity-50 font-semibold text-sm"
                           >
                             {batchPdfLoading ? "..." : batchPdfDownloaded ? "Download Again" : "📄 Download Cards"}
                           </button>
                           <button
                             onClick={batchPdfDownloaded ? returnToCard : () => setBatchResult(null)}
-                            className="py-2.5 px-3 border-2 border-slate-200 text-slate-600 rounded-xl font-semibold text-sm"
+                            className="py-2.5 px-3 border-2 border-[#a39a88] text-[#33312e] rounded-xl font-semibold text-sm"
                           >
                             {batchPdfDownloaded ? "Back" : "More"}
                           </button>
@@ -1552,14 +1552,14 @@ export default function CardViewPage() {
                     ) : (
                       <>
                       {!isPremiumBatchUser && !hasSelectedBatchPurchase && (
-                        <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900">
+                        <p className="rounded-xl border border-[#ffb800] bg-[#ffb800]/10 px-3 py-2 text-xs font-bold text-[#ffb800]">
                           Selected paid download: {selectedBatchPrice} due at checkout for {batchCount} printable cards.
                         </p>
                       )}
                       <button
                         onClick={handleBatchPrimaryAction}
                         disabled={batchLoading || batchCheckoutLoading}
-                        className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 rounded-xl disabled:opacity-50 font-black text-sm"
+                        className="w-full bg-gradient-to-r from-[#2ec4b6] to-[#2ec4b6] text-white py-3 rounded-xl disabled:opacity-50 font-black text-sm"
                       >
                         {batchActionLabel}
                       </button>
@@ -1573,14 +1573,14 @@ export default function CardViewPage() {
             <div className="flex items-center px-3 py-2 gap-2">
               <button
                 onClick={() => { setActiveTab("play"); setBarExpanded(v => activeTab === "play" ? !v : true); }}
-                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "play" && barExpanded ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"}`}
+                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "play" && barExpanded ? "bg-[#2ec4b6] text-white" : "bg-[#fff7ed] text-[#33312e]"}`}
               >
                 🎮 Play · {markedCount}/{totalCells}
               </button>
               <button
                 onClick={openShareEmailFromMobile}
                 disabled={generatingLink}
-                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "share" && barExpanded ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"}`}
+                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "share" && barExpanded ? "bg-[#2ec4b6] text-white" : "bg-[#fff7ed] text-[#33312e]"}`}
               >
                 {generatingLink ? "..." : "🔗 Share"}
               </button>
@@ -1592,7 +1592,7 @@ export default function CardViewPage() {
                   setBarExpanded(v => activeTab === "download" ? !v : true);
                   loadBatchPurchases();
                 }}
-                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "download" && barExpanded ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"}`}
+                className={`flex-1 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === "download" && barExpanded ? "bg-[#2ec4b6] text-white" : "bg-[#fff7ed] text-[#33312e]"}`}
               >
                 📄 Export
               </button>

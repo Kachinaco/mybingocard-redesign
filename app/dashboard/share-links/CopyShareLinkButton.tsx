@@ -54,7 +54,7 @@ export default function CopyShareLinkButton({
 
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-2 shrink-0">
-      <code className="text-xs font-mono text-slate-500 truncate max-w-[260px] rounded-lg bg-slate-50 px-2 py-1">
+      <code className="text-xs font-mono text-[#6b6459] truncate max-w-[260px] rounded-lg bg-[#fff7ed] px-2 py-1">
         /play/{linkId}
       </code>
       <span
@@ -80,8 +80,8 @@ export default function CopyShareLinkButton({
         aria-live="polite"
         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
           copied
-            ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-            : "bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200"
+            ? "bg-[#2ec4b6]/10 text-[#2ec4b6] border border-[#2ec4b6]/15"
+            : "bg-[#fff7ed] text-[#33312e] border border-[#a39a88] hover:bg-[#a39a88]"
         }`}
       >
         {copied ? (
@@ -124,7 +124,7 @@ export default function CopyShareLinkButton({
         href={`/play/${linkId}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+        className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#a39a88] bg-white px-3 py-1.5 text-xs font-semibold text-[#33312e] transition-colors hover:bg-[#fff7ed]"
       >
         Open
       </a>

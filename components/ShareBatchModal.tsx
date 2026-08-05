@@ -228,7 +228,7 @@ export default function ShareBatchModal({
         <button
           onClick={attemptClose}
           disabled={submitting}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors z-10 disabled:opacity-40"
+          className="absolute top-4 right-4 text-[#6b6459] hover:text-[#33312e] transition-colors z-10 disabled:opacity-40"
           aria-label="Close"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,14 +239,14 @@ export default function ShareBatchModal({
         <div className="p-8 space-y-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600">
+              <span className="text-xs font-semibold uppercase tracking-wide text-[#7c5cff]">
                 Create Group Invite
               </span>
             </div>
-            <h2 id={titleId} className="text-2xl font-bold text-slate-900 line-clamp-1">
+            <h2 id={titleId} className="text-2xl font-bold text-[#33312e] line-clamp-1">
               {batchTitle}
             </h2>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-[#6b6459] mt-1">
               Create one invite link for your group chat. Each friend gets a unique card automatically.
             </p>
           </div>
@@ -254,13 +254,13 @@ export default function ShareBatchModal({
           <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                <label className="block text-sm font-semibold text-[#33312e] mb-2">
                   How many people are you sending to?
                 </label>
-                <p className="text-xs text-slate-500 mb-3">
+                <p className="text-xs text-[#6b6459] mb-3">
                   Starts at $0.50 for up to 5 links, then $0.10 per extra link.
                 </p>
-                <p className="text-xs text-slate-500 mb-4">
+                <p className="text-xs text-[#6b6459] mb-4">
                   Minimum 5 links ($0.50) due to Stripe checkout minimum.
                 </p>
 
@@ -276,7 +276,7 @@ export default function ShareBatchModal({
                       setCount(next);
                       setCountInput(String(next));
                     }}
-                    className="flex-1 accent-indigo-600"
+                    className="flex-1 accent-[#7c5cff]"
                     aria-label="Number of share links"
                   />
                   <input
@@ -297,17 +297,17 @@ export default function ShareBatchModal({
                       setCount(clamped);
                       setCountInput(String(clamped));
                     }}
-                    className="w-24 px-3 py-2 border border-slate-200 rounded-lg text-center font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className="w-24 px-3 py-2 border border-[#a39a88] rounded-lg text-center font-semibold text-[#33312e] focus:outline-none focus:ring-2 focus:ring-[#7c5cff]"
                     aria-label="Number of share links"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-900 mb-2">
+                <label className="block text-sm font-semibold text-[#33312e] mb-2">
                   What is the easiest way to share?
                 </label>
-                <div className="grid grid-cols-2 gap-1 bg-slate-100 rounded-xl p-1 mb-4">
+                <div className="grid grid-cols-2 gap-1 bg-[#fff7ed] rounded-xl p-1 mb-4">
                   {([
                     { value: "self", label: "Group chat link" },
                     { value: "email", label: "Email people" },
@@ -320,8 +320,8 @@ export default function ShareBatchModal({
                       }}
                       className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
                         mode === tab.value
-                          ? "bg-white text-indigo-600 shadow-sm"
-                          : "text-slate-600 hover:text-slate-900"
+                          ? "bg-white text-[#7c5cff] shadow-sm"
+                          : "text-[#33312e] hover:text-[#33312e]"
                       }`}
                     >
                     <span className="block">{tab.label}</span>
@@ -336,23 +336,23 @@ export default function ShareBatchModal({
                       onChange={(e) => setEmailsRaw(e.target.value)}
                       placeholder={"alice@example.com\nbob@example.com\ncarol@example.com"}
                       rows={6}
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                      className="w-full px-4 py-3 border border-[#a39a88] rounded-xl text-sm text-[#33312e] font-mono focus:outline-none focus:ring-2 focus:ring-[#7c5cff] resize-none"
                       aria-label="Recipient email addresses"
                     />
                     <div className="flex items-center justify-between mt-2 text-xs gap-4">
-                      <span className="text-slate-500">
+                      <span className="text-[#6b6459]">
                         {validEmails.length} valid
                         {invalidEmails.length > 0 && (
-                          <span className="text-amber-600 ml-2">· {invalidEmails.length} invalid</span>
+                          <span className="text-[#ffb800] ml-2">· {invalidEmails.length} invalid</span>
                         )}
-                        {dedupNotice && <span className="text-slate-500 ml-2">· {dedupNotice}</span>}
+                        {dedupNotice && <span className="text-[#6b6459] ml-2">· {dedupNotice}</span>}
                       </span>
-                      <span className="text-slate-400 text-right">
+                      <span className="text-[#6b6459] text-right">
                         We&rsquo;ll send any leftover links to your email.
                       </span>
                     </div>
                     {recipientsOverLimit > 0 && (
-                      <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+                      <div className="mt-3 rounded-xl border border-[#ffb800] bg-[#ffb800]/10 p-3 text-xs text-[#ffb800]">
                         {recipientsOverLimit} valid recipient{recipientsOverLimit !== 1 ? "s" : ""} won&rsquo;t receive a link with the current count.
                         <button
                           type="button"
@@ -369,11 +369,11 @@ export default function ShareBatchModal({
                     )}
                   </div>
                 ) : (
-                  <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
-                    <p className="text-sm text-indigo-900 font-medium mb-1">
+                  <div className="p-4 bg-[#7c5cff]/10 border border-[#7c5cff]/15 rounded-xl">
+                    <p className="text-sm text-[#7c5cff] font-medium mb-1">
                       After checkout, copy one group invite from your Share Links dashboard.
                     </p>
-                    <p className="text-xs text-indigo-700">
+                    <p className="text-xs text-[#7c5cff]">
                       Paste it in a text thread, Discord, classroom app, or email. Every player gets the next unused card.
                     </p>
                   </div>
@@ -382,39 +382,39 @@ export default function ShareBatchModal({
             </div>
 
             <div className="space-y-4">
-              <div className="bg-gradient-to-br from-violet-50 to-indigo-50 rounded-xl p-5 border border-indigo-100">
-                <p className="text-sm font-semibold text-slate-600 mb-1">Order summary</p>
-                <p className="text-3xl font-bold text-slate-900 mb-1">
+              <div className="bg-gradient-to-br from-[#7c5cff]/10 to-[#7c5cff]/10 rounded-xl p-5 border border-[#7c5cff]/15">
+                <p className="text-sm font-semibold text-[#33312e] mb-1">Order summary</p>
+                <p className="text-3xl font-bold text-[#33312e] mb-1">
                   {clampedCount} link{clampedCount !== 1 ? "s" : ""}
                 </p>
-                <p className="text-sm text-slate-600 mb-3">{describePackage(clampedCount)}</p>
-                <p className="text-sm text-slate-600">
-                  Total: <span className="font-bold text-indigo-600">{formatPrice(totalCents)}</span>
+                <p className="text-sm text-[#33312e] mb-3">{describePackage(clampedCount)}</p>
+                <p className="text-sm text-[#33312e]">
+                  Total: <span className="font-bold text-[#7c5cff]">{formatPrice(totalCents)}</span>
                 </p>
               </div>
 
-              <div className="border border-slate-200 rounded-xl p-4 space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">What happens next</p>
+              <div className="border border-[#a39a88] rounded-xl p-4 space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#6b6459]">What happens next</p>
                 {mode === "self" ? (
-                  <ul className="text-sm text-slate-700 space-y-2">
+                  <ul className="text-sm text-[#33312e] space-y-2">
                     <li>We&rsquo;ll create {clampedCount} unique player links after checkout.</li>
                     <li>You&rsquo;ll copy one group invite that hands out those cards automatically.</li>
                   </ul>
                 ) : (
-                  <ul className="text-sm text-slate-700 space-y-2">
+                  <ul className="text-sm text-[#33312e] space-y-2">
                     <li>We&rsquo;ll email {recipientCount} recipient{recipientCount !== 1 ? "s" : ""} directly.</li>
                     <li>{selfFallbackCount > 0 ? `${selfFallbackCount} leftover link${selfFallbackCount !== 1 ? "s" : ""} will be sent to your email.` : "Any unsent links will also be available in your Share Links dashboard."}</li>
                   </ul>
                 )}
               </div>
 
-              {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+              {error && <p className="text-sm text-[#ff5d8f] text-center">{error}</p>}
 
               <div className="flex gap-3">
                 <button
                   onClick={attemptClose}
                   disabled={submitting}
-                  className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-colors disabled:opacity-50"
+                  className="flex-1 py-3 bg-[#fff7ed] text-[#33312e] rounded-xl font-semibold hover:bg-[#a39a88] transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -422,7 +422,7 @@ export default function ShareBatchModal({
                   onClick={handlePay}
                   disabled={submitting}
                   aria-busy={submitting}
-                  className="flex-1 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-indigo-200 transition-all disabled:opacity-70 flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-[#7c5cff] transition-all disabled:opacity-70 flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
@@ -438,7 +438,7 @@ export default function ShareBatchModal({
                 </button>
               </div>
 
-              <p className="text-center text-xs text-slate-400">
+              <p className="text-center text-xs text-[#6b6459]">
                 Secure payment via Stripe. Your links will be ready right after checkout.
               </p>
             </div>

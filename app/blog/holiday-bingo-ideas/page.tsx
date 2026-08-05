@@ -44,7 +44,7 @@ export default function HolidayBingoIdeas() {
         date="February 3, 2026"
         readTime="7 min read"
         category="Holiday"
-        categoryGradient="from-green-500 to-emerald-500"
+        categoryGradient="from-[#2ec4b6] to-[#2ec4b6]"
       >
         <p>
           Holiday bingo is one of the easiest, most inclusive party games you can organize during the festive season. Whether it&apos;s a classroom Christmas party, family gathering, office holiday event, or virtual celebration, bingo brings everyone together. Here are 20+ creative holiday bingo ideas organized by occasion.

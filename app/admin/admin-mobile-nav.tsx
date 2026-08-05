@@ -34,23 +34,23 @@ export function AdminMobileNav({
   return (
     <div className="sm:hidden">
       {/* Page title */}
-      <h1 className="text-lg font-bold text-slate-900 mb-2">{pageTitle}</h1>
+      <h1 className="text-lg font-bold text-[#33312e] mb-2">{pageTitle}</h1>
 
       {/* Quick Stats bar */}
       <div className="flex gap-3 mb-3">
-        <div className="flex-1 rounded-lg bg-emerald-50 border border-emerald-100 px-3 py-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
+        <div className="flex-1 rounded-lg bg-[#2ec4b6]/10 border border-[#2ec4b6]/15 px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[#2ec4b6]">
             MRR
           </p>
-          <p className="text-base font-bold text-emerald-700">
+          <p className="text-base font-bold text-[#2ec4b6]">
             ${quickStats.mrr.toFixed(0)}
           </p>
         </div>
-        <div className="flex-1 rounded-lg bg-indigo-50 border border-indigo-100 px-3 py-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-indigo-600">
+        <div className="flex-1 rounded-lg bg-[#7c5cff]/10 border border-[#7c5cff]/15 px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[#7c5cff]">
             Active
           </p>
-          <p className="text-base font-bold text-indigo-700">
+          <p className="text-base font-bold text-[#7c5cff]">
             {quickStats.activeUsers.toLocaleString()}
           </p>
         </div>
@@ -70,13 +70,13 @@ export function AdminMobileNav({
               href={item.href}
               className={`relative shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
                 isActive
-                  ? "border-indigo-300 bg-indigo-50 text-indigo-700"
-                  : "border-slate-200 bg-white text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+                  ? "border-[#7c5cff] bg-[#7c5cff]/10 text-[#7c5cff]"
+                  : "border-[#a39a88] bg-white text-[#33312e] hover:border-[#7c5cff] hover:bg-[#7c5cff]/10 hover:text-[#7c5cff]"
               }`}
             >
               {item.label}
               {item.badge != null && item.badge > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#ff5d8f] px-1 text-[10px] font-bold text-white">
                   {item.badge > 99 ? "99+" : item.badge}
                 </span>
               )}
