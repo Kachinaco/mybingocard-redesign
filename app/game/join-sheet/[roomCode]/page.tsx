@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getGameRoom } from "@/lib/db/games";
+import { getGameRoom, type GameRoom } from "@/lib/db/games";
 
 export default async function JoinSheetPage({
   params,
@@ -7,7 +7,14 @@ export default async function JoinSheetPage({
   params: Promise<{ roomCode: string }>;
 }) {
   const { roomCode } = await params;
-  const room = await getGameRoom(roomCode.toUpperCase());
+  let room: GameRoom | null = null;
+  try {
+    room = await getGameRoom(roomCode.toUpperCase());
+  } catch {
+    // A missing room code or a database failure should show a safe not-found
+    // page instead of an internal server error.
+    notFound();
+  }
 
   if (!room) {
     notFound();
