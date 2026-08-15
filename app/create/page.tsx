@@ -1848,7 +1848,7 @@ function CreateCardContent() {
                 </div>
               )}
               {/* Basic Info */}
-              <div className="bg-white/60 rounded-2xl border border-[#a39a88]/50 p-4 lg:p-3">
+              <div className="bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_5px_0_#33312e] p-4 lg:p-3">
                 <h2 className="text-base font-bold text-[#33312e] mb-3 lg:mb-2">
                    Card Details
                 </h2>
@@ -2063,7 +2063,7 @@ function CreateCardContent() {
               )}
 
               {/* Style Customization */}
-              <div className="bg-white/60 rounded-2xl border border-[#a39a88]/50 p-4 lg:p-3">
+              <div className="bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_5px_0_#33312e] p-4 lg:p-3">
                 <h2 className="text-base font-bold text-[#33312e] mb-3 lg:mb-2">
                    Style & Colors
                 </h2>
@@ -2194,7 +2194,7 @@ function CreateCardContent() {
               </div>
 
               {/* Batch Generation — Always visible, prominent */}
-              <div className="bg-gradient-to-br from-[#7c5cff]/10 to-[#7c5cff]/10 rounded-2xl shadow-sm border border-[#7c5cff]/60 p-4 lg:p-3">
+              <div className="bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_5px_0_#33312e] p-4 lg:p-3">
                 <h2 className="text-base font-bold text-[#33312e] mb-2 flex items-center gap-2">
                    <span className="w-7 h-7 rounded-lg bg-[#7c5cff] text-white flex items-center justify-center text-sm">
                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2407,7 +2407,7 @@ function CreateCardContent() {
 
             {/* Center Panel - Bingo Grid */}
             <div className="order-1 lg:order-2 lg:sticky lg:top-16 lg:self-start min-w-0">
-              <div className="bg-white rounded-2xl shadow-lg ring-1 ring-[#a39a88] p-3 lg:max-w-[500px] 2xl:max-w-[540px] lg:mx-auto flex flex-col">
+              <div className="bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_5px_0_#33312e] p-3 lg:max-w-[500px] 2xl:max-w-[540px] lg:mx-auto flex flex-col">
                 <div className="flex justify-between items-center mb-3">
                   <h2 className="text-base font-bold text-[#33312e]">
                     {showPreview ? "Card Preview" : "Edit Content"}
@@ -3001,7 +3001,7 @@ function CreatePageSkeleton() {
           </div>
 
           <div className="grid lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)_minmax(0,300px)] xl:grid-cols-[minmax(0,240px)_minmax(500px,520px)_minmax(0,320px)] 2xl:grid-cols-[minmax(0,240px)_minmax(520px,560px)_minmax(0,340px)] gap-3 lg:gap-4 xl:justify-center items-start">
-            <div className="order-2 lg:order-1 hidden lg:block rounded-2xl border border-[#a39a88]/50 bg-white/60 p-3">
+            <div className="order-2 lg:order-1 hidden lg:block rounded-2xl border-[2.5px] border-[#33312e] bg-white shadow-[0_5px_0_#33312e] p-3">
               <div className="mb-3 h-5 w-28 rounded bg-[#a39a88]" />
               <div className="space-y-3">
                 <div className="h-10 rounded-xl bg-[#a39a88]/80" />
@@ -3020,12 +3020,12 @@ function CreatePageSkeleton() {
             </div>
 
             <div className="order-3 lg:order-3 hidden lg:block space-y-3">
-              <div className="rounded-2xl border border-[#a39a88]/50 bg-white/60 p-3">
+              <div className="rounded-2xl border-[2.5px] border-[#33312e] bg-white shadow-[0_5px_0_#33312e] p-3">
                 <div className="mb-3 h-5 w-28 rounded bg-[#a39a88]" />
                 <div className="h-10 rounded-xl bg-[#a39a88]/80" />
                 <div className="mt-3 h-10 rounded-xl bg-[#7c5cff]" />
               </div>
-              <div className="rounded-2xl border border-[#a39a88]/50 bg-white/60 p-3">
+              <div className="rounded-2xl border-[2.5px] border-[#33312e] bg-white shadow-[0_5px_0_#33312e] p-3">
                 <div className="mb-3 h-5 w-32 rounded bg-[#a39a88]" />
                 <div className="grid grid-cols-4 gap-1.5">
                   {Array.from({ length: 8 }).map((_, index) => (
@@ -3036,7 +3036,7 @@ function CreatePageSkeleton() {
             </div>
 
             <div className="order-1 lg:order-2 min-w-0">
-              <div className="bg-white rounded-2xl shadow-lg ring-1 ring-[#a39a88] p-3 lg:max-w-[500px] 2xl:max-w-[540px] lg:mx-auto flex flex-col">
+              <div className="bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_5px_0_#33312e] p-3 lg:max-w-[500px] 2xl:max-w-[540px] lg:mx-auto flex flex-col">
                 <div className="flex justify-between items-center mb-3">
                   <div className="h-5 w-28 rounded bg-[#a39a88]" />
                   <div className="h-6 w-28 rounded-full bg-[#fff7ed]" />
