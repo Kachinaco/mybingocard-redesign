@@ -2970,17 +2970,24 @@ function CreateCardContent() {
 
 function CreatePageSkeleton() {
   return (
-    <div className="notranslate min-h-screen bg-[#fff7ed] text-[#33312e]" translate="no">
-      <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-[#a39a88]/50">
-        <div className="container mx-auto px-3 sm:px-4 lg:px-8 h-14 flex items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-2">
-            <div className="w-8 h-8 shrink-0 bg-[#7c5cff] rounded-lg opacity-90" />
-            <div className="hidden min-[390px]:block h-5 w-32 rounded bg-[#a39a88]" />
+    <div className="playful-create" translate="no">
+      <a className="skip-link" href="#main">Skip to card maker</a>
+      <header className="app-header">
+        <div className="app-header-in">
+          <div className="brand-group">
+            <Link href="/" className="logo" aria-label="MyBingoCard home">
+              My<span>Bingo</span>Card
+            </Link>
           </div>
-          <div className="flex shrink-0 items-center gap-3">
-            <div className="h-4 w-20 rounded bg-[#a39a88]" />
-            <div className="h-4 w-12 rounded bg-[#a39a88]" />
-          </div>
+          <ol className="progress" aria-label="Card creation progress">
+            <li className="is-current" aria-current="step"><span className="progress-dot">1</span><span>Content</span></li>
+            <li><span className="progress-dot">2</span><span>Style</span></li>
+            <li><span className="progress-dot">3</span><span>Review</span></li>
+          </ol>
+          <Link href="/" className="back-link">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            Back to home
+          </Link>
         </div>
       </header>
 
