@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import "./create.css";
 
 export const metadata: Metadata = {
   title: "Create a Bingo Card Online | MyBingoCard",

@@ -1681,42 +1681,26 @@ function CreateCardContent() {
 
   return (
     <>
-    <div className="notranslate min-h-screen bg-[#fff7ed] selection:bg-[#7c5cff]/15 selection:text-[#7c5cff]" translate="no">
-      {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md border-b border-[#a39a88]/50">
-        <div className="container mx-auto px-3 sm:px-4 lg:px-8 h-14 flex items-center justify-between gap-2">
-          <Link href="/" className="flex min-w-0 items-center gap-2 group">
-            <div className="w-8 h-8 shrink-0 bg-[#7c5cff] rounded-lg flex items-center justify-center shadow-sm transition-all duration-300">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-            </div>
-            <span className="hidden min-[390px]:inline truncate text-lg sm:text-xl font-bold text-[#33312e]">
-              MyBingoCard
-            </span>
-          </Link>
-          
-          <div className="flex shrink-0 gap-1.5 sm:gap-4 items-center">
-            <button
-              onClick={() => {
-                const nextPreview = !showPreview;
-                setShowPreview(nextPreview);
-                trackClientActivity("preview_toggled", { enabled: nextPreview });
-              }}
-              className="px-2 py-2 text-sm font-semibold text-[#33312e] hover:text-[#7c5cff] transition-colors"
-            >
-              <span className="sm:hidden">{showPreview ? "Edit" : "Preview"}</span>
-              <span className="hidden sm:inline">{showPreview ? "Back to Edit" : "Preview Card"}</span>
-            </button>
-            {editorUnlocked && (
-              <Link
-                href="/dashboard"
-                className="px-3 sm:px-5 py-2.5 rounded-lg text-sm font-semibold text-[#33312e] hover:bg-[#fff7ed] transition-all duration-200"
-              >
-                Cancel
-              </Link>
-            )}
+    <div className="playful-create" translate="no">
+      <a className="skip-link" href="#main">Skip to card maker</a>
+      <header className="app-header">
+        <div className="app-header-in">
+          <div className="brand-group">
+            <Link href="/" className="logo" aria-label="MyBingoCard home">
+              My<span>Bingo</span>Card
+            </Link>
           </div>
+
+          <ol className="progress" aria-label="Card creation progress">
+            <li className="is-current" aria-current="step"><span className="progress-dot">1</span><span>Content</span></li>
+            <li><span className="progress-dot">2</span><span>Style</span></li>
+            <li><span className="progress-dot">3</span><span>Review</span></li>
+          </ol>
+
+          <Link href="/" className="back-link">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            Back to home
+          </Link>
         </div>
       </header>
 

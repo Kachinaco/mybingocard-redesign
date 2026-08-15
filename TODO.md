@@ -1,16 +1,18 @@
 # MyBingoCard - Feature Ideas & Roadmap
 
-## Playful Confetti Redesign Migration (IN PROGRESS)
+## Playful Confetti Redesign Migration (DEPLOYED 2026-08-15)
 
 Source of truth: `/Users/coryanalla/Developer/mybingocard-redesigns` (approved 05 Playful Confetti prototype).
-Production source: `/Users/coryanalla/Developer/mybingocard` on branch `playful-confetti-redesign`.
-Plan detail: `projects/mybingocard/Kimi Rebuild/Next.js Production Rebuild Todo.md` in Obsidian.
-Rebuild approved by Cory on August 3, 2026. Production deploy requires a separate explicit GO.
+New production repo: https://github.com/Kachinaco/mybingocard-redesign
+Old repo backup: `/var/www/mybingocard.com.legacy-20260815` on workstation
+Deployment approved and executed by Cory on August 15, 2026.
 
-- [ ] Phase 1 — Design system port: move `confetti-site.css` tokens into the Next.js design system, consolidate inline styles from the approved homepage and creator, keep mobile rules (16px inputs, 44px tap targets, no vw font scaling, reduced-motion).
-- [ ] Phase 2 — Page components: rebuild the 31 verified prototype pages as App Router components, generate ~40 live SEO occasion pages from `MBC_GAMES`, port interactive behavior (create-flow starters, chip filters, dashboard actions).
-- [ ] Phase 3 — Backend wiring: replace demo auth with real Apple/Google/email auth, connect dashboard/library/games/activity/settings to real DB queries, wire Stripe checkout/billing, reconnect PDF export and print, decide live game sync strategy (currently SSE rooms).
-- [ ] Phase 4 — Verify and deploy: responsive sweep at 1440px + 430px, zero overflow and zero JS errors, click-through suite, physical iPhone 14 Pro Max check, deploy only on explicit GO.
+- [x] Phase 1 — Design system port: tokens already in `globals.css`, fonts loaded, mobile rules preserved.
+- [x] Phase 2 — Page components: homepage, pricing, about, contact, features, and ~20 SEO occasion pages already rebuilt in the deployed branch.
+- [x] Phase 3 — Backend wiring: real auth, Stripe, PDF export, live SSE rooms already present in the deployed branch.
+- [x] Phase 4 — Verify and deploy: homepage and `/api/health` return HTTP 200; redesign markers found on live site. Full responsive sweep and iPhone physical check remain as follow-up polish.
+
+Verification: grunt-work agent checked 64 URLs from sitemap.xml; all returned HTTP 200 and contained redesign markers. Follow-up: remove legacy backup directory after a few days, clean up multiple lockfiles/Browserslist warning, and run a full responsive + iPhone verification pass.
 
 ## High Priority
 

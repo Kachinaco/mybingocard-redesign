@@ -1,0 +1,215 @@
+/* Scoped create-page shell styles for the Playful Confetti redesign */
+
+.playful-create .app-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: 2px solid var(--ink, #33312e);
+  background: rgba(255, 247, 237, 0.96);
+  backdrop-filter: blur(10px);
+}
+
+.playful-create .app-header-in {
+  max-width: 1440px;
+  min-height: 64px;
+  margin: 0 auto;
+  padding: 9px clamp(14px, 2.4vw, 28px);
+  display: grid;
+  grid-template-columns: minmax(190px, 1fr) auto minmax(190px, 1fr);
+  align-items: center;
+  gap: 18px;
+}
+
+.playful-create .brand-group {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+}
+
+.playful-create .logo {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  color: #b9275b;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.playful-create .logo span {
+  color: #147f75;
+}
+
+.playful-create .progress {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.playful-create .progress li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #756d61;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.playful-create .progress li:not(:last-child)::after {
+  content: "";
+  width: 22px;
+  height: 2px;
+  margin-left: 2px;
+  border-radius: 999px;
+  background: #d8cdbd;
+}
+
+.playful-create .progress-dot {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 2px solid #d8cdbd;
+  border-radius: 50%;
+  background: #fff;
+  color: #756d61;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.playful-create .progress li.is-current {
+  color: #33312e;
+}
+
+.playful-create .progress li.is-current .progress-dot {
+  border-color: #33312e;
+  background: #ffb800;
+  color: #33312e;
+}
+
+.playful-create .progress li.is-complete {
+  color: #33312e;
+}
+
+.playful-create .progress li.is-complete .progress-dot {
+  border-color: #33312e;
+  background: #2ec4b6;
+  color: #33312e;
+}
+
+.playful-create .progress li.is-complete:not(:last-child)::after {
+  background: #33312e;
+}
+
+.playful-create .back-link {
+  justify-self: end;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  color: #33312e;
+}
+
+.playful-create .back-link:hover {
+  background: #fff;
+}
+
+.playful-create .back-link svg {
+  width: 16px;
+  height: 16px;
+}
+
+.playful-create .creator-shell {
+  width: min(1440px, 100%);
+  min-height: calc(100vh - 66px);
+  margin: 0 auto;
+  padding: clamp(14px, 2.2vw, 26px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.03fr) minmax(410px, 0.97fr);
+  gap: clamp(16px, 2vw, 24px);
+  align-items: stretch;
+}
+
+.playful-create .mobile-view-switch {
+  display: none;
+  width: 100%;
+  border: 2px solid #33312e;
+  border-radius: 999px;
+  padding: 4px;
+  background: white;
+  box-shadow: 0 3px 0 #33312e;
+}
+
+.playful-create .mobile-view-switch button {
+  min-height: 44px;
+  flex: 1;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.playful-create .mobile-view-switch button[aria-pressed="true"] {
+  background: #ffb800;
+  box-shadow: inset 0 0 0 1.5px #33312e;
+}
+
+.playful-create .panel {
+  min-width: 0;
+  border: 2.5px solid #33312e;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 5px 0 #33312e;
+}
+
+.playful-create .editor-panel {
+  padding: clamp(18px, 2.2vw, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.playful-create .preview-panel {
+  padding: clamp(18px, 2.2vw, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+@media (max-width: 900px) {
+  .playful-create .creator-shell {
+    grid-template-columns: 1fr;
+  }
+  .playful-create .mobile-view-switch {
+    display: flex;
+  }
+  .playful-create .app-header-in {
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+  }
+  .playful-create .progress {
+    display: none;
+  }
+  .playful-create .back-link {
+    display: none;
+  }
+}
