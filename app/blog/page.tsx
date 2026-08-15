@@ -1,228 +1,139 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import BlogTracker, { BlogPostLink } from "./BlogTracker";
-import SeoSupportBlock from "@/components/SeoSupportBlock";
+import PlayfulShell from "@/components/PlayfulShell";
 
 export const metadata: Metadata = {
-  title: "Blog — Bingo Card Ideas, Tips & Guides",
-  description:
-    "Discover bingo card ideas, tips, and step-by-step guides for weddings, baby showers, classrooms, parties, and holidays. Learn how to create the perfect custom bingo cards.",
-  alternates: {
-    canonical: "https://mybingocard.com/blog",
-  },
-  openGraph: {
-    title: "Blog — Bingo Card Ideas, Tips & Guides | MyBingoCard",
-    description:
-      "Bingo card ideas, tips, and guides for every occasion. Learn how to create custom bingo cards for weddings, baby showers, classrooms & more.",
-    url: "https://mybingocard.com/blog",
-    type: "website",
-  },
+  title: "Blog — MyBingoCard",
 };
 
-const posts = [
-  {
-    slug: "best-bingo-card-generator",
-    title: "How to Choose the Best Bingo Card Generator (2026 Guide)",
-    excerpt: "A practical comparison of the top bingo card generators for printable PDFs, digital play, templates, and customization in 2026.",
-    date: "April 14, 2026",
-    readTime: "8 min read",
-    category: "Comparison",
-    gradient: "from-[#7c5cff] to-[#2ec4b6]",
-  },
-  {
-    slug: "how-to-make-custom-bingo-cards",
-    title: "How to Make Custom Bingo Cards in 5 Minutes",
-    excerpt: "A complete step-by-step guide to creating personalized bingo cards for any event — from choosing themes to printing perfect cards.",
-    date: "March 1, 2026",
-    readTime: "6 min read",
-    category: "Guide",
-    gradient: "from-[#7c5cff] to-[#7c5cff]",
-  },
-  {
-    slug: "best-bingo-games-baby-showers",
-    title: "The 7 Best Bingo Games for Baby Showers",
-    excerpt: "From gift bingo to baby prediction cards — discover baby shower bingo variations that guests absolutely love.",
-    date: "February 24, 2026",
-    readTime: "8 min read",
-    category: "Baby Shower",
-    gradient: "from-[#ff5d8f] to-[#ff5d8f]",
-  },
-  {
-    slug: "fun-classroom-bingo-ideas",
-    title: "15 Fun Classroom Bingo Ideas Students Love",
-    excerpt: "Engaging bingo games for every subject — vocabulary, math, science, and more. Proven ideas teachers use to boost participation.",
-    date: "February 18, 2026",
-    readTime: "7 min read",
-    category: "Education",
-    gradient: "from-[#7c5cff] to-[#2ec4b6]",
-  },
-  {
-    slug: "wedding-bingo-guide",
-    title: "The Ultimate Wedding Bingo Guide for 2026",
-    excerpt: "Everything you need to know about wedding reception bingo — square ideas, printable tips, and how to make it a hit with guests.",
-    date: "February 10, 2026",
-    readTime: "9 min read",
-    category: "Wedding",
-    gradient: "from-[#7c5cff] to-[#ff5d8f]",
-  },
-  {
-    slug: "holiday-bingo-ideas",
-    title: "20+ Holiday Bingo Ideas for Christmas & Beyond",
-    excerpt: "Creative holiday bingo card ideas for Christmas parties, Hanukkah celebrations, New Year gatherings, and winter events.",
-    date: "February 3, 2026",
-    readTime: "7 min read",
-    category: "Holiday",
-    gradient: "from-[#2ec4b6] to-[#2ec4b6]",
-  },
-  {
-    slug: "party-bingo-tips",
-    title: "How to Run the Perfect Bingo Game at Any Party",
-    excerpt: "Pro tips for hosting bingo at birthday parties, game nights, and celebrations — from card setup to prizes and keeping energy high.",
-    date: "January 27, 2026",
-    readTime: "6 min read",
-    category: "Party",
-    gradient: "from-[#2ec4b6] to-[#2ec4b6]",
-  },
-];
-
-export default function BlogPage() {
+export default function Page() {
   return (
-    <div className="min-h-screen bg-[#fff7ed] selection:bg-[#7c5cff]/15 selection:text-[#7c5cff]">
-      <BlogTracker />
-      {/* Navbar */}
-      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-[#a39a88]/50">
-        <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-xl flex items-center justify-center shadow-lg shadow-[#7c5cff] group-hover:shadow-[#7c5cff] transition-all duration-300">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#33312e] to-[#33312e]">
-              MyBingoCard
-            </span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-8">
-            <Link href="/templates" className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff] transition-colors">Templates</Link>
-            <Link href="/pricing" className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff] transition-colors">Pricing</Link>
-            <Link href="/blog" className="text-sm font-medium text-[#7c5cff] transition-colors">Blog</Link>
-            <div className="w-px h-4 bg-[#a39a88]"></div>
-            <Link href="/login" className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff] transition-colors">Sign In</Link>
-            <Link href="/create" className="bg-[#33312e] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#33312e] transition-all duration-200 shadow-lg shadow-[#33312e]/20">
-              Create a Card
-            </Link>
-          </nav>
-        </div>
-      </header>
+    <PlayfulShell>
+      <div dangerouslySetInnerHTML={{
+        __html: `
 
-      <main className="pt-16">
-        {/* Hero */}
-        <section className="py-10 lg:py-14">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <h1 className="text-3xl lg:text-4xl font-bold text-[#33312e] mb-4 tracking-tight">
-                Bingo Card Ideas, Tips &{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cff] to-[#7c5cff]">Guides</span>
-              </h1>
-              <p className="text-lg text-[#33312e] leading-relaxed">
-                Everything you need to create amazing bingo games for weddings, baby showers, classrooms, parties, and holidays.
-              </p>
-            </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-              {posts.map((post, index) => (
-                <BlogPostLink
-                  key={post.slug}
-                  href={`/blog/${post.slug}`}
-                  slug={post.slug}
-                  position={index}
-                  className="group bg-white rounded-2xl overflow-hidden border border-[#fff7ed] hover:shadow-xl hover:shadow-[#a39a88]/50 transition-all duration-300 hover:-translate-y-1"
-                >
-                  <div className={`h-48 bg-gradient-to-br ${post.gradient} flex items-center justify-center`}>
-                    <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6">
-                      <div className="grid grid-cols-3 gap-1.5">
-                        {[...Array(9)].map((_, i) => (
-                          <div key={i} className={`w-6 h-6 rounded-md ${i === 4 ? "bg-white" : "bg-white/40"}`}></div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full bg-gradient-to-r ${post.gradient} text-white`}>
-                        {post.category}
-                      </span>
-                      <span className="text-xs text-[#6b6459]">{post.readTime}</span>
-                    </div>
-                    <h2 className="text-lg font-bold text-[#33312e] mb-2 group-hover:text-[#7c5cff] transition-colors">
-                      {post.title}
-                    </h2>
-                    <p className="text-sm text-[#33312e] leading-relaxed mb-4">
-                      {post.excerpt}
-                    </p>
-                    <div className="text-xs text-[#6b6459]">{post.date}</div>
-                  </div>
-                </BlogPostLink>
-              ))}
-            </div>
-          </div>
-        </section>
 
-        {/* CTA */}
-        <section className="py-14 bg-white border-t border-[#fff7ed]">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold text-[#33312e] mb-4">Ready to create your own bingo cards?</h2>
-            <p className="text-[#33312e] mb-6 max-w-xl mx-auto">
-              Put these ideas into action — make custom bingo cards in under 2 minutes.
-            </p>
-            <Link href="/create" className="inline-flex bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white px-6 py-3 rounded-xl font-bold text-base shadow-xl shadow-[#7c5cff]/20 hover:shadow-[#7c5cff]/40 hover:-translate-y-1 transition-all duration-300">
-              Create a Card
-            </Link>
-          </div>
-        </section>
-      </main>
+<header class="page-head">
+  <span class="k">Blog</span>
+  <h1>Party ideas &amp; bingo know-how</h1>
+  <p>Game variations, square ideas, and hosting tricks from thousands of real events.</p>
+</header>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-[#a39a88] pt-16 pb-12">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div className="col-span-1 md:col-span-2">
-              <Link href="/" className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-lg flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                  </svg>
-                </div>
-                <span className="text-xl font-bold text-[#33312e]">MyBingoCard</span>
-              </Link>
-              <p className="text-[#6b6459] max-w-sm leading-relaxed">
-                Bingo card maker for printable and online games, from classrooms to parties and weddings. Save one card and export individual PDFs or PNGs for free.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold text-[#33312e] mb-6">Product</h4>
-              <ul className="space-y-4">
-                <li><Link href="/create" className="text-[#6b6459] hover:text-[#7c5cff] transition-colors">Create Cards</Link></li>
-                <li><Link href="/templates" className="text-[#6b6459] hover:text-[#7c5cff] transition-colors">Templates</Link></li>
-                <li><Link href="/pricing" className="text-[#6b6459] hover:text-[#7c5cff] transition-colors">Pricing</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-[#33312e] mb-6">Popular</h4>
-              <ul className="space-y-4">
-                <li><Link href="/wedding-bingo" className="text-[#6b6459] hover:text-[#7c5cff] transition-colors">Wedding Bingo</Link></li>
-                <li><Link href="/baby-shower-bingo" className="text-[#6b6459] hover:text-[#7c5cff] transition-colors">Baby Shower Bingo</Link></li>
-                <li><Link href="/classroom-bingo" className="text-[#6b6459] hover:text-[#7c5cff] transition-colors">Classroom Bingo</Link></li>
-                <li><Link href="/party-bingo" className="text-[#6b6459] hover:text-[#7c5cff] transition-colors">Party Bingo</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-[#fff7ed] pt-8 text-center text-[#6b6459] text-sm">
-            <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>      <SeoSupportBlock slug="blog" />
+<div class="section section-tight">
+  <div class="chip-row">
+    <a class="chip on" href="#" data-filter="all">All posts</a>
+    <a class="chip" href="#" data-filter="party">Party ideas</a>
+    <a class="chip" href="#" data-filter="classroom">Classroom</a>
+    <a class="chip" href="#" data-filter="howto">How-to</a>
+    <a class="chip" href="#" data-filter="product">Product news</a>
+  </div>
 
+  <div class="grid-3">
+    <a class="card card-hover" data-cat="party" href="05-playful-confetti-post.html?post=baby-shower-games" style="text-decoration:none;color:inherit;">
+      <div class="post-art" style="background:#ffd9e6;">
+        <i style="width:34px;height:34px;background:var(--pink);top:12px;left:14px;"></i>
+        <i style="width:20px;height:20px;background:var(--yellow);bottom:14px;right:18px;"></i>
+        <i style="width:14px;height:14px;background:var(--teal);top:20px;right:40%;"></i>
+      </div>
+      <div class="post-meta"><span class="pill pill-pink">Party ideas</span><time>Jul 28, 2026</time></div>
+      <h3>25 baby shower bingo squares that aren't "diaper"</h3>
+      <p>Fresh ideas that get the whole table laughing instead of groaning.</p>
+    </a>
+
+    <a class="card card-hover" data-cat="classroom" href="05-playful-confetti-post.html?post=classroom-review" style="text-decoration:none;color:inherit;">
+      <div class="post-art" style="background:#cdeee9;">
+        <i style="width:28px;height:28px;background:var(--teal);top:16px;right:16px;"></i>
+        <i style="width:18px;height:18px;background:var(--purple);bottom:16px;left:20px;"></i>
+        <i style="width:12px;height:12px;background:var(--orange);top:50%;left:45%;"></i>
+      </div>
+      <div class="post-meta"><span class="pill pill-teal">Classroom</span><time>Jul 21, 2026</time></div>
+      <h3>Review bingo: make test prep feel like a game show</h3>
+      <p>How teachers turn any study guide into a 15-minute bingo round.</p>
+    </a>
+
+    <a class="card card-hover" data-cat="howto" href="05-playful-confetti-post.html?post=virtual-bingo" style="text-decoration:none;color:inherit;">
+      <div class="post-art" style="background:#fff0c7;">
+        <i style="width:30px;height:30px;background:var(--orange);top:14px;left:40%;"></i>
+        <i style="width:16px;height:16px;background:var(--pink);bottom:14px;right:22px;"></i>
+        <i style="width:12px;height:12px;background:var(--teal);top:18px;right:14%;"></i>
+      </div>
+      <div class="post-meta"><span class="pill pill-yellow">How-to</span><time>Jul 14, 2026</time></div>
+      <h3>Hosting a 100-person bingo game without chaos</h3>
+      <p>The live-hosting checklist we give to event venues.</p>
+    </a>
+
+    <a class="card card-hover" data-cat="party" href="05-playful-confetti-post.html?post=big-game-party" style="text-decoration:none;color:inherit;">
+      <div class="post-art" style="background:#e9e4ff;">
+        <i style="width:26px;height:26px;background:var(--purple);bottom:14px;left:16px;"></i>
+        <i style="width:20px;height:20px;background:var(--yellow);top:14px;right:20px;"></i>
+        <i style="width:14px;height:14px;background:var(--pink);top:40%;left:48%;"></i>
+      </div>
+      <div class="post-meta"><span class="pill pill-purple">Product news</span><time>Jul 7, 2026</time></div>
+      <h3>New: QR join codes for every share link</h3>
+      <p>Project the code, guests scan, everyone's playing in ten seconds.</p>
+    </a>
+
+    <a class="card card-hover" data-cat="classroom" href="05-playful-confetti-post.html?post=esl-bingo" style="text-decoration:none;color:inherit;">
+      <div class="post-art" style="background:#ffe6d4;">
+        <i style="width:32px;height:32px;background:var(--pink);top:16px;left:16px;"></i>
+        <i style="width:16px;height:16px;background:var(--teal);bottom:16px;right:30%;"></i>
+        <i style="width:12px;height:12px;background:var(--purple);top:16px;right:16px;"></i>
+      </div>
+      <div class="post-meta"><span class="pill pill-pink">Party ideas</span><time>Jun 30, 2026</time></div>
+      <h3>Picture bingo: the trick for guests who don't read English</h3>
+      <p>Why photo boards are the sleeper hit of multilingual family parties.</p>
+    </a>
+
+    <a class="card card-hover" data-cat="party" href="05-playful-confetti-post.html?post=wedding-shower-timeline" style="text-decoration:none;color:inherit;">
+      <div class="post-art" style="background:#d9f5d9;">
+        <i style="width:24px;height:24px;background:var(--teal);top:20px;right:30%;"></i>
+        <i style="width:18px;height:18px;background:var(--yellow);bottom:16px;left:18px;"></i>
+        <i style="width:12px;height:12px;background:var(--orange);top:14px;left:30%;"></i>
+      </div>
+      <div class="post-meta"><span class="pill pill-green">How-to</span><time>Jun 22, 2026</time></div>
+      <h3>5 bingo variations beyond straight lines</h3>
+      <p>Four corners, blackout, postage stamp, and two you've never tried.</p>
+    </a>
+  </div>
+
+  <div class="card mt-24 center" style="background:#efeaff;">
+    <h3>Get the good stuff monthly</h3>
+    <p>One email a month: new templates, seasonal square ideas, and hosting tips. No spam, unsubscribe anytime.</p>
+    <div class="mt-16" style="display:flex;gap:10px;max-width:420px;margin-left:auto;margin-right:auto;">
+      <input class="input" type="email" placeholder="you@example.com" aria-label="Email for newsletter">
+      <button class="btn" type="button" style="flex:none;">Join</button>
     </div>
+  </div>
+</div>
+
+
+
+<script>
+  document.querySelectorAll('.chip[data-filter]').forEach(function(chip) {
+    chip.addEventListener('click', function(e) {
+      e.preventDefault();
+      var f = chip.dataset.filter;
+      document.querySelectorAll('.chip[data-filter]').forEach(function(c) { c.classList.toggle('on', c === chip); });
+      document.querySelectorAll('[data-cat]').forEach(function(card) {
+        card.style.display = (f === 'all' || card.dataset.cat === f) ? '' : 'none';
+      });
+    });
+  });
+  // newsletter signup -> friendly confirmation instead of a dead submit
+  var nl = document.querySelector('form');
+  if (nl) nl.addEventListener('submit', function(e) {
+    e.preventDefault();
+    nl.innerHTML = '<p style="font-weight:800; color:var(--ink);">🎉 You\\'re on the list — new ideas land monthly.</p>';
+  });
+</script>
+`,
+      }} />
+      <style dangerouslySetInnerHTML={{__html: `
+  .post-art { height:110px; border:2px solid var(--ink); border-radius:12px; margin-bottom:14px; position:relative; overflow:hidden; }
+  .post-art i { position:absolute; border-radius:50%; }
+  .post-meta { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  .post-meta time { font-size:11.5px; font-weight:800; color:var(--faint); }
+`}} />
+    </PlayfulShell>
   );
 }

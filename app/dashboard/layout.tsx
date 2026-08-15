@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return children;
+
+import PlayfulShell from "@/components/PlayfulShell";
+
+export default function AppShellLayout({ children }: { children: React.ReactNode }) {
+  return <PlayfulShell>{children}</PlayfulShell>;
 }

@@ -1,524 +1,302 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import MobileNav from "@/components/MobileNav";
-import AdUnit from "@/components/AdUnit";
-import { EmailCaptureInline } from "@/components/EmailCapture";
-import HomeStartDraftLink from "@/components/HomeStartDraftLink";
-import HomeDabBoard from "@/components/HomeDabBoard";
-import { featuredBingoGames } from "@/lib/bingo-games";
-import { seoLandingPages, type SeoLandingPageData } from "@/lib/seo-landing-pages";
-import { FACEBOOK_PAGE_URL, IOS_APP_STORE_URL, REDDIT_COMMUNITY_URL } from "@/lib/social-links";
+import PlayfulShell from "@/components/PlayfulShell";
 
 export const metadata: Metadata = {
-  title: "Bingo Card Maker & Generator for Printable and Online Cards | MyBingoCard",
-  description:
-    "Create custom printable and online bingo cards with a free bingo card maker and generator. Add words or images, use templates and AI ideas, then export individual PDFs for free.",
-  keywords: [
-    "free bingo card maker",
-    "bingo card generator",
-    "printable bingo cards",
-    "bingo card maker",
-    "bingo board generator",
-    "custom bingo cards",
-    "online bingo card maker",
-    "wedding bingo cards",
-    "baby shower bingo cards",
-    "classroom bingo cards",
-    "team building bingo",
-  ],
-  alternates: {
-    canonical: "https://mybingocard.com",
-  },
+  title: "MyBingoCard — Let's Play Bingo!",
 };
 
-const faqItems = [
-  {
-    question: "How do I create a custom bingo card online?",
-    answer:
-      "Start with a blank bingo card or a template, add your own words or images, choose a grid size, then export an individual PDF or PNG for free. Add paid batch packs, share links, or hosted live bingo when a group needs more.",
-  },
-  {
-    question: "Is this also a bingo board generator?",
-    answer:
-      "Yes. You can use MyBingoCard as a bingo board generator to make 3x3, 4x4, or 5x5 bingo boards, then export an individual PDF or PNG for free or add paid online cards for players.",
-  },
-  {
-    question: "What is the difference between a bingo card generator and a bingo card maker?",
-    answer:
-      "A bingo card generator usually creates shuffled card layouts quickly, while a bingo card maker gives you more control over words, images, colors, grid size, printing, and paid online play. MyBingoCard does both.",
-  },
-  {
-    question: "Can I print bingo cards from MyBingoCard?",
-    answer:
-      "Yes. MyBingoCard exports individual printable bingo cards as PDF files for free, and larger printable batches use one-time batch packs or Premium.",
-  },
-  {
-    question: "What types of bingo cards can I make?",
-    answer:
-      "You can make bingo cards for classrooms, baby showers, weddings, birthday parties, holidays, office parties, team building, family reunions, trivia nights, and more.",
-  },
-  {
-    question: "Can people play MyBingoCard games online?",
-    answer:
-      "Yes. Paid share links and hosted live bingo let players join from phones, tablets, or laptops.",
-  },
-];
-
-const generatorFooterLinks = [
-  "printable-bingo-cards",
-  "online-bingo-card-generator",
-  "bingo-board-generator",
-  "ai-bingo-card-generator",
-  "word-bingo-generator",
-  "math-bingo-generator",
-]
-  .map((slug) => seoLandingPages[slug])
-  .filter((page): page is SeoLandingPageData => Boolean(page));
-
-const occasions = [
-  "🍼 Baby Shower", "🎂 Birthday", "💍 Bridal Shower", "🎄 Holiday Party", "✏️ Classroom",
-  "👋 Team Building", "⛪ Church Social", "🎓 Graduation", "🎃 Halloween", "🏈 Super Bowl",
-];
-
-const steps = [
-  {
-    n: "1",
-    color: "#ff5d8f",
-    title: "Add your words",
-    desc: "Type your own squares, upload pictures, or grab a template. AI can brainstorm ideas for your theme too.",
-  },
-  {
-    n: "2",
-    color: "#2ec4b6",
-    title: "Shuffle it up",
-    desc: "Choose 3x3, 4x4, or the classic 5x5. Every card is shuffled so no two players get the same board.",
-  },
-  {
-    n: "3",
-    color: "#7c5cff",
-    title: "Play your way",
-    desc: "Print free PDFs and PNGs, share a link for phone play, or host the game live and call squares yourself.",
-  },
-];
-
-const features = [
-  {
-    emojiBg: "#ffd9e6",
-    iconColor: "#ff5d8f",
-    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />,
-    title: "Image Bingo Cards",
-    description: "Add photos and images to any cell. Perfect for kids, vocabulary games, or picture-based bingo nights.",
-  },
-  {
-    emojiBg: "#fff0c7",
-    iconColor: "#e69c00",
-    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />,
-    title: "Theme Library",
-    description: "Choose from included templates for weddings, baby showers, classrooms, holidays, office events, and parties.",
-  },
-  {
-    emojiBg: "#cdeee9",
-    iconColor: "#2ec4b6",
-    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />,
-    title: "Print and Batch PDFs",
-    description: "Export an individual PDF or PNG for free, or buy printable batch packs when you need a larger set.",
-  },
-  {
-    emojiBg: "#e9e4ff",
-    iconColor: "#7c5cff",
-    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />,
-    title: "Virtual Play",
-    description: "Add paid share links or live hosting when players need to join from a browser on their phones, no app required.",
-  },
-  {
-    emojiBg: "#ffe6d4",
-    iconColor: "#ff8a3d",
-    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />,
-    title: "Magic Shuffle",
-    description: "Use paid batch packs to make unique shuffled printable cards for a group.",
-  },
-  {
-    emojiBg: "#d9f5d9",
-    iconColor: "#3aa856",
-    icon: <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />,
-    title: "AI Card Generator",
-    description: "Describe your theme, pick a tone, and AI generates polished card ideas. Dating bingo, office meetings, baby showers — done in seconds.",
-  },
-];
-
-const workflows = [
-  {
-    title: "Vocabulary review",
-    audience: "Teacher",
-    description: "Turn a unit word list into a classroom review game students can play on paper or devices.",
-    steps: ["Paste vocabulary terms", "Choose 4x4 or 5x5", "Export for free or add paid links"],
-  },
-  {
-    title: "Gift-opening bingo",
-    audience: "Baby shower host",
-    description: "Use common registry gifts, shuffle unique cards, and keep guests involved during present opening.",
-    steps: ["Start from a gift list", "Choose a paid batch pack for unique cards", "Export an individual card for free"],
-  },
-  {
-    title: "Remote team game",
-    audience: "HR team",
-    description: "Run meeting bingo, onboarding bingo, or an icebreaker without asking players to install an app.",
-    steps: ["Start checkout", "Share the browser link", "Verify winners in the host view"],
-  },
-  {
-    title: "Wedding reception game",
-    audience: "Wedding planner",
-    description: "Create reception-safe squares for speeches, photos, dancing, dessert, and guest moments.",
-    steps: ["Use a reception template", "Add couple-specific details", "Export for free or add paid phone play"],
-  },
-  {
-    title: "Activity-center bingo",
-    audience: "Program coordinator",
-    description: "Prepare repeatable cards for senior centers, community rooms, libraries, and church events.",
-    steps: ["Reuse saved card themes", "Adjust grid size", "Export called lists after games"],
-  },
-  {
-    title: "Holiday party bingo",
-    audience: "Party host",
-    description: "Make seasonal cards for family gatherings, office parties, classrooms, or neighborhood events.",
-    steps: ["Pick a holiday list", "Add party-specific squares", "Export for free or add paid sharing"],
-  },
-];
-
-const audienceHues = ["#ff5d8f", "#2ec4b6", "#7c5cff", "#ff8a3d", "#e69c00", "#3aa856"];
-
-function HomeAppStorePromo({ className = "" }: { className?: string }) {
+export default function Page() {
   return (
-    <div className={`mt-4 flex flex-col items-center gap-2 lg:items-start ${className}`}>
-      <p className="text-xs font-bold uppercase tracking-wide text-[#a39a88]">Also available for iPhone</p>
-      <a
-        href={IOS_APP_STORE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Download MyBingoCard on the App Store"
-        className="inline-flex h-12 items-center justify-center rounded-lg px-1 transition focus:outline-none focus:ring-2 focus:ring-[#7c5cff] focus:ring-offset-2"
-      >
-        <img
-          src="/badges/download-on-the-app-store.svg"
-          alt="Download on the App Store"
-          width={120}
-          height={40}
-          className="h-10 w-auto"
-        />
-      </a>
+    <PlayfulShell>
+      <div dangerouslySetInnerHTML={{
+        __html: `
+
+
+
+<header class="hero">
+  <div class="confetti" style="width:13px;height:13px;background:var(--pink);top:6%;left:45%;"></div>
+  <div class="confetti" style="width:9px;height:9px;background:var(--teal);top:20%;left:39%;animation-delay:.8s;"></div>
+  <div class="confetti" style="width:11px;height:11px;background:var(--yellow);top:66%;left:1%;animation-delay:1.6s;"></div>
+  <div class="confetti" style="width:8px;height:8px;background:var(--purple);top:86%;left:46%;animation-delay:2.2s;"></div>
+  <div>
+    <span class="sticker">★ Free to print, fun to play</span>
+    <h1>Bingo cards as <span class="squiggle">fun</span> as your party</h1>
+    <p class="lead">Make custom bingo cards with your own words or pictures — for baby showers, birthdays, classrooms, and any excuse to play.</p>
+    <div class="cta-row">
+      <a class="btn" href="/create">Create a free card</a>
+      <a class="btn btn-teal" href="https://mybingocard.com/templates">Pick a template</a>
     </div>
-  );
-}
-
-export default function Home() {
-  return (
-    <div className="min-h-screen overflow-x-hidden bg-[#fff7ed]">
-      <MobileNav />
-
-      <main className="pt-16">
-        {/* Hero */}
-        <section className="relative">
-          <div className="max-w-6xl mx-auto px-4 lg:px-8 pt-10 pb-14 lg:pt-14 lg:pb-16 grid lg:grid-cols-[1.05fr_.95fr] gap-10 items-center relative">
-            <div className="confetti-dot animate-bob absolute w-[13px] h-[13px] rounded-full bg-[#ff5d8f] top-[6%] left-[45%] pointer-events-none" />
-            <div className="confetti-dot animate-bob absolute w-[9px] h-[9px] rounded-full bg-[#2ec4b6] top-[20%] left-[39%] pointer-events-none" style={{ animationDelay: ".8s" }} />
-            <div className="confetti-dot animate-bob absolute w-[11px] h-[11px] rounded-full bg-[#ffb800] top-[66%] left-[1%] pointer-events-none" style={{ animationDelay: "1.6s" }} />
-            <div className="confetti-dot animate-bob absolute w-[8px] h-[8px] rounded-full bg-[#7c5cff] top-[86%] left-[46%] pointer-events-none" style={{ animationDelay: "2.2s" }} />
-
-            <div className="text-center lg:text-left">
-              <span className="csticker bg-white text-[#33312e] text-xs mb-5">★ Free to print, fun to play</span>
-              <h1 className="font-heading text-4xl lg:text-[46px] font-bold text-[#33312e] leading-[1.08] mb-4">
-                Bingo cards as <span className="squiggle">fun</span> as your party
-              </h1>
-              <p className="text-[17px] font-semibold text-[#6b6459] max-w-[460px] mx-auto lg:mx-0 mb-6">
-                Make bingo cards and boards for classrooms, baby showers, weddings, parties, team events, and social challenges. Add words or images, save one card, export an individual PDF or PNG for free.
-              </p>
-              <div className="flex flex-col min-[321px]:flex-row gap-3 justify-center lg:justify-start">
-                <HomeStartDraftLink href="/create" trackingSurface="hero" className="cbtn">
-                  Create a free card
-                </HomeStartDraftLink>
-                <Link href="/templates" className="cbtn cbtn-teal">
-                  Pick a template
-                </Link>
-              </div>
-              <p className="mt-3.5 text-xs font-bold text-[#a39a88] text-center lg:text-left">
-                ✓ No account needed &nbsp; ✓ Free PDF &amp; PNG &nbsp; ✓ Play online too
-              </p>
-              <HomeAppStorePromo className="hidden lg:flex" />
-            </div>
-
-            <HomeDabBoard />
-            <HomeAppStorePromo className="lg:hidden" />
-          </div>
-        </section>
-
-        {/* Occasions marquee */}
-        <div className="occ-strip" aria-hidden="true">
-          <div className="occ-track">
-            {[...occasions, ...occasions].map((occ, i) => (
-              <span key={i} className="occ">{occ}</span>
-            ))}
-          </div>
-        </div>
-
-        {/* How it works */}
-        <section className="max-w-6xl mx-auto px-4 lg:px-8 py-14">
-          <div className="text-center mb-9">
-            <span className="ckick mb-3">How it works</span>
-            <h2 className="font-heading text-3xl font-bold text-[#33312e] mb-2.5">Easy as 1-2-bingo</h2>
-            <p className="font-semibold text-[#6b6459] max-w-[480px] mx-auto text-[15px]">From blank page to game time in about two minutes.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-4">
-            {steps.map((step) => (
-              <div key={step.n} className="ccard">
-                <div
-                  className="w-[34px] h-[34px] rounded-full border-[2.5px] border-[#33312e] flex items-center justify-center font-heading font-bold text-[15px] mb-3.5 text-white"
-                  style={{ background: step.color }}
-                >
-                  {step.n}
-                </div>
-                <h3 className="font-heading text-[17px] font-bold text-[#33312e] mb-1.5">{step.title}</h3>
-                <p className="text-[13px] font-semibold text-[#6b6459]">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Ad placement */}
-        <section className="py-6">
-          <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
-            <AdUnit slot="homepage-top" format="horizontal" className="my-4" />
-          </div>
-        </section>
-
-        {/* Features */}
-        <section className="max-w-6xl mx-auto px-4 lg:px-8 py-14">
-          <div className="text-center mb-9">
-            <span className="ckick mb-3">Features</span>
-            <h2 className="font-heading text-3xl font-bold text-[#33312e] mb-2.5">Small tool, big party energy</h2>
-            <p className="font-semibold text-[#6b6459] max-w-[480px] mx-auto text-[15px]">
-              Build printable bingo cards, online bingo games, bingo boards, and themed templates for real events and classrooms.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {features.map((feature) => (
-              <div key={feature.title} className="ccard ccard-hover">
-                <div
-                  className="w-10 h-10 rounded-[11px] border-2 border-[#33312e] flex items-center justify-center mb-3"
-                  style={{ background: feature.emojiBg }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={feature.iconColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    {feature.icon}
-                  </svg>
-                </div>
-                <h3 className="font-heading text-base font-bold text-[#33312e] mb-1.5">{feature.title}</h3>
-                <p className="text-[13px] font-semibold text-[#6b6459]">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Workflows */}
-        <section className="cband cband-yellow">
-          <div className="max-w-6xl mx-auto px-4 lg:px-8 py-14">
-            <div className="text-center mb-9">
-              <span className="ckick mb-3">Common workflows</span>
-              <h2 className="font-heading text-3xl font-bold text-[#33312e] mb-2.5">Built for real bingo jobs</h2>
-              <p className="font-semibold text-[#33312e]/70 max-w-[480px] mx-auto text-[15px]">
-                Start from the setup closest to your event, then export for free, or add paid share links and hosting.
-              </p>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {workflows.map((workflow, i) => (
-                <div key={workflow.title} className="ccard h-full flex flex-col">
-                  <div className="mb-4">
-                    <div className="text-xs font-heading font-bold uppercase tracking-wide mb-1.5" style={{ color: audienceHues[i % audienceHues.length] }}>
-                      {workflow.audience}
-                    </div>
-                    <h3 className="font-heading text-lg font-bold text-[#33312e]">{workflow.title}</h3>
-                  </div>
-                  <p className="text-[13px] font-semibold text-[#6b6459] mb-5 leading-relaxed flex-grow">{workflow.description}</p>
-                  <ul className="space-y-2.5 pt-5 border-t-2 border-[#33312e]/10">
-                    {workflow.steps.map((step) => (
-                      <li key={step} className="flex gap-2.5 text-[13px] font-semibold text-[#6b6459]">
-                        <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-[#ff5d8f] border border-[#33312e]"></span>
-                        <span>{step}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Bingo games library */}
-        <section className="max-w-6xl mx-auto px-4 lg:px-8 py-14">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5 mb-9">
-            <div className="max-w-3xl">
-              <span className="ckick mb-3">Bingo games</span>
-              <h2 className="font-heading text-3xl font-bold text-[#33312e] mb-2.5">Pick a game idea and build from there</h2>
-              <p className="font-semibold text-[#6b6459] text-[15px]">
-                Browse ready-to-edit bingo game pages for showers, weddings, classrooms, holidays, fundraisers, and team events. Planning a professional event? Start with the{" "}
-                <Link href="/conference-bingo" className="font-bold text-[#ff5d8f] hover:underline">
-                  conference bingo planning guide
-                </Link>
-                .
-              </p>
-            </div>
-            <Link href="/bingo-games" className="text-sm font-bold text-[#ff5d8f] hover:underline">
-              See all bingo games
-            </Link>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {featuredBingoGames.map((game, i) => (
-              <Link key={game.slug} href={`/${game.slug}`} className="ccard ccard-hover block">
-                <div className="text-xs font-heading font-bold uppercase tracking-wide mb-2.5" style={{ color: audienceHues[i % audienceHues.length] }}>
-                  {game.audience}
-                </div>
-                <h3 className="font-heading text-lg font-bold text-[#33312e] mb-2">{game.title}</h3>
-                <p className="text-[13px] font-semibold text-[#6b6459] leading-relaxed">{game.description}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* FAQ */}
-        <section className="bg-white border-t-[3px] border-[#33312e]">
-          <div className="max-w-4xl mx-auto px-4 lg:px-8 py-14">
-            <div className="text-center mb-9">
-              <span className="ckick mb-3">FAQ</span>
-              <h2 className="font-heading text-3xl font-bold text-[#33312e] mb-2.5">Bingo Card Generator FAQ</h2>
-              <p className="font-semibold text-[#6b6459] max-w-[480px] mx-auto text-[15px]">
-                Short answers for the questions people ask before choosing a bingo card generator or bingo card maker.
-              </p>
-            </div>
-            <div className="space-y-4">
-              {faqItems.map((item) => (
-                <div key={item.question} className="ccard p-6">
-                  <h3 className="font-heading text-lg font-bold text-[#33312e] mb-2">{item.question}</h3>
-                  <p className="font-semibold text-[#6b6459] text-[15px] leading-relaxed">{item.answer}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "FAQPage",
-                mainEntity: faqItems.map((item) => ({
-                  "@type": "Question",
-                  name: item.question,
-                  acceptedAnswer: {
-                    "@type": "Answer",
-                    text: item.answer,
-                  },
-                })),
-              }),
-            }}
-          />
-        </section>
-
-        {/* Email capture */}
-        <section className="py-14">
-          <div className="container mx-auto px-4 lg:px-8 max-w-2xl">
-            <EmailCaptureInline />
-          </div>
-        </section>
-
-        {/* Ad placement */}
-        <section className="py-6">
-          <div className="container mx-auto px-4 lg:px-8 max-w-4xl">
-            <AdUnit slot="homepage-bottom" format="horizontal" className="my-4" />
-          </div>
-        </section>
-
-        {/* Final CTA */}
-        <section className="cband cband-teal text-center">
-          <div className="max-w-3xl mx-auto px-4 lg:px-8 py-16">
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-white mb-3" style={{ textShadow: "2px 2px 0 #33312e" }}>
-              Ready, set, BINGO!
-            </h2>
-            <p className="text-white/85 font-bold mb-8 text-[15px]">
-              Create, customize, save one card, use templates, AI, and image cells, then export individual PDFs or PNGs for free. Paid batches, player links, and live hosting are available when you need them.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <HomeStartDraftLink href="/create" trackingSurface="bottom_cta" className="cbtn cbtn-yellow !text-lg !px-10 !py-4">
-                Create a free card
-              </HomeStartDraftLink>
-              <Link href="/pricing" className="cbtn cbtn-white !text-lg !px-10 !py-4">
-                View Pricing
-              </Link>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t-[3px] border-[#33312e] pt-16 pb-12">
-        <div className="container mx-auto px-4 lg:px-8">
-          <div className="grid md:grid-cols-5 gap-10 mb-12">
-            <div className="col-span-1 md:col-span-2">
-              <Link href="/" className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 bg-[#ff5d8f] border-2 border-[#33312e] rounded-lg flex items-center justify-center shadow-[0_2px_0_#33312e]">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                  </svg>
-                </div>
-                <span className="text-xl font-heading font-bold text-[#33312e]">MyBingoCard</span>
-              </Link>
-              <p className="font-semibold text-[#6b6459] max-w-sm leading-relaxed">
-                Bingo card maker for printable games. Build custom cards for classrooms, parties, showers, weddings, and team events, save one card and export individual PDFs or PNGs for free, then add paid batches, player links, or live hosting when needed.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-heading font-bold text-[#33312e] mb-6">Product</h4>
-              <ul className="space-y-4">
-                <li><Link href="/create" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Create Cards</Link></li>
-                <li><Link href="/templates" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Templates</Link></li>
-                <li><Link href="/bingo-games" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Bingo Games</Link></li>
-                <li><Link href="/pricing" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Pricing</Link></li>
-                <li><Link href="/features" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Features</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-heading font-bold text-[#33312e] mb-6">Generators</h4>
-              <ul className="space-y-4">
-                {generatorFooterLinks.map((page) => (
-                  <li key={page.slug}>
-                    <Link href={`/${page.slug}`} className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">
-                      {page.eyebrow}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-heading font-bold text-[#33312e] mb-6">Company</h4>
-              <ul className="space-y-4">
-                <li><Link href="/about" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">About Us</Link></li>
-                <li><Link href="/blog" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Blog</Link></li>
-                <li>
-                  <a href={FACEBOOK_PAGE_URL} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">
-                    Facebook
-                  </a>
-                </li>
-                <li>
-                  <a href={REDDIT_COMMUNITY_URL} target="_blank" rel="noopener noreferrer" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">
-                    Reddit
-                  </a>
-                </li>
-                <li><Link href="/privacy" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Terms of Service</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t-2 border-[#33312e]/10 pt-8 text-center text-[#a39a88] text-sm font-semibold">
-            <p>&copy; 2026 MyBingoCard. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+    <p class="micro">✓ No account needed &nbsp; ✓ Free PDF &amp; PNG &nbsp; ✓ Play online too</p>
+  </div>
+  <div class="board-wrap">
+    <span class="board-hint">psst — click the squares!</span>
+    <div class="board">
+      <div class="bhead"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>
+      <div class="bgrid" id="board">
+        <div class="cell"><span>Cake</span></div><div class="cell"><span>Balloon</span></div><div class="cell"><span>Gift</span></div><div class="cell"><span>Dance</span></div><div class="cell"><span>Photo</span></div>
+        <div class="cell"><span>Music</span></div><div class="cell"><span>Games</span></div><div class="cell"><span>Candles</span></div><div class="cell"><span>Toast</span></div><div class="cell"><span>Hat</span></div>
+        <div class="cell"><span>Confetti</span></div><div class="cell"><span>Prize</span></div><div class="cell free"><span>FREE</span></div><div class="cell"><span>Snack</span></div><div class="cell"><span>Cheer</span></div>
+        <div class="cell"><span>Selfie</span></div><div class="cell"><span>Decor</span></div><div class="cell"><span>Laugh</span></div><div class="cell"><span>Wish</span></div><div class="cell"><span>Card</span></div>
+        <div class="cell"><span>Guest</span></div><div class="cell"><span>Song</span></div><div class="cell"><span>Treat</span></div><div class="cell"><span>Hug</span></div><div class="cell"><span>Yay!</span></div>
+      </div>
+      <div class="win-line" id="winLine"></div>
     </div>
+  </div>
+</header>
+
+<div class="occ-strip"><div class="occ-track" id="occTrack">
+  <span class="occ">🍼 Baby Shower</span><span class="occ">🎂 Birthday</span><span class="occ">💍 Bridal Shower</span><span class="occ">🎄 Holiday Party</span><span class="occ">✏️ Classroom</span><span class="occ">👋 Team Building</span><span class="occ">⛪ Church Social</span><span class="occ">🎓 Graduation</span><span class="occ">🎃 Halloween</span><span class="occ">🏈 Super Bowl</span>
+</div></div>
+
+<section id="how">
+  <div class="sec-head"><span class="k">How it works</span><h2>Easy as 1-2-bingo</h2><p>From blank page to game time in about two minutes.</p></div>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><h3>Add your words</h3><p>Type your own squares, upload pictures, or grab a template. AI can brainstorm ideas for your theme too.</p></div>
+    <div class="step"><div class="n">2</div><h3>Shuffle it up</h3><p>Choose 3×3, 4×4, or the classic 5×5. Every card is shuffled so no two players get the same board.</p></div>
+    <div class="step"><div class="n">3</div><h3>Play your way</h3><p>Print free PDFs and PNGs, share a link for phone play, or host the game live and call squares yourself.</p></div>
+  </div>
+</section>
+
+<section id="templates">
+  <div class="sec-head"><span class="k">Templates</span><h2>Start from a favorite</h2><p>Ready-made boards for the occasions people actually plan.</p></div>
+  <div class="tpl-grid">
+    <div class="tpl"><div class="mini">
+      <i style="background:#ffd9e6"></i><i></i><i style="background:#ffd9e6"></i><i></i><i style="background:#ffd9e6"></i><i></i><i style="background:#ffd9e6"></i><i></i><i style="background:#ffd9e6"></i><i></i><i style="background:#ffd9e6"></i><i></i><i style="background:#ffb800"></i><i></i><i style="background:#ffd9e6"></i><i></i><i style="background:#ffd9e6"></i><i></i><i style="background:#ffd9e6"></i><i></i><i style="background:#ffd9e6"></i><i></i><i style="background:#ffd9e6"></i><i></i><i style="background:#ffd9e6"></i>
+    </div><h3>Baby Shower</h3><p>Pink &amp; gold classics</p></div>
+    <div class="tpl"><div class="mini">
+      <i style="background:#cdeee9"></i><i style="background:#cdeee9"></i><i></i><i style="background:#cdeee9"></i><i></i><i style="background:#cdeee9"></i><i></i><i style="background:#cdeee9"></i><i></i><i style="background:#cdeee9"></i><i></i><i style="background:#cdeee9"></i><i style="background:#2ec4b6"></i><i style="background:#cdeee9"></i><i></i><i style="background:#cdeee9"></i><i></i><i style="background:#cdeee9"></i><i></i><i style="background:#cdeee9"></i><i></i><i style="background:#cdeee9"></i><i></i><i style="background:#cdeee9"></i><i></i>
+    </div><h3>Classroom</h3><p>Vocabulary &amp; math</p></div>
+    <div class="tpl"><div class="mini">
+      <i></i><i style="background:#e9e4ff"></i><i></i><i style="background:#e9e4ff"></i><i></i><i style="background:#e9e4ff"></i><i></i><i style="background:#e9e4ff"></i><i></i><i style="background:#e9e4ff"></i><i></i><i style="background:#e9e4ff"></i><i style="background:#7c5cff"></i><i style="background:#e9e4ff"></i><i></i><i style="background:#e9e4ff"></i><i></i><i style="background:#e9e4ff"></i><i></i><i style="background:#e9e4ff"></i><i></i><i style="background:#e9e4ff"></i><i></i><i style="background:#e9e4ff"></i><i></i>
+    </div><h3>Bridal Shower</h3><p>Gift-opening games</p></div>
+    <div class="tpl"><div class="mini">
+      <i style="background:#ffe6d4"></i><i></i><i style="background:#ffe6d4"></i><i></i><i style="background:#ffe6d4"></i><i></i><i style="background:#ffe6d4"></i><i></i><i style="background:#ffe6d4"></i><i></i><i style="background:#ffe6d4"></i><i></i><i style="background:#ff8a3d"></i><i></i><i style="background:#ffe6d4"></i><i></i><i style="background:#ffe6d4"></i><i></i><i style="background:#ffe6d4"></i><i></i><i style="background:#ffe6d4"></i><i></i><i style="background:#ffe6d4"></i><i></i><i style="background:#ffe6d4"></i>
+    </div><h3>Holiday Party</h3><p>Seasonal crowds</p></div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="sec-head"><span class="k">Features</span><h2>Small tool, big party energy</h2></div>
+  <div class="feat-grid">
+    <div class="feat"><div class="emoji" style="background:#ffd9e6;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff5d8f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div><h3>Words or images</h3><p>Type a list or upload pictures for picture bingo — your content, your rules.</p></div>
+    <div class="feat"><div class="emoji" style="background:#fff0c7;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e69c00" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></div><h3>Any grid size</h3><p>3×3 for quick rounds, 5×5 for the full game, 4×4 when you can't decide.</p></div>
+    <div class="feat"><div class="emoji" style="background:#cdeee9;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2ec4b6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div><h3>Free export</h3><p>Individual cards download as print-ready PDF or PNG. Totally free.</p></div>
+    <div class="feat"><div class="emoji" style="background:#e9e4ff;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c5cff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></div><h3>Share links</h3><p>One link gives every player their own shuffled card on their phone.</p></div>
+    <div class="feat"><div class="emoji" style="background:#ffe6d4;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff8a3d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></div><h3>Host it live</h3><p>Call squares from your screen while everyone's card updates in real time.</p></div>
+    <div class="feat"><div class="emoji" style="background:#d9f5d9;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3aa856" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 4 12.7V17a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-2.3A7 7 0 0 1 12 2z"/><line x1="9" y1="22" x2="15" y2="22"/></svg></div><h3>AI ideas</h3><p>Stuck on a square? Get theme-aware suggestions for any occasion.</p></div>
+  </div>
+</section>
+
+<div class="quote-band"><div class="quote-in">
+  <div class="stars">★★★★★</div>
+  <p>"Made baby shower bingo in five minutes and everyone asked where I got the cards. Nobody believed I made them myself."</p>
+  <cite>— A very smug party host</cite>
+</div></div>
+
+<div class="final">
+  <h2>Ready, set, BINGO!</h2>
+  <p>Your first card is free — make it in about two minutes.</p>
+  <a class="btn btn-yellow" href="/create">Create a free card</a>
+</div>
+
+
+
+<script>
+  // Duplicate the occasions track for a seamless marquee loop
+  var track = document.getElementById('occTrack');
+  track.innerHTML += track.innerHTML;
+
+  // Interactive dabbing on the hero board
+  var cells = Array.prototype.slice.call(document.querySelectorAll('#board .cell:not(.free)'));
+  var winLine = document.getElementById('winLine');
+  cells.forEach(function(cell) {
+    cell.addEventListener('click', function() {
+      cell.classList.toggle('dab');
+      checkWin();
+    });
+  });
+  function checkWin() {
+    var all = Array.prototype.slice.call(document.querySelectorAll('#board .cell'));
+    var dabbed = all.map(function(c){ return c.classList.contains('dab') || c.classList.contains('free'); });
+    var lines = [];
+    for (var r = 0; r < 5; r++) lines.push([0,1,2,3,4].map(function(c){ return r*5+c; }));
+    for (var c = 0; c < 5; c++) lines.push([0,1,2,3,4].map(function(r){ return r*5+c; }));
+    lines.push([0,6,12,18,24]); lines.push([4,8,12,16,20]);
+    var won = lines.some(function(line){ return line.every(function(i){ return dabbed[i]; }); });
+    winLine.textContent = won ? '🎉 BINGO! Now imagine this at your party.' : '';
+  }
+</script>
+`,
+      }} />
+      <style dangerouslySetInnerHTML={{__html: `
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --ink:#33312e; --paper:#fff7ed; --pink:#ff5d8f; --teal:#2ec4b6; --yellow:#ffb800;
+    --purple:#7c5cff; --orange:#ff8a3d; --mut:#6b6459; --faint:#a39a88;
+  }
+  html { font-size:16px; }
+  body { font-family:'Nunito',sans-serif; background:var(--paper); color:var(--ink); line-height:1.6; }
+  h1,h2,h3 { font-family:'Fredoka',sans-serif; font-weight:600; }
+  ::selection { background:var(--yellow); }
+
+  /* ---------- nav ---------- */
+  nav { position:sticky; top:0; z-index:20; background:rgba(255,247,237,.92); backdrop-filter:blur(8px); border-bottom:2px solid var(--ink); }
+  .nav-in { max-width:1024px; margin:0 auto; padding:12px clamp(16px,4vw,24px); display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .logo { font-family:'Fredoka'; font-weight:700; font-size:clamp(16px,2.5vw,19px); color:var(--pink); text-decoration:none; white-space:nowrap; }
+  .logo span { color:var(--teal); }
+  .nav-links { display:flex; gap:clamp(12px,3vw,22px); align-items:center; }
+  .nav-links a { color:var(--ink); text-decoration:none; font-size:clamp(12px,1.8vw,13.5px); font-weight:700; white-space:nowrap; }
+  .nav-links a:hover { color:var(--pink); }
+
+  /* ---------- buttons ---------- */
+  .btn { display:inline-block; background:var(--pink); color:#fff; padding:clamp(9px,1.5vw,11px) clamp(18px,3vw,24px); border-radius:999px; text-decoration:none; font-family:'Fredoka'; font-weight:600; font-size:clamp(13px,1.8vw,14px); border:2.5px solid var(--ink); box-shadow:0 3px 0 var(--ink); transition:transform .12s, box-shadow .12s; text-align:center; }
+  .btn:hover { transform:translateY(2px); box-shadow:0 1px 0 var(--ink); }
+  .btn:focus-visible { outline:3px solid var(--purple); outline-offset:2px; }
+  .btn-teal { background:var(--teal); }
+  .btn-yellow { background:var(--yellow); color:var(--ink); }
+  .btn-sm { padding:7px 16px; font-size:13px; }
+
+  /* ---------- hero ---------- */
+  .hero { max-width:1024px; margin:0 auto; padding:clamp(32px,6vw,52px) clamp(16px,4vw,24px) clamp(40px,7vw,60px); display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(24px,4vw,40px); align-items:center; position:relative; }
+  .confetti { position:absolute; border-radius:50%; pointer-events:none; animation:bob 5s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
+  .sticker { display:inline-block; background:#fff; border:2px solid var(--ink); border-radius:999px; padding:5px 14px; font-family:'Fredoka'; font-weight:600; font-size:clamp(11px,1.6vw,12px); transform:rotate(-2deg); box-shadow:0 2px 0 var(--ink); margin-bottom:18px; }
+  .hero h1 { font-size:clamp(32px,5vw,46px); line-height:1.08; font-weight:700; margin-bottom:16px; }
+  .squiggle { text-decoration:underline wavy var(--yellow); text-decoration-thickness:4px; text-underline-offset:7px; }
+  .hero p.lead { font-size:clamp(15px,1.8vw,17px); font-weight:600; color:var(--mut); max-width:460px; margin-bottom:24px; }
+  .cta-row { display:flex; gap:12px; flex-wrap:wrap; }
+  .micro { margin-top:14px; font-size:clamp(11.5px,1.6vw,12.5px); font-weight:700; color:var(--faint); }
+
+  /* ---------- interactive board ---------- */
+  .board-wrap { position:relative; width:100%; display:flex; justify-content:center; }
+  .board-hint { position:absolute; top:-14px; right:clamp(4px,2vw,14px); background:var(--yellow); border:2px solid var(--ink); border-radius:999px; padding:3px 12px; font-family:'Fredoka'; font-weight:600; font-size:clamp(10px,1.4vw,11px); transform:rotate(3deg); box-shadow:0 2px 0 var(--ink); z-index:2; white-space:nowrap; }
+  .board { background:#fff; border:3px solid var(--ink); border-radius:clamp(14px,2.5vw,20px); padding:clamp(9px,1.8vw,14px); box-shadow:0 6px 0 var(--ink); transform:rotate(1.5deg); width:min(340px,100%); }
+  .bhead { display:grid; grid-template-columns:repeat(5,1fr); gap:clamp(3px,.8vw,6px); margin-bottom:clamp(3px,.8vw,6px); }
+  .bhead span { text-align:center; font-family:'Fredoka'; font-weight:700; font-size:clamp(11px,2vw,15px); color:#fff; border-radius:clamp(6px,1.2vw,9px); padding:4px 0; border:2px solid var(--ink); }
+  .bhead span:nth-child(1){background:var(--pink);} .bhead span:nth-child(2){background:var(--yellow);} .bhead span:nth-child(3){background:var(--teal);} .bhead span:nth-child(4){background:var(--purple);} .bhead span:nth-child(5){background:var(--orange);}
+  .bgrid { display:grid; grid-template-columns:repeat(5,1fr); gap:clamp(3px,.8vw,6px); }
+  .cell { position:relative; aspect-ratio:1; border:2px solid var(--ink); border-radius:clamp(6px,1.2vw,9px); background:var(--paper); display:flex; align-items:center; justify-content:center; font-size:clamp(7px,1.3vw,9px); font-weight:800; text-align:center; padding:2px; cursor:pointer; user-select:none; -webkit-tap-highlight-color:transparent; transition:background .1s, transform .1s; }
+  .cell:hover { transform:scale(1.06); }
+  .cell.free { background:var(--yellow); cursor:default; }
+  .cell.dab { background:#cdeee9; }
+  .cell.dab::after { content:""; position:absolute; width:58%; height:58%; border-radius:50%; background:rgba(255,93,143,.45); }
+  .cell span { position:relative; z-index:1; }
+  .win-line { margin-top:10px; text-align:center; font-family:'Fredoka'; font-weight:600; font-size:clamp(12px,1.8vw,13px); color:var(--pink); min-height:20px; }
+
+  /* ---------- occasions ---------- */
+  .occ-strip { border-top:2px solid var(--ink); border-bottom:2px solid var(--ink); background:#fff; overflow:hidden; padding:14px 0; white-space:nowrap; }
+  .occ-track { display:inline-block; animation:scroll 30s linear infinite; }
+  .occ-track:hover { animation-play-state:paused; }
+  @keyframes scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+  .occ { display:inline-block; background:var(--paper); border:2px solid var(--ink); border-radius:999px; padding:7px 18px; font-family:'Fredoka'; font-weight:600; font-size:clamp(12px,1.7vw,13px); margin:0 6px; }
+  @media (prefers-reduced-motion:reduce){ .occ-track,.confetti{animation:none;} }
+
+  /* ---------- sections ---------- */
+  section { max-width:1024px; margin:0 auto; padding:clamp(36px,7vw,56px) clamp(16px,4vw,24px); }
+  .sec-head { text-align:center; margin-bottom:clamp(26px,5vw,38px); }
+  .sec-head .k { display:inline-block; font-family:'Fredoka'; font-weight:600; font-size:clamp(11px,1.6vw,12px); color:var(--purple); background:#efeaff; border:2px solid var(--ink); border-radius:999px; padding:3px 12px; margin-bottom:12px; box-shadow:0 2px 0 var(--ink); }
+  .sec-head h2 { font-size:clamp(24px,4.5vw,30px); font-weight:700; margin-bottom:10px; }
+  .sec-head p { color:var(--mut); font-weight:600; max-width:480px; margin:0 auto; font-size:clamp(13.5px,2vw,15px); }
+
+  /* ---------- fluid card grids ---------- */
+  .steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr)); gap:16px; }
+  .step { background:#fff; border:2.5px solid var(--ink); border-radius:16px; padding:clamp(16px,3vw,22px); box-shadow:0 4px 0 var(--ink); }
+  .step .n { width:34px; height:34px; border-radius:50%; border:2.5px solid var(--ink); display:flex; align-items:center; justify-content:center; font-family:'Fredoka'; font-weight:700; font-size:15px; margin-bottom:14px; color:#fff; }
+  .step:nth-child(1) .n { background:var(--pink); } .step:nth-child(2) .n { background:var(--teal); } .step:nth-child(3) .n { background:var(--purple); }
+  .step h3 { font-size:clamp(15px,2.2vw,17px); margin-bottom:6px; }
+  .step p { font-size:clamp(12.5px,1.8vw,13px); font-weight:600; color:var(--mut); }
+
+  .tpl-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(180px,100%),1fr)); gap:16px; }
+  .tpl { background:#fff; border:2.5px solid var(--ink); border-radius:16px; padding:14px; box-shadow:0 4px 0 var(--ink); transition:transform .15s; }
+  .tpl:hover { transform:translateY(-4px) rotate(-1deg); }
+  .tpl .mini { display:grid; grid-template-columns:repeat(5,1fr); gap:3px; margin-bottom:12px; }
+  .tpl .mini i { aspect-ratio:1; border-radius:4px; border:1.5px solid var(--ink); }
+  .tpl h3 { font-size:clamp(13px,1.9vw,14px); margin-bottom:2px; }
+  .tpl p { font-size:clamp(11px,1.6vw,11.5px); font-weight:700; color:var(--faint); }
+
+  .feat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr)); gap:16px; }
+  .feat { background:#fff; border:2.5px solid var(--ink); border-radius:16px; padding:clamp(15px,3vw,20px); box-shadow:0 4px 0 var(--ink); }
+  .feat .emoji { width:40px; height:40px; border-radius:11px; border:2px solid var(--ink); display:flex; align-items:center; justify-content:center; margin-bottom:12px; }
+  .feat h3 { font-size:clamp(14.5px,2.1vw,16px); margin-bottom:5px; }
+  .feat p { font-size:clamp(12.5px,1.8vw,13px); font-weight:600; color:var(--mut); }
+
+  /* ---------- quote ---------- */
+  .quote-band { background:var(--purple); border-top:3px solid var(--ink); border-bottom:3px solid var(--ink); }
+  .quote-in { max-width:720px; margin:0 auto; padding:clamp(32px,6vw,48px) clamp(16px,4vw,24px); text-align:center; }
+  .quote-in p { font-family:'Fredoka'; font-weight:500; font-size:clamp(16px,3vw,21px); color:#fff; line-height:1.45; margin-bottom:14px; }
+  .quote-in .stars { color:var(--yellow); font-size:15px; letter-spacing:4px; margin-bottom:12px; }
+  .quote-in cite { font-style:normal; font-size:clamp(11px,1.6vw,12px); font-weight:800; color:#d9d0ff; letter-spacing:.12em; text-transform:uppercase; }
+
+  /* ---------- final ---------- */
+  .final { background:var(--teal); border-bottom:3px solid var(--ink); text-align:center; padding:clamp(40px,8vw,60px) clamp(16px,4vw,24px); position:relative; overflow:hidden; }
+  .final h2 { font-size:clamp(25px,5vw,32px); font-weight:700; color:#fff; margin-bottom:10px; text-shadow:2px 2px 0 var(--ink); }
+  .final p { color:#eafffb; font-weight:700; margin-bottom:24px; font-size:clamp(13.5px,2vw,15px); }
+  footer { padding:22px clamp(16px,4vw,24px); text-align:center; font-size:clamp(11px,1.6vw,12px); font-weight:700; color:var(--faint); }
+
+  /* ---------- layout breakpoints ---------- */
+  @media (min-width:1100px){
+    /* scale from the tighter of usable width and height; short windows stay compact */
+    .nav-in, section { max-width:clamp(1024px,88vw,1340px); }
+    .hero {
+      max-width:clamp(1024px,min(88vw,170vh),1340px);
+      padding-top:clamp(34px,5vh,52px);
+      padding-bottom:clamp(38px,6vh,60px);
+      gap:clamp(40px,min(4vw,7vh),64px);
+    }
+    .logo { font-size:clamp(19px,min(1.5vw,2.8vh),22px); }
+    .nav-links a { font-size:clamp(13.5px,min(1.05vw,2vh),15px); }
+    .hero h1 { font-size:clamp(46px,min(4vw,8vh),62px); }
+    .hero p.lead { max-width:580px; font-size:clamp(17px,min(1.45vw,3vh),20px); }
+    .sticker { padding:6px 16px; font-size:clamp(12px,min(1vw,2vh),14px); }
+    .btn { padding:11px 25px; font-size:clamp(14px,min(1.15vw,2.2vh),16px); }
+    .btn-sm { padding:8px 18px; font-size:14px; }
+    .micro { font-size:clamp(12.5px,min(1vw,2vh),14px); }
+    .board { width:min(clamp(340px,min(29vw,56vh),440px),100%); }
+    .board-hint { padding:4px 14px; font-size:clamp(11px,min(.9vw,1.8vh),13px); }
+    .bhead span { font-size:clamp(15px,min(1.2vw,2.4vh),17px); }
+    .cell { font-size:clamp(9px,min(.75vw,1.6vh),11px); }
+    .win-line { font-size:clamp(13px,min(1.05vw,2vh),15px); }
+    .sec-head h2 { font-size:clamp(30px,min(2.4vw,4.5vh),36px); }
+    .sec-head p { max-width:560px; font-size:clamp(15px,min(1.2vw,2.4vh),17px); }
+    .step h3, .feat h3 { font-size:clamp(17px,min(1.2vw,2.2vh),19px); }
+    .step p, .feat p { font-size:clamp(13px,min(1vw,1.8vh),15px); }
+    .tpl h3 { font-size:clamp(14px,min(1.1vw,2vh),16px); }
+    .tpl p { font-size:clamp(11.5px,min(.9vw,1.7vh),13px); }
+    .feat-grid { grid-template-columns:repeat(3,1fr); }
+    .quote-in { max-width:clamp(720px,55vw,820px); }
+    .quote-in p { font-size:clamp(21px,min(1.6vw,3.2vh),24px); }
+    .final h2 { font-size:clamp(32px,min(2.4vw,4.5vh),38px); }
+    .final p { font-size:clamp(15px,min(1.2vw,2.4vh),17px); }
+    footer { font-size:clamp(12px,min(.9vw,1.8vh),13px); }
+  }
+  @media (max-width:880px){
+    .hero { grid-template-columns:1fr; }
+    .hero p.lead { max-width:100%; }
+    .board-wrap { justify-content:center; }
+    .board { margin:0 auto; }
+    .nav-links a:not(.btn) { display:none; }
+  }
+  @media (min-width:700px) and (max-width:880px) and (max-height:900px){
+    /* preserve the compact two-column opening on short laptop/tablet viewports */
+    .hero { grid-template-columns:1.05fr .95fr; }
+    .hero p.lead { max-width:460px; }
+  }
+  @media (max-width:420px){
+    .board-hint { display:none; }
+    .occ { padding:6px 14px; }
+    /* tighten the opening stack so the board + win-line fit in the first viewport */
+    .hero { padding-top:20px; gap:16px; }
+    .sticker { margin-bottom:10px; }
+    .hero h1 { margin-bottom:10px; }
+    .hero p.lead { margin-bottom:16px; }
+    .micro { margin-top:8px; }
+  }
+  @media (max-width:321px){
+    /* stack only once the two intrinsic CTA widths no longer fit comfortably */
+    .cta-row { flex-direction:column; }
+    .cta-row .btn { width:100%; }
+  }
+`}} />
+    </PlayfulShell>
   );
 }

@@ -1,220 +1,98 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import LandingPageTracker from "@/components/LandingPageTracker";
+import PlayfulShell from "@/components/PlayfulShell";
 
 export const metadata: Metadata = {
-  title: "Graduation Bingo Cards Printable — Custom Graduation Bingo Generator | MyBingoCard",
-  description:
-    "Create custom printable graduation bingo cards for your ceremony or party. The best graduation bingo generator — custom squares, PDF export for any graduation celebration.",
-  alternates: {
-    canonical: "https://mybingocard.com/graduation-bingo",
-  },
+  title: "Graduation Bingo — MyBingoCard",
 };
 
-const graduationSquares = [
-  "Cap Toss", "Happy Tears", "Diploma Moment", "Long Speech", "FREE",
-  "Name Mispronounced", "Family Wave", "Trip on Stage", "Class Photo", "Mortarboard",
-  "Standing Ovation", "Pomp & Circumstance", "Selfie Time", "Future Plans", "Handshake",
-  "Proud Parent", "Tassel Turn", "Surprise Gift", "Group Hug", "Late Arrival",
-  "Class Motto", "Valedictorian", "Faculty Robes", "Confetti Drop", "After Party",
-];
-
-const schema = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebApplication",
-      "@id": "https://mybingocard.com/graduation-bingo#app",
-      name: "Graduation Bingo Cards Printable Generator",
-      url: "https://mybingocard.com/graduation-bingo",
-      description:
-        "Create custom printable graduation bingo cards with editable ceremony and party square ideas.",
-      applicationCategory: "GameApplication",
-      operatingSystem: "All",
-      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-    },
-    {
-      "@type": "FAQPage",
-      "@id": "https://mybingocard.com/graduation-bingo#faq",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "What should go on graduation bingo cards?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Use ceremony moments, family photos, speeches, diplomas, tassels, and party details that match the actual schedule.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How can graduation bingo work during a ceremony?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Use quiet, observable moments and set the rule that guests mark cards silently. A host can verify winners after a break or at the end.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How many graduation bingo cards should I make?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Make one card per guest plus a few extras. Use a paid batch pack when you need many unique printable cards for a larger party.",
-          },
-        },
-      ],
-    },
-  ],
-};
-
-function BingoGrid({ squares }: { squares: string[] }) {
+export default function Page() {
   return (
-    <div className="relative">
-      <div className="absolute -top-6 -left-6 w-14 h-14 bg-[#cdeee9] border-[2.5px] border-[#33312e] rounded-2xl rotate-12 shadow-[0_3px_0_#33312e]"></div>
-      <div className="absolute -bottom-6 -right-6 w-12 h-12 bg-[#ffb800] border-[2.5px] border-[#33312e] rounded-full -rotate-12 shadow-[0_3px_0_#33312e]"></div>
-      <div className="relative bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-6 transform rotate-2 hover:rotate-0 transition-all duration-500 border border-white/50">
-        <div className="text-center mb-4">
-          <div className="flex justify-center gap-3 text-4xl font-black tracking-widest">
-            {["B","I","N","G","O"].map((l, i) => {
-              const colors = ["from-[#7c5cff] to-[#7c5cff]","from-[#7c5cff] to-[#7c5cff]","from-[#7c5cff] to-[#7c5cff]","from-[#7c5cff] to-[#2ec4b6]","from-[#2ec4b6] to-[#7c5cff]"];
-              return <span key={i} className={["text-[#ff5d8f]", "text-[#7c5cff]", "text-[#2ec4b6]", "text-[#ff8a3d]", "text-[#ffb800]"][i % 5]}>{l}</span>;
-            })}
-          </div>
-          <p className="text-[#a39a88] text-xs uppercase tracking-widest font-bold mt-2">Graduation Edition</p>
-        </div>
-        <div className="grid grid-cols-5 gap-1.5">
-          {squares.map((item, i) => (
-            <div key={i} className={`aspect-square flex items-center justify-center p-1.5 rounded-lg text-center text-[9px] leading-tight font-bold cursor-pointer
-              ${i === 12 ? "bg-[#ff5d8f] text-white border-2 border-[#33312e]" : "bg-[#fff7ed] text-[#33312e] border-2 border-[#33312e]"}`}>
-              {item}
-            </div>
-          ))}
-        </div>
-      </div>
+    <PlayfulShell>
+      <div dangerouslySetInnerHTML={{
+        __html: `
+
+
+
+<header class="page-head">
+  <span class="k">🎓 Party</span>
+  <h1>Graduation Bingo</h1>
+  <p>Caps, gowns, and proud-parent moments for the big day. Free for up to 30 cards, ready in about a minute.</p>
+  <div class="mt-24">
+    <a class="btn" href="05-playful-confetti-create.html?starter=graduation">Make graduation cards</a>
+    <a class="btn btn-white" href="05-playful-confetti-play.html?game=graduation" style="margin-left:8px;">Preview a card</a>
+  </div>
+</header>
+
+<div class="section section-tight">
+  <div class="split">
+    <div class="card center">
+      <div class="mini mini-words" style="max-width:280px; margin:0 auto;"><i>Study group</i><i>Proud parents</i><i>Champagne toast</i><i>Handshake</i><i>Memory wall</i><i>Valedictorian</i><i>Confetti</i><i>Selfie</i><i>College plans</i><i>Balloon arch</i><i>Honor cord</i><i>Gown</i><i class="free-cell">FREE</i><i>Alma mater</i><i>Group hug</i><i>Tears</i><i>Road trip</i><i>Cap toss</i><i>Mascot</i><i>Tassel</i><i>Dorm room</i><i>New chapter</i><i>Diploma</i><i>Advice cards</i><i>Speech</i></div>
+      <p class="mt-16"><strong style="color:var(--ink);">Graduation Bingo</strong> · grape glow theme · 5×5</p>
     </div>
-  );
-}
+    <div>
+      <h2 style="font-size:clamp(22px,4vw,28px); margin-bottom:12px;">How it plays</h2>
+      <ul class="check-list">
+        <li>Print one card per guest, or share a link to everyone’s phone</li>
+        <li>Every card is a different shuffle of the same themed list</li>
+        <li>Mark squares as moments happen — five in a row wins</li>
+        <li>Small prize optional but recommended</li>
+      </ul>
+      <p class="mt-16" style="font-weight:600; color:var(--mut); font-size:14px;">The built-in list has 40 themed items baked in, so every card is unique.</p>
+    </div>
+  </div>
+</div>
 
-export default function GraduationBingoPage() {
-  return (
-    <>
-      <LandingPageTracker templateCategory="graduation-bingo" />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
-      <div className="min-h-screen bg-[#fff7ed] overflow-x-clip">
-        <header className="fixed top-0 w-full z-50 bg-[#fff7ed]/95 backdrop-blur-md border-b-[3px] border-[#33312e]">
-          <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-9 h-9 bg-[#ff5d8f] border-2 border-[#33312e] rounded-xl flex items-center justify-center shadow-[0_2px_0_#33312e] group-hover:-rotate-6 transition-all duration-300">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-              </div>
-              <span className="text-lg font-heading font-bold text-[#ff5d8f]">MyBingoCard</span>
-            </Link>
-            <div className="flex gap-3">
-              <Link href="/login" className="text-sm font-bold text-[#33312e] hover:text-[#ff5d8f] transition-colors">Sign In</Link>
-              <Link href="/create" className="cbtn cbtn-sm">Create Card</Link>
-            </div>
-          </div>
-        </header>
+<div class="section section-tight">
+  <div class="sec-head">
+    <span class="k">Word ideas</span>
+    <h2>A sample of the built-in list</h2>
+    <p>Open the generator and the full list loads automatically — edit freely.</p>
+  </div>
+  <div class="chip-row">
+    <span class="pill pill-pink">Cap toss</span>
+    <span class="pill pill-teal">Gown</span>
+    <span class="pill pill-yellow">Diploma</span>
+    <span class="pill pill-purple">Tassel</span>
+    <span class="pill pill-pink">Valedictorian</span>
+    <span class="pill pill-teal">Speech</span>
+    <span class="pill pill-yellow">Yearbook</span>
+    <span class="pill pill-purple">Photo booth</span>
+    <span class="pill pill-pink">Proud parents</span>
+    <span class="pill pill-teal">Class song</span>
+    <span class="pill pill-yellow">Honor cord</span>
+    <span class="pill pill-purple">Tears</span>
+    <span class="pill pill-pink">Applause</span>
+    <span class="pill pill-teal">Processional</span>
+    <span class="pill pill-yellow">Alma mater</span>
+    <span class="pill pill-purple">+ more</span>
+  </div>
+</div>
 
-        <main className="pt-28 pb-20 px-4">
-          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center mb-20">
-            <div>
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border-2 border-[#33312e] shadow-[0_2px_0_#33312e] text-[#5b3fd4] text-xs font-heading font-bold uppercase tracking-wide mb-6">
-                🎓 Graduation Bingo
-              </div>
-              <h1 className="text-4xl md:text-5xl font-heading font-bold text-[#33312e] mb-6 leading-tight">
-                Custom Printable <span className="text-[#ff5d8f]">Graduation Bingo</span> Cards
-              </h1>
-              <p className="text-xl font-semibold text-[#6b6459] mb-8 leading-relaxed">
-                Make the ceremony and celebration more engaging with editable graduation bingo cards for family and friends. Use moments that fit the real schedule, then export an individual PDF for free.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Link href="/create" className="cbtn !text-lg !px-8 !py-4 inline-flex items-center gap-2">
-                  Create Your Card
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                </Link>
-                <Link href="/templates" className="cbtn cbtn-white !text-lg !px-8 !py-4 inline-flex items-center gap-2">See All Templates</Link>
-              </div>
-            </div>
-            <BingoGrid squares={graduationSquares} />
-          </div>
+<div class="section section-tight">
+  <div class="sec-head">
+    <span class="k">Keep exploring</span>
+    <h2>Related games</h2>
+  </div>
+  <div class="grid-3">
+    <div class="card card-hover center">
+      <div style="font-size:30px; margin-bottom:8px;">🎂</div>
+      <h3>Birthday Party Bingo</h3>
+      <p>Cake, candles, and party moments for kids and grown-ups alike.</p>
+      <a class="btn btn-sm btn-teal mt-16" href="/birthday-bingo">See Birthday Party</a>
+    </div>
+  </div>
+</div>
 
-          <div className="max-w-3xl mx-auto bg-[#7c5cff] border-[3px] border-[#33312e] shadow-[0_6px_0_#33312e] rounded-3xl p-12 text-center text-white mb-20">
-            <h2 className="text-3xl font-bold mb-4">Survive the Ceremony in Style 🎓</h2>
-            <p className="text-white/85 font-semibold text-lg mb-8">Turn ceremony moments, photos, and party traditions into a game guests can play quietly and verify together after a break.</p>
-            <Link href="/create" className="cbtn cbtn-yellow !text-lg !px-8 !py-4">Create Graduation Bingo</Link>
-          </div>
+<div class="cta-band">
+  <h2>Game coming up?</h2>
+  <p>Free for up to 30 cards — no account needed to print.</p>
+  <a class="btn btn-yellow" href="05-playful-confetti-create.html?starter=graduation">Make graduation cards</a>
+</div>
 
-          <section className="max-w-5xl mx-auto mb-20">
-            <div className="grid lg:grid-cols-2 gap-8">
-              <article className="bg-white rounded-2xl border border-[#7c5cff]/15 p-8 shadow-sm">
-                <h2 className="text-2xl font-heading font-bold text-[#33312e] mb-4">How to make graduation bingo work</h2>
-                <p className="font-semibold text-[#6b6459] leading-relaxed mb-5">
-                  Graduation bingo works best as a quiet observation game. Build around moments that are likely to happen, then choose a rule that does not distract from the graduates or the ceremony.
-                </p>
-                <ol className="space-y-3 font-semibold text-[#6b6459] list-decimal list-inside">
-                  <li>Use the ceremony schedule to identify certain moments and likely ones.</li>
-                  <li>Keep square text positive, readable, and respectful to every graduate.</li>
-                  <li>Choose a 3x3 or 4x4 card for a short ceremony, or 5x5 for ceremony plus party.</li>
-                  <li>Verify winners during a break or after the final procession.</li>
-                </ol>
-              </article>
-              <article className="bg-white rounded-2xl border border-[#7c5cff]/15 p-8 shadow-sm">
-                <h2 className="text-2xl font-heading font-bold text-[#33312e] mb-4">Graduation square ideas</h2>
-                <p className="font-semibold text-[#6b6459] leading-relaxed mb-5">
-                  Start with ceremony moments, then add details from the graduate&apos;s school or party. Remove any square that depends on someone being embarrassed or singled out.
-                </p>
-                <div className="grid sm:grid-cols-2 gap-3 text-sm font-bold text-[#33312e]">
-                  {["Diploma moment", "Tassel turn", "Class photo", "Proud family member", "Standing ovation", "School song", "Handshake", "Speech applause", "Cake cutting", "After-party photo"].map((idea) => (
-                    <div key={idea} className="rounded-xl bg-[#7c5cff]/10 px-4 py-3">{idea}</div>
-                  ))}
-                </div>
-              </article>
-            </div>
 
-            <div className="mt-8 bg-white rounded-2xl border border-[#7c5cff]/15 p-8 shadow-sm">
-              <h2 className="text-2xl font-heading font-bold text-[#33312e] mb-5">Graduation bingo FAQs</h2>
-              <div className="grid md:grid-cols-3 gap-6 font-semibold text-[#6b6459] leading-relaxed">
-                <div>
-                  <h3 className="font-heading font-bold text-[#33312e] mb-2">What belongs on the cards?</h3>
-                  <p>Use ceremony moments, diplomas, songs, applause, photos, and party traditions that match the event schedule.</p>
-                </div>
-                <div>
-                  <h3 className="font-heading font-bold text-[#33312e] mb-2">Can guests play during the ceremony?</h3>
-                  <p>Yes, when the game is quiet and respectful. Save calls, prizes, and winner verification for a break or the end.</p>
-                </div>
-                <div>
-                  <h3 className="font-heading font-bold text-[#33312e] mb-2">How many cards should I make?</h3>
-                  <p>Make one per guest plus a few extras. Use a paid batch pack when you need many unique printable cards for a larger party.</p>
-                </div>
-              </div>
-              <p className="mt-6 font-semibold text-[#6b6459]">
-                For a school-year memory game, try <Link href="/end-of-year-bingo" className="font-semibold text-[#7c5cff] hover:text-[#7c5cff]">end-of-year bingo</Link>. For a general celebration, browse <Link href="/party-bingo" className="font-semibold text-[#7c5cff] hover:text-[#7c5cff]">party bingo cards</Link>.
-              </p>
-            </div>
-          </section>
 
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-2xl font-heading font-bold text-[#33312e] text-center mb-8">More Event Bingo Cards</h2>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              {[
-                { href: "/birthday-bingo", label: "🎂 Birthday" },
-                { href: "/wedding-bingo", label: "💍 Wedding" },
-                { href: "/baby-shower-bingo", label: "👶 Baby Shower" },
-                { href: "/classroom-bingo", label: "📚 Classroom" },
-                { href: "/office-party-bingo", label: "🏢 Office Party" },
-              ].map((link) => (
-                <Link key={link.href} href={link.href} className="cchip !rounded-xl !p-4 text-center">{link.label}</Link>
-              ))}
-            </div>
-          </div>
-        </main>
-
-        <footer className="bg-white border-t-[3px] border-[#33312e] py-8 text-center text-[#6b6459] text-sm font-semibold">
-          <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved. · <Link href="/privacy" className="hover:text-[#ff5d8f]">Privacy</Link> · <Link href="/terms" className="hover:text-[#ff5d8f]">Terms</Link></p>
-        </footer>
-      </div>
-    </>
+`,
+      }} />
+    </PlayfulShell>
   );
 }

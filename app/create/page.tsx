@@ -1808,7 +1808,8 @@ function CreateCardContent() {
 
           {editorUnlocked && !isLoadingCard && (
           <>
-          <div className="grid lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)_minmax(0,300px)] xl:grid-cols-[minmax(0,240px)_minmax(500px,520px)_minmax(0,320px)] 2xl:grid-cols-[minmax(0,240px)_minmax(520px,560px)_minmax(0,340px)] gap-3 lg:gap-4 xl:justify-center items-start">
+          <div className="creator-shell">
+
             {/* Left Panel - Card Details */}
             <div className="order-2 lg:order-1 space-y-4 lg:sticky lg:top-16 lg:max-h-[calc(100vh-11.5rem)] lg:space-y-3 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 min-w-0">
               {!session?.user && !checkingPermission && (
@@ -2191,7 +2192,8 @@ function CreateCardContent() {
                   </details>
 
                 </div>
-              </div>
+              
+        </div>
 
               {/* Batch Generation — Always visible, prominent */}
               <div className="bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_5px_0_#33312e] p-4 lg:p-3">
@@ -3000,7 +3002,8 @@ function CreatePageSkeleton() {
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-[minmax(0,220px)_minmax(0,1fr)_minmax(0,300px)] xl:grid-cols-[minmax(0,240px)_minmax(500px,520px)_minmax(0,320px)] 2xl:grid-cols-[minmax(0,240px)_minmax(520px,560px)_minmax(0,340px)] gap-3 lg:gap-4 xl:justify-center items-start">
+          <div className="creator-shell">
+
             <div className="order-2 lg:order-1 hidden lg:block rounded-2xl border-[2.5px] border-[#33312e] bg-white shadow-[0_5px_0_#33312e] p-3">
               <div className="mb-3 h-5 w-28 rounded bg-[#a39a88]" />
               <div className="space-y-3">
@@ -3051,7 +3054,8 @@ function CreatePageSkeleton() {
                 </div>
               </div>
             </div>
-          </div>
+          
+        </div>
         </div>
       </main>
 

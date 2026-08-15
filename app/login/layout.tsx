@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PageLayout({ children }: { children: React.ReactNode }) {
-  return children;
+import PlayfulShell from "@/components/PlayfulShell";
+
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
+  return <PlayfulShell>{children}</PlayfulShell>;
 }

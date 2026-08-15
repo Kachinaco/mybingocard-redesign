@@ -1,119 +1,63 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import PlayfulShell from "@/components/PlayfulShell";
 
 export const metadata: Metadata = {
   title: "Privacy Policy — MyBingoCard",
-  description: "MyBingoCard privacy policy. Learn how we collect, use, and protect your personal information.",
-  alternates: {
-    canonical: "https://mybingocard.com/privacy",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
 };
 
-export default function PrivacyPage() {
+export default function Page() {
   return (
-    <div className="min-h-screen bg-[#fff7ed]">
-      <header className="bg-white border-b border-[#a39a88]">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold text-[#33312e]">MyBingoCard</span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-sm font-medium text-[#33312e] hover:text-[#33312e] transition-colors">Sign In</Link>
-            <Link href="/signup" className="text-sm font-semibold bg-[#7c5cff] text-white px-4 py-2 rounded-lg hover:bg-[#7c5cff] transition-colors">Get Started</Link>
-          </div>
-        </div>
-      </header>
+    <PlayfulShell>
+      <div dangerouslySetInnerHTML={{__html: `
 
-      <main className="container mx-auto px-4 py-12 max-w-3xl">
-        <div className="bg-white rounded-2xl shadow-sm border border-[#a39a88] p-8 md:p-12">
-          <h1 className="text-3xl font-black text-[#33312e] mb-2">Privacy Policy</h1>
-            <p className="text-sm text-[#6b6459]">Last updated: March 9, 2026</p>
 
-          <div className="mt-8 space-y-8">
 
-              <div>
-                <h2 className="text-xl font-bold text-[#33312e] mb-3">Information We Collect</h2>
-                <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-[#33312e]">Account information (name, email) when you sign up</li>
-                  <li className="text-[#33312e]">Bingo card content you create</li>
-                  <li className="text-[#33312e]">Usage data such as pages visited and features used</li>
-                  <li className="text-[#33312e]">Payment information processed securely through Stripe (we never store card numbers)</li>
-                  <li className="text-[#33312e]">Device and browser information for analytics</li>
-                  <li className="text-[#33312e]">Session activity data including pages visited, scroll depth, features used, and last-seen timestamps to help us understand how you use the product and improve your experience</li>
-                </ul>
-              </div>
+<header class="page-head">
+  <span class="k">The fine print</span>
+  <h1>Terms & Privacy</h1>
+  <p>Plain-language versions. Last updated July 2026.</p>
+</header>
 
-              <div>
-                <h2 className="text-xl font-bold text-[#33312e] mb-3">How We Use Your Information</h2>
-                <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-[#33312e]">To provide and improve our bingo card services</li>
-                  <li className="text-[#33312e]">To process payments and manage your subscription</li>
-                  <li className="text-[#33312e]">To send transactional emails (welcome, password reset, receipts)</li>
-                  <li className="text-[#33312e]">To send product update emails (you can unsubscribe anytime)</li>
-                  <li className="text-[#33312e]">To analyze usage patterns and improve the product</li>
-                  <li className="text-[#33312e]">To track session activity (e.g., last active time) while you are logged in, using periodic background pings — this data is used only for product analytics and is never sold or shared</li>
-                </ul>
-              </div>
+<div class="legal-wrap">
+  <div class="legal-card" id="terms">
+    <h2>Terms of Service</h2>
+    <h3>The short version</h3>
+    <p>MyBingoCard lets you create, print, and share custom bingo cards. Free accounts cover small games; paid plans unlock bigger batches and hosting features.</p>
+    <h3>Your content</h3>
+    <p>Words and images you add to cards are yours. You give us permission to store and display them only as needed to run the service. Don't upload content you don't have rights to use.</p>
+    <h3>Fair use</h3>
+    <p>Don't abuse the free tier with automated scraping, don't resell access, and don't use the service for anything unlawful. We may suspend accounts that do.</p>
+    <h3>Paid plans</h3>
+    <p>One-time event purchases cover a single event. Subscriptions renew until cancelled; you can cancel anytime and keep access through the paid period. Refunds are handled case by case — just ask.</p>
+    <h3>No warranty</h3>
+    <p>The service is provided as-is. We work hard to keep it reliable, but we can't promise perfection. Liability is limited to the amount you've paid us in the past 12 months.</p>
+  </div>
 
-              <div>
-                <h2 className="text-xl font-bold text-[#33312e] mb-3">Data Sharing</h2>
-                <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-[#33312e]">We do not sell your personal information to third parties</li>
-                  <li className="text-[#33312e]">We share data with Stripe for payment processing</li>
-                  <li className="text-[#33312e]">We use Google Analytics for anonymous usage tracking</li>
-                  <li className="text-[#33312e]">We may share data if required by law</li>
-                </ul>
-              </div>
+  <div class="legal-card" id="privacy">
+    <h2>Privacy Policy</h2>
+    <h3>What we collect</h3>
+    <p>Account email and password (hashed), the cards and games you create, and basic usage analytics. That's it. Players joining a game don't need accounts and aren't tracked beyond what's needed to serve their card.</p>
+    <h3>What we never do</h3>
+    <p>We don't sell your data, we don't run third-party ad trackers, and we don't read your card content for advertising. Your baby shower word list is your business.</p>
+    <h3>Cookies</h3>
+    <p>We use a session cookie to keep you logged in and a preference cookie for settings. No advertising cookies.</p>
+    <h3>Your choices</h3>
+    <p>Export or delete your account and cards anytime from Settings. Deletion is permanent within 30 days, including backups.</p>
+    <h3>Contact</h3>
+    <p>Questions about privacy? <a href="/contact">Contact us</a> — a human replies.</p>
+  </div>
+</div>
 
-              <div>
-                <h2 className="text-xl font-bold text-[#33312e] mb-3">Data Security</h2>
-                <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-[#33312e]">All data is transmitted over HTTPS encryption</li>
-                  <li className="text-[#33312e]">Passwords are hashed using bcrypt</li>
-                  <li className="text-[#33312e]">Payment processing is handled by Stripe (PCI compliant)</li>
-                  <li className="text-[#33312e]">We regularly review our security practices</li>
-                </ul>
-              </div>
 
-              <div>
-                <h2 className="text-xl font-bold text-[#33312e] mb-3">Your Rights</h2>
-                <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-[#33312e]">Access, update, or delete your account data at any time from Settings</li>
-                  <li className="text-[#33312e]">Unsubscribe from marketing emails via the link in any email</li>
-                  <li className="text-[#33312e]">Request a full export or deletion of your data by emailing support@mybingocard.com</li>
-                </ul>
-              </div>
 
-              <div>
-                <h2 className="text-xl font-bold text-[#33312e] mb-3">Cookies</h2>
-                <ul className="space-y-2 list-disc list-inside">
-                  <li className="text-[#33312e]">We use essential cookies for authentication and session management</li>
-                  <li className="text-[#33312e]">We use Google Analytics cookies for anonymous usage tracking</li>
-                  <li className="text-[#33312e]">You can disable cookies in your browser settings</li>
-                </ul>
-              </div>
-
-              <div>
-                <h2 className="text-xl font-bold text-[#33312e] mb-3">Contact</h2>
-                <p className="text-[#33312e] leading-relaxed">For privacy questions, email us at support@mybingocard.com</p>
-              </div>
-
-          </div>
-        </div>
-      </main>
-
-      <footer className="border-t border-[#a39a88] py-8 text-center text-[#6b6459] text-sm">
-        <p>&copy; 2026 MyBingoCard. All rights reserved.</p>
-      </footer>
-    </div>
+`}} />
+      <style dangerouslySetInnerHTML={{__html: `
+  .legal-wrap { max-width:720px; margin:0 auto; padding:clamp(24px,5vw,44px) clamp(16px,4vw,24px) 64px; }
+  .legal-card { background:#fff; border:2.5px solid var(--ink); border-radius:16px; box-shadow:var(--shadow); padding:clamp(18px,4vw,28px); margin-bottom:18px; }
+  .legal-card h2 { font-size:clamp(18px,3.5vw,22px); margin-bottom:12px; }
+  .legal-card h3 { font-size:clamp(14px,2.5vw,16px); margin:16px 0 6px; }
+  .legal-card p { font-size:13.5px; font-weight:600; color:var(--mut); margin-bottom:10px; }
+`}} />
+    </PlayfulShell>
   );
 }

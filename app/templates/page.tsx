@@ -1,733 +1,170 @@
-"use client";
+import type { Metadata } from "next";
+import PlayfulShell from "@/components/PlayfulShell";
 
-import { trackTemplateUsed } from "@/lib/analytics";
-import { isImageCell, parseImageCell, getCellDisplayText } from "@/lib/cellContent";
-import ThemedCardWrapper from "@/components/ThemedCardWrapper";
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { trackClientActivity } from "@/lib/activity-client";
-
-interface Template {
-  _id: string;
-  title: string;
-  description?: string;
-  category: string;
-  tags: string[];
-  size: 3 | 4 | 5;
-  cells: string[];
-  freeSpace: boolean;
-  style: {
-    backgroundColor?: string;
-    textColor?: string;
-    borderColor?: string;
-    fontSize?: string;
-    fontFamily?: string;
-    theme?: string;
-  };
-  isPremium: boolean;
-  isFeatured: boolean;
-  thumbnail?: string;
-  uses: number;
-}
-
-interface UserPlan {
-  planType: string;
-  canAccessAllTemplates: boolean;
-}
-
-const CATEGORIES = [
-  { id: "all", name: "All Templates" },
-  { id: "baby-shower", name: "Baby Shower" },
-  { id: "bridal-shower", name: "Bridal Shower" },
-  { id: "birthday", name: "Birthday Party" },
-  { id: "classroom", name: "Classroom" },
-  { id: "holiday", name: "Holiday" },
-  { id: "team-building", name: "Team Building" },
-  { id: "virtual", name: "Virtual Events" },
-  { id: "icebreaker", name: "Icebreaker" },
-  { id: "drinking-games", name: "Drinking Games" },
-  { id: "other", name: "Other" },
-];
-
-type IndexableTemplate = {
-  slug: string;
-  title: string;
-  description: string;
-  category: string;
-  cells: string[];
-  style: Template["style"];
+export const metadata: Metadata = {
+  title: "Templates — MyBingoCard",
 };
 
-const INDEXABLE_TEMPLATES: IndexableTemplate[] = [
-  {
-    slug: "wedding-bingo",
-    title: "Wedding Bingo",
-    description: "Reception moments guests can spot during dinner, speeches, photos, and dancing.",
-    category: "bridal-shower",
-    cells: ["First dance", "Cake cutting", "Toast speech", "Group photo", "FREE", "Bouquet toss", "Happy tears", "Dance floor", "Photo booth"],
-    style: { backgroundColor: "#fff7ed", textColor: "#7c2d12", borderColor: "#fed7aa" },
-  },
-  {
-    slug: "baby-shower-gift-bingo",
-    title: "Baby Shower Gift Bingo",
-    description: "Classic gift-opening bingo with common baby items and registry surprises.",
-    category: "baby-shower",
-    cells: ["Diapers", "Blanket", "Bottles", "Onesie", "FREE", "Wipes", "Pacifier", "Books", "Stuffed toy"],
-    style: { backgroundColor: "#fdf2f8", textColor: "#9d174d", borderColor: "#fbcfe8" },
-  },
-  {
-    slug: "classroom-vocabulary-bingo",
-    title: "Classroom Vocabulary Bingo",
-    description: "A ready-to-edit vocabulary bingo card for review days and small groups.",
-    category: "classroom",
-    cells: ["Define it", "Synonym", "Antonym", "Use in a sentence", "FREE", "Root word", "Prefix", "Suffix", "Example"],
-    style: { backgroundColor: "#eff6ff", textColor: "#1d4ed8", borderColor: "#bfdbfe" },
-  },
-  {
-    slug: "office-meeting-bingo",
-    title: "Office Meeting Bingo",
-    description: "Light team-building bingo for recurring meetings and remote calls.",
-    category: "team-building",
-    cells: ["You're muted", "Circle back", "Share screen", "Action item", "FREE", "Quick sync", "Pet cameo", "Hard stop", "Follow up"],
-    style: { backgroundColor: "#f8fafc", textColor: "#334155", borderColor: "#cbd5e1" },
-  },
-  {
-    slug: "christmas-bingo",
-    title: "Christmas Bingo",
-    description: "Holiday party bingo with festive words, decorations, and traditions.",
-    category: "holiday",
-    cells: ["Santa", "Reindeer", "Snowman", "Gift", "FREE", "Tree", "Cookies", "Carols", "Lights"],
-    style: { backgroundColor: "#fef2f2", textColor: "#991b1b", borderColor: "#fecaca" },
-  },
-  {
-    slug: "graduation-ceremony-bingo",
-    title: "Graduation Ceremony Bingo",
-    description: "A ceremony-friendly card for speeches, caps, photos, and proud-family moments.",
-    category: "other",
-    cells: ["Cap toss", "Class photo", "Proud parent", "Speech", "FREE", "Diploma", "Tassel", "Applause", "Group selfie"],
-    style: { backgroundColor: "#f5f3ff", textColor: "#5b21b6", borderColor: "#ddd6fe" },
-  },
-  {
-    slug: "birthday-party-bingo",
-    title: "Birthday Party Bingo",
-    description: "Party moments for kids, adults, milestone birthdays, and family celebrations.",
-    category: "birthday",
-    cells: ["Cake time", "Make a wish", "Presents", "Party hat", "FREE", "Photo time", "Dance break", "Balloons", "Goodie bag"],
-    style: { backgroundColor: "#f0fdf4", textColor: "#166534", borderColor: "#bbf7d0" },
-  },
-  {
-    slug: "bridal-shower-bingo",
-    title: "Bridal Shower Bingo",
-    description: "Gift and celebration squares for bridal showers, brunches, and wedding parties.",
-    category: "bridal-shower",
-    cells: ["Towels", "Cookware", "Gift card", "Candles", "FREE", "Wine glasses", "Something blue", "Luggage", "Photo frame"],
-    style: { backgroundColor: "#faf5ff", textColor: "#7e22ce", borderColor: "#e9d5ff" },
-  },
-  {
-    slug: "esl-vocabulary-bingo",
-    title: "ESL Vocabulary Bingo",
-    description: "Simple language-practice prompts for ESL classes and conversation groups.",
-    category: "classroom",
-    cells: ["Greeting", "Food word", "Question word", "Place", "FREE", "Verb", "Adjective", "Number", "Weather"],
-    style: { backgroundColor: "#ecfeff", textColor: "#155e75", borderColor: "#a5f3fc" },
-  },
-  {
-    slug: "math-facts-bingo",
-    title: "Math Facts Bingo",
-    description: "Fast math review bingo for multiplication, addition, subtraction, or mixed facts.",
-    category: "classroom",
-    cells: ["6 x 7", "8 + 9", "12 - 5", "9 x 4", "FREE", "15 / 3", "7 x 8", "20 - 11", "6 + 13"],
-    style: { backgroundColor: "#eef2ff", textColor: "#3730a3", borderColor: "#c7d2fe" },
-  },
-  {
-    slug: "halloween-bingo",
-    title: "Halloween Bingo",
-    description: "Spooky-but-friendly bingo for classroom parties, trunk-or-treat, and family nights.",
-    category: "holiday",
-    cells: ["Pumpkin", "Costume", "Candy", "Spider", "FREE", "Ghost", "Witch", "Bat", "Trick or treat"],
-    style: { backgroundColor: "#fff7ed", textColor: "#9a3412", borderColor: "#fed7aa" },
-  },
-  {
-    slug: "team-building-bingo",
-    title: "Team Building Bingo",
-    description: "Icebreaker squares that work for new teams, retreats, and all-hands meetings.",
-    category: "team-building",
-    cells: ["Has a pet", "Coffee fan", "Traveled abroad", "Speaks 2 languages", "FREE", "Morning person", "Has a hobby", "Remote worker", "Loves cooking"],
-    style: { backgroundColor: "#f0fdfa", textColor: "#0f766e", borderColor: "#99f6e4" },
-  },
-  {
-    slug: "conference-bingo",
-    title: "Conference Bingo",
-    description: "Keep attendees engaged during sessions, booths, networking, and keynotes.",
-    category: "team-building",
-    cells: ["Keynote quote", "New contact", "Booth demo", "Panel question", "FREE", "Swag item", "Coffee line", "Name badge", "Breakout session"],
-    style: { backgroundColor: "#f1f5f9", textColor: "#0f172a", borderColor: "#cbd5e1" },
-  },
-  {
-    slug: "family-reunion-bingo",
-    title: "Family Reunion Bingo",
-    description: "Conversation-starting squares for reunions, picnics, and family weekends.",
-    category: "icebreaker",
-    cells: ["Old photo", "Shared recipe", "Family story", "Group picture", "FREE", "Long drive", "Matching shirts", "Favorite cousin", "Dessert table"],
-    style: { backgroundColor: "#fffbeb", textColor: "#92400e", borderColor: "#fde68a" },
-  },
-  {
-    slug: "training-bingo",
-    title: "Training Bingo",
-    description: "A practical card for onboarding, workshops, safety meetings, and staff training.",
-    category: "team-building",
-    cells: ["Best practice", "Policy review", "Question asked", "Demo shown", "FREE", "Checklist", "Scenario", "Group activity", "Next step"],
-    style: { backgroundColor: "#eff6ff", textColor: "#1e3a8a", borderColor: "#bfdbfe" },
-  },
-  {
-    slug: "back-to-school-bingo",
-    title: "Back-to-School Bingo",
-    description: "First-week classroom bingo for names, routines, supplies, and student icebreakers.",
-    category: "classroom",
-    cells: ["New friend", "Pencil", "Backpack", "Class rule", "FREE", "Favorite subject", "Desk label", "Lunch box", "School bus"],
-    style: { backgroundColor: "#fefce8", textColor: "#854d0e", borderColor: "#fde047" },
-  },
-  {
-    slug: "remote-meeting-bingo",
-    title: "Remote Meeting Bingo",
-    description: "A cleaner virtual-call bingo card for remote teams and online workshops.",
-    category: "virtual",
-    cells: ["Camera off", "Chat message", "Screen share", "Audio lag", "FREE", "Pet cameo", "Hand raise", "Late joiner", "Can you hear me?"],
-    style: { backgroundColor: "#eef2ff", textColor: "#4338ca", borderColor: "#c7d2fe" },
-  },
-  {
-    slug: "fundraiser-bingo",
-    title: "Fundraiser Bingo",
-    description: "Event bingo for auctions, raffles, school fundraisers, and benefit nights.",
-    category: "other",
-    cells: ["Raffle ticket", "Sponsor shoutout", "Donation", "Silent auction", "FREE", "Prize table", "Volunteer", "Thank-you speech", "Photo moment"],
-    style: { backgroundColor: "#ecfdf5", textColor: "#047857", borderColor: "#a7f3d0" },
-  },
-  {
-    slug: "baby-prediction-bingo",
-    title: "Baby Prediction Bingo",
-    description: "Prediction squares for due dates, baby traits, names, and first milestones.",
-    category: "baby-shower",
-    cells: ["Boy", "Girl", "Brown eyes", "Blue eyes", "FREE", "Early arrival", "Late arrival", "Looks like mom", "Looks like dad"],
-    style: { backgroundColor: "#f0f9ff", textColor: "#0369a1", borderColor: "#bae6fd" },
-  },
-  {
-    slug: "movie-night-bingo",
-    title: "Movie Night Bingo",
-    description: "Movie trope bingo for watch parties, family nights, and themed screenings.",
-    category: "other",
-    cells: ["Plot twist", "Jump scare", "Love story", "Chase scene", "FREE", "Dramatic music", "Flashback", "Hero moment", "Post-credit scene"],
-    style: { backgroundColor: "#f8fafc", textColor: "#1e293b", borderColor: "#cbd5e1" },
-  },
-  {
-    slug: "sight-word-bingo",
-    title: "Sight Word Bingo",
-    description: "A starter sight-word card for early readers and small-group literacy practice.",
-    category: "classroom",
-    cells: ["the", "and", "you", "said", "FREE", "was", "they", "have", "with"],
-    style: { backgroundColor: "#fff1f2", textColor: "#9f1239", borderColor: "#fecdd3" },
-  },
-  {
-    slug: "office-party-bingo",
-    title: "Office Party Bingo",
-    description: "Lightweight party bingo for holiday lunches, team events, and happy hours.",
-    category: "team-building",
-    cells: ["Group selfie", "Snack table", "Work story", "Prize winner", "FREE", "Music request", "Inside joke", "Late arrival", "Dessert"],
-    style: { backgroundColor: "#f5f3ff", textColor: "#6d28d9", borderColor: "#ddd6fe" },
-  },
-  {
-    slug: "new-years-goals-bingo",
-    title: "New Year's Goals Bingo",
-    description: "Goal-setting bingo for resolutions, social challenges, and annual planning.",
-    category: "holiday",
-    cells: ["Fitness goal", "Read more", "Save money", "New hobby", "FREE", "Travel plan", "Drink water", "Declutter", "Learn skill"],
-    style: { backgroundColor: "#f0fdfa", textColor: "#115e59", borderColor: "#99f6e4" },
-  },
-  {
-    slug: "icebreaker-bingo",
-    title: "Icebreaker Bingo",
-    description: "Find-someone-who squares for networking, classrooms, groups, and workshops.",
-    category: "icebreaker",
-    cells: ["Has a sibling", "Plays music", "Likes hiking", "Has met a celebrity", "FREE", "Loves tea", "Has a tattoo", "Reads daily", "Owns a bike"],
-    style: { backgroundColor: "#f0fdf4", textColor: "#166534", borderColor: "#bbf7d0" },
-  },
-];
-
-function getCategoryName(categoryId: string) {
-  return CATEGORIES.find((category) => category.id === categoryId)?.name || "Template";
-}
-
-function getIndexableTemplateHref(template: IndexableTemplate) {
-  const params = new URLSearchParams({
-    templateId: `seo-${template.slug}`,
-    title: template.title,
-    size: "3",
-    cells: JSON.stringify(template.cells),
-    freeSpace: "true",
-    style: JSON.stringify(template.style),
-  });
-
-  return `/create?${params.toString()}`;
-}
-
-export default function TemplatesPage() {
-  const router = useRouter();
-  const sessionData = useSession();
-  const session = sessionData?.data;
-  const status = sessionData?.status || "loading";
-  const [templates, setTemplates] = useState<Template[]>([]);
-  const [filteredTemplates, setFilteredTemplates] = useState<Template[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showPremiumOnly, setShowPremiumOnly] = useState(false);
-  const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
-  const [upgradeTemplateContext, setUpgradeTemplateContext] = useState<Record<string, unknown>>({});
-  const [showSignInModal, setShowSignInModal] = useState(false);
-  const hasFiredPageView = useRef(false);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const searchFromUrl = params.get("search")?.trim() || "";
-    const categoryFromUrl = params.get("category") || "all";
-
-    setSearchQuery(searchFromUrl);
-    setSelectedCategory(
-      CATEGORIES.some((category) => category.id === categoryFromUrl)
-        ? categoryFromUrl
-        : "all"
-    );
-  }, []);
-
-  // Track templates page viewed (fire once)
-  useEffect(() => {
-    if (!hasFiredPageView.current) {
-      hasFiredPageView.current = true;
-      trackClientActivity("templates_page_viewed");
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchTemplates();
-  }, []);
-
-  useEffect(() => {
-    if (status === "authenticated" && session?.user?.email) {
-      fetchUserPlan();
-    }
-  }, [status, session]);
-
-  useEffect(() => {
-    filterTemplates();
-  }, [templates, selectedCategory, searchQuery, showPremiumOnly]);
-
-  const fetchTemplates = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("/api/templates");
-      const data = await response.json();
-      setTemplates(data.templates || []);
-    } catch (error) {
-      console.error("Failed to fetch templates:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchUserPlan = async () => {
-    try {
-      const response = await fetch("/api/user/plan");
-      const data = await response.json();
-      if (data.plan) {
-        setUserPlan({
-          planType: data.plan.planName || data.planType,
-          canAccessAllTemplates: data.plan?.canAccessAllTemplates || false,
-        });
-      }
-    } catch (error) {
-      console.error("Failed to fetch user plan:", error);
-    }
-  };
-
-  const filterTemplates = () => {
-    let filtered = [...templates];
-
-    // Category filter
-    if (selectedCategory !== "all") {
-      filtered = filtered.filter((t) => t.category === selectedCategory);
-    }
-
-    // Premium filter
-    if (showPremiumOnly) {
-      filtered = filtered.filter((t) => t.isPremium);
-    }
-
-    // Search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (t) =>
-          t.title.toLowerCase().includes(query) ||
-          t.description?.toLowerCase().includes(query) ||
-          t.tags.some((tag) => tag.toLowerCase().includes(query))
-      );
-    }
-
-    setFilteredTemplates(filtered);
-  };
-
-  const handleUseTemplate = async (template: Template) => {
-    trackClientActivity("template_clicked", {
-      template_id: template._id,
-      template_name: template.title,
-      template_category: template.category,
-      is_premium: template.isPremium,
-    });
-
-    try {
-      // Track template usage
-      await fetch("/api/templates", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ templateId: template._id, templateTitle: template.title, templateCategory: template.category }),
-      });
-
-      trackTemplateUsed(template._id, template.title, template.isPremium);
-      // Redirect to create page with template data in URL params
-      const params = new URLSearchParams({
-        templateId: template._id,
-        title: template.title,
-        size: template.size.toString(),
-        cells: JSON.stringify(template.cells),
-        freeSpace: template.freeSpace.toString(),
-        style: JSON.stringify(template.style),
-      });
-
-      router.push(`/create?${params.toString()}`);
-    } catch (error) {
-      console.error("Failed to use template:", error);
-    }
-  };
-
-  const renderTemplateCard = (template: Template) => {
-    const gridSize = template.size;
-    const displayCells = template.cells.slice(0, 9); // Show first 9 cells for preview
-    const isPremiumLocked = false;
-
-    return (
-      <div
-        key={template._id}
-        className="group bg-white rounded-2xl shadow-sm border border-[#a39a88] hover:shadow-xl hover:shadow-[#7c5cff]/10 hover:border-[#7c5cff]/15 transition-all duration-300 overflow-hidden flex flex-col h-full"
-      >
-        {/* Template Preview */}
-        <div className="p-6 bg-[#fff7ed] relative border-b border-[#fff7ed] group-hover:bg-[#7c5cff]/30 transition-colors">
-          <div className="relative transform group-hover:scale-105 transition-transform duration-500">
-           <ThemedCardWrapper theme={template.style?.theme} title={template.title} size="mini">
-            <div
-              className="grid gap-1.5 shadow-lg rounded-lg bg-white p-1.5"
-              style={{
-                gridTemplateColumns: `repeat(3, 1fr)`,
-              }}
-            >
-              {displayCells.map((cell, index) => (
-                <div
-                  key={index}
-                  className="aspect-square flex items-center justify-center text-center text-[8px] leading-tight font-medium rounded p-1 overflow-hidden"
-                  style={{
-                    backgroundColor: template.style.backgroundColor || "#fff",
-                    color: template.style.textColor || "#334155",
-                    border: `1px solid ${template.style.borderColor || "#e2e8f0"}`,
-                  }}
-                >
-                  {isImageCell(cell) ? (
-                    <img src={parseImageCell(cell)?.imageUrl} alt={getCellDisplayText(cell)} className="w-full h-full object-contain" loading="lazy" />
-                  ) : cell.length > 15 ? cell.substring(0, 15) + "..." : cell}
-                </div>
-              ))}
-            </div>
-           </ThemedCardWrapper>
-          </div>
-
-          {template.isPremium && (
-            <div className="absolute top-3 right-3 bg-gradient-to-r from-[#ffb800] to-[#ffb800] text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm flex items-center gap-1">
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              Included
-            </div>
-          )}
-        </div>
-
-        {/* Template Info */}
-        <div className="p-5 flex flex-col flex-grow">
-          <div className="mb-4">
-            <h3 className="font-bold text-[#33312e] text-lg mb-1 leading-tight">{template.title}</h3>
-            {template.description && (
-              <p className="text-sm text-[#6b6459] line-clamp-2 leading-relaxed">
-                {template.description}
-              </p>
-            )}
-          </div>
-
-          <div className="flex items-center gap-3 text-xs font-medium text-[#6b6459] mb-6 mt-auto">
-            <span className="flex items-center gap-1">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-              {gridSize}×{gridSize}
-            </span>
-            <span className="w-1 h-1 rounded-full bg-[#a39a88]"></span>
-            <span className="flex items-center gap-1">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              {template.uses.toLocaleString()} uses
-            </span>
-          </div>
-
-          <button
-            onClick={() => handleUseTemplate(template)}
-            className="w-full bg-white text-[#7c5cff] border border-[#7c5cff] px-4 py-2.5 rounded-xl hover:bg-[#7c5cff]/10 hover:border-[#7c5cff] transition-all font-semibold text-sm shadow-sm"
-          >
-            Use Template
-          </button>
-        </div>
-      </div>
-    );
-  };
-
+export default function Page() {
   return (
-    <div className="min-h-screen bg-[#fff7ed] selection:bg-[#7c5cff]/15 selection:text-[#7c5cff]">
-      {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-[#a39a88]/50">
-        <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-xl flex items-center justify-center shadow-lg shadow-[#7c5cff] group-hover:shadow-[#7c5cff] transition-all duration-300">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#33312e] to-[#33312e]">
-              MyBingoCard
-            </span>
-          </Link>
-          
-          <div className="flex gap-4 items-center">
-            {session ? (
-               <>
-                <Link
-                  href="/dashboard"
-                  className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff] transition-colors"
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/create"
-                  className="bg-[#33312e] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#33312e] transition-all duration-200 shadow-lg shadow-[#33312e]/20"
-                >
-                  Create New
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff] transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/create"
-                  className="bg-[#33312e] text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-[#33312e] transition-all duration-200 shadow-lg shadow-[#33312e]/20"
-                >
-                  Create a Card
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
+    <PlayfulShell>
+      <div dangerouslySetInnerHTML={{
+        __html: `
 
-      <main className="pt-32 pb-24 px-4">
-        <div className="container mx-auto max-w-7xl">
-          <div className="text-center mb-16 animate-fade-in-up">
-             <div className="inline-block px-4 py-1.5 rounded-full bg-[#7c5cff]/10 border border-[#7c5cff]/15 text-[#7c5cff] text-xs font-bold uppercase tracking-wide mb-6">
-                Template Gallery
-              </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-[#33312e] mb-4 tracking-tight">
-              Start with a <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cff] to-[#7c5cff]">perfect design</span>.
-            </h1>
-            <p className="text-xl text-[#33312e] max-w-2xl mx-auto leading-relaxed">
-              Choose from our collection of professionally designed templates for weddings, parties, classrooms, and more.
-            </p>
-            <Link href="/bingo-games" className="mt-6 inline-flex text-sm font-semibold text-[#7c5cff] hover:text-[#7c5cff]">
-              Browse bingo games by occasion
-            </Link>
-          </div>
 
-          <section className="mb-16 animate-fade-in-up animation-delay-100">
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
-              <div>
-                <h2 className="text-xl md:text-2xl font-bold text-[#33312e]">Popular bingo card templates</h2>
-                <p className="mt-2 text-[#33312e] max-w-2xl">
-                  Start with a ready-made idea, customize the squares, then print a PDF or share the card online.
-                </p>
-              </div>
-              <Link href="/create" className="text-sm font-semibold text-[#7c5cff] hover:text-[#7c5cff]">
-                Start from a blank card
-              </Link>
-            </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {INDEXABLE_TEMPLATES.map((template) => (
-                <article key={template.slug} className="bg-white rounded-2xl border border-[#a39a88] shadow-sm overflow-hidden flex flex-col h-full">
-                  <div className="p-5 bg-[#fff7ed] border-b border-[#fff7ed]">
-                    <div className="grid grid-cols-3 gap-1.5 rounded-xl bg-white p-2 shadow-sm" aria-label={`${template.title} preview`}>
-                      {template.cells.map((cell, index) => (
-                        <div
-                          key={`${template.slug}-${cell}-${index}`}
-                          className="aspect-square flex items-center justify-center text-center text-[9px] leading-tight font-semibold rounded-md p-1 overflow-hidden"
-                          style={{
-                            backgroundColor: template.style.backgroundColor || "#ffffff",
-                            color: template.style.textColor || "#334155",
-                            border: `1px solid ${template.style.borderColor || "#e2e8f0"}`,
-                          }}
-                        >
-                          {cell}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="p-5 flex flex-col flex-grow">
-                    <div className="text-xs font-bold uppercase tracking-wide text-[#7c5cff] mb-2">
-                      {getCategoryName(template.category)}
-                    </div>
-                    <h3 className="text-lg font-bold text-[#33312e] mb-2">{template.title}</h3>
-                    <p className="text-sm text-[#6b6459] leading-relaxed mb-5 flex-grow">{template.description}</p>
-                    <Link
-                      href={getIndexableTemplateHref(template)}
-                      className="w-full bg-white text-[#7c5cff] border border-[#7c5cff] px-4 py-2.5 rounded-xl hover:bg-[#7c5cff]/10 hover:border-[#7c5cff] transition-all font-semibold text-sm shadow-sm text-center"
-                    >
-                      Use This Template
-                    </Link>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
+<header class="page-head">
+  <span class="k">Templates</span>
+  <h1>Pick a board, make it yours</h1>
+  <p>Every template is a starting point — swap words, change colors, resize the grid. Or use it exactly as-is and start playing in seconds.</p>
+</header>
 
-          {/* Filters and Search */}
-          <div className="bg-white rounded-2xl shadow-sm border border-[#a39a88] p-4 mb-8 animate-fade-in-up animation-delay-100">
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
-              {/* Search */}
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-[#6b6459]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search templates..."
-                  className="block w-full pl-10 pr-3 py-3 border border-[#a39a88] rounded-xl leading-5 bg-[#fff7ed] placeholder-[#6b6459] focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#7c5cff]/20 focus:border-[#7c5cff] transition-all duration-200"
-                />
-              </div>
+<div class="section section-tight">
+  <div class="chip-row">
+    <a class="chip on" href="#" data-filter="all">All</a>
+    <a class="chip" href="#" data-filter="showers">🍼 Showers</a>
+    <a class="chip" href="#" data-filter="parties">🎂 Parties</a>
+    <a class="chip" href="#" data-filter="classroom">✏️ Classroom</a>
+    <a class="chip" href="#" data-filter="holidays">🎄 Holidays</a>
+    <a class="chip" href="#" data-filter="work">👋 Work</a>
+    <a class="chip" href="#" data-filter="sports">🏈 Sports</a>
+  </div>
 
-              {/* Premium-tag filter */}
-              <div className="flex items-center">
-                <label className="flex items-center p-3 rounded-xl hover:bg-[#fff7ed] cursor-pointer transition-colors w-full md:w-auto">
-                  <input
-                    type="checkbox"
-                    checked={showPremiumOnly}
-                    onChange={(e) => setShowPremiumOnly(e.target.checked)}
-                    className="w-5 h-5 text-[#7c5cff] border-[#a39a88] rounded focus:ring-[#7c5cff]"
-                  />
-                  <span className="ml-3 text-sm font-medium text-[#33312e]">Show premium-tagged templates only</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Category Tabs */}
-            <div className="flex flex-wrap gap-2 pb-2">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    selectedCategory === cat.id
-                      ? "bg-[#7c5cff] text-white shadow-md shadow-[#7c5cff]"
-                      : "bg-white text-[#33312e] hover:bg-[#fff7ed] hover:text-[#7c5cff] border border-[#a39a88] hover:border-[#7c5cff]"
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Empty state */}
-          {status !== "loading" && templates.length === 0 && (
-            <div className="text-center py-10 bg-gradient-to-br from-[#7c5cff]/10 to-[#7c5cff]/10 rounded-3xl border border-[#7c5cff]/15 mb-8">
-              <div className="w-16 h-16 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-[#7c5cff]">
-                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-[#33312e] mb-3">Templates are loading</h3>
-              <p className="text-[#33312e] max-w-md mx-auto mb-6">
-                All templates are included for free. Start from a blank card while the gallery refreshes.
-              </p>
-              <Link
-                href="/create"
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-[#7c5cff]/20 hover:-translate-y-0.5 transition-all"
-              >
-                Start from blank
-              </Link>
-            </div>
-          )}
-
-          {/* Templates Grid */}
-          {loading ? (
-            <div className="text-center py-16">
-              <div className="inline-block w-12 h-12 border-4 border-[#7c5cff] border-t-transparent rounded-full animate-spin"></div>
-              <p className="mt-4 text-[#6b6459] font-medium">Loading more templates...</p>
-            </div>
-          ) : filteredTemplates.length === 0 && templates.length > 0 ? (
-            <div className="text-center py-24 bg-white rounded-3xl border border-[#a39a88] border-dashed">
-              <div className="w-16 h-16 bg-[#fff7ed] rounded-full flex items-center justify-center mx-auto mb-4">
-                 <svg className="w-8 h-8 text-[#6b6459]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-[#33312e] mb-2">No templates found</h3>
-              <p className="text-[#6b6459]">
-                Try adjusting your search or filters to find what you're looking for.
-              </p>
-              <button
-                onClick={() => {setSelectedCategory("all"); setSearchQuery(""); setShowPremiumOnly(false);}}
-                className="mt-6 text-[#7c5cff] font-medium hover:text-[#7c5cff] hover:underline"
-              >
-                Clear all filters
-              </button>
-            </div>
-          ) : templates.length > 0 ? (
-            <>
-              <div className="mb-6 text-sm font-medium text-[#6b6459] animate-fade-in-up animation-delay-200">
-                Showing {filteredTemplates.length} template{filteredTemplates.length !== 1 ? "s" : ""}
-              </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 animate-fade-in-up animation-delay-300">
-                {filteredTemplates.map(renderTemplateCard)}
-              </div>
-            </>
-          ) : null}
-        </div>
-      </main>
+  <div class="grid-4">
+    <div class="card card-hover" data-cat="parties">
+      <div class="mini mini-words" style="margin-bottom:12px;">
+        <i>Cake</i><i>Gift</i><i>Bow</i><i>Song</i><i>Hug</i>
+        <i>Dance</i><i>Toast</i><i>Photo</i><i>Game</i><i>Hat</i>
+        <i>Card</i><i>Wish</i><i class="free-cell">FREE</i><i>Snack</i><i>Prize</i>
+        <i>Balloon</i><i>Decor</i><i>Cheer</i><i>Treat</i><i>Laugh</i>
+        <i>Guest</i><i>Candle</i><i>Selfie</i><i>Music</i><i>Yay!</i>
+      </div>
+      <h3>Birthday Party</h3>
+      <p>5×5 · 25 squares · 12k uses</p>
+      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=birthday">Use template</a>
     </div>
+
+    <div class="card card-hover" data-cat="showers">
+      <div class="mini" style="margin-bottom:12px;">
+        <i style="background:#ffd9e6"></i><i style="background:#fff"></i><i style="background:#cdeee9"></i><i style="background:#fff"></i><i style="background:#fff0c7"></i>
+        <i style="background:#fff"></i><i style="background:#e9e4ff"></i><i style="background:#fff"></i><i style="background:#ffd9e6"></i><i style="background:#fff"></i>
+        <i style="background:#cdeee9"></i><i style="background:#fff"></i><i class="free-cell"></i><i style="background:#fff"></i><i style="background:#ffe6d4"></i>
+        <i style="background:#fff"></i><i style="background:#fff0c7"></i><i style="background:#fff"></i><i style="background:#e9e4ff"></i><i style="background:#fff"></i>
+        <i style="background:#ffd9e6"></i><i style="background:#fff"></i><i style="background:#cdeee9"></i><i style="background:#fff"></i><i style="background:#fff0c7"></i>
+      </div>
+      <h3>Baby Shower</h3>
+      <p>5×5 · pastel theme · 9.4k uses</p>
+      <a class="btn btn-sm btn-teal mt-16" href="/party-bingo">Use template</a>
+    </div>
+
+    <div class="card card-hover" data-cat="showers">
+      <div class="mini mini-words" style="margin-bottom:12px;">
+        <i>Ring</i><i>Vows</i><i>Cake</i><i>Dance</i><i>Toast</i>
+        <i>Bride</i><i>Groom</i><i>Kiss</i><i>Dress</i><i>Photo</i>
+        <i>Flowers</i><i>Music</i><i class="free-cell">FREE</i><i>Tears</i><i>Cheers</i>
+        <i>Guest</i><i>Speech</i><i>Gift</i><i>Song</i><i>Bow</i>
+        <i>Candle</i><i>Card</i><i>Selfie</i><i>Party</i><i>Love</i>
+      </div>
+      <h3>Bridal Shower</h3>
+      <p>5×5 · 25 squares · 7.1k uses</p>
+      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=bridal-shower">Use template</a>
+    </div>
+
+    <div class="card card-hover" data-cat="classroom">
+      <div class="mini mini-words" style="margin-bottom:12px;">
+        <i>Read</i><i>Math</i><i>Quiz</i><i>Art</i><i>Recess</i>
+        <i>Spell</i><i>Write</i><i>Draw</i><i>Count</i><i>Share</i>
+        <i>Listen</i><i>Learn</i><i class="free-cell">FREE</i><i>Help</i><i>Play</i>
+        <i>Book</i><i>Star</i><i>Team</i><i>Ask</i><i>Win</i>
+        <i>Sing</i><i>Build</i><i>Find</i><i>Name</i><i>Clap</i>
+      </div>
+      <h3>Classroom Review</h3>
+      <p>5×5 · teacher favorite · 6.8k uses</p>
+      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=classroom">Use template</a>
+    </div>
+
+    <div class="card card-hover" data-cat="holidays">
+      <div class="mini" style="margin-bottom:12px;">
+        <i style="background:#d9f5d9"></i><i style="background:#fff"></i><i style="background:#ffd9d9"></i><i style="background:#fff"></i><i style="background:#d9f5d9"></i>
+        <i style="background:#fff"></i><i style="background:#fff0c7"></i><i style="background:#fff"></i><i style="background:#d9f5d9"></i><i style="background:#fff"></i>
+        <i style="background:#ffd9d9"></i><i style="background:#fff"></i><i class="free-cell"></i><i style="background:#fff"></i><i style="background:#fff0c7"></i>
+        <i style="background:#fff"></i><i style="background:#d9f5d9"></i><i style="background:#fff"></i><i style="background:#ffd9d9"></i><i style="background:#fff"></i>
+        <i style="background:#fff0c7"></i><i style="background:#fff"></i><i style="background:#d9f5d9"></i><i style="background:#fff"></i><i style="background:#ffd9d9"></i>
+      </div>
+      <h3>Holiday Party</h3>
+      <p>5×5 · festive palette · 5.9k uses</p>
+      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=holiday">Use template</a>
+    </div>
+
+    <div class="card card-hover" data-cat="work">
+      <div class="mini mini-words" style="margin-bottom:12px;">
+        <i>Zoom</i><i>Email</i><i>Coffee</i><i>Memo</i><i>Call</i>
+        <i>Team</i><i>Goal</i><i>Plan</i><i>Slide</i><i>Chat</i>
+        <i>Boss</i><i>Lunch</i><i class="free-cell">FREE</i><i>Task</i><i>Win</i>
+        <i>Meet</i><i>Doc</i><i>Idea</i><i>Desk</i><i>High5</i>
+        <i>Deal</i><i>Vote</i><i>Game</i><i>Joke</i><i>Done</i>
+      </div>
+      <h3>Team Building</h3>
+      <p>5×5 · office-safe · 4.2k uses</p>
+      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=team-building">Use template</a>
+    </div>
+
+    <div class="card card-hover" data-cat="parties">
+      <div class="mini mini-words" style="margin-bottom:12px;">
+        <i>Cap</i><i>Gown</i><i>Diploma</i><i>Photo</i><i>Hug</i>
+        <i>Speech</i><i>Toss</i><i>Cheer</i><i>Family</i><i>Tears</i>
+        <i>Party</i><i>Cake</i><i class="free-cell">FREE</i><i>Music</i><i>Dance</i>
+        <i>Gift</i><i>Card</i><i>Friends</i><i>Future</i><i>Proud</i>
+        <i>Walk</i><i>Stage</i><i>Honor</i><i>Smile</i><i>Yay!</i>
+      </div>
+      <h3>Graduation</h3>
+      <p>5×5 · 25 squares · 3.7k uses</p>
+      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=graduation">Use template</a>
+    </div>
+
+    <div class="card card-hover" data-cat="sports">
+      <div class="mini mini-words" style="margin-bottom:12px;">
+        <i>TD</i><i>Field Goal</i><i>Fumble</i><i>Sack</i><i>Punt</i>
+        <i>Ad</i><i>Snack</i><i>Ref</i><i>Coach</i><i>Fan</i>
+        <i>Halftime</i><i>Replay</i><i class="free-cell">FREE</i><i>Flag</i><i>Score</i>
+        <i>Cheer</i><i>Wing</i><i>Nacho</i><i>Pick</i><i>Rush</i>
+        <i>Block</i><i>Kick</i><i>Pass</i><i>Win</i><i>OT</i>
+      </div>
+      <h3>Super Bowl</h3>
+      <p>5×5 · commercials included · 3.1k uses</p>
+      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=super-bowl">Use template</a>
+    </div>
+  </div>
+
+  <div class="card mt-24 center" style="background:#efeaff;">
+    <h3>Can't find your occasion?</h3>
+    <p>Start from scratch or let the AI brainstorm squares for any theme you can describe.</p>
+    <a class="btn mt-16" href="/create">Start a blank card</a>
+  </div>
+</div>
+
+<div class="cta-band">
+  <h2>Found one you like?</h2>
+  <p>Every template is free to customize, print, and share.</p>
+  <a class="btn btn-yellow" href="/create">Make a card now</a>
+</div>
+
+
+
+<script>
+  document.querySelectorAll('.chip[data-filter]').forEach(function(chip) {
+    chip.addEventListener('click', function(e) {
+      e.preventDefault();
+      var f = chip.dataset.filter;
+      document.querySelectorAll('.chip[data-filter]').forEach(function(c) { c.classList.toggle('on', c === chip); });
+      document.querySelectorAll('[data-cat]').forEach(function(card) {
+        card.style.display = (f === 'all' || card.dataset.cat === f) ? '' : 'none';
+      });
+    });
+  });
+</script>
+`,
+      }} />
+    </PlayfulShell>
   );
 }
