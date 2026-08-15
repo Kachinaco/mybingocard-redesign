@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getUserByEmail } from "@/lib/db/users";
-import Stripe from "stripe";
+import { getStripe } from "@/lib/stripe/config";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15.clover",
-});
 
 export async function POST(request: Request) {
   try {
@@ -37,7 +33,7 @@ export async function POST(request: Request) {
     }
 
     // Create Stripe billing portal session
-    const portalSession = await stripe.billingPortal.sessions.create({
+    const portalSession = await getStripe().billingPortal.sessions.create({
       customer: user.stripeCustomerId,
       return_url: `${process.env.NEXTAUTH_URL}/dashboard`,
     });

@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { deleteUserAccountData, getUserByEmail } from "@/lib/db/users";
-import Stripe from "stripe";
+import { getStripe } from "@/lib/stripe/config";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyAccountDeleted } from "@/lib/discord";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15.clover",
-});
 
 export async function DELETE(request: Request) {
   try {
@@ -49,7 +45,7 @@ export async function DELETE(request: Request) {
     // Cancel Stripe subscription if active
     if (user.stripeSubscriptionId) {
       try {
-        await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+        await getStripe().subscriptions.cancel(user.stripeSubscriptionId);
       } catch (e) {
         console.error("Failed to cancel Stripe subscription:", e);
       }
