@@ -3,10 +3,22 @@ import { auth } from "@/auth";
 import { getRequestActivityContext, trackActivity } from "@/lib/activity";
 import { notifyBingoAchieved } from "@/lib/discord";
 import { readJsonObject } from "@/lib/request-json";
+import { withTelemetryTimeout } from "@/lib/telemetry-timeout";
+
+const ACTIVITY_TIMEOUT_MS = 2500;
+
+function acceptedResponse() {
+  return NextResponse.json({ success: true, tracked: false }, { status: 202 });
+}
 
 export async function POST(request: Request) {
   try {
-    const body = await readJsonObject(request);
+    const bodyResult = await withTelemetryTimeout(readJsonObject(request), ACTIVITY_TIMEOUT_MS);
+    if (bodyResult.timedOut || !bodyResult.value) {
+      return acceptedResponse();
+    }
+
+    const body = bodyResult.value;
     if (!body.ok) {
       return NextResponse.json({ error: body.error }, { status: 400 });
     }
@@ -17,11 +29,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Event is required" }, { status: 400 });
     }
 
-    const session = await auth();
+    const sessionResult = await withTelemetryTimeout(auth(), ACTIVITY_TIMEOUT_MS);
+    if (sessionResult.timedOut) {
+      return acceptedResponse();
+    }
+
+    const session = sessionResult.value;
     const requestContext = getRequestActivityContext(request);
     const metadata = body.data.metadata && typeof body.data.metadata === "object" ? body.data.metadata : {};
 
-    await trackActivity({
+    const activityResult = await withTelemetryTimeout(trackActivity({
       event,
       source: "client",
       userId: session?.user?.id || null,
@@ -33,7 +50,10 @@ export async function POST(request: Request) {
       ipAddress: requestContext.ipAddress,
       userAgent: requestContext.userAgent,
       metadata,
-    });
+    }), ACTIVITY_TIMEOUT_MS);
+    if (activityResult.timedOut) {
+      return acceptedResponse();
+    }
 
     // Keep raw product telemetry in analytics. Discord is reserved for actual
     // outcomes and exceptions, not every save/checkout/export interaction.
@@ -48,6 +68,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to record activity" }, { status: 500 });
+    return acceptedResponse();
   }
 }

@@ -696,7 +696,7 @@ export default function VisitorTracker() {
       };
 
       if (reason === "page_view") {
-        trackClientActivity("page_view", payload, { sessionId });
+        trackClientActivity("page_view", payload, { sessionId, keepalive: false });
       } else {
         trackClientActivity("page_engagement", payload, { sessionId, keepalive: true });
       }
@@ -709,6 +709,7 @@ export default function VisitorTracker() {
           },
           body: JSON.stringify(payload),
           keepalive: true,
+          signal: AbortSignal.timeout(3000),
         }).catch(() => {
           // Tracking errors are intentionally non-blocking.
         });

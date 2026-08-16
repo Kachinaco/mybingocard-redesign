@@ -47,6 +47,41 @@ const SESSION_KEY = "tr_session_id";
 const ANON_KEY = "tr_anonymous_id";
 let memorySessionId: string | null = null;
 let memoryAnonymousId: string | null = null;
+let activityBackoffUntil = 0;
+let activityFailureCount = 0;
+const recentPageActivity = new Map<string, number>();
+const PAGE_ACTIVITY_COALESCE_MS = 2000;
+const ACTIVITY_REQUEST_TIMEOUT_MS = 2500;
+
+function shouldCoalescePageActivity(event: string, pathname: string): boolean {
+  if (event !== "page_view" && event !== "page_engagement") return false;
+
+  const key = `${event}:${pathname}`;
+  const now = Date.now();
+  const previous = recentPageActivity.get(key) || 0;
+  recentPageActivity.set(key, now);
+
+  if (recentPageActivity.size > 100) {
+    for (const [entryKey, recordedAt] of recentPageActivity) {
+      if (now - recordedAt > PAGE_ACTIVITY_COALESCE_MS) {
+        recentPageActivity.delete(entryKey);
+      }
+    }
+  }
+
+  return previous > 0 && now - previous < PAGE_ACTIVITY_COALESCE_MS;
+}
+
+function recordActivityFailure() {
+  activityFailureCount = Math.min(activityFailureCount + 1, 4);
+  const backoffMs = Math.min(1000 * (2 ** (activityFailureCount - 1)), 10000);
+  activityBackoffUntil = Date.now() + backoffMs;
+}
+
+function recordActivitySuccess() {
+  activityFailureCount = 0;
+  activityBackoffUntil = 0;
+}
 
 const TRACKER_LITE_EVENT_MAP: Record<string, string> = {
   home_start_draft_clicked: "click",
@@ -281,6 +316,14 @@ export function trackClientActivity(
     return;
   }
 
+  if (shouldCoalescePageActivity(event, builtPayload.pathname)) {
+    return;
+  }
+
+  if (Date.now() < activityBackoffUntil) {
+    return;
+  }
+
   try {
     window.__mbcAddBreadcrumb?.({
       type: "activity",
@@ -352,10 +395,9 @@ export function trackClientActivity(
       },
       body: payload,
       keepalive,
-    }).catch(() => {
-      // Activity tracking should never block product flows.
-    });
+      signal: AbortSignal.timeout(ACTIVITY_REQUEST_TIMEOUT_MS),
+    }).then(recordActivitySuccess).catch(recordActivityFailure);
   } catch {
-    // Activity tracking should never block product flows.
+    recordActivityFailure();
   }
 }

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 
 const PING_INTERVAL = 60_000; // 60 seconds while tab is active
+const PING_TIMEOUT = 2500;
 
 export default function SessionHeartbeat() {
   const { status } = useSession();
@@ -12,7 +13,11 @@ export default function SessionHeartbeat() {
 
   const ping = () => {
     if (hidden.current) return;
-    fetch("/api/ping", { method: "POST", keepalive: true }).catch(() => {});
+    fetch("/api/ping", {
+      method: "POST",
+      keepalive: true,
+      signal: AbortSignal.timeout(PING_TIMEOUT),
+    }).catch(() => {});
   };
 
   useEffect(() => {
