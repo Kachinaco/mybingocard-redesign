@@ -21,6 +21,7 @@ const NEXT_CHUNK_PATH = "/_next/static/chunks/";
 const NEXT_DIR = path.join(APP_DIR, ".next");
 const NEXT_STATIC_DIR = path.join(NEXT_DIR, "static");
 const NEXT_PREVIOUS_DIR = path.join(APP_DIR, ".next.previous");
+const NEXT_INCOMING_DIR = path.join(APP_DIR, ".next.incoming");
 const STATIC_ARCHIVE_DIR = path.join(APP_DIR, ".next-static-archive");
 // Keep staged builds outside the app checkout. A nested build makes Next.js
 // discover the parent checkout's lockfile and can change Turbopack's root.
@@ -233,11 +234,28 @@ function installBuiltNext(buildDir) {
     throw new Error(`Staged build did not produce ${buildIdPath}`);
   }
 
-  fs.rmSync(NEXT_PREVIOUS_DIR, { recursive: true, force: true });
-  if (fs.existsSync(NEXT_DIR)) {
-    fs.renameSync(NEXT_DIR, NEXT_PREVIOUS_DIR);
+  // The staged build may live on a different filesystem from APP_DIR. Copy it
+  // into an app-local incoming directory first, then swap directories with
+  // same-filesystem renames. This keeps the old build recoverable if a swap
+  // fails and avoids EXDEV after the service's active build is moved away.
+  fs.rmSync(NEXT_INCOMING_DIR, { recursive: true, force: true });
+  fs.cpSync(builtNextDir, NEXT_INCOMING_DIR, { recursive: true });
+  let previousMoved = false;
+  try {
+    fs.rmSync(NEXT_PREVIOUS_DIR, { recursive: true, force: true });
+    if (fs.existsSync(NEXT_DIR)) {
+      fs.renameSync(NEXT_DIR, NEXT_PREVIOUS_DIR);
+      previousMoved = true;
+    }
+    fs.renameSync(NEXT_INCOMING_DIR, NEXT_DIR);
+  } catch (error) {
+    if (!fs.existsSync(NEXT_DIR) && previousMoved && fs.existsSync(NEXT_PREVIOUS_DIR)) {
+      fs.renameSync(NEXT_PREVIOUS_DIR, NEXT_DIR);
+    }
+    throw error;
+  } finally {
+    fs.rmSync(NEXT_INCOMING_DIR, { recursive: true, force: true });
   }
-  fs.renameSync(builtNextDir, NEXT_DIR);
   rewriteNextNodeModuleSymlinks();
   console.log("Installed staged .next build into the live app directory.");
 }
