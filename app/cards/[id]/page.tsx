@@ -812,7 +812,7 @@ export default function CardViewPage() {
       <section className="card card-body empty-state notice-danger" role="alert">
         <div className="empty-state-inner">
           <div className="empty-icon" aria-hidden="true">!</div>
-          <p>{error === "Card not found" ? "The saved card could not be loaded for this account." : "Please try again, or return to My cards."}</p>
+          <p>{error === "Card not found" ? "Check the URL or return to My cards." : "Reload the page and try again."}</p>
           <Link href="/dashboard/cards" className="button button-primary">Back to My cards</Link>
         </div>
       </section>
