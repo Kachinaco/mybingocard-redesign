@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { isImageCell, parseImageCell } from "@/lib/cellContent";
+import { isImageCell } from "@/lib/cellContent";
 import ThemedCardWrapper from "@/components/ThemedCardWrapper";
 import PlaySoloButton from "@/components/PlaySoloButton";
 import StartGameButton from "@/components/StartGameButton";
@@ -291,9 +291,7 @@ function MyCardsPageInner() {
                   border: `1px solid ${card.style.borderColor || "#e2e8f0"}`,
                 }}
               >
-                {isFreeSpace ? "FREE" : isImageCell(cell) ? (
-                  <img src={parseImageCell(cell)?.imageUrl} alt="" className="w-full h-full object-contain" loading="lazy" />
-                ) : cell.length > 12 ? cell.substring(0, 12) + "..." : cell}
+                {isFreeSpace ? "FREE" : isImageCell(cell) ? "IMAGE" : cell.length > 12 ? cell.substring(0, 12) + "..." : cell}
               </div>
             );
           })}
