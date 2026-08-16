@@ -1810,8 +1810,8 @@ function CreateCardContent() {
           <>
           <div className="creator-shell">
 
-            {/* Left Panel - Card Details */}
-            <div className="order-2 lg:order-1 space-y-4 lg:sticky lg:top-16 lg:max-h-[calc(100vh-11.5rem)] lg:space-y-3 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 min-w-0">
+            {/* Editor Panel - Card details and tools */}
+            <section className="panel editor-panel">
               {!session?.user && !checkingPermission && (
                 <div className="px-3 py-2.5 bg-[#7c5cff]/10 border border-[#7c5cff]/15 rounded-lg text-[#7c5cff] flex items-start gap-2.5">
                   <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1848,6 +1848,13 @@ function CreateCardContent() {
                   </button>
                 </div>
               )}
+              {/* Editor Head */}
+              <div className="editor-head">
+                <span className="eyebrow">Start with an idea</span>
+                <h1>Make it yours</h1>
+                <p>Use a filled starter or begin with an empty card. Changes appear in the preview as you type.</p>
+              </div>
+
               {/* Basic Info */}
               <div className="bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_5px_0_#33312e] p-4 lg:p-3">
                 <h2 className="text-base font-bold text-[#33312e] mb-3 lg:mb-2">
@@ -2043,10 +2050,7 @@ function CreateCardContent() {
                 </div>
               </div>
 
-            </div>
-
-            {/* Right Panel - AI, Style & Batch */}
-            <div className="order-3 lg:order-3 space-y-4 lg:sticky lg:top-16 lg:max-h-[calc(100vh-11.5rem)] lg:space-y-3 lg:overflow-y-auto lg:overscroll-contain lg:pr-1 min-w-0">
+            {/* AI, Style & Batch tools */}
               {/* AI Generate */}
               {bingoVariant === "custom" && (
                 <AiGenerateSection
@@ -2405,20 +2409,24 @@ function CreateCardContent() {
                   </button>
                 )}
               </div>
-            </div>
+            </section>
 
-            {/* Center Panel - Bingo Grid */}
-            <div className="order-1 lg:order-2 lg:sticky lg:top-16 lg:self-start min-w-0">
-              <div className="bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_5px_0_#33312e] p-3 lg:max-w-[500px] 2xl:max-w-[540px] lg:mx-auto flex flex-col">
-                <div className="flex justify-between items-center mb-3">
-                  <h2 className="text-base font-bold text-[#33312e]">
-                    {showPreview ? "Card Preview" : "Edit Content"}
-                  </h2>
-                  {!showPreview && (
-                    <span className="text-xs font-semibold text-[#6b6459] uppercase tracking-wider bg-[#fff7ed] px-3 py-1 rounded-full">
-                      {rows}×{columns} grid • {cells.length} cells
-                    </span>
-                  )}
+            {/* Preview Panel - Live card preview */}
+            <section className="panel preview-panel">
+              <div className="flex flex-col gap-4">
+                <div className="flex justify-between items-start gap-3">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#b9275b]">Live preview</span>
+                    <h2 className="text-xl font-bold text-[#33312e]">See the finished card</h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleShuffleCells}
+                    disabled={showPreview || bingoVariant !== "custom"}
+                    className="rounded-xl border-2 border-[#33312e] px-3 py-1.5 text-sm font-bold shadow-[0_3px_0_#33312e] disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
+                  >
+                    Shuffle
+                  </button>
                 </div>
 
                 {/* Bingo Grid */}
@@ -2632,7 +2640,7 @@ function CreateCardContent() {
                   </div>
                 </div>
               </div>
-            </div>
+            </section>
           </div>
           {showCreatePageAd && (!permissionStatus?.planType || permissionStatus.planType === "FREE") && (
             <div className="mt-4 hidden lg:block">
@@ -3003,26 +3011,29 @@ function CreatePageSkeleton() {
           </div>
 
           <div className="creator-shell">
-
-            <div className="order-2 lg:order-1 hidden lg:block rounded-2xl border-[2.5px] border-[#33312e] bg-white shadow-[0_5px_0_#33312e] p-3">
-              <div className="mb-3 h-5 w-28 rounded bg-[#a39a88]" />
-              <div className="space-y-3">
-                <div className="h-10 rounded-xl bg-[#a39a88]/80" />
-                <div className="h-16 rounded-xl bg-[#a39a88]/80" />
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="h-9 rounded-lg bg-[#7c5cff]/15" />
-                  <div className="h-9 rounded-lg bg-[#a39a88]/80" />
-                  <div className="h-9 rounded-lg bg-[#a39a88]/80" />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="h-8 rounded-lg bg-[#7c5cff]/15" />
-                  <div className="h-8 rounded-lg bg-[#a39a88]/80" />
-                  <div className="h-8 rounded-lg bg-[#a39a88]/80" />
+            <section className="panel editor-panel hidden lg:flex">
+              <div className="editor-head">
+                <div className="h-4 w-24 rounded bg-[#b9275b]/30" />
+                <div className="h-8 w-48 rounded bg-[#a39a88]/60" />
+                <div className="h-4 w-64 rounded bg-[#a39a88]/40" />
+              </div>
+              <div className="rounded-2xl border-[2.5px] border-[#33312e] bg-white shadow-[0_5px_0_#33312e] p-3">
+                <div className="mb-3 h-5 w-28 rounded bg-[#a39a88]" />
+                <div className="space-y-3">
+                  <div className="h-10 rounded-xl bg-[#a39a88]/80" />
+                  <div className="h-16 rounded-xl bg-[#a39a88]/80" />
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="h-9 rounded-lg bg-[#7c5cff]/15" />
+                    <div className="h-9 rounded-lg bg-[#a39a88]/80" />
+                    <div className="h-9 rounded-lg bg-[#a39a88]/80" />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="h-8 rounded-lg bg-[#7c5cff]/15" />
+                    <div className="h-8 rounded-lg bg-[#a39a88]/80" />
+                    <div className="h-8 rounded-lg bg-[#a39a88]/80" />
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="order-3 lg:order-3 hidden lg:block space-y-3">
               <div className="rounded-2xl border-[2.5px] border-[#33312e] bg-white shadow-[0_5px_0_#33312e] p-3">
                 <div className="mb-3 h-5 w-28 rounded bg-[#a39a88]" />
                 <div className="h-10 rounded-xl bg-[#a39a88]/80" />
@@ -3036,15 +3047,18 @@ function CreatePageSkeleton() {
                   ))}
                 </div>
               </div>
-            </div>
+            </section>
 
-            <div className="order-1 lg:order-2 min-w-0">
-              <div className="bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_5px_0_#33312e] p-3 lg:max-w-[500px] 2xl:max-w-[540px] lg:mx-auto flex flex-col">
-                <div className="flex justify-between items-center mb-3">
-                  <div className="h-5 w-28 rounded bg-[#a39a88]" />
-                  <div className="h-6 w-28 rounded-full bg-[#fff7ed]" />
+            <section className="panel preview-panel">
+              <div className="flex flex-col gap-4">
+                <div className="flex justify-between items-start gap-3">
+                  <div>
+                    <div className="h-4 w-24 rounded bg-[#b9275b]/30" />
+                    <div className="h-6 w-40 rounded bg-[#a39a88]/60" />
+                  </div>
+                  <div className="h-8 w-20 rounded-xl bg-[#a39a88]/60" />
                 </div>
-                <div className="flex-grow bg-[#fff7ed] rounded-xl border border-[#a39a88] p-2 lg:p-3 mb-2">
+                <div className="flex-grow bg-[#fff7ed] rounded-xl border border-[#a39a88] p-2 lg:p-3">
                   <div className="mb-2 h-7 rounded-md bg-[#7c5cff]/15" />
                   <div className="grid grid-cols-3 gap-2">
                     {Array.from({ length: 9 }).map((_, index) => (
@@ -3053,9 +3067,8 @@ function CreatePageSkeleton() {
                   </div>
                 </div>
               </div>
-            </div>
-          
-        </div>
+            </section>
+          </div>
         </div>
       </main>
 

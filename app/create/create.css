@@ -213,3 +213,59 @@
     display: none;
   }
 }
+
+.playful-create .editor-head {
+  display: grid;
+  gap: 5px;
+}
+
+.playful-create .editor-head .eyebrow {
+  color: #b9275b;
+  font-family: var(--font-fredoka), 'Fredoka', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.playful-create .editor-head h1 {
+  font-size: clamp(29px, 2.8vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+  text-wrap: balance;
+  color: #33312e;
+}
+
+.playful-create .editor-head p {
+  max-width: 58ch;
+  color: #6b6459;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.playful-create .editor-panel {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  max-height: calc(100vh - 120px);
+}
+
+.playful-create .preview-panel {
+  position: sticky;
+  top: 80px;
+  align-self: start;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 900px) {
+  .playful-create .editor-panel,
+  .playful-create .preview-panel {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+}
