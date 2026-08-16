@@ -102,7 +102,7 @@ function CreateCardContent() {
     window.location.href = `/api/native/oauth/${provider}/start?callbackUrl=${encodeURIComponent(targetCallbackUrl || "/dashboard")}`;
     return true;
   };
-  const [size, setSize] = useState<GridSize>(3);
+  const [size, setSize] = useState<GridSize>(5);
   const [rows, setRows] = useState(3);
   const [columns, setColumns] = useState(3);
   const [bingoVariant, setBingoVariant] = useState<BingoVariant>("custom");
@@ -159,6 +159,10 @@ function CreateCardContent() {
   const [imagePickerCellIndex, setImagePickerCellIndex] = useState<number | null>(null);
   const [showNewUserTip, setShowNewUserTip] = useState(false);
   const [showCreatePageAd, setShowCreatePageAd] = useState(false);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
+  const cellsTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [activeStarter, setActiveStarter] = useState<string | null>(null);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedSnapshotRef = useRef("");
   const currentCardIdRef = useRef<string | null>(cardIdFromUrl);
@@ -1017,6 +1021,94 @@ function CreateCardContent() {
     handleCellChange(index, "");
   };
 
+  const starterTemplates = [
+    {
+      id: "birthday",
+      emoji: "🎉",
+      label: "Birthday",
+      title: "Birthday party bingo",
+      theme: "confetti" as const,
+      words: ["Cake","Balloon","Gift","Dance","Photo","Music","Games","Candles","Toast","Party hat","Confetti","Prize","Snack","Cheer","Selfie","Decor","Laugh","Make a wish","Birthday card","Guest","Favorite song","Sweet treat","Big hug","Surprise"],
+    },
+    {
+      id: "baby",
+      emoji: "🍼",
+      label: "Baby shower",
+      title: "Baby shower bingo",
+      theme: "mint" as const,
+      words: ["Baby bottle","Tiny socks","Stroller","Story time","Diaper bag","Lullaby","Baby blanket","First smile","Pacifier","Night light","Baby book","High chair","Teddy bear","Bath time","Little yawn","Nursery","Family photo","Sweet dreams","Baby name","First steps","Tiny hat","Cuddle time","Happy tears","Bundle of joy"],
+    },
+    {
+      id: "classroom",
+      emoji: "🍎",
+      label: "Classroom",
+      title: "Classroom bingo",
+      theme: "grape" as const,
+      words: ["Raise your hand","Read aloud","New word","Ask a question","Help a friend","Pencil ready","Solve it","Great idea","Take turns","Listen closely","Share an answer","Try again","Teamwork","Book time","Quiet voice","Show your work","Kind words","Brain break","Be curious","Clean up","Draw it","Count it","Spell it","You did it"],
+    },
+    {
+      id: "blank",
+      emoji: "✨",
+      label: "Blank",
+      title: "My bingo card",
+      theme: "confetti" as const,
+      words: [] as string[],
+    },
+  ];
+
+  const themeOptions = [
+    { id: "confetti", name: "Confetti pop", description: "Pink, teal and yellow", colors: ["#ff5d8f", "#ffb800", "#2ec4b6", "#fff7ed"] },
+    { id: "mint", name: "Fresh mint", description: "Calm teal tones", colors: ["#147f75", "#2ec4b6", "#ffb800", "#f5fffd"] },
+    { id: "grape", name: "Grape glow", description: "Bold and modern", colors: ["#613eea", "#7c5cff", "#ffb800", "#efeaff"] },
+    { id: "sunshine", name: "Sunshine", description: "Warm and cheerful", colors: ["#ff8a3d", "#ffb800", "#ff5d8f", "#fff0c7"] },
+  ];
+
+  const applyStarter = (starterId: string) => {
+    const starter = starterTemplates.find((s) => s.id === starterId);
+    if (!starter) return;
+    setActiveStarter(starterId);
+    setTitle(starter.title);
+    const theme = themeOptions.find((t) => t.id === starter.theme);
+    if (theme) {
+      setStyle((prev) => ({
+        ...prev,
+        backgroundColor: theme.colors[3],
+        textColor: "#0f172a",
+        borderColor: theme.colors[0],
+        fontFamily: "Arial",
+      }));
+    }
+    if (starter.words.length > 0) {
+      const total = size * size;
+      const padded = [...starter.words];
+      while (padded.length < total) padded.push("");
+      setCells(padded.slice(0, total));
+    } else {
+      setCells(Array(size * size).fill(""));
+    }
+    trackClientActivity("create_starter_selected", { starter_id: starterId });
+  };
+
+  const cellsAsText = () => cells.join("\n");
+
+  const setCellsFromText = (text: string) => {
+    const lines = text.split("\n").map((l) => l.trim());
+    const total = size * size;
+    const next = Array(total).fill("");
+    for (let i = 0; i < Math.min(lines.length, total); i++) {
+      next[i] = lines[i];
+    }
+    setCells(next);
+  };
+
+  const currentThemeId = () => {
+    const bg = style.backgroundColor?.toLowerCase() || "";
+    if (bg === "#f5fffd") return "mint";
+    if (bg === "#fbf9ff") return "grape";
+    if (bg === "#fffdf5") return "sunshine";
+    return "confetti";
+  };
+
   const handleShuffleCells = () => {
     if (bingoVariant === "classic75" || bingoVariant === "classic90") {
       setCells(generateClassicBingoCard(bingoVariant));
@@ -1808,9 +1900,24 @@ function CreateCardContent() {
 
           {editorUnlocked && !isLoadingCard && (
           <>
-          <div className="creator-shell">
+          <div className="creator-shell" data-mobile-view={mobileView}>
+            <div className="mobile-view-switch" role="group" aria-label="Switch view">
+              <button
+                type="button"
+                aria-pressed={mobileView === "edit"}
+                onClick={() => setMobileView("edit")}
+              >
+                Edit card
+              </button>
+              <button
+                type="button"
+                aria-pressed={mobileView === "preview"}
+                onClick={() => setMobileView("preview")}
+              >
+                Preview
+              </button>
+            </div>
 
-            {/* Editor Panel - Card details and tools */}
             <section className="panel editor-panel">
               {!session?.user && !checkingPermission && (
                 <div className="px-3 py-2.5 bg-[#7c5cff]/10 border border-[#7c5cff]/15 rounded-lg text-[#7c5cff] flex items-start gap-2.5">
@@ -1829,6 +1936,7 @@ function CreateCardContent() {
                   </span>
                 </div>
               )}
+
               {showNewUserTip && !isPremiumGateActive && (
                 <div className="bg-[#fff7ed] border border-[#a39a88] rounded-xl px-4 py-3 flex items-start justify-between gap-3 animate-fade-in-up">
                   <p className="text-sm text-[#33312e] leading-snug">
@@ -1848,848 +1956,525 @@ function CreateCardContent() {
                   </button>
                 </div>
               )}
-              {/* Editor Head */}
+
               <div className="editor-head">
-                <span className="eyebrow">Start with an idea</span>
-                <h1>Make it yours</h1>
-                <p>Use a filled starter or begin with an empty card. Changes appear in the preview as you type.</p>
+                <span className="eyebrow">Card maker · Step {currentStep} of 3</span>
+                <h1>{isEditingExistingCard ? "Edit Bingo Card" : "Build your bingo card"}</h1>
+                <p>Choose a starter, type your title, and fill the squares. The preview updates as you go.</p>
               </div>
 
-              {/* Basic Info */}
-              <div className="bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_5px_0_#33312e] p-4 lg:p-3">
-                <h2 className="text-base font-bold text-[#33312e] mb-3 lg:mb-2">
-                   Card Details
-                </h2>
-
-                <div className="space-y-3 lg:space-y-2.5">
-                  <div>
-                    <label htmlFor="card-title" className="block text-xs font-semibold text-[#33312e] mb-1">
-                      Card Title <span className="text-[#ff5d8f]">*</span>
-                    </label>
-                    <input
-                      ref={titleInputRef}
-                      id="card-title"
-                      type="text"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      onBlur={() => {
-                        if (title.trim()) {
-                          trackOnce("card_title_entered", { title: title.trim() });
-                        }
-                      }}
-                      placeholder="e.g., Wedding Bingo"
-                      aria-invalid={Boolean(error && !title.trim())}
-                      aria-describedby={error && !title.trim() ? "create-card-error" : undefined}
-                      className="w-full px-3 py-2 bg-[#fff7ed] border border-[#a39a88] rounded-xl focus:ring-2 focus:ring-[#7c5cff]/20 focus:border-[#7c5cff] outline-none transition-all duration-200 placeholder:text-[#6b6459] text-sm"
-                      disabled={showPreview}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#33312e] mb-1">
-                      Description <span className="font-normal text-[#6b6459]">(optional)</span>
-                    </label>
-                    <textarea
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Add some instructions for your players..."
-                      rows={2}
-                      className="w-full px-3 py-2 bg-[#fff7ed] border border-[#a39a88] rounded-xl focus:ring-2 focus:ring-[#7c5cff]/20 focus:border-[#7c5cff] outline-none transition-all duration-200 placeholder:text-[#6b6459] resize-none text-sm"
-                      disabled={showPreview}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#33312e] mb-1">
-                      Bingo Type
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {([
-                        ["custom", "Custom"],
-                        ["classic75", "75-Ball"],
-                        ["classic90", "90-Ball"],
-                      ] as [BingoVariant, string][]).map(([variant, label]) => (
+                <div className="step-pane" hidden={currentStep !== 1}>
+                  <fieldset>
+                    <legend>Start with a template</legend>
+                    <div className="starter-grid" role="group" aria-label="Card starter templates">
+                      {starterTemplates.map((starter) => (
                         <button
-                          key={variant}
+                          key={starter.id}
                           type="button"
-                          onClick={() => applyBingoVariant(variant)}
-                          disabled={showPreview}
-                          className={`w-full rounded-lg border px-2 py-2 text-sm font-semibold transition-all duration-200 ${
-                            bingoVariant === variant
-                              ? "border-[#7c5cff] bg-[#7c5cff]/10 text-[#7c5cff] ring-1 ring-[#7c5cff]"
-                              : "border-[#a39a88] bg-white text-[#33312e] hover:border-[#7c5cff]/30 hover:bg-[#fff7ed]"
-                          }`}
+                          aria-pressed={activeStarter === starter.id}
+                          onClick={() => applyStarter(starter.id)}
+                          className="starter-card"
                         >
-                          {label}
+                          <span className="starter-emoji" aria-hidden="true">{starter.emoji}</span>
+                          <span>{starter.label}</span>
                         </button>
                       ))}
                     </div>
-                    <p className="mt-1.5 text-xs text-[#6b6459]">
-                      {bingoVariant === "classic75" && "Strict B-I-N-G-O columns, 1-75 call pool, center FREE."}
-                      {bingoVariant === "classic90" && "Traditional 3x9 ticket, 15 numbers, 1-90 call pool."}
-                      {bingoVariant === "custom" && "Use your own words, images, numbers, or prompts."}
-                    </p>
-                  </div>
+                  </fieldset>
 
-                  {bingoVariant === "custom" && (
-                  <div>
-                    <label className="block text-xs font-semibold text-[#33312e] mb-1">
-                      Grid Size
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[3, 4, 5].map((s) => {
-                        const gridSize = s as GridSize;
-                        const isAllowed = canUseGridSize(gridSize);
-                        const tooltip = getGridSizeTooltip(gridSize);
-
-                        return (
-                          <div key={s} className="relative group">
-                            <button
-                              onClick={() => {
-                                if (isAllowed && gridSize !== size) {
-                                  trackClientActivity("grid_size_changed", {
-                                    from: size,
-                                    to: gridSize,
-                                    cells_filled_before: cells.filter((c) => c.trim()).length,
-                                  });
-                                  setSize(gridSize);
-                                }
-                              }}
-                              disabled={showPreview || !isAllowed}
-                              className={`w-full py-1.5 rounded-lg border transition-all duration-200 font-medium text-sm ${
-                                size === s
-                                  ? "border-[#7c5cff] bg-[#7c5cff]/10 text-[#7c5cff] ring-1 ring-[#7c5cff]"
-                                  : isAllowed
-                                  ? "border-[#a39a88] bg-white text-[#33312e] hover:border-[#7c5cff]/30 hover:bg-[#fff7ed]"
-                                  : "border-[#a39a88] bg-[#fff7ed] text-[#a39a88] cursor-not-allowed"
-                              }`}
-                            >
-                              {s}×{s}
-                            </button>
-                            {!isAllowed && tooltip && (
-                              <div className="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1.5 bg-[#33312e] text-white text-xs rounded-lg whitespace-nowrap z-10 shadow-lg">
-                                {tooltip}
-                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-800"></div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  )}
-
-                  <div className="space-y-3 pt-2 lg:space-y-2.5 lg:pt-1">
-                    {bingoVariant !== "custom" && (
-                      <button
-                        type="button"
-                        onClick={handleShuffleCells}
+                  <div className="form-row">
+                    <div className="field">
+                      <label htmlFor="card-title" className="field-label">
+                        Card Title <span style={{ color: "var(--pink)" }}>*</span>
+                      </label>
+                      <input
+                        ref={titleInputRef}
+                        id="card-title"
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        onBlur={() => { if (title.trim()) trackOnce("card_title_entered", { title: title.trim() }); }}
+                        placeholder="e.g., Wedding Bingo"
+                        aria-invalid={Boolean(error && !title.trim())}
+                        aria-describedby={error && !title.trim() ? "create-card-error" : undefined}
+                        className="text-input"
                         disabled={showPreview}
-                        className="flex items-center gap-3 p-3 w-full border border-[#a39a88] rounded-xl cursor-pointer hover:bg-[#fff7ed] transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <div className="w-5 h-5 flex items-center justify-center text-[#7c5cff]">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                        </div>
-                        <span className="text-sm font-medium text-[#33312e]">Regenerate classic card</span>
-                      </button>
-                    )}
-                    {bingoVariant === "custom" && (
-                     <label htmlFor="free-space-toggle" className={`flex items-center gap-3 p-3 lg:p-2.5 border border-[#a39a88] rounded-xl transition-colors ${showPreview ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-[#fff7ed]"}`}>
-                      <div className="relative flex items-center">
-                        <input
-                            id="free-space-toggle"
-                            type="checkbox"
-                            checked={freeSpace}
-                            onChange={(e) => {
-                              setFreeSpace(e.target.checked);
-                              trackClientActivity("free_space_toggled", { enabled: e.target.checked });
-                            }}
-                            disabled={showPreview}
-                            className="w-5 h-5 text-[#7c5cff] border-[#a39a88] rounded focus:ring-[#7c5cff]"
-                        />
-                      </div>
-                      <span className="text-sm font-medium text-[#33312e]">Include free space</span>
-                    </label>
-                    )}
-
-                    {bingoVariant === "custom" && (
-                    <button
-                      type="button"
-                      onClick={handleShuffleCells}
-                      disabled={showPreview}
-                      className="flex items-center gap-3 p-3 lg:p-2.5 w-full border border-[#a39a88] rounded-xl cursor-pointer hover:bg-[#fff7ed] transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <div className="w-5 h-5 flex items-center justify-center text-[#7c5cff]">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                        </svg>
-                      </div>
-                      <span className="text-sm font-medium text-[#33312e]">Shuffle cells</span>
-                    </button>
-                    )}
-
-                    <label htmlFor="public-toggle" className={`flex items-center gap-3 p-3 lg:p-2.5 border border-[#a39a88] rounded-xl transition-colors ${showPreview ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:bg-[#fff7ed]"}`}>
-                      <div className="relative flex items-center">
-                         <input
-                            id="public-toggle"
-                            type="checkbox"
-                            checked={isPublic}
-                            onChange={(e) => setIsPublic(e.target.checked)}
-                            disabled={showPreview}
-                            className="w-5 h-5 text-[#7c5cff] border-[#a39a88] rounded focus:ring-[#7c5cff]"
-                        />
-                      </div>
-                      <div>
-                          <div className="text-sm font-medium text-[#33312e]">Make Public</div>
-                          <div className="text-xs text-[#6b6459]">Allow anyone with the link to view</div>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-            {/* AI, Style & Batch tools */}
-              {/* AI Generate */}
-              {bingoVariant === "custom" && (
-                <AiGenerateSection
-                  size={size}
-                  freeSpace={freeSpace}
-                  title={title}
-                  onCellsGenerated={handleAiCellsGenerated}
-                  isPremium={true}
-                  disabled={showPreview}
-                  onUpgradeNeeded={() => {
-                    setUpgradeReason("ai_generate");
-                    setShowUpgradeModal(true);
-                  }}
-                />
-              )}
-
-              {/* Style Customization */}
-              <div className="bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_5px_0_#33312e] p-4 lg:p-3">
-                <h2 className="text-base font-bold text-[#33312e] mb-3 lg:mb-2">
-                   Style & Colors
-                </h2>
-
-                <div className="space-y-4 lg:space-y-3">
-                  {/* Theme Presets */}
-                  <div>
-                    <label className="block text-xs font-semibold text-[#6b6459] uppercase tracking-wide mb-2">
-                      Quick Themes
-                    </label>
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {[
-                        { name: "Classic", bg: "#ffffff", text: "#0f172a", border: "#e2e8f0", font: "Arial" },
-                        { name: "Ocean", bg: "#eff6ff", text: "#1e3a5f", border: "#93c5fd", font: "Georgia" },
-                        { name: "Sunset", bg: "#fff7ed", text: "#7c2d12", border: "#fdba74", font: "Georgia" },
-                        { name: "Forest", bg: "#f0fdf4", text: "#14532d", border: "#86efac", font: "Verdana" },
-                        { name: "Berry", bg: "#fdf2f8", text: "#701a75", border: "#f0abfc", font: "Arial" },
-                        { name: "Gold", bg: "#fefce8", text: "#713f12", border: "#fde047", font: "Georgia" },
-                        { name: "Slate", bg: "#f8fafc", text: "#334155", border: "#cbd5e1", font: "Verdana" },
-                        { name: "Night", bg: "#1e293b", text: "#f1f5f9", border: "#475569", font: "Arial" },
-                      ].map((theme) => (
-                        <button
-                          key={theme.name}
-                          onClick={() => setStyle({
-                            ...style,
-                            backgroundColor: theme.bg,
-                            textColor: theme.text,
-                            borderColor: theme.border,
-                            fontFamily: theme.font,
-                          })}
-                          disabled={showPreview}
-                          title={theme.name}
-                          className={`group relative flex flex-col items-center gap-0.5 p-1.5 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
-                            style.backgroundColor === theme.bg && style.textColor === theme.text
-                              ? "border-[#7c5cff] ring-2 ring-[#7c5cff]/20"
-                              : "border-[#a39a88] hover:border-[#a39a88]"
-                          }`}
-                        >
-                          <div
-                            className="w-full h-6 rounded border flex items-center justify-center"
-                            style={{ backgroundColor: theme.bg, borderColor: theme.border }}
-                          >
-                            <span className="text-[8px] font-bold" style={{ color: theme.text }}>BINGO</span>
-                          </div>
-                          <span className="text-[9px] font-medium text-[#6b6459] leading-none">{theme.name}</span>
-                        </button>
-                      ))}
+                      />
                     </div>
-                  </div>
-
-                  {/* Custom Colors (collapsed by default) */}
-                  <details className="group">
-                    <summary className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#6b6459] uppercase tracking-wide select-none hover:text-[#7c5cff] transition-colors">
-                      <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                      Custom Colors & Font
-                    </summary>
-                    <div className="mt-3 space-y-3">
-                      {[
-                        { label: "Background", key: "backgroundColor" as const },
-                        { label: "Text", key: "textColor" as const },
-                        { label: "Borders", key: "borderColor" as const },
-                      ].map(({ label, key }) => (
-                        <div key={key} className="flex items-center gap-3">
-                          <input
-                            type="color"
-                            value={style[key]}
-                            onChange={(e) => setStyle({ ...style, [key]: e.target.value })}
-                            disabled={showPreview}
-                            className="w-9 h-9 rounded-lg cursor-pointer border border-[#a39a88] p-0.5 bg-white flex-shrink-0"
-                          />
-                          <span className="text-sm text-[#33312e] w-20">{label}</span>
-                          <div
-                            className="flex-1 h-6 rounded-md border border-[#a39a88]"
-                            style={{ backgroundColor: style[key] }}
-                          ></div>
-                        </div>
-                      ))}
-                      {/* Font Controls — inside collapsible */}
-                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#fff7ed]">
-                        <div>
-                          <label className="block text-xs font-semibold text-[#6b6459] uppercase tracking-wide mb-1.5">Font</label>
-                          <select
-                            value={style.fontFamily}
-                            onChange={(e) => setStyle({ ...style, fontFamily: e.target.value })}
-                            disabled={showPreview}
-                            className="w-full px-2 py-2 bg-[#fff7ed] border border-[#a39a88] rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#7c5cff]/20 focus:border-[#7c5cff]"
-                            style={{ fontFamily: style.fontFamily }}
-                          >
-                            <option value="Arial" style={{ fontFamily: "Arial" }}>Arial</option>
-                            <option value="Georgia" style={{ fontFamily: "Georgia" }}>Georgia</option>
-                            <option value="Times New Roman" style={{ fontFamily: "Times New Roman" }}>Times</option>
-                            <option value="Courier New" style={{ fontFamily: "Courier New" }}>Courier</option>
-                            <option value="Verdana" style={{ fontFamily: "Verdana" }}>Verdana</option>
-                            <option value="Comic Sans MS" style={{ fontFamily: "Comic Sans MS" }}>Comic Sans</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-[#6b6459] uppercase tracking-wide mb-1.5">Size</label>
-                          <div className="flex items-center gap-0.5 bg-[#fff7ed] border border-[#a39a88] rounded-lg p-0.5">
-                            {[
-                              { value: "12px", label: "S" },
-                              { value: "14px", label: "M" },
-                              { value: "16px", label: "L" },
-                              { value: "18px", label: "XL" },
-                            ].map((s) => (
-                              <button
-                                key={s.value}
-                                onClick={() => setStyle({ ...style, fontSize: s.value })}
-                                disabled={showPreview}
-                                className={`flex-1 py-1.5 rounded-md text-xs font-bold transition-all ${
-                                  style.fontSize === s.value
-                                    ? "bg-white text-[#7c5cff] shadow-sm"
-                                    : "text-[#6b6459] hover:text-[#33312e]"
-                                }`}
-                              >
-                                {s.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </details>
-
-                </div>
-              
-        </div>
-
-              {/* Batch Generation — Always visible, prominent */}
-              <div className="bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_5px_0_#33312e] p-4 lg:p-3">
-                <h2 className="text-base font-bold text-[#33312e] mb-2 flex items-center gap-2">
-                   <span className="w-7 h-7 rounded-lg bg-[#7c5cff] text-white flex items-center justify-center text-sm">
-                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                     </svg>
-                   </span>
-                   Print Multiple Cards
-                </h2>
-                <p className="text-xs text-[#6b6459] mb-3">Generate up to 500 unique shuffled cards.</p>
-
-                {/* Tier selection — always visible */}
-                <div className="grid grid-cols-4 gap-1.5 mb-3">
-                  {([30, 100, 250, 500] as const).map((n) => {
-                    const isSelected = batchCount === n && batchMode;
-                    const hasReady = !isPremiumBatchUser && (availableBatchCounts[n] || 0) > 0;
-                    return (
-                      <button
-                        key={n}
-                        onClick={() => {
-                          setBatchMode(true); setBatchCount(n); setBatchResult(null);
-                          trackClientActivity("batch_tier_selected", {
-                            batch_count: n,
-                            price: BATCH_PACKS[n].label,
-                            plan_type: permissionStatus?.planType || "GUEST",
-                            source: "create_page",
-                          });
-                        }}
-                        className={`relative py-1.5 px-1 rounded-lg border-2 text-center transition-all ${
-                          isSelected
-                            ? "border-[#7c5cff] bg-white shadow-md ring-1 ring-[#7c5cff]/20"
-                            : "border-[#a39a88]/80 bg-white/70 hover:border-[#7c5cff] hover:bg-white"
-                        }`}
-                      >
-                        <div className="text-sm font-bold text-[#33312e]">{n}</div>
-                        <div className="text-[10px] font-medium text-[#6b6459]">cards</div>
-                        {!isPremiumBatchUser && (
-                          <div className="mt-1 text-xs font-bold text-[#7c5cff]">
-                            {BATCH_PACKS[n].label}
-                          </div>
-                        )}
-                        {isPremiumBatchUser && (
-                          <div className="mt-1 text-[10px] font-semibold text-[#2ec4b6]">Included</div>
-                        )}
-                        {hasReady && (
-                          <div className="absolute -top-1.5 -right-1.5 bg-[#2ec4b6] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                            Ready
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {batchStatusMessage && (
-                  <div
-                    className={`rounded-xl border px-3 py-2 text-xs mb-3 ${
-                      batchPurchaseStatus === "success"
-                        ? "border-[#2ec4b6] bg-[#2ec4b6]/10 text-[#2ec4b6]"
-                        : "border-[#ffb800] bg-[#ffb800]/10 text-[#ffb800]"
-                    }`}
-                  >
-                    {batchStatusMessage}
-                    {batchPurchaseStatus === "success" && (
-                      <p className="mt-1 font-medium text-[#2ec4b6]">
-                        Next: generate the batch, then send players unique cards or host a live game. Use PDFs only when you need paper copies.
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {isPremiumBatchUser && batchMode && (
-                  <p className="text-xs text-[#6b6459] mb-3">
-                    Every card gets a unique shuffled arrangement. Included with Premium.
-                  </p>
-                )}
-
-                {!isPremiumBatchUser && !session?.user && batchMode && (
-                  <p className="text-xs text-[#6b6459] mb-3">
-                    Sign up to purchase batch packs, or upgrade to Premium for included batches.
-                  </p>
-                )}
-
-                {availableBatchSummary && !isPremiumBatchUser && (
-                  <div className="rounded-xl border border-[#2ec4b6] bg-[#2ec4b6]/10 px-3 py-2 text-xs text-[#2ec4b6] mb-3">
-                    Purchased: {availableBatchSummary}
-                  </div>
-                )}
-
-                {batchResult && (
-                  <div className="bg-white border border-[#2ec4b6] rounded-xl p-4 space-y-3 mb-3">
-                    <p className="text-sm font-bold text-[#2ec4b6] flex items-center gap-2">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      {batchResult.count} cards generated!
-                    </p>
-                    {batchShareBatchId && (
-                      <div className="rounded-xl border border-[#7c5cff]/15 bg-[#7c5cff]/10 p-3 space-y-3">
-                        <div>
-                          <p className="text-sm font-bold text-[#7c5cff]">
-                            Make the batch playable before you print.
-                          </p>
-                          <p className="text-xs text-[#7c5cff] mt-1">
-                            Each player gets a unique card link they can open on their phone. PDF is still here for paper backups.
-                          </p>
-                        </div>
-                        <div className="grid gap-2 sm:grid-cols-2">
-                          <ShareBatchButton
-                            batchId={batchShareBatchId}
-                            cardCount={batchResult.count}
-                            batchTitle={batchResultTitle}
-                            variant="primary"
-                            className="w-full"
-                          />
-                          <StartGameButton
-                            cardId={batchShareBatchId}
-                            label="Host Live Game"
-                            className="w-full"
-                            compact
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-[#6b6459] mb-2">
-                        Need paper copies?
-                      </p>
-                      <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => handleBatchPdfDownload(1)}
-                        disabled={batchPdfLoading !== null}
-                        className={`py-2.5 rounded-lg text-xs font-semibold transition ${
-                          batchPdfLoading === "pdf-1" ? "bg-[#7c5cff] text-white cursor-wait" : "bg-[#7c5cff] text-white hover:bg-[#7c5cff]"
-                        }`}
-                      >
-                        {batchPdfLoading === "pdf-1" ? "..." : "1 per page"}
-                      </button>
-                      <button
-                        onClick={() => handleBatchPdfDownload(2)}
-                        disabled={batchPdfLoading !== null}
-                        className={`py-2.5 rounded-lg text-xs font-semibold transition ${
-                          batchPdfLoading === "pdf-2" ? "bg-[#7c5cff] text-white cursor-wait" : "bg-[#7c5cff] text-white hover:bg-[#7c5cff]"
-                        }`}
-                      >
-                        {batchPdfLoading === "pdf-2" ? "..." : "2 per page"}
-                      </button>
-                      <button
-                        onClick={() => handleBatchPdfDownload(4)}
-                        disabled={batchPdfLoading !== null}
-                        className={`py-2.5 rounded-lg text-xs font-semibold transition ${
-                          batchPdfLoading === "pdf-4" ? "bg-[#7c5cff] text-white cursor-wait" : "bg-[#7c5cff] text-white hover:bg-[#7c5cff]"
-                        }`}
-                      >
-                        {batchPdfLoading === "pdf-4" ? "..." : "4 per page"}
-                      </button>
-                      <button
-                        onClick={() => handleBatchPdfDownload(1, true)}
-                        disabled={batchPdfLoading !== null}
-                        className={`py-2.5 rounded-lg text-xs font-semibold transition ${
-                          batchPdfLoading === "pdf-gray" ? "bg-[#33312e] text-white cursor-wait" : "bg-[#6b6459] text-white hover:bg-[#33312e]"
-                        }`}
-                      >
-                        {batchPdfLoading === "pdf-gray" ? "..." : "Grayscale"}
-                      </button>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => router.push("/dashboard/cards")}
-                      className="w-full py-2 text-sm text-[#7c5cff] font-medium"
-                    >
-                      View all cards in dashboard
-                    </button>
-                  </div>
-                )}
-
-                {batchMode && !batchResult && (
-                  <button
-                    onClick={handleBatchPrimaryAction}
-                    disabled={batchActionDisabled}
-                    className="w-full bg-[#7c5cff] text-white px-4 py-3 rounded-xl hover:bg-[#7c5cff] hover:shadow-md transition-all disabled:opacity-50 font-bold text-sm"
-                  >
-                    {batchActionLabel}
-                  </button>
-                )}
-
-                {!batchMode && (
-                  <button
-                    onClick={() => {
-                      trackClientActivity("batch_button_clicked", {
-                        action: "open_panel",
-                        source: "create_page_select_batch_size",
-                        batch_count: batchCount,
-                        price: formatBatchPackPrice(batchCount),
-                        plan_type: permissionStatus?.planType || "GUEST",
-                        context: "create_page",
-                      });
-                      setBatchMode(true);
-                      setBatchResult(null);
-                    }}
-                    className="w-full bg-[#7c5cff] text-white px-4 py-3 rounded-xl hover:bg-[#7c5cff] hover:shadow-md transition-all font-bold text-sm flex items-center justify-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                    Select a Batch Size
-                  </button>
-                )}
-              </div>
-            </section>
-
-            {/* Preview Panel - Live card preview */}
-            <section className="panel preview-panel">
-              <div className="flex flex-col gap-4">
-                <div className="flex justify-between items-start gap-3">
-                  <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#b9275b]">Live preview</span>
-                    <h2 className="text-xl font-bold text-[#33312e]">See the finished card</h2>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleShuffleCells}
-                    disabled={showPreview || bingoVariant !== "custom"}
-                    className="rounded-xl border-2 border-[#33312e] px-3 py-1.5 text-sm font-bold shadow-[0_3px_0_#33312e] disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
-                  >
-                    Shuffle
-                  </button>
-                </div>
-
-                {/* Bingo Grid */}
-                <div className="flex-grow flex items-center justify-center bg-[#fff7ed] rounded-xl border border-[#a39a88] p-2 lg:p-3 mb-2">
-                   <div className="w-full">
-                      {/* Grid Header - matches grid columns */}
-                      <div
-                        className="grid mb-1.5 md:mb-2 text-center font-bold tracking-widest text-[#33312e] opacity-90"
-                        style={{ gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: columns >= 5 ? "3px" : "8px" }}
-                      >
-                         <div
-                           className={`font-bold text-center text-[#7c5cff] truncate px-2 ${size === 5 ? "py-1 text-xs md:text-sm" : "py-1.5 text-sm"}`}
-                           style={{ gridColumn: "1 / -1" }}
-                         >
-                           {title || "My Bingo Card"}
-                         </div>
-                         {bingoVariant === "classic75" && "BINGO".split("").map((letter) => (
-                           <div key={letter} className="rounded-md bg-[#7c5cff]/10 py-1 text-xs font-black text-[#7c5cff]">
-                             {letter}
-                           </div>
-                         ))}
-                         {bingoVariant === "classic90" && ["1-9", "10s", "20s", "30s", "40s", "50s", "60s", "70s", "80-90"].map((label) => (
-                           <div key={label} className="rounded-md bg-[#ffb800]/10 py-1 text-[10px] font-black text-[#ffb800]">
-                             {label}
-                           </div>
-                         ))}
-                      </div>
-
-                      <div
-                        className="grid"
-                        style={{
-                          gridTemplateColumns: `repeat(${columns}, 1fr)`,
-                          gap: columns >= 5 ? "3px" : size === 4 ? "6px" : "8px",
-                        }}
-                      >
-                        {cells.map((cell, index) => {
-                          const isFreeSpace = freeSpace && index === getFreeSpaceIndex();
-                          const isBlank90 = bingoVariant === "classic90" && !cell.trim();
-                          const cellIsImage = isImageCell(cell);
-                          const imageData = cellIsImage ? parseImageCell(cell) : null;
-
+                    <div className="field">
+                      <span className="field-label">Grid Size</span>
+                      <div className="size-options" role="group" aria-label="Grid size">
+                        {[3, 4, 5].map((s) => {
+                          const gridSize = s as GridSize;
+                          const isAllowed = canUseGridSize(gridSize);
                           return (
-                            <div
-                              key={index}
-                              className={`relative group transition-all duration-200 ${
-                                size === 5 ? "aspect-[1/1.1] md:aspect-square" : "aspect-square"
-                              } ${
-                                showPreview ? "shadow-sm" : "focus-within:ring-2 focus-within:ring-[#7c5cff] focus-within:ring-offset-1"
-                              }`}
-                              style={{
-                                backgroundColor: style.backgroundColor,
-                                borderColor: style.borderColor,
-                              }}
-                            >
-                              {isBlank90 ? (
-                                <div className="w-full h-full rounded-md md:rounded-lg border border-dashed border-[#ffb800]/15 bg-[#ffb800]/50" />
-                              ) : isFreeSpace ? (
-                                <div
-                                  className={`w-full h-full flex items-center justify-center border-2 font-bold p-1 text-center shadow-inner bg-opacity-90 ${size === 5 ? "rounded-md md:rounded-xl text-xs md:text-base" : "rounded-lg md:rounded-xl"}`}
-                                  style={{
-                                    color: "#4338ca",
-                                    fontSize: style.fontSize,
-                                    fontFamily: style.fontFamily,
-                                    borderColor: "#818cf8",
-                                    background: "linear-gradient(135deg, #ede9fe 0%, #7c5cff/15 100%)",
-                                  }}
-                                >
-                                  FREE
-                                </div>
-                              ) : showPreview || bingoVariant !== "custom" ? (
-                                <BingoCell cell={formatClassicCellLabel(cell, bingoVariant)} style={style} size={size} />
-                              ) : cellIsImage && imageData ? (
-                                /* Image cell in edit mode — shows image with swap/remove/fit buttons */
-                                <div
-                                  className="w-full h-full flex flex-col items-center justify-center border rounded-lg md:rounded-xl overflow-hidden transition-colors"
-                                  style={{ borderColor: style.borderColor, backgroundColor: style.backgroundColor, padding: imageData.fit === "cover" ? 0 : "4px" }}
-                                >
-                                  {imageData.fit === "cover" ? (
-                                    <img
-                                      src={imageData.imageUrl}
-                                      alt={imageData.label || ""}
-                                      className="absolute inset-0 w-full h-full object-cover rounded-lg md:rounded-xl"
-                                    />
-                                  ) : (
-                                    <img
-                                      src={imageData.imageUrl}
-                                      alt={imageData.label || ""}
-                                      className="max-w-full max-h-[60%] object-contain"
-                                    />
-                                  )}
-                                  {imageData.label && imageData.fit !== "cover" && (
-                                    <span className="text-[9px] md:text-[10px] font-medium text-[#33312e] mt-0.5 line-clamp-1 w-full text-center">
-                                      {imageData.label}
-                                    </span>
-                                  )}
-                                  {imageData.label && imageData.fit === "cover" && (
-                                    <span className="relative z-10 mt-auto mb-1 text-[9px] md:text-[10px] font-medium bg-black/40 text-white px-1 py-0.5 rounded line-clamp-1 text-center">
-                                      {imageData.label}
-                                    </span>
-                                  )}
-                                  {/* Hover overlay with swap, fit & remove */}
-                                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors rounded-lg md:rounded-xl flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100">
-                                    <button
-                                      onClick={() => openImagePicker(index)}
-                                      className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
-                                      title="Change image"
-                                    >
-                                      <svg className="w-3.5 h-3.5 text-[#33312e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                      </svg>
-                                    </button>
-                                    <button
-                                      onClick={() => handleToggleImageFit(index)}
-                                      className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
-                                      title={imageData.fit === "cover" ? "Original size" : "Fill square"}
-                                    >
-                                      <svg className="w-3.5 h-3.5 text-[#33312e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                                      </svg>
-                                    </button>
-                                    <button
-                                      onClick={() => handleClearImageCell(index)}
-                                      className="w-7 h-7 bg-[#ff5d8f] rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
-                                      title="Remove image"
-                                    >
-                                      <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                      </svg>
-                                    </button>
-                                  </div>
-                                </div>
-                              ) : (
-                                /* Text cell in edit mode — has camera button to add image */
-                                <div className="relative w-full h-full flex flex-col">
-                                  <div className={`flex-1 flex items-center justify-center border overflow-y-auto transition-colors hover:bg-[#fff7ed]/50 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#7c5cff] focus-within:ring-offset-1 ${size === 5 ? "rounded-md md:rounded-xl" : "rounded-lg md:rounded-xl"}`}
-                                    style={{ borderColor: style.borderColor }}
-                                  >
-                                    <textarea
-                                      ref={(el) => {
-                                        cellTextareaRefs.current[index] = el;
-                                      }}
-                                      value={cell}
-                                      onChange={(e) => {
-                                        handleCellChange(index, e.target.value);
-                                        // Auto-resize textarea to fit content
-                                        const el = e.target;
-                                        el.style.height = "auto";
-                                        el.style.height = el.scrollHeight + "px";
-                                      }}
-                                      onFocus={(e) => {
-                                        const el = e.target;
-                                        el.style.height = "auto";
-                                        el.style.height = el.scrollHeight + "px";
-                                      }}
-                                      placeholder={`${index + 1}`}
-                                      rows={1}
-                                      className={`w-full text-center bg-transparent resize-none focus:outline-none placeholder:text-[#a39a88] leading-tight ${size === 5 ? "text-[11px] md:text-sm p-0.5 md:p-1" : "text-sm p-1"}`}
-                                      style={{
-                                        color: style.textColor,
-                                        fontFamily: style.fontFamily,
-                                        height: "auto",
-                                        overflow: "hidden",
-                                        wordBreak: "break-word",
-                                      }}
-                                    />
-                                  </div>
-                                  {/* Camera button — hidden on mobile 5x5 until focused, always visible otherwise */}
-                                  <button
-                                    onClick={() => openImagePicker(index)}
-                                    className={`absolute bottom-0.5 md:bottom-1 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-[#a39a88]/80 hover:bg-[#7c5cff] text-[#6b6459] hover:text-white flex items-center justify-center transition-all ${size === 5 ? "opacity-0 group-focus-within:opacity-100 md:opacity-100" : ""}`}
-                                    title="Add image"
-                                    type="button"
-                                  >
-                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                  </button>
-                                </div>
-                              )}
-                            </div>
+                            <label key={s} className="size-option">
+                              <input
+                                type="radio"
+                                name="grid-size"
+                                value={s}
+                                checked={size === s}
+                                onChange={() => {
+                                  if (isAllowed && gridSize !== size) {
+                                    trackClientActivity("grid_size_changed", { from: size, to: gridSize, cells_filled_before: cells.filter((c) => c.trim()).length });
+                                    setSize(gridSize);
+                                  }
+                                }}
+                                disabled={showPreview || !isAllowed}
+                              />
+                              <span>{s}×{s}</span>
+                            </label>
                           );
                         })}
                       </div>
-                   </div>
+                    </div>
+                  </div>
+
+                  <div className="field">
+                    <div className="field-heading">
+                      <label htmlFor="card-cells" className="field-label">Card squares</label>
+                      <span className={`square-count ${cells.filter((c) => c.trim()).length >= size * size ? "is-ready" : ""}`}>
+                        {cells.filter((c) => c.trim()).length}/{size * size} filled
+                      </span>
+                    </div>
+                    <textarea
+                      ref={cellsTextareaRef}
+                      id="card-cells"
+                      value={cellsAsText()}
+                      onChange={(e) => setCellsFromText(e.target.value)}
+                      onFocus={(e) => {
+                        const el = e.target;
+                        el.style.height = "auto";
+                        el.style.height = el.scrollHeight + "px";
+                      }}
+                      placeholder={`Type one square per line. You need ${size * size} squares.`}
+                      className="square-input"
+                      disabled={showPreview}
+                    />
+                    <div className="square-help">
+                      <span className="helper-copy">One idea per line. Free space counts as filled automatically.</span>
+                      {bingoVariant === "custom" && (
+                        <button type="button" onClick={handleShuffleCells} className="text-button">Shuffle squares</button>
+                      )}
+                    </div>
+                  </div>
+
+                  <label htmlFor="free-space-toggle" className="option-line">
+                    <span className="check-label">
+                      <input
+                        id="free-space-toggle"
+                        type="checkbox"
+                        checked={freeSpace}
+                        onChange={(e) => {
+                          setFreeSpace(e.target.checked);
+                          trackClientActivity("free_space_toggled", { enabled: e.target.checked });
+                        }}
+                        disabled={showPreview || bingoVariant !== "custom"}
+                      />
+                      Include free space
+                    </span>
+                    <span className="option-note">Center square is auto-filled</span>
+                  </label>
+
+                  <label htmlFor="public-toggle" className="option-line">
+                    <span className="check-label">
+                      <input
+                        id="public-toggle"
+                        type="checkbox"
+                        checked={isPublic}
+                        onChange={(e) => setIsPublic(e.target.checked)}
+                        disabled={showPreview}
+                      />
+                      Make card public
+                    </span>
+                    <span className="option-note">Anyone with the link can view</span>
+                  </label>
+
+                  {bingoVariant === "custom" && (
+                    <AiGenerateSection
+                      size={size}
+                      freeSpace={freeSpace}
+                      title={title}
+                      onCellsGenerated={handleAiCellsGenerated}
+                      isPremium={true}
+                      disabled={showPreview}
+                      onUpgradeNeeded={() => { setUpgradeReason("ai_generate"); setShowUpgradeModal(true); }}
+                    />
+                  )}
                 </div>
 
-                {/* Desktop sticky bottom CTA bar */}
-                <div className="hidden md:block fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-t border-[#a39a88] shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
-                  <div className="container mx-auto max-w-xl px-4 py-3 flex items-center justify-center">
-                    {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
-                      <button
-                        onClick={redirectToCheckout}
-                        className="w-full max-w-md bg-gradient-to-r from-[#ff8a3d] to-[#ff5d8f] text-white px-6 py-3 rounded-xl hover:shadow-lg hover:shadow-[#ff8a3d]/20 transition-all font-bold text-base shadow-md shadow-[#ff8a3d] text-center"
-                      >
-                        {t("btn.limit_reached")}
-                      </button>
-                    ) : (
-                    <button
-                      onClick={handleSave}
-                      disabled={
-                        loading ||
-                        showPreview ||
-                        isLoadingCard
-                      }
-                      className="w-full max-w-md bg-[#7c5cff] text-white px-6 py-3 rounded-xl hover:bg-[#0066DD] hover:shadow-lg hover:shadow-[#7c5cff]/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none font-bold text-base shadow-md"
-                    >
-                      {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save_dashboard") : session?.user ? "Save Card" : "Save This Card Free"}
-                    </button>
-                    )}
+                <div className="step-pane" hidden={currentStep !== 2}>
+                  <fieldset>
+                    <legend>Choose a color theme</legend>
+                    <div className="theme-grid" role="group" aria-label="Color themes">
+                      {themeOptions.map((theme) => (
+                        <label key={theme.id} className="theme-option">
+                          <input
+                            type="radio"
+                            name="card-theme"
+                            value={theme.id}
+                            checked={currentThemeId() === theme.id}
+                            onChange={() => {
+                              setStyle((prev) => ({
+                                ...prev,
+                                backgroundColor: theme.colors[3],
+                                textColor: "#0f172a",
+                                borderColor: theme.colors[0],
+                              }));
+                            }}
+                            disabled={showPreview}
+                          />
+                          <span className="theme-card">
+                            <span className="theme-dots" aria-hidden="true">
+                              {theme.colors.slice(0, 4).map((c, i) => (
+                                <i key={i} style={{ background: c, border: "1.5px solid var(--ink)" }} />
+                              ))}
+                            </span>
+                            <span className="theme-copy">
+                              <strong>{theme.name}</strong>
+                              <small>{theme.description}</small>
+                            </span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+
+                  <div className="style-note">
+                    <strong>Designed to print clearly</strong>
+                    <p>Every style keeps dark borders and readable square text, even when the color printer is running low.</p>
                   </div>
                 </div>
+
+                <div className="step-pane" hidden={currentStep !== 3}>
+                  <div className="review-card">
+                    <div>
+                      <span className="eyebrow">Your card is ready to review</span>
+                      <h2>{title || "My bingo card"}</h2>
+                    </div>
+                    <ul className="review-facts" aria-label="Card summary">
+                      <li>{size}×{size} grid</li>
+                      <li>{cells.filter((c) => c.trim()).length} custom squares</li>
+                      <li>{themeOptions.find((t) => t.id === currentThemeId())?.name || "Confetti pop"} theme</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <span className="field-label">Next, you could</span>
+                    <div className="export-grid" aria-label="Future export choices">
+                      <div className="export-choice"><span aria-hidden="true">🖨️</span><strong>Print PDF</strong><small>One card is free</small></div>
+                      <div className="export-choice"><span aria-hidden="true">🖼️</span><strong>Save PNG</strong><small>Ready to share</small></div>
+                      <div className="export-choice"><span aria-hidden="true">📱</span><strong>Play online</strong><small>Give players a link</small></div>
+                    </div>
+                  </div>
+
+                  {/* Batch Generation — Always visible, prominent */}
+            <div className="bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_5px_0_#33312e] p-4 lg:p-3">
+              <h2 className="text-base font-bold text-[#33312e] mb-2 flex items-center gap-2">
+                 <span className="w-7 h-7 rounded-lg bg-[#7c5cff] text-white flex items-center justify-center text-sm">
+                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                   </svg>
+                 </span>
+                 Print Multiple Cards
+              </h2>
+              <p className="text-xs text-[#6b6459] mb-3">Generate up to 500 unique shuffled cards.</p>
+
+              {/* Tier selection — always visible */}
+              <div className="grid grid-cols-4 gap-1.5 mb-3">
+                {([30, 100, 250, 500] as const).map((n) => {
+                  const isSelected = batchCount === n && batchMode;
+                  const hasReady = !isPremiumBatchUser && (availableBatchCounts[n] || 0) > 0;
+                  return (
+                    <button
+                      key={n}
+                      onClick={() => {
+                        setBatchMode(true); setBatchCount(n); setBatchResult(null);
+                        trackClientActivity("batch_tier_selected", {
+                          batch_count: n,
+                          price: BATCH_PACKS[n].label,
+                          plan_type: permissionStatus?.planType || "GUEST",
+                          source: "create_page",
+                        });
+                      }}
+                      className={`relative py-1.5 px-1 rounded-lg border-2 text-center transition-all ${
+                        isSelected
+                          ? "border-[#7c5cff] bg-white shadow-md ring-1 ring-[#7c5cff]/20"
+                          : "border-[#a39a88]/80 bg-white/70 hover:border-[#7c5cff] hover:bg-white"
+                      }`}
+                    >
+                      <div className="text-sm font-bold text-[#33312e]">{n}</div>
+                      <div className="text-[10px] font-medium text-[#6b6459]">cards</div>
+                      {!isPremiumBatchUser && (
+                        <div className="mt-1 text-xs font-bold text-[#7c5cff]">
+                          {BATCH_PACKS[n].label}
+                        </div>
+                      )}
+                      {isPremiumBatchUser && (
+                        <div className="mt-1 text-[10px] font-semibold text-[#2ec4b6]">Included</div>
+                      )}
+                      {hasReady && (
+                        <div className="absolute -top-1.5 -right-1.5 bg-[#2ec4b6] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                          Ready
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {batchStatusMessage && (
+                <div
+                  className={`rounded-xl border px-3 py-2 text-xs mb-3 ${
+                    batchPurchaseStatus === "success"
+                      ? "border-[#2ec4b6] bg-[#2ec4b6]/10 text-[#2ec4b6]"
+                      : "border-[#ffb800] bg-[#ffb800]/10 text-[#ffb800]"
+                  }`}
+                >
+                  {batchStatusMessage}
+                  {batchPurchaseStatus === "success" && (
+                    <p className="mt-1 font-medium text-[#2ec4b6]">
+                      Next: generate the batch, then send players unique cards or host a live game. Use PDFs only when you need paper copies.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {isPremiumBatchUser && batchMode && (
+                <p className="text-xs text-[#6b6459] mb-3">
+                  Every card gets a unique shuffled arrangement. Included with Premium.
+                </p>
+              )}
+
+              {!isPremiumBatchUser && !session?.user && batchMode && (
+                <p className="text-xs text-[#6b6459] mb-3">
+                  Sign up to purchase batch packs, or upgrade to Premium for included batches.
+                </p>
+              )}
+
+              {availableBatchSummary && !isPremiumBatchUser && (
+                <div className="rounded-xl border border-[#2ec4b6] bg-[#2ec4b6]/10 px-3 py-2 text-xs text-[#2ec4b6] mb-3">
+                  Purchased: {availableBatchSummary}
+                </div>
+              )}
+
+              {batchResult && (
+                <div className="bg-white border border-[#2ec4b6] rounded-xl p-4 space-y-3 mb-3">
+                  <p className="text-sm font-bold text-[#2ec4b6] flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {batchResult.count} cards generated!
+                  </p>
+                  {batchShareBatchId && (
+                    <div className="rounded-xl border border-[#7c5cff]/15 bg-[#7c5cff]/10 p-3 space-y-3">
+                      <div>
+                        <p className="text-sm font-bold text-[#7c5cff]">
+                          Make the batch playable before you print.
+                        </p>
+                        <p className="text-xs text-[#7c5cff] mt-1">
+                          Each player gets a unique card link they can open on their phone. PDF is still here for paper backups.
+                        </p>
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <ShareBatchButton
+                          batchId={batchShareBatchId}
+                          cardCount={batchResult.count}
+                          batchTitle={batchResultTitle}
+                          variant="primary"
+                          className="w-full"
+                        />
+                        <StartGameButton
+                          cardId={batchShareBatchId}
+                          label="Host Live Game"
+                          className="w-full"
+                          compact
+                        />
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[#6b6459] mb-2">
+                      Need paper copies?
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => handleBatchPdfDownload(1)}
+                      disabled={batchPdfLoading !== null}
+                      className={`py-2.5 rounded-lg text-xs font-semibold transition ${
+                        batchPdfLoading === "pdf-1" ? "bg-[#7c5cff] text-white cursor-wait" : "bg-[#7c5cff] text-white hover:bg-[#7c5cff]"
+                      }`}
+                    >
+                      {batchPdfLoading === "pdf-1" ? "..." : "1 per page"}
+                    </button>
+                    <button
+                      onClick={() => handleBatchPdfDownload(2)}
+                      disabled={batchPdfLoading !== null}
+                      className={`py-2.5 rounded-lg text-xs font-semibold transition ${
+                        batchPdfLoading === "pdf-2" ? "bg-[#7c5cff] text-white cursor-wait" : "bg-[#7c5cff] text-white hover:bg-[#7c5cff]"
+                      }`}
+                    >
+                      {batchPdfLoading === "pdf-2" ? "..." : "2 per page"}
+                    </button>
+                    <button
+                      onClick={() => handleBatchPdfDownload(4)}
+                      disabled={batchPdfLoading !== null}
+                      className={`py-2.5 rounded-lg text-xs font-semibold transition ${
+                        batchPdfLoading === "pdf-4" ? "bg-[#7c5cff] text-white cursor-wait" : "bg-[#7c5cff] text-white hover:bg-[#7c5cff]"
+                      }`}
+                    >
+                      {batchPdfLoading === "pdf-4" ? "..." : "4 per page"}
+                    </button>
+                    <button
+                      onClick={() => handleBatchPdfDownload(1, true)}
+                      disabled={batchPdfLoading !== null}
+                      className={`py-2.5 rounded-lg text-xs font-semibold transition ${
+                        batchPdfLoading === "pdf-gray" ? "bg-[#33312e] text-white cursor-wait" : "bg-[#6b6459] text-white hover:bg-[#33312e]"
+                      }`}
+                    >
+                      {batchPdfLoading === "pdf-gray" ? "..." : "Grayscale"}
+                    </button>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => router.push("/dashboard/cards")}
+                    className="w-full py-2 text-sm text-[#7c5cff] font-medium"
+                  >
+                    View all cards in dashboard
+                  </button>
+                </div>
+              )}
+
+              {batchMode && !batchResult && (
+                <button
+                  onClick={handleBatchPrimaryAction}
+                  disabled={batchActionDisabled}
+                  className="w-full bg-[#7c5cff] text-white px-4 py-3 rounded-xl hover:bg-[#7c5cff] hover:shadow-md transition-all disabled:opacity-50 font-bold text-sm"
+                >
+                  {batchActionLabel}
+                </button>
+              )}
+
+              {!batchMode && (
+                <button
+                  onClick={() => {
+                    trackClientActivity("batch_button_clicked", {
+                      action: "open_panel",
+                      source: "create_page_select_batch_size",
+                      batch_count: batchCount,
+                      price: formatBatchPackPrice(batchCount),
+                      plan_type: permissionStatus?.planType || "GUEST",
+                      context: "create_page",
+                    });
+                    setBatchMode(true);
+                    setBatchResult(null);
+                  }}
+                  className="w-full bg-[#7c5cff] text-white px-4 py-3 rounded-xl hover:bg-[#7c5cff] hover:shadow-md transition-all font-bold text-sm flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                  Select a Batch Size
+                </button>
+              )}
+            </div>
+                </div>
+
+              <div className="editor-actions">
+                {currentStep > 1 ? (
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep((s) => (s - 1) as 1 | 2 | 3)}
+                    className="button button-secondary"
+                  >
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                    Back
+                  </button>
+                ) : (
+                  <span />
+                )}
+                {currentStep < 3 ? (
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep((s) => (s + 1) as 1 | 2 | 3)}
+                    className="button button-primary"
+                  >
+                    <span>Continue</span>
+                    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={loading || showPreview || isLoadingCard}
+                    className="button button-primary"
+                  >
+                    {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save") : session?.user ? "Save Card" : "Save This Card Free"}
+                  </button>
+                )}
+              </div>
+            </section>
+
+            <section className="panel preview-panel" aria-labelledby="previewTitle">
+              <h1 className="mobile-preview-title">Your card preview</h1>
+              <div className="preview-toolbar">
+                <div className="preview-label">
+                  <span className="live-dot" aria-hidden="true" />
+                  <h2 id="previewTitle">Live card preview</h2>
+                </div>
+                <button
+                  type="button"
+                  className="preview-action"
+                  onClick={handleShuffleCells}
+                  disabled={showPreview || bingoVariant !== "custom"}
+                >
+                  Shuffle card
+                </button>
+              </div>
+
+              <div className="card-stage">
+                <article className="bingo-card" data-theme={currentThemeId()} aria-label="Preview of your bingo card">
+                  <div className="card-top">
+                    <h3 className="card-title">{title || "My Bingo Card"}</h3>
+                    <span className="card-sticker">LET&apos;S PLAY!</span>
+                  </div>
+                  <div
+                    className="bingo-head"
+                    style={{ gridTemplateColumns: `repeat(${columns}, 1fr)`, display: bingoVariant === "classic75" || bingoVariant === "classic90" ? "grid" : "none" }}
+                    aria-hidden="true"
+                  >
+                    {bingoVariant === "classic75" && "BINGO".split("").map((letter) => <span key={letter}>{letter}</span>)}
+                    {bingoVariant === "classic90" && ["1-9", "10s", "20s", "30s", "40s", "50s", "60s", "70s", "80-90"].map((label) => <span key={label}>{label}</span>)}
+                  </div>
+                  <div
+                    className={`preview-grid grid-size-${size}`}
+                    style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
+                    aria-hidden="true"
+                  >
+                    {cells.map((cell, index) => {
+                      const isFree = freeSpace && index === getFreeSpaceIndex();
+                      const isEmpty = !cell.trim() && !isFree;
+                      const cellIsImage = isImageCell(cell);
+                      const imageData = cellIsImage ? parseImageCell(cell) : null;
+                      return (
+                        <div key={index} className={`preview-cell ${isFree ? "is-free" : ""} ${isEmpty ? "is-empty" : ""}`}>
+                          {isFree ? "FREE" : cellIsImage ? imageData?.label || "" : cell || `${index + 1}`}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="card-note">Mark five in a row to win · mybingocard.com</p>
+                </article>
+              </div>
+
+              <div className="preview-foot">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                <span role="status" aria-live="polite">Changes appear here instantly.</span>
               </div>
             </section>
           </div>
-          {showCreatePageAd && (!permissionStatus?.planType || permissionStatus.planType === "FREE") && (
-            <div className="mt-4 hidden lg:block">
-              <AdUnit slot="create-page" format="horizontal" className="rounded-xl overflow-hidden" />
-            </div>
-          )}
-          </>
-          )}
+          </>)}
         </div>
-
-        {/* Mobile sticky bottom action bar */}
-        {editorUnlocked && !isLoadingCard && (<div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
-          {/* Mobile toast for validation errors */}
-          {mobileToast && (
-            <div
-              key={mobileToastKey}
-              className="mx-4 mb-2 p-3 bg-[#ff5d8f] text-white rounded-xl text-sm font-semibold text-center shadow-lg animate-[slideUp_0.25s_ease-out,fadeOut_0.4s_ease-in_3s_forwards]"
-              style={{ animation: "slideUp 0.25s ease-out, fadeOut 0.4s ease-in 3s forwards" }}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {mobileToast}
-              </div>
-            </div>
-          )}
-          <div className="bg-white border-t border-[#a39a88] shadow-lg">
-            <div className="container mx-auto px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-                {permissionStatus && !permissionStatus.allowed && !isEditingExistingCard ? (
-                  <button
-                    onClick={redirectToCheckout}
-                    className="w-full bg-gradient-to-r from-[#ff8a3d] to-[#ff5d8f] text-white px-4 py-3.5 rounded-lg font-bold text-base shadow-md text-center"
-                  >
-                    {t("btn.upgrade")}
-                  </button>
-                ) : (
-                <button
-                  onClick={handleSave}
-                  disabled={loading || showPreview || isLoadingCard}
-                  className="w-full bg-[#7c5cff] text-white px-4 py-3.5 rounded-lg transition-all disabled:opacity-70 disabled:cursor-not-allowed font-bold text-base shadow-md"
-                >
-                  {loading ? t("btn.saving") : isEditingExistingCard ? t("btn.save") : session?.user ? "Save Card" : "Save This Card Free"}
-                </button>
-                )}
-            </div>
-          </div>
-        </div>
-        )}
       </main>
 
 
