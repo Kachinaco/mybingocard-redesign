@@ -4152,6 +4152,136 @@ button.template-card {
   }
 }
 
+/* Production auth pages use the same visual system as the approved prototype. */
+body:has(.auth-shell) .site-header,
+body:has(.auth-shell) .site-footer {
+  display: none;
+}
+
+body:has(.auth-shell) .site-main {
+  min-height: 100dvh;
+}
+
+.auth-shell {
+  min-height: 100dvh;
+}
+
+.auth-story-copy h1,
+.auth-story-copy h2,
+.auth-heading h1 {
+  font-weight: 800;
+}
+
+.auth-story-copy h2 {
+  font-size: clamp(2.25rem, 5.5vw, 4.5rem);
+}
+
+.auth-bingo-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.auth-bingo-card .caption {
+  text-align: center;
+}
+
+.auth-form-stack {
+  display: grid;
+  gap: 22px;
+}
+
+.auth-social-row {
+  align-items: stretch;
+}
+
+.auth-social-row:has(> :only-child) {
+  grid-template-columns: 1fr;
+}
+
+.auth-social-row .button {
+  width: 100%;
+}
+
+.auth-submit-row .button {
+  width: 100%;
+}
+
+.auth-social-row svg {
+  width: 1.2em;
+  height: 1.2em;
+}
+
+.auth-apple-button {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: white;
+}
+
+.auth-apple-button:hover {
+  border-color: #181616;
+  background: #181616;
+  color: white;
+}
+
+.auth-notice {
+  padding-block: 12px;
+}
+
+.auth-secondary-link {
+  min-height: 44px;
+  justify-self: center;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--pink-action);
+  font-family: var(--font-fredoka), system-ui, sans-serif;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+  cursor: pointer;
+}
+
+.auth-secondary-link:hover {
+  color: #8f1747;
+}
+
+.auth-account-prompt {
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.auth-account-prompt a {
+  font-weight: 800;
+}
+
+.auth-success-state {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding-block: 12px;
+  text-align: center;
+}
+
+.auth-success-icon {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--green-soft);
+  color: var(--green);
+  box-shadow: var(--shadow-sm);
+}
+
+.auth-success-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.auth-heading > a {
+  display: none;
+}
+
 /* ================================================================
    Legacy production compatibility aliases
    These classes exist in dynamic pages that have not yet been

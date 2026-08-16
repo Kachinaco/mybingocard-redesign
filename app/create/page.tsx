@@ -1773,40 +1773,70 @@ function CreateCardContent() {
 
   return (
     <>
-    <div className="playful-create" translate="no">
+    <div className="playful-create creator-app" translate="no">
       <a className="skip-link" href="#main">Skip to card maker</a>
-      <header className="app-header">
-        <div className="app-header-in">
-          <div className="brand-group">
-            <Link href="/" className="logo" aria-label="MyBingoCard home">
-              My<span>Bingo</span>Card
-            </Link>
-          </div>
-
-          <ol className="progress" aria-label="Card creation progress">
-            <li className="is-current" aria-current="step"><span className="progress-dot">1</span><span>Content</span></li>
-            <li><span className="progress-dot">2</span><span>Style</span></li>
-            <li><span className="progress-dot">3</span><span>Review</span></li>
-          </ol>
-
-          <Link href="/" className="back-link">
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-            Back to home
+      <header className="app-topbar">
+        <div className="brand-group">
+          <Link href="/" className="brand logo" aria-label="MyBingoCard home">
+            My<span>Bingo</span>Card
           </Link>
+          <span className="pill pill-local">{permissionStatus?.planType || "Free"} plan</span>
+        </div>
+        <div className="cluster">
+          <Link href="/" className="button button-small">Home</Link>
         </div>
       </header>
 
-      <main className="pt-16 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-16 px-3 sm:px-4 lg:px-5">
+      <div className="app-layout">
+        <aside className="app-sidebar">
+          <nav className="app-nav" aria-label="Workspace">
+            <div className="app-nav-group">
+              <span className="app-nav-label">Workspace</span>
+              <Link href="/dashboard">
+                <svg className="app-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10Z"/><path d="M9 21v-6h6v6"/></svg>
+                <span>Home</span>
+              </Link>
+              <Link href="/dashboard/cards">
+                <svg className="app-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                <span>My cards</span>
+              </Link>
+              <Link href="/create" aria-current="page">
+                <svg className="app-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                <span>Create</span>
+              </Link>
+              <Link href="/dashboard/share-links">
+                <svg className="app-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.07.07l2-2a5 5 0 0 0-7.07-7.07l-1.15 1.15"/><path d="M14 11a5 5 0 0 0-7.07-.07l-2 2A5 5 0 0 0 12 20l1.15-1.15"/></svg>
+                <span>Share links</span>
+              </Link>
+              <Link href="/dashboard/referrals">
+                <svg className="app-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 21v-1a6 6 0 0 1 12 0v1M16 4.5a3 3 0 0 1 0 5.8M18 14a6 6 0 0 1 3 5v2"/></svg>
+                <span>Referrals</span>
+              </Link>
+              <Link href="/settings">
+                <svg className="app-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.64 5.64l1.42 1.42M16.94 16.94l1.42 1.42M18.36 5.64l-1.42 1.42M7.06 16.94l-1.42 1.42"/><circle cx="12" cy="12" r="4"/></svg>
+                <span>Settings</span>
+              </Link>
+            </div>
+          </nav>
+          <div className="sidebar-tip">
+            <strong>{permissionStatus?.planType || "Free"} plan</strong>
+            <span>Build your card first. Save it when you are ready.</span>
+            <Link href="/pricing" className="button button-small">See plans</Link>
+          </div>
+        </aside>
+
+        <main className="app-main" id="main">
+          <div className="app-content create-app-content">
         <div className="container mx-auto max-w-7xl">
           <div className="mb-2 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div>
                 <h1 className="text-xl font-bold text-[#33312e]">
-                  {isEditingExistingCard ? "Edit Bingo Card" : "Create Bingo Cards Online"}
+                  {isEditingExistingCard ? "Edit your bingo card" : "Make your bingo card"}
                 </h1>
                 {!isEditingExistingCard ? (
                   <p className="hidden text-xs text-[#6b6459] sm:block">
-                    Customize a printable bingo card, start from a template, or prepare an online game.
+                    Choose a starter, change the squares, and check the preview before you save.
                   </p>
                 ) : null}
               </div>
@@ -2475,7 +2505,16 @@ function CreateCardContent() {
           </div>
           </>)}
         </div>
-      </main>
+          </div>
+        </main>
+      </div>
+
+      <nav className="mobile-app-nav" aria-label="Workspace shortcuts">
+        <Link href="/dashboard"><span aria-hidden="true">⌂</span><span>Home</span></Link>
+        <Link href="/dashboard/cards"><span aria-hidden="true">▦</span><span>My cards</span></Link>
+        <Link href="/create" aria-current="page"><span aria-hidden="true">＋</span><span>Create</span></Link>
+        <Link href="/settings"><span aria-hidden="true">⚙</span><span>Settings</span></Link>
+      </nav>
 
 
       {/* Save Card Auth Modal */}

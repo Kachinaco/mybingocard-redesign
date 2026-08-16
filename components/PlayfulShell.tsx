@@ -19,14 +19,14 @@ export default function PlayfulShell({
           </div>
           <nav className="primary-nav" aria-label="Primary">
             <Link href="/templates" className="nav-link">Templates</Link>
-            <Link href="/pricing" className="nav-link">Pricing</Link>
+            <Link href="/bingo-games" className="nav-link">Bingo games</Link>
             <Link href="/features" className="nav-link">Features</Link>
-            <Link href="/blog" className="nav-link">Blog</Link>
+            <Link href="/pricing" className="nav-link">Pricing</Link>
           </nav>
           <nav className="account-nav" aria-label="Account">
-            <Link href="/login" className="nav-link">Log in</Link>
-            <Link href="/create" className="button button-primary button-small">
-              Make a card
+            <Link href="/login" className="nav-link">Sign in</Link>
+            <Link href="/signup" className="button button-primary button-small">
+              Create account
             </Link>
           </nav>
         </div>
@@ -44,20 +44,21 @@ export default function PlayfulShell({
           <div className="footer-column">
             <h2>Create</h2>
             <Link href="/create">Make a card</Link>
-            <Link href="/templates">Templates</Link>
-            <Link href="/bingo-games">Bingo games</Link>
+            <Link href="/templates">Browse templates</Link>
+            <Link href="/bingo-games">Explore bingo games</Link>
           </div>
           <div className="footer-column">
-            <h2>Learn</h2>
-            <Link href="/how-to-play-bingo">How to play</Link>
-            <Link href="/blog">Blog</Link>
+            <h2>Product</h2>
             <Link href="/features">Features</Link>
+            <Link href="/pricing">Pricing</Link>
+            <Link href="/how-to-play-bingo">How to play</Link>
           </div>
           <div className="footer-column">
             <h2>Company</h2>
             <Link href="/about">About</Link>
             <Link href="/contact">Contact</Link>
-            <Link href="/pricing">Pricing</Link>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
           </div>
         </div>
       </footer>
