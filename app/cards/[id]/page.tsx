@@ -205,7 +205,13 @@ export default function CardViewPage() {
       setLoading(true);
       const response = await fetch(`/api/cards/${cardId}`);
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to fetch card");
+      if (!response.ok) {
+        throw new Error(
+          response.status === 404
+            ? "Card not found"
+            : "We couldn't load this card. Please try again."
+        );
+      }
       setCard(data.card);
       // Restore saved game state from localStorage
       try {
@@ -803,8 +809,8 @@ export default function CardViewPage() {
       <section className="card card-body empty-state notice-danger" role="alert">
         <div className="empty-state-inner">
           <div className="empty-icon" aria-hidden="true">!</div>
-          <h2>Card not found</h2>
-          <p>{error || "It may have been removed or is no longer available."}</p>
+          <p className="font-heading text-xl font-bold text-[#33312e]">Card not found</p>
+          <p>{error || "This card may have been removed or is no longer available."}</p>
           <Link href="/dashboard/cards" className="button button-primary">Back to My cards</Link>
         </div>
       </section>

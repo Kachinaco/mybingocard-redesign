@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 const UPSTREAM_URL =
   process.env.VISITOR_TRACK_UPSTREAM || "https://townranker.com/api/track-visitor";
+const TRACKING_TIMEOUT_MS = 2500;
+
+function acceptedResponse() {
+  return NextResponse.json({ success: true, tracked: false }, { status: 202 });
+}
 
 function normalizeHost(raw: string): string {
   const first = raw.split(",")[0] ?? "";
@@ -65,18 +70,11 @@ export async function POST(req: NextRequest) {
       headers: upstreamHeaders,
       body: JSON.stringify(payload),
       cache: "no-store",
+      signal: AbortSignal.timeout(TRACKING_TIMEOUT_MS),
     });
 
     if (!upstreamRes.ok) {
-      const upstreamBody = await upstreamRes.text();
-      return NextResponse.json(
-        {
-          error: "Upstream tracking failed",
-          status: upstreamRes.status,
-          body: upstreamBody.slice(0, 300),
-        },
-        { status: 502 }
-      );
+      return acceptedResponse();
     }
 
     const responseText = await upstreamRes.text();
@@ -90,14 +88,7 @@ export async function POST(req: NextRequest) {
     } catch {
       return NextResponse.json({ success: true, responseText });
     }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json(
-      {
-        error: "Tracking request failed",
-        message,
-      },
-      { status: 502 }
-    );
+  } catch {
+    return acceptedResponse();
   }
 }

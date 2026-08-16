@@ -1989,7 +1989,7 @@ function CreateCardContent() {
 
               <div className="editor-head">
                 <span className="eyebrow">Card maker · Step {currentStep} of 3</span>
-                <h1>{isEditingExistingCard ? "Edit Bingo Card" : "Build your bingo card"}</h1>
+                <h2>{isEditingExistingCard ? "Edit Bingo Card" : "Build your bingo card"}</h2>
                 <p>Choose a starter, type your title, and fill the squares. The preview updates as you go.</p>
               </div>
 
@@ -2446,7 +2446,7 @@ function CreateCardContent() {
             </section>
 
             <section className="panel preview-panel" aria-labelledby="previewTitle">
-              <h1 className="mobile-preview-title">Your card preview</h1>
+              <h2 className="mobile-preview-title">Your card preview</h2>
               <div className="preview-toolbar">
                 <div className="preview-label">
                   <span className="live-dot" aria-hidden="true" />

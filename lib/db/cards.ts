@@ -343,6 +343,10 @@ export async function getAdminCardsPage(options: AdminCardListOptions = {}): Pro
 }
 
 export async function getCardById(cardId: string): Promise<BingoCard | null> {
+  if (!ObjectId.isValid(cardId)) {
+    return null;
+  }
+
   return getSqliteStore().findOne<BingoCard>("cards", { _id: new ObjectId(cardId) });
 }
 

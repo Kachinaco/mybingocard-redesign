@@ -141,6 +141,11 @@ function JoinGameContent() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg border border-[#2ec4b6]/15 p-6">
+          <div className="mb-5 text-center">
+            <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#2ec4b6]">Join a live room</span>
+            <h1 className="mt-1 text-2xl font-bold text-[#33312e]">Enter the room code</h1>
+            <p className="mt-1 text-sm text-[#6b6459]">The host will show a six-character code or QR image.</p>
+          </div>
           <form onSubmit={handleJoin} className="space-y-5">
             {session?.user?.email && (
               <div className="text-xs text-[#6b6459] text-center">

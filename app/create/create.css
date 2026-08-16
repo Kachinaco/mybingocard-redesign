@@ -413,7 +413,7 @@
   text-transform: uppercase;
 }
 
-.playful-create .editor-head h1 {
+.playful-create .editor-head h2 {
   font-size: clamp(29px, 2.8vw, 40px);
   font-weight: 700;
   letter-spacing: -0.025em;
