@@ -7,6 +7,7 @@ import Link from "next/link";
 import { redirectToCheckout } from "@/lib/upgrade";
 import { trackClientActivity } from "@/lib/activity-client";
 import { FACEBOOK_PAGE_URL, REDDIT_COMMUNITY_URL } from "@/lib/social-links";
+import WorkspaceShell, { WorkspacePageHead } from "@/components/WorkspaceShell";
 
 export default function SettingsPage() {
   const { data: session, status, update: updateSession } = useSession();
@@ -236,34 +237,16 @@ export default function SettingsPage() {
   const cancelPending = Boolean(planInfo?.cancelAtPeriodEnd && subscriptionEndsOn);
 
   return (
-    <div className="min-h-screen bg-[#fff7ed]">
-      {/* Header */}
-      <header className="bg-white border-b border-[#a39a88]">
-        <div className="container mx-auto px-4 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-            </div>
-            <span className="text-lg font-bold text-[#33312e]">MyBingoCard</span>
-          </Link>
-          <nav className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff]">
-              Dashboard
-            </Link>
-            <Link href="/create" className="text-sm font-medium text-[#33312e] hover:text-[#7c5cff]">
-              Create
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 lg:px-8 py-12 max-w-3xl">
-        <h1 className="text-3xl font-bold text-[#33312e] mb-8">Settings</h1>
+    <WorkspaceShell current="/settings" planLabel={isPremium ? "Premium plan" : "Free plan"}>
+      <div className="workspace-settings">
+        <WorkspacePageHead
+          title="Account settings"
+          description="Manage your profile, plan, preferences, connected accounts, and account access."
+        />
+        <div className="workspace-settings-grid workspace-settings-flat-grid">
 
         {/* Profile Section */}
-        <div className="bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
+        <div className="settings-card bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
           <h2 className="text-lg font-semibold text-[#33312e] mb-4">Profile</h2>
           <div className="flex items-start gap-4">
             {session.user?.image ? (
@@ -320,7 +303,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Password Section */}
-        <div className="bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
+        <div className="settings-card bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-[#33312e]">Password</h2>
             {!showPasswordForm && (
@@ -407,7 +390,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Plan & Subscription Section */}
-        <div className="bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
+        <div className="settings-card bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
           <h2 className="text-lg font-semibold text-[#33312e] mb-4">Plan & Billing</h2>
 
           <div className="flex items-center justify-between mb-4">
@@ -477,7 +460,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Email Preferences */}
-        <div className="bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
+        <div className="settings-card bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-[#33312e]">Email Preferences</h2>
             {emailPrefMessage && (
@@ -517,7 +500,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Community */}
-        <div className="bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
+        <div className="settings-card bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
           <h2 className="text-lg font-semibold text-[#33312e] mb-4">Community</h2>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 border border-[#a39a88] rounded-xl bg-[#fff7ed] mb-3">
             <div>
@@ -552,7 +535,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Connected Accounts */}
-        <div className="bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
+        <div className="settings-card bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
           <h2 className="text-lg font-semibold text-[#33312e] mb-4">Connected Accounts</h2>
 
           <div className="space-y-3">
@@ -604,7 +587,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Legal */}
-        <div className="bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
+        <div className="settings-card bg-white rounded-2xl border border-[#a39a88] p-6 mb-6">
           <h2 className="text-lg font-semibold text-[#33312e] mb-4">Legal</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <Link
@@ -629,7 +612,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Sign Out & Delete Account */}
-        <div className="bg-white rounded-2xl border border-[#a39a88] p-6">
+        <div className="settings-card bg-white rounded-2xl border border-[#a39a88] p-6">
           <h2 className="text-lg font-semibold text-[#33312e] mb-4">Account</h2>
 
           <div className="flex flex-col sm:flex-row gap-3">
@@ -676,7 +659,8 @@ export default function SettingsPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+         </div>
+      </div>
+    </WorkspaceShell>
   );
 }

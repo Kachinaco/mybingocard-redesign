@@ -1,585 +1,218 @@
 import { auth } from "@/auth";
-import PlaySoloButton from "@/components/PlaySoloButton";
-import StartGameButton from "@/components/StartGameButton";
-import SignOutButton from "@/components/SignOutButton";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import type { BingoCard } from "@/lib/db/cards";
 import { getUserByEmail } from "@/lib/db/users";
 import { getUserCards } from "@/lib/db/cards";
 import { PLANS } from "@/lib/stripe/config";
-import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
-import PremiumCheckoutButton from "@/components/PremiumCheckoutButton";
-import UpgradeButton from "@/components/UpgradeButton";
-import Link from "next/link";
 import { getGameHistory, getGameStats } from "@/lib/gameHistory";
 import { getUserFavorites } from "@/lib/favorites";
-import DashboardEngagement from "./DashboardEngagement";
-import DashboardFunnelTracker from "./DashboardFunnelTracker";
-import CopyReferralCode from "@/components/CopyReferralCode";
-import DashboardTracker from "./DashboardTracker";
-import FavCardPreview from "./FavCardPreview";
-import UpgradeBanner from "@/components/UpgradeBanner";
-import NpsWidget from "@/components/NpsWidget";
-import OnboardingChecklist from "@/components/OnboardingChecklist";
-import IosAppStorePromo from "@/components/IosAppStorePromo";
-import { FACEBOOK_PAGE_URL, REDDIT_COMMUNITY_URL } from "@/lib/social-links";
 import { getEffectiveCardLimit, hasPremiumAccess } from "@/lib/subscription-status";
+import PremiumCheckoutButton from "@/components/PremiumCheckoutButton";
+import UpgradeButton from "@/components/UpgradeButton";
+import ManageSubscriptionButton from "@/components/ManageSubscriptionButton";
+import DashboardTracker from "./DashboardTracker";
+import DashboardFunnelTracker from "./DashboardFunnelTracker";
+import NpsWidget from "@/components/NpsWidget";
+import WorkspaceShell, { WorkspacePageHead } from "@/components/WorkspaceShell";
+
+function cardId(card: BingoCard) {
+  return card._id.toString();
+}
+
+function formatDate(value: Date | string | undefined) {
+  if (!value) return "—";
+  return new Date(value).toLocaleDateString();
+}
+
+function MiniCardPreview({ card }: { card: BingoCard }) {
+  return (
+    <div className="saved-card-preview" aria-hidden="true">
+      <div className="mini-grid">
+        {Array.from({ length: card.size * card.size }, (_, index) => (
+          <span key={index} className={card.freeSpace && index === Math.floor((card.size * card.size) / 2) ? "is-free" : undefined} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SavedCardRow({ card }: { card: BingoCard }) {
+  const id = cardId(card);
+  return (
+    <article className="card-soft saved-card">
+      <MiniCardPreview card={card} />
+      <div className="saved-card-copy">
+        <h3>{card.title}</h3>
+        <div className="saved-card-meta">
+          <span>{card.size}×{card.size}</span>
+          <span>{formatDate(card.updatedAt)}</span>
+          <span>{card.isPublic ? "Shared" : "Ready to play"}</span>
+        </div>
+      </div>
+      <div className="saved-card-actions">
+        <Link href={`/cards/${id}`} className="button button-primary button-small">Open</Link>
+        <Link href={`/cards/${id}?next=share`} className="button button-icon button-small" aria-label={`Share ${card.title}`}>
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="2.5" /><circle cx="6" cy="12" r="2.5" /><circle cx="18" cy="19" r="2.5" /><path d="m8.2 10.8 7.5-4.5M8.2 13.2l7.5 4.5" />
+          </svg>
+        </Link>
+      </div>
+    </article>
+  );
+}
+
+function ActivityRow({ title, copy, trailing }: { title: string; copy: string; trailing: string }) {
+  return (
+    <div className="activity-item">
+      <div className="activity-copy">
+        <strong>{title}</strong>
+        <span className="caption">{copy}</span>
+      </div>
+      <span className="caption">{trailing}</span>
+    </div>
+  );
+}
 
 export default async function DashboardPage() {
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/login");
+    redirect("/login?callbackUrl=/dashboard");
   }
 
-  const user = session.user.email
-    ? await getUserByEmail(session.user.email)
-    : null;
-
+  const user = session.user.email ? await getUserByEmail(session.user.email) : null;
   const currentPlan = user?.planType || "FREE";
   const plan = PLANS[currentPlan as keyof typeof PLANS] || PLANS.FREE;
   const isSubscribed = hasPremiumAccess(user);
-  const isNewUser = user?.createdAt && (Date.now() - new Date(user.createdAt).getTime()) < 60000;
-  const cancelPending = Boolean(user?.cancelAtPeriodEnd && user?.currentPeriodEnd);
-  const subscriptionEndsOn = user?.currentPeriodEnd
-    ? new Date(user.currentPeriodEnd).toLocaleDateString()
-    : null;
-
-  const recentCards = session.user.id
-    ? (await getUserCards(session.user.id)).slice(0, 6)
-    : [];
-
-  // Fetch engagement data
+  const allCards = session.user.id ? await getUserCards(session.user.id) : [];
+  const recentCards = allCards.slice(0, 4);
+  const latestCard = recentCards[0];
   const [gameHistory, gameStats, favorites] = await Promise.all([
-    session.user.id ? getGameHistory(session.user.id, 10) : Promise.resolve([]),
+    session.user.id ? getGameHistory(session.user.id, 3) : Promise.resolve([]),
     session.user.id ? getGameStats(session.user.id) : Promise.resolve({ total: 0, wins: 0, winRate: 0 }),
     session.user.id ? getUserFavorites(session.user.id, 10) : Promise.resolve([]),
   ]);
-
-  // Resolve favorite card names
-  const allCards = session.user.id ? await getUserCards(session.user.id) : [];
-  const cardMap = new Map(allCards.map((c) => [c._id.toString(), c]));
-  const favoriteCards = favorites
-    .map((f) => cardMap.get(f.cardId))
-    .filter(Boolean);
-  const latestCard = recentCards[0];
-  const totalCards = allCards.length;
+  const cardMap = new Map(allCards.map((card) => [card._id.toString(), card]));
+  const favoriteCards = favorites.map((favorite) => cardMap.get(favorite.cardId)).filter(Boolean);
   const monthlyLimit = isSubscribed ? Number(PLANS.PREMIUM.limits.maxCards) : getEffectiveCardLimit(user);
-  const usagePercent = monthlyLimit > 0
-    ? Math.min(100, Math.round((totalCards / monthlyLimit) * 100))
-    : isSubscribed ? 18 : 0;
-  const usageLabel = monthlyLimit === -1
-    ? `${totalCards} saved cards`
-    : `${totalCards} of ${monthlyLimit} cards used`;
+  const usageLabel = monthlyLimit === -1 ? `${allCards.length} saved cards` : `${allCards.length} of ${monthlyLimit} cards used`;
+  const usagePercent = monthlyLimit === -1 ? Math.min(100, Math.max(12, allCards.length > 0 ? 18 : 0)) : monthlyLimit > 0 ? Math.min(100, Math.round((allCards.length / monthlyLimit) * 100)) : 0;
   const firstName = session.user.name?.split(" ")[0] || "Friend";
+  const planLabel = `${currentPlan === "PREMIUM" ? "Premium" : "Free"} plan`;
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#fff7ed] selection:bg-[#7c5cff]/15 selection:text-[#7c5cff]">
-      <DashboardTracker cardCount={recentCards.length} planType={currentPlan} />
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 w-[100dvw] max-w-[100dvw] z-50 overflow-hidden bg-white/80 backdrop-blur-md border-b border-[#a39a88]/50">
-        <div className="w-[100dvw] max-w-[100dvw] px-3 sm:px-4 lg:px-8 h-16 md:h-20 flex items-center justify-between gap-3">
-          <Link href="/" className="flex min-w-0 items-center gap-2 group">
-            <div className="w-9 h-9 md:w-10 md:h-10 shrink-0 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-xl flex items-center justify-center shadow-lg shadow-[#7c5cff] group-hover:shadow-[#7c5cff] transition-all duration-300">
-              <svg className="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-            </div>
-            <span className="truncate text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#33312e] to-[#33312e]">
-              MyBingoCard
-            </span>
-          </Link>
-          
-          <div className="flex shrink-0 items-center gap-1 sm:gap-2 md:gap-4">
-             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-[#fff7ed] rounded-full border border-[#a39a88]">
-                <div className="w-6 h-6 rounded-full bg-[#a39a88] flex items-center justify-center text-xs font-bold text-[#6b6459]">
-                    {session.user.name?.charAt(0) || session.user.email?.charAt(0)}
-                </div>
-                <span className="text-sm font-medium text-[#33312e] max-w-[100px] truncate">
-                  {session.user.name || session.user.email}
-                </span>
-             </div>
+    <>
+      <WorkspaceShell current="/dashboard" planLabel={planLabel}>
+        <DashboardTracker cardCount={recentCards.length} planType={currentPlan} />
+        <DashboardFunnelTracker cardCount={allCards.length} />
+        <WorkspacePageHead
+          title="Dashboard"
+          description="An account overview with recent cards, plan status, and useful next actions."
+          action={<Link href="/create" className="button button-primary">＋ Create card</Link>}
+        />
 
-            <Link
-              href="/dashboard/share-links"
-              className="hidden md:inline text-sm font-medium text-[#6b6459] hover:text-[#7c5cff] transition-colors px-3 py-2"
-            >
-              Share Links
-            </Link>
-            <Link
-              href="/settings"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-[#6b6459] hover:text-[#7c5cff] hover:bg-[#fff7ed] transition-colors md:h-auto md:w-auto md:px-3 md:py-2 md:text-sm md:font-medium"
-              aria-label="Settings"
-              title="Settings"
-            >
-              <svg className="h-5 w-5 md:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="hidden md:inline">Settings</span>
-            </Link>
-            {currentPlan === "FREE" && (
-              <PremiumCheckoutButton
-                source="dashboard_header"
-                className="hidden sm:inline-flex items-center justify-center px-4 py-2 rounded-lg bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white text-sm font-semibold hover:shadow-lg transition-all"
-                label="Upgrade"
-              />
-            )}
-            <div className="hidden md:block">
-              <SignOutButton />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <DashboardFunnelTracker cardCount={allCards.length} />
-
-      {/* Main Content */}
-      <main className="pt-24 md:pt-28 pb-24 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <section className="mb-6 overflow-hidden rounded-2xl border border-[#7c5cff]/15 bg-white shadow-sm shadow-[#7c5cff]/15">
-            <div className="grid gap-0 lg:grid-cols-[1.55fr_0.95fr]">
-              <div className="p-5 sm:p-7 md:p-8">
-                <div className="mb-5 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-[#2ec4b6] bg-[#2ec4b6]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#2ec4b6]">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#2ec4b6]" />
-                    {plan.name}
-                  </span>
-                  {cancelPending && (
-                    <span className="rounded-full border border-[#ffb800] bg-[#ffb800]/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-[#ffb800]">
-                      Ending soon
-                    </span>
-                  )}
-                </div>
-                <h1 className="max-w-2xl text-3xl font-black tracking-tight text-[#33312e] md:text-4xl">
-                  {isNewUser ? "Build your first bingo card" : `Welcome back, ${firstName}`}
-                </h1>
-                <p className="mt-3 max-w-2xl text-base leading-7 text-[#33312e]">
-                  {isNewUser
-                    ? "Start with a template, customize the card, then play, share, or download a printable batch."
-                    : "Create cards, manage paid downloads, share player links, and pick up where you left off."}
-                </p>
-                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                  <Link
-                    href="/create"
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#7c5cff] transition hover:shadow-[#7c5cff]"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.3} d="M12 5v14m7-7H5" />
-                    </svg>
-                    Create card
-                  </Link>
-                  <Link
-                    href="/dashboard/cards"
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#a39a88] bg-white px-5 py-3 text-sm font-bold text-[#33312e] transition hover:border-[#a39a88] hover:bg-[#fff7ed]"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.3} d="M4 5h16M4 12h16M4 19h16" />
-                    </svg>
-                    Saved cards
-                  </Link>
-                  <Link
-                    href="/dashboard/share-links"
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#2ec4b6] bg-[#2ec4b6]/10 px-5 py-3 text-sm font-bold text-[#2ec4b6] transition hover:bg-[#2ec4b6]/15"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.3} d="M7 8a3 3 0 100-6 3 3 0 000 6zm10 7a3 3 0 100-6 3 3 0 000 6zM7 22a3 3 0 100-6 3 3 0 000 6zm2.6-5.4l4.8-3.2M9.6 7.4l4.8 3.2" />
-                    </svg>
-                    Share links
-                  </Link>
-                </div>
-              </div>
-              <aside className="border-t border-[#7c5cff] bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] p-5 text-white sm:p-7 md:p-8 lg:border-l lg:border-t-0">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wide text-[#7c5cff]/15">Plan usage</p>
-                    <p className="mt-2 text-2xl font-black">{usageLabel}</p>
-                  </div>
-                  {!isSubscribed ? (
-                    <UpgradeButton>Upgrade</UpgradeButton>
-                  ) : (
-                    <div className="[&_button]:border-white/30 [&_button]:text-white [&_button]:hover:bg-white/10">
-                      <ManageSubscriptionButton />
-                    </div>
-                  )}
-                </div>
-                <div className="mt-6">
-                  <div className="h-2 overflow-hidden rounded-full bg-white/20">
-                    <div className="h-full rounded-full bg-white" style={{ width: `${usagePercent}%` }} />
-                  </div>
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    <div className="rounded-xl border border-white/20 bg-white/10 p-3">
-                      <p className="text-[11px] font-bold uppercase tracking-wide text-[#7c5cff]/15">Templates</p>
-                      <p className="mt-1 text-sm font-bold">{plan.limits.canUseAdvancedTemplates ? "All premium" : "Starter set"}</p>
-                    </div>
-                    <div className="rounded-xl border border-white/20 bg-white/10 p-3">
-                      <p className="text-[11px] font-bold uppercase tracking-wide text-[#7c5cff]/15">Downloads</p>
-                      <p className="mt-1 text-sm font-bold">{isSubscribed ? "Included" : "Paid batches"}</p>
-                    </div>
-                  </div>
-                  {subscriptionEndsOn && (
-                    <p className="mt-4 text-sm text-[#7c5cff]/15">
-                      {cancelPending ? `Access ends ${subscriptionEndsOn}` : `Renews ${subscriptionEndsOn}`}
-                    </p>
-                  )}
-                </div>
-              </aside>
-            </div>
-          </section>
-
-          <IosAppStorePromo />
-
-          <section className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4">
-            {[
-              { label: "Saved cards", value: totalCards.toString(), tone: "text-[#7c5cff]", sub: latestCard ? "Latest ready" : "Start creating" },
-              { label: "Games played", value: gameStats.total.toString(), tone: "text-[#7c5cff]", sub: `${gameStats.wins} wins` },
-              { label: "Favorites", value: favoriteCards.length.toString(), tone: "text-[#ff5d8f]", sub: "Pinned cards" },
-              { label: "Max grid", value: `${plan.limits.maxSize}x${plan.limits.maxSize}`, tone: "text-[#2ec4b6]", sub: "Current plan" },
-            ].map((item) => (
-              <div key={item.label} className="rounded-2xl border border-[#a39a88] bg-white p-4 shadow-sm">
-                <p className="text-xs font-bold uppercase tracking-wide text-[#6b6459]">{item.label}</p>
-                <p className={`mt-2 text-2xl font-black ${item.tone}`}>{item.value}</p>
-                <p className="mt-1 text-xs text-[#6b6459]">{item.sub}</p>
-              </div>
-            ))}
-          </section>
-
-          {recentCards.length === 0 && (
-            <section className="mb-8 rounded-2xl border border-[#7c5cff] bg-[#7c5cff]/10 p-5 shadow-sm md:p-7">
-              <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-                <div>
-                  <h2 className="text-2xl font-black text-[#33312e]">Create your first card</h2>
-                  <p className="mt-2 text-sm leading-6 text-[#33312e]">
-                    Pick a template, add your words or images, then print or share the cards with players.
-                  </p>
-                  <Link href="/create" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[#7c5cff] transition hover:shadow-[#7c5cff]">
-                    Start creating
-                  </Link>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {[
-                    { title: "Choose", desc: "Start from a use-case template." },
-                    { title: "Customize", desc: "Edit words, images, free space, and style." },
-                    { title: "Play", desc: "Export a card, buy batch packs, or add paid player links." },
-                  ].map((step, index) => (
-                    <div key={step.title} className="rounded-xl border border-white/70 bg-white p-4">
-                      <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg bg-[#7c5cff]/15 text-sm font-black text-[#7c5cff]">
-                        {index + 1}
-                      </div>
-                      <p className="font-bold text-[#33312e]">{step.title}</p>
-                      <p className="mt-1 text-xs leading-5 text-[#6b6459]">{step.desc}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
-
-          {currentPlan === "FREE" && recentCards.length >= 1 && (
-            <UpgradeBanner />
-          )}
-
-          <OnboardingChecklist />
-
-          <section className="mb-8 grid gap-4 lg:grid-cols-3">
-            {[
-              {
-                href: "/create",
-                title: "Create card",
-                desc: "Build a new card from scratch or AI prompts.",
-                color: "border-[#a39a88] hover:border-[#a39a88]",
-                icon: "M12 5v14m7-7H5",
-              },
-              {
-                href: "/templates",
-                title: "Browse templates",
-                desc: "Start faster with ready-made card categories.",
-                color: "border-[#7c5cff] hover:border-[#7c5cff]",
-                icon: "M4 5h7v7H4V5zm9 0h7v7h-7V5zM4 14h7v5H4v-5zm9 0h7v5h-7v-5z",
-              },
-              {
-                href: "/dashboard/share-links",
-                title: "Share player links",
-                desc: "Send monetized email batches or copy links.",
-                color: "border-[#2ec4b6] hover:border-[#2ec4b6]",
-                icon: "M7 8a3 3 0 100-6 3 3 0 000 6zm10 7a3 3 0 100-6 3 3 0 000 6zM7 22a3 3 0 100-6 3 3 0 000 6zm2.6-5.4l4.8-3.2M9.6 7.4l4.8 3.2",
-              },
-            ].map((action) => (
-              <Link key={action.title} href={action.href} className={`group rounded-2xl border bg-white p-5 shadow-sm transition ${action.color}`}>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="font-black text-[#33312e]">{action.title}</h2>
-                    <p className="mt-1 text-sm leading-6 text-[#33312e]">{action.desc}</p>
-                  </div>
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#7c5cff]/10 text-[#7c5cff] transition group-hover:bg-[#7c5cff] group-hover:text-white">
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d={action.icon} />
-                    </svg>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </section>
-
-          {latestCard && (
-            <section className="mb-8 rounded-2xl border border-[#2ec4b6] bg-white p-5 shadow-sm md:p-6">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold uppercase tracking-wide text-[#2ec4b6]">Continue working</p>
-                  <h2 className="mt-1 truncate text-xl font-black text-[#33312e]">{latestCard.title}</h2>
-                  <p className="mt-1 text-sm text-[#33312e]">
-                    {latestCard.size}x{latestCard.size} card created {new Date(latestCard.createdAt).toLocaleDateString()}
+        <div className="dashboard-grid">
+          <div className="dashboard-section">
+            <section className="card card-body surface-yellow">
+              <div className="section-title-row">
+                <div className="stack-tight">
+                  <span className="eyebrow">Continue working</span>
+                  <h2>{latestCard?.title || `Welcome back, ${firstName}`}</h2>
+                  <p className="muted">
+                    {latestCard
+                      ? `${latestCard.cells.filter(Boolean).length} of ${latestCard.size * latestCard.size} squares ready · updated ${formatDate(latestCard.updatedAt)}`
+                      : "Create your first card to start your workspace."}
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
-                  <Link href={`/cards/${latestCard._id.toString()}?next=play`} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] px-4 py-2.5 text-sm font-bold text-white transition hover:shadow-lg hover:shadow-[#7c5cff]">
-                    Play
-                  </Link>
-                  <Link href={`/cards/${latestCard._id.toString()}?next=share`} className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#2ec4b6] px-4 py-2.5 text-sm font-bold text-white transition hover:bg-[#2ec4b6]">
-                    Share
-                  </Link>
-                  <Link href={`/cards/${latestCard._id.toString()}?next=export`} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#a39a88] bg-white px-4 py-2.5 text-sm font-bold text-[#33312e] transition hover:bg-[#fff7ed]">
-                    PDF
-                  </Link>
-                  <Link href={`/create?cardId=${latestCard._id.toString()}`} className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#a39a88] bg-white px-4 py-2.5 text-sm font-bold text-[#33312e] transition hover:bg-[#fff7ed]">
-                    Edit
-                  </Link>
-                </div>
+                <Link href={latestCard ? `/cards/${cardId(latestCard)}` : "/create"} className="button button-primary">
+                  {latestCard ? "Open card" : "Create card"}
+                </Link>
               </div>
             </section>
-          )}
 
-          <section className="mb-8 rounded-2xl border border-[#a39a88] bg-white p-5 shadow-sm md:p-7">
-            <div className="mb-6 flex items-start justify-between gap-4">
-              <div>
-               <p className="text-xs font-bold uppercase tracking-wide text-[#6b6459]">Library</p>
-               <h2 className="mt-1 text-xl font-black text-[#33312e]">My cards</h2>
+            <section className="dashboard-section">
+              <div className="section-title-row">
+                <h2>Recent cards</h2>
+                <Link href="/dashboard/cards">View all cards</Link>
               </div>
-               {recentCards.length > 0 && (
-                 <Link href="/dashboard/cards" className="inline-flex min-h-10 items-center rounded-xl border border-[#a39a88] px-4 py-2 text-sm font-bold text-[#33312e] transition hover:bg-[#fff7ed]">
-                    View All
-                 </Link>
-               )}
-            </div>
-
-            {recentCards.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-[#a39a88] bg-[#fff7ed] py-10 text-center text-sm text-[#6b6459]">
-                Your cards will appear here once you create one.
-              </div>
-            ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {recentCards.map((card) => (
-                  <div key={card._id.toString()} className="group rounded-2xl border border-[#a39a88] bg-white p-4 shadow-sm transition hover:border-[#7c5cff] hover:shadow-md">
-                    <Link href={`/cards/${card._id.toString()}`} className="block">
-                      <div className="flex items-start justify-between mb-3">
-                        <h3 className="font-semibold text-[#33312e] group-hover:text-[#7c5cff] transition-colors line-clamp-1">
-                          {card.title}
-                        </h3>
-                        <span className="rounded-lg bg-[#fff7ed] px-2 py-1 text-xs font-bold text-[#6b6459]">
-                          {card.size}x{card.size}
-                        </span>
-                      </div>
-                      <FavCardPreview card={card} />
-                      <p className="text-xs text-[#6b6459] mb-3">
-                        {new Date(card.createdAt).toLocaleDateString()}
-                      </p>
-                    </Link>
-                    <div className="grid grid-cols-3 gap-2">
-                      <PlaySoloButton cardId={card._id.toString()} />
-                      <StartGameButton cardId={card._id.toString()} label="Friends" compact />
-                      <Link href={`/cards/${card._id.toString()}?next=share`} className="text-center px-3 py-2 bg-[#2ec4b6]/10 text-[#2ec4b6] border border-[#2ec4b6]/15 rounded-lg hover:bg-[#2ec4b6]/15 hover:border-[#2ec4b6] transition-colors text-sm font-semibold">
-                        Share
-                      </Link>
-                    </div>
+              {recentCards.length > 0 ? (
+                <div className="card-list">
+                  {recentCards.slice(0, 3).map((card) => <SavedCardRow key={cardId(card)} card={card} />)}
+                </div>
+              ) : (
+                <section className="card empty-state">
+                  <div className="empty-state-inner">
+                    <span className="empty-icon" aria-hidden="true">✏️</span>
+                    <h2>No saved cards yet</h2>
+                    <p className="muted">Create a card and it will appear here with its play, share, and export actions.</p>
+                    <Link href="/create" className="button button-primary">Create your first card</Link>
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {gameStats.total > 0 && (
-            <section className="mb-8 rounded-2xl border border-[#a39a88] bg-white p-5 shadow-sm md:p-7">
-              <div className="mb-6 flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-[#6b6459]">Activity</p>
-                  <h2 className="mt-1 text-xl font-black text-[#33312e]">Game history</h2>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="p-4 rounded-xl bg-[#fff7ed] border border-[#a39a88] text-center">
-                  <p className="text-2xl font-black text-[#7c5cff]">{gameStats.total}</p>
-                  <p className="text-xs font-medium text-[#6b6459] uppercase tracking-wide mt-1">Played</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#fff7ed] border border-[#a39a88] text-center">
-                  <p className="text-2xl font-black text-[#2ec4b6]">{gameStats.wins}</p>
-                  <p className="text-xs font-medium text-[#6b6459] uppercase tracking-wide mt-1">Wins</p>
-                </div>
-                <div className="p-4 rounded-xl bg-[#fff7ed] border border-[#a39a88] text-center">
-                  <p className="text-2xl font-black text-[#ffb800]">{gameStats.winRate}%</p>
-                  <p className="text-xs font-medium text-[#6b6459] uppercase tracking-wide mt-1">Win Rate</p>
-                </div>
-              </div>
-              {gameHistory.length > 0 && (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-[#fff7ed]">
-                        <th className="text-left py-3 px-2 font-semibold text-[#6b6459] uppercase tracking-wide text-xs">Card</th>
-                        <th className="text-left py-3 px-2 font-semibold text-[#6b6459] uppercase tracking-wide text-xs">Result</th>
-                        <th className="text-left py-3 px-2 font-semibold text-[#6b6459] uppercase tracking-wide text-xs">Duration</th>
-                        <th className="text-left py-3 px-2 font-semibold text-[#6b6459] uppercase tracking-wide text-xs">Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {gameHistory.map((g) => (
-                        <tr key={g._id?.toString()} className="border-b border-[#fff7ed] hover:bg-[#fff7ed] transition-colors">
-                          <td className="py-3 px-2">
-                            <Link href={`/cards/${g.cardId}`} className="text-[#7c5cff] hover:underline font-medium">
-                              {g.cardName}
-                            </Link>
-                          </td>
-                          <td className="py-3 px-2">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                              g.won ? "bg-[#2ec4b6]/10 text-[#2ec4b6]" : "bg-[#fff7ed] text-[#33312e]"
-                            }`}>
-                              {g.won ? "Win" : "Played"}
-                            </span>
-                          </td>
-                          <td className="py-3 px-2 text-[#33312e]">
-                            {g.duration < 60 ? `${g.duration}s` : `${Math.floor(g.duration / 60)}m ${g.duration % 60}s`}
-                          </td>
-                          <td className="py-3 px-2 text-[#6b6459]">
-                            {new Date(g.datePlayed).toLocaleDateString()}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                </section>
               )}
             </section>
-          )}
 
-          {/* Recently Played (client component with localStorage) */}
-          <DashboardEngagement />
-
-          {/* Favorites */}
-          {favoriteCards.length > 0 && (
-            <section className="mb-8 rounded-2xl border border-[#a39a88] bg-white p-5 shadow-sm md:p-7">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-[#33312e] flex items-center gap-2">
-                  <svg className="w-5 h-5 text-[#ff5d8f]" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                  Favorites
-                </h2>
-              </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {favoriteCards.map((card: any) => (
-                  <div key={card._id.toString()} className="group rounded-2xl border border-[#a39a88] bg-white p-4 shadow-sm transition hover:border-[#7c5cff] hover:shadow-md">
-                    <Link href={`/cards/${card._id.toString()}`} className="block">
-                      <div className="flex items-start justify-between mb-3">
-                        <h3 className="font-semibold text-[#33312e] group-hover:text-[#7c5cff] transition-colors line-clamp-1">
-                          {card.title}
-                        </h3>
-                        <span className="text-xs font-medium text-[#6b6459] bg-white px-2 py-0.5 rounded">
-                          {card.size}x{card.size}
-                        </span>
-                      </div>
-                      <FavCardPreview card={card} />
-                      <p className="text-xs text-[#6b6459] mb-3">
-                        {new Date(card.createdAt).toLocaleDateString()}
-                      </p>
-                    </Link>
-                    <div className="grid grid-cols-3 gap-2">
-                      <PlaySoloButton cardId={card._id.toString()} />
-                      <StartGameButton cardId={card._id.toString()} label="Friends" compact />
-                      <Link href={`/cards/${card._id.toString()}?next=share`} className="text-center px-3 py-2 bg-[#2ec4b6]/10 text-[#2ec4b6] border border-[#2ec4b6]/15 rounded-lg hover:bg-[#2ec4b6]/15 hover:border-[#2ec4b6] transition-colors text-sm font-semibold">
-                        Share
-                      </Link>
-                    </div>
-                  </div>
-                ))}
+            <section className="dashboard-section">
+              <div className="section-title-row"><h2>Recent activity</h2></div>
+              <div className="card-soft card-body activity-list">
+                {gameHistory.length > 0 ? gameHistory.map((game) => (
+                  <ActivityRow
+                    key={game._id?.toString() || `${game.cardId}-${game.datePlayed}`}
+                    title={game.cardName}
+                    copy={game.won ? "Won a game" : "Played a game"}
+                    trailing={formatDate(game.datePlayed)}
+                  />
+                )) : (
+                  <ActivityRow title="Your workspace is ready" copy="Create a card to start tracking activity." trailing="Next" />
+                )}
               </div>
             </section>
-          )}
-
-          {/* Referral Section */}
-          {(user as any)?.referralCode && (
-            <div className="mb-8 bg-gradient-to-r from-[#2ec4b6] to-[#2ec4b6] rounded-2xl p-6 md:p-8 text-white shadow-lg">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-bold mb-1">Share MyBingoCard</h2>
-                  <p className="text-white/80 text-sm">Share your link with friends. When they sign up, you both win.</p>
-                </div>
-                <div className="flex w-full min-w-0 flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-                  <CopyReferralCode code={(user as any).referralCode} />
-                  <Link href="/dashboard/referrals" className="w-full shrink-0 rounded-xl bg-white px-5 py-2.5 text-center text-sm font-bold text-[#2ec4b6] transition-all hover:shadow-lg sm:w-auto">
-                    View Referrals
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Live Games Section */}
-          <section className="mb-8 rounded-2xl border border-[#a39a88] bg-white p-5 shadow-sm md:p-7">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2ec4b6]/10 text-[#2ec4b6]">
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15 10l4.55-2.28A1 1 0 0121 8.62v6.76a1 1 0 01-1.45.9L15 14M5 18h10a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  </span>
-                  <h2 className="text-xl font-black text-[#33312e]">Live bingo games</h2>
-                  <span className="rounded-full bg-[#2ec4b6]/10 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-[#2ec4b6]">New</span>
-                </div>
-                <p className="text-sm leading-6 text-[#33312e]">Host a live game from any saved card. Players join with a room code and play together in real time.</p>
-              </div>
-              <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
-                <Link href="/game/join" className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#a39a88] bg-white px-5 py-2.5 text-sm font-bold text-[#33312e] transition hover:bg-[#fff7ed]">
-                  Join a Game
-                </Link>
-                <Link href="/dashboard/cards" className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#2ec4b6] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#2ec4b6]">
-                  Host a Game
-                </Link>
-              </div>
-            </div>
-          </section>
-
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-[#a39a88] py-8">
-        <div className="container mx-auto px-4 lg:px-8 max-w-6xl">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-lg flex items-center justify-center">
-                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-              </div>
-              <span className="text-sm font-semibold text-[#33312e]">MyBingoCard</span>
-            </div>
-            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-[#6b6459]">
-              <Link href="/templates" className="hover:text-[#7c5cff] transition-colors">Templates</Link>
-              <Link href="/pricing" className="hover:text-[#7c5cff] transition-colors">Pricing</Link>
-              <Link href="/privacy" className="hover:text-[#7c5cff] transition-colors">Privacy</Link>
-              <Link href="/terms" className="hover:text-[#7c5cff] transition-colors">Terms</Link>
-              <Link href="/contact" className="hover:text-[#7c5cff] transition-colors">Contact</Link>
-              <a href={FACEBOOK_PAGE_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#7c5cff] transition-colors">
-                Facebook
-              </a>
-              <a href={REDDIT_COMMUNITY_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#7c5cff] transition-colors">
-                Reddit
-              </a>
-            </div>
-            <p className="text-xs text-[#6b6459]">&copy; {new Date().getFullYear()} MyBingoCard</p>
           </div>
+
+          <aside className="dashboard-section">
+            <section className="card-soft card-body">
+              <div className="section-title-row">
+                <h2>Plan</h2>
+                <span className="pill pill-purple">{currentPlan === "PREMIUM" ? "Premium" : "Free"}</span>
+              </div>
+              <p className="muted">{isSubscribed ? "Unlimited cards, sharing tools, and hosted games are available." : "You have everything needed to make and preview individual cards."}</p>
+              <div className="usage-summary">
+                <div className="section-title-row"><strong>Cards saved</strong><span className="tabular-nums">{usageLabel}</span></div>
+                <div className="progress-track" aria-label={`${usagePercent}% of card capacity used`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={usagePercent}><span style={{ width: `${usagePercent}%` }} /></div>
+              </div>
+              {isSubscribed ? <ManageSubscriptionButton /> : <UpgradeButton>Compare upgrades</UpgradeButton>}
+            </section>
+
+            <section className="card-soft card-body">
+              <h2>Getting started</h2>
+              <div className="activity-list">
+                <ActivityRow title="Create a card" copy={allCards.length > 0 ? "Complete" : "Try next"} trailing={allCards.length > 0 ? "✓" : "1"} />
+                <ActivityRow title="Save your first card" copy={allCards.length > 0 ? "Complete" : "Waiting"} trailing={allCards.length > 0 ? "✓" : "2"} />
+                <ActivityRow title="Share with a player" copy={allCards.some((card) => card.isPublic) ? "Complete" : "Try next"} trailing={allCards.some((card) => card.isPublic) ? "✓" : "3"} />
+              </div>
+              <Link href="/dashboard/share-links" className="button button-small">Set up sharing</Link>
+            </section>
+
+            <section className="card-soft card-body surface-teal">
+              <span className="eyebrow">Live game</span>
+              <h2>Host from any card</h2>
+              <p>Invite players with a room code, then call and verify winners from the host screen.</p>
+              <Link href={latestCard ? `/cards/${cardId(latestCard)}?next=play` : "/dashboard/cards"} className="button button-small">Open a card</Link>
+            </section>
+
+            <section className="card-soft card-body">
+              <div className="section-title-row"><h2>Account snapshot</h2><span className="pill pill-local">{allCards.length} cards</span></div>
+              <div className="compact-metrics">
+                <div><strong className="stat-value">{gameStats.total}</strong><span className="stat-label">Games played</span></div>
+                <div><strong className="stat-value">{gameStats.wins}</strong><span className="stat-label">Wins</span></div>
+                <div><strong className="stat-value">{favoriteCards.length}</strong><span className="stat-label">Favorites</span></div>
+              </div>
+              {!isSubscribed && <PremiumCheckoutButton source="dashboard_plan" className="button button-small button-primary" label="Compare plans" />}
+            </section>
+          </aside>
         </div>
-      </footer>
+      </WorkspaceShell>
       <NpsWidget />
-    </div>
+    </>
   );
 }

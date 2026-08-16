@@ -2,11 +2,11 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import Link from "next/link";
-import SignOutButton from "@/components/SignOutButton";
 import ShareLinksTracker from "./ShareLinksTracker";
 import CopyShareLinkButton from "./CopyShareLinkButton";
 import CopyGroupInviteButton from "@/components/CopyGroupInviteButton";
 import { getCardById } from "@/lib/db/cards";
+import WorkspaceShell, { WorkspacePageHead } from "@/components/WorkspaceShell";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +23,6 @@ interface SharedLinkDTO {
   createdAt: string;
   amountCents: number;
 }
-
 function deriveBatchTitle(rawTitle: string | null | undefined): string {
   if (!rawTitle) return "Untitled batch";
   // Strip a trailing " #N" suffix added by batch generation (e.g. "Oscar Night! #3" -> "Oscar Night!")
@@ -80,15 +79,15 @@ function formatDate(value: string | undefined): string {
 function statusStyle(status: SharedLinkDTO["status"]): string {
   switch (status) {
     case "claimed":
-      return "bg-[#2ec4b6]/10 text-[#2ec4b6] border border-[#2ec4b6]/15";
+      return "pill pill-success";
     case "pending":
-      return "bg-[#ffb800]/10 text-[#ffb800] border border-[#ffb800]/15";
+      return "pill pill-local";
     case "expired":
-      return "bg-[#fff7ed] text-[#33312e] border border-[#a39a88]";
+      return "pill";
     case "refunded":
-      return "bg-[#ff5d8f]/10 text-[#ff5d8f] border border-[#ff5d8f]/15";
+      return "pill pill-pink";
     default:
-      return "bg-[#fff7ed] text-[#33312e] border border-[#a39a88]";
+      return "pill";
   }
 }
 
@@ -133,238 +132,106 @@ export default async function ShareLinksPage() {
     })
   );
 
+
   return (
-    <div className="min-h-screen bg-[#fff7ed] selection:bg-[#7c5cff]/15 selection:text-[#7c5cff]">
+    <WorkspaceShell current="/dashboard/share-links">
       <ShareLinksTracker totalLinks={totalLinks} />
+      <WorkspacePageHead
+        title="Share links"
+        description="Manage player links, copy a group invite, and see who has claimed a card."
+        action={<Link href="/dashboard/cards" className="button button-primary">＋ Create player batch</Link>}
+      />
 
-      {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-[#a39a88]/50">
-        <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-xl flex items-center justify-center shadow-lg shadow-[#7c5cff] group-hover:shadow-[#7c5cff] transition-all duration-300">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2.5}
-                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-                />
-              </svg>
-            </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#33312e] to-[#33312e]">
-              MyBingoCard
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-2 md:gap-4">
-            <Link
-              href="/dashboard/cards"
-              className="px-3 md:px-5 py-2.5 rounded-lg text-sm font-semibold text-[#33312e] hover:bg-[#fff7ed] transition-all duration-200"
-            >
-              My Cards
-            </Link>
-            <Link
-              href="/dashboard"
-              className="px-3 md:px-5 py-2.5 rounded-lg text-sm font-semibold text-[#33312e] hover:bg-[#fff7ed] transition-all duration-200"
-            >
-              <span className="hidden sm:inline">Dashboard</span>
-              <span className="sm:hidden">Home</span>
-            </Link>
-            <SignOutButton />
+      {totalLinks === 0 ? (
+        <section className="card empty-state">
+          <div className="empty-state-inner">
+            <div className="empty-icon" aria-hidden="true">↗</div>
+            <h2>No share links yet</h2>
+            <p>Generate a player batch from My cards. Each player then receives a unique link.</p>
+            <Link href="/dashboard/cards" className="button button-primary">Pick a batch to share</Link>
           </div>
-        </div>
-      </header>
-
-      <main className="pt-28 pb-24 px-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-black text-[#33312e] mb-2">
-                Share Links
-              </h1>
-              <p className="text-[#33312e]">
-                Copy one group invite, check who has claimed a card, and manage every player link.
-              </p>
-            </div>
-            <Link
-              href="/dashboard/cards"
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl font-bold hover:shadow-lg hover:shadow-[#7c5cff] transition-all"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              Create more links
-            </Link>
+        </section>
+      ) : (
+        <>
+          <div className="metrics-grid share-link-metrics">
+            <article className="card-soft metric-card surface-purple">
+              <span className="eyebrow">Total</span>
+              <strong className="stat-value">{totalLinks}</strong>
+              <span className="stat-label">Player links</span>
+            </article>
+            <article className="card-soft metric-card surface-teal">
+              <span className="eyebrow">Claimed</span>
+              <strong className="stat-value">{claimedCount}</strong>
+              <span className="stat-label">Players in games</span>
+            </article>
+            <article className="card-soft metric-card surface-yellow">
+              <span className="eyebrow">Pending</span>
+              <strong className="stat-value">{pendingCount}</strong>
+              <span className="stat-label">Links still available</span>
+            </article>
+            <article className="card-soft metric-card surface-pink">
+              <span className="eyebrow">Claim rate</span>
+              <strong className="stat-value">{claimRate}%</strong>
+              <span className="stat-label">Claimed by players</span>
+            </article>
           </div>
 
-          {totalLinks > 0 && (
-            <div className="grid gap-4 mb-8 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="p-5 rounded-xl bg-white border border-[#a39a88] shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#6b6459] mb-1">
-                  Total links
-                </p>
-                <p className="text-2xl font-bold text-[#33312e]">{totalLinks}</p>
-              </div>
-              <div className="p-5 rounded-xl bg-white border border-[#a39a88] shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#6b6459] mb-1">
-                  Claimed
-                </p>
-                <p className="text-2xl font-bold text-[#2ec4b6]">
-                  {claimedCount}
-                </p>
-              </div>
-              <div className="p-5 rounded-xl bg-white border border-[#a39a88] shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#6b6459] mb-1">
-                  Pending
-                </p>
-                <p className="text-2xl font-bold text-[#ffb800]">
-                  {pendingCount}
-                </p>
-              </div>
-              <div className="p-5 rounded-xl bg-white border border-[#a39a88] shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-[#6b6459] mb-1">
-                  Claim rate
-                </p>
-                <p className="text-2xl font-bold text-[#7c5cff]">{claimRate}%</p>
-              </div>
-            </div>
-          )}
+          <div className="stack">
+            {batches.map(([batchId, batchLinks]) => {
+              const batchTitle = batchTitles[batchId] || "Untitled batch";
+              const pendingForBatch = batchLinks.filter((link) => link.status === "pending").length;
+              const claimedForBatch = batchLinks.filter((link) => link.status === "claimed").length;
+              const inviteSeed = getInviteSeed(batchLinks);
 
-          {totalLinks === 0 ? (
-            <div className="bg-white rounded-2xl shadow-sm border border-[#a39a88] border-dashed p-8 sm:p-12 text-center">
-              <div className="w-20 h-20 bg-[#7c5cff]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg
-                  className="w-10 h-10 text-[#7c5cff]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-[#33312e] mb-2">
-                No share links yet
-              </h3>
-              <p className="text-[#6b6459] mb-8 max-w-md mx-auto">
-                Generate a batch, then send each player a unique card link. You can email recipients directly or copy the links yourself.
-              </p>
-              <Link
-                href="/dashboard/cards"
-                className="inline-flex items-center justify-center px-8 py-3.5 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl hover:shadow-lg hover:shadow-[#7c5cff]/30 hover:-translate-y-0.5 transition-all font-bold text-lg"
-              >
-                Pick a batch to share
-              </Link>
-            </div>
-          ) : (
-            <div className="space-y-8">
-              {batches.map(([batchId, batchLinks]) => (
-                (() => {
-                  const batchTitle = batchTitles[batchId] || "Untitled batch";
-                  const pendingForBatch = batchLinks.filter((link) => link.status === "pending").length;
-                  const claimedForBatch = batchLinks.filter((link) => link.status === "claimed").length;
-                  const inviteSeed = getInviteSeed(batchLinks);
-
-                  return (
-                <div
-                  key={batchId}
-                  className="bg-white rounded-2xl shadow-sm border border-[#a39a88] overflow-hidden"
-                >
-                  <div className="px-6 py-4 border-b border-[#fff7ed] bg-[#fff7ed] flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              return (
+                <section className="card-soft share-link-batch" key={batchId}>
+                  <div className="share-link-batch-head">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-[#6b6459]">
-                        Batch
-                      </p>
-                      <p className="text-base font-semibold text-[#33312e] break-words">
-                        {batchTitle}
-                      </p>
-                      <p className="mt-1 text-xs text-[#6b6459]">
-                        Send one group invite. Each friend gets the next unused card automatically.
-                      </p>
+                      <span className="eyebrow">Player batch</span>
+                      <h2>{batchTitle}</h2>
+                      <p className="caption">One group invite assigns the next unused card automatically.</p>
                     </div>
-                    <div className="flex flex-col gap-3 sm:items-end">
-                      <div className="flex flex-wrap gap-2 text-xs font-semibold sm:justify-end">
-                        <span className="rounded-full bg-white px-3 py-1 text-[#33312e] ring-1 ring-[#a39a88]">
-                          {batchLinks.length} link{batchLinks.length !== 1 ? "s" : ""}
-                        </span>
-                        <span className="rounded-full bg-[#2ec4b6]/10 px-3 py-1 text-[#2ec4b6] ring-1 ring-[#2ec4b6]/15">
-                          {claimedForBatch} claimed
-                        </span>
-                        <span className="rounded-full bg-[#ffb800]/10 px-3 py-1 text-[#ffb800] ring-1 ring-[#ffb800]/15">
-                          {pendingForBatch} left
-                        </span>
-                      </div>
-                      {inviteSeed && (
-                        <CopyGroupInviteButton
-                          inviteCode={inviteSeed.linkId}
-                          batchId={batchId}
-                          batchTitle={batchTitle}
-                          totalLinks={batchLinks.length}
-                          pendingLinks={pendingForBatch}
-                        />
-                      )}
-                    </div>
+                    {inviteSeed && (
+                      <CopyGroupInviteButton
+                        inviteCode={inviteSeed.linkId}
+                        batchId={batchId}
+                        batchTitle={batchTitle}
+                        totalLinks={batchLinks.length}
+                        pendingLinks={pendingForBatch}
+                      />
+                    )}
                   </div>
-                  <div className="divide-y divide-[#fff7ed]">
+                  <div className="share-link-batch-stats">
+                    <span className="pill">{batchLinks.length} link{batchLinks.length === 1 ? "" : "s"}</span>
+                    <span className="pill pill-success">{claimedForBatch} claimed</span>
+                    <span className="pill pill-local">{pendingForBatch} available</span>
+                  </div>
+                  <div className="share-link-list">
                     {batchLinks.map((link) => (
-                      <div
-                        key={link.linkId}
-                        className="px-6 py-4 flex flex-col md:flex-row md:items-center gap-3 md:gap-6"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <code className="text-sm font-mono text-[#33312e] truncate">
-                              {link.linkId}
-                            </code>
-                            <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide ${statusStyle(link.status)}`}
-                            >
-                              {link.status}
-                            </span>
+                      <div className="share-link-row" key={link.linkId}>
+                        <div className="share-link-copy">
+                          <div className="share-link-id">
+                            <code>{link.linkId}</code>
+                            <span className={statusStyle(link.status)}>{link.status}</span>
                           </div>
-                          <p className="text-xs text-[#6b6459] truncate">
-                            {link.recipientEmail ||
-                              link.recipientPhone ||
-                              "No recipient — sent to you"}
-                          </p>
-                          <p className="text-[11px] text-[#6b6459] mt-0.5">
+                          <span className="caption">
+                            {link.recipientEmail || link.recipientPhone || "No recipient — sent to you"}
+                          </span>
+                          <span className="caption">
                             Created {formatDate(link.createdAt)}
-                            {link.status === "claimed" && link.claimedAt && (
-                              <> · Claimed {formatDate(link.claimedAt)}</>
-                            )}
-                          </p>
+                            {link.status === "claimed" && link.claimedAt ? <> · Claimed {formatDate(link.claimedAt)}</> : null}
+                          </span>
                         </div>
                         <CopyShareLinkButton linkId={link.linkId} />
                       </div>
                     ))}
                   </div>
-                </div>
-                  );
-                })()
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
+                </section>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </WorkspaceShell>
   );
 }

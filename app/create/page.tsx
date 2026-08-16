@@ -2513,6 +2513,8 @@ function CreateCardContent() {
         <Link href="/dashboard"><span aria-hidden="true">⌂</span><span>Home</span></Link>
         <Link href="/dashboard/cards"><span aria-hidden="true">▦</span><span>My cards</span></Link>
         <Link href="/create" aria-current="page"><span aria-hidden="true">＋</span><span>Create</span></Link>
+        <Link href="/dashboard/share-links"><span aria-hidden="true">↗</span><span>Share links</span></Link>
+        <Link href="/dashboard/referrals"><span aria-hidden="true">♧</span><span>Referrals</span></Link>
         <Link href="/settings"><span aria-hidden="true">⚙</span><span>Settings</span></Link>
       </nav>
 

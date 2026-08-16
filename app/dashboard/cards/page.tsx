@@ -1,14 +1,14 @@
 "use client";
 
 import { Suspense, useState, useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { isImageCell, parseImageCell } from "@/lib/cellContent";
 import ThemedCardWrapper from "@/components/ThemedCardWrapper";
-import { useSession } from "next-auth/react";
 import PlaySoloButton from "@/components/PlaySoloButton";
 import StartGameButton from "@/components/StartGameButton";
 import ShareBatchButton from "@/components/ShareBatchButton";
+import WorkspaceShell, { WorkspacePageHead } from "@/components/WorkspaceShell";
 import { trackClientActivity } from "@/lib/activity-client";
 import {
   getBrowserStorageItem,
@@ -37,7 +37,6 @@ interface Card {
   createdAt: string;
   updatedAt: string;
 }
-
 interface BatchGroup {
   batchId: string;
   title: string;
@@ -105,9 +104,7 @@ export default function MyCardsPage() {
 }
 
 function MyCardsPageInner() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: session } = useSession();
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -120,6 +117,8 @@ function MyCardsPageInner() {
     recipientCount: number;
     selfCount: number;
   } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "drafts" | "shared">("all");
 
   useEffect(() => {
     if (searchParams.get("shared") === "true") {
@@ -134,6 +133,17 @@ function MyCardsPageInner() {
   }, [searchParams]);
 
   const batchGroups = useMemo(() => groupCardsByBatch(cards), [cards]);
+  const filteredCards = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    return cards.filter((card) => {
+      const matchesQuery = !query || card.title.toLowerCase().includes(query);
+      const isShared = Boolean(card.isPublic && card.shareLink);
+      const matchesStatus =
+        statusFilter === "all" ||
+        (statusFilter === "shared" ? isShared : !isShared);
+      return matchesQuery && matchesStatus;
+    });
+  }, [cards, searchQuery, statusFilter]);
 
   const toggleSelect = (cardId: string) => {
     setSelected((prev) => {
@@ -145,11 +155,14 @@ function MyCardsPageInner() {
   };
 
   const selectAll = () => {
-    if (selected.size === cards.length) {
-      setSelected(new Set());
-    } else {
-      setSelected(new Set(cards.map((c) => c._id)));
-    }
+    const visibleIds = filteredCards.map((card) => card._id);
+    const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selected.has(id));
+    setSelected((previous) => {
+      const next = new Set(previous);
+      if (allVisibleSelected) visibleIds.forEach((id) => next.delete(id));
+      else visibleIds.forEach((id) => next.add(id));
+      return next;
+    });
   };
 
   const exitSelectMode = () => {
@@ -289,382 +302,178 @@ function MyCardsPageInner() {
     );
   };
 
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#fff7ed] flex items-center justify-center">
-        <div className="text-center">
-            <div className="inline-block w-12 h-12 border-4 border-[#7c5cff] border-t-transparent rounded-full animate-spin"></div>
-            <p className="mt-4 text-[#6b6459] font-medium">Loading your cards...</p>
+      <WorkspaceShell current="/dashboard/cards">
+        <div className="card empty-state" role="status">
+          <div className="empty-state-inner">
+            <div className="empty-icon" aria-hidden="true">▦</div>
+            <p>Loading your cards…</p>
+          </div>
         </div>
-      </div>
+      </WorkspaceShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#fff7ed] selection:bg-[#7c5cff]/15 selection:text-[#7c5cff]">
-      {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-[#a39a88]/50">
-        <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#7c5cff] to-[#7c5cff] rounded-xl flex items-center justify-center shadow-lg shadow-[#7c5cff] group-hover:shadow-[#7c5cff] transition-all duration-300">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#33312e] to-[#33312e]">
-              MyBingoCard
-            </span>
-          </Link>
-          
-          <div className="flex gap-2 md:gap-4 items-center">
-             <Link
-              href="/create"
-              className="bg-[#33312e] text-white px-4 py-2.5 md:px-5 rounded-lg text-sm font-semibold hover:bg-[#33312e] transition-all duration-200 shadow-lg shadow-[#33312e]/20"
+    <WorkspaceShell current="/dashboard/cards">
+      <WorkspacePageHead
+        title="My cards"
+        description="Find a saved card, reopen a draft, or share a game with players."
+        action={<Link href="/create" className="button button-primary">＋ Create card</Link>}
+      />
+
+      <div className="toolbar">
+        <label className="search-field">
+          <span className="sr-only">Search your cards</span>
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-4-4" />
+          </svg>
+          <input
+            className="text-input"
+            type="search"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Search by title…"
+          />
+        </label>
+        <div className="segmented" aria-label="Card status filter">
+          {(["all", "drafts", "shared"] as const).map((filter) => (
+            <button
+              key={filter}
+              type="button"
+              aria-pressed={statusFilter === filter}
+              onClick={() => setStatusFilter(filter)}
             >
-              <span className="hidden sm:inline">Create New</span>
-              <span className="sm:hidden">+ Create</span>
-            </Link>
-            <Link
-              href="/dashboard/share-links"
-              className="hidden md:inline-flex px-3 md:px-5 py-2.5 rounded-lg text-sm font-semibold text-[#33312e] hover:bg-[#fff7ed] transition-all duration-200"
-            >
-              Share Links
-            </Link>
-            <Link
-              href="/dashboard"
-              className="px-3 md:px-5 py-2.5 rounded-lg text-sm font-semibold text-[#33312e] hover:bg-[#fff7ed] transition-all duration-200"
-            >
-              <span className="hidden sm:inline">Dashboard</span>
-              <span className="sm:hidden">Home</span>
-            </Link>
-             <div className="w-8 h-8 rounded-full bg-[#a39a88] flex items-center justify-center text-xs font-bold text-[#6b6459] ml-2">
-                {session?.user?.name?.charAt(0) || session?.user?.email?.charAt(0) || "U"}
-            </div>
-          </div>
+              {filter === "all" ? "All cards" : filter === "drafts" ? "Drafts" : "Shared"}
+            </button>
+          ))}
         </div>
-      </header>
+      </div>
 
-      <main className="pt-24 pb-24 px-4">
-        <div className="container mx-auto max-w-7xl">
-          <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-             <div>
-                <h1 className="text-3xl font-bold text-[#33312e] mb-2">My Bingo Cards</h1>
-                <p className="text-[#33312e]">
-                    Manage and share your created cards.
-                </p>
-             </div>
-             <div className="flex items-center gap-3">
-                {cards.length > 0 && (
-                  <button
-                    onClick={() => selectMode ? exitSelectMode() : setSelectMode(true)}
-                    className={`text-sm font-semibold px-4 py-2 rounded-lg border transition-colors ${
-                      selectMode
-                        ? "bg-[#7c5cff]/10 text-[#7c5cff] border-[#7c5cff] hover:bg-[#7c5cff]/15"
-                        : "bg-white text-[#33312e] border-[#a39a88] hover:bg-[#fff7ed]"
-                    }`}
-                  >
-                    {selectMode ? "Cancel" : "Select"}
-                  </button>
-                )}
-                <div className="text-sm font-medium text-[#6b6459] bg-white px-4 py-2 rounded-lg border border-[#a39a88] shadow-sm">
-                   {cards.length} card{cards.length !== 1 ? "s" : ""} total
-                </div>
-             </div>
+      <div className="section-title-row cards-summary-row">
+        <p className="caption">{filteredCards.length} of {cards.length} card{cards.length === 1 ? "" : "s"}</p>
+        {cards.length > 0 && (
+          <button type="button" className="button button-small" onClick={() => selectMode ? exitSelectMode() : setSelectMode(true)}>
+            {selectMode ? "Cancel selection" : "Select cards"}
+          </button>
+        )}
+      </div>
+
+      {selectMode && (
+        <div className="notice bulk-action-bar" role="region" aria-label="Bulk card actions">
+          <div className="bulk-action-copy">
+            <button type="button" className="button button-small button-quiet" onClick={selectAll}>
+              {filteredCards.length > 0 && filteredCards.every((card) => selected.has(card._id)) ? "Deselect visible" : "Select visible"}
+            </button>
+            <span>{selected.size} selected</span>
           </div>
+          <button type="button" className="button button-small button-danger" onClick={handleBatchDelete} disabled={selected.size === 0 || batchDeleting}>
+            {batchDeleting ? "Deleting…" : `Delete selected (${selected.size})`}
+          </button>
+        </div>
+      )}
 
-          {/* Batch action toolbar */}
-          {selectMode && (
-            <div className="mb-6 flex items-center justify-between bg-white rounded-xl border border-[#a39a88] shadow-sm px-5 py-3 animate-fade-in-up">
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={selectAll}
-                  className="text-sm font-semibold text-[#7c5cff] hover:text-[#7c5cff] transition-colors"
-                >
-                  {selected.size === cards.length ? "Deselect All" : "Select All"}
-                </button>
-                <span className="text-sm text-[#6b6459]">
-                  {selected.size} of {cards.length} selected
-                </span>
+      {error && (
+        <div className="notice notice-danger" role="alert">
+          <span className="notice-icon" aria-hidden="true">!</span>
+          <span>{error}</span>
+        </div>
+      )}
+
+      {sharedBanner !== null && (
+        <div className="notice notice-success" role="status">
+          <span className="notice-icon" aria-hidden="true">✓</span>
+          <span>
+            <strong>{sharedBanner.count > 0 ? `${sharedBanner.count} share link${sharedBanner.count === 1 ? "" : "s"} created.` : "Your share links are being generated."}</strong>{" "}
+            {sharedBanner.count > 0 && <Link href="/dashboard/share-links">Open Share links.</Link>}
+          </span>
+          <button type="button" className="button button-icon button-small button-quiet" onClick={() => setSharedBanner(null)} aria-label="Dismiss share link notice">×</button>
+        </div>
+      )}
+
+      {batchGroups.length > 0 && (
+        <section className="card-soft card-body surface-yellow batch-summary-card">
+          <div className="section-title-row">
+            <div>
+              <span className="eyebrow">Batch sharing</span>
+              <h2>{batchGroups.length} batch{batchGroups.length === 1 ? "" : "es"} ready</h2>
+              <p className="caption">Send unique player cards from a batch. Share links stay in the workspace.</p>
+            </div>
+            <Link href="/dashboard/share-links" className="button button-small">View share links</Link>
+          </div>
+          <div className="batch-summary-list">
+            {batchGroups.slice(0, 3).map((group) => (
+              <div className="batch-summary-row" key={group.batchId}>
+                <span><strong>{group.title}</strong><small>{group.cards.length} cards</small></span>
+                <ShareBatchButton batchId={group.batchId} cardCount={group.cards.length} batchTitle={group.title} variant="subtle" />
               </div>
-              <button
-                onClick={handleBatchDelete}
-                disabled={selected.size === 0 || batchDeleting}
-                className="text-sm font-bold px-4 py-2 bg-[#ff5d8f] text-white rounded-lg hover:bg-[#ff5d8f] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {batchDeleting ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Deleting...
-                  </>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {cards.length === 0 ? (
+        <section className="card empty-state">
+          <div className="empty-state-inner">
+            <div className="empty-icon" aria-hidden="true">▦</div>
+            <h2>No cards yet</h2>
+            <p>Create a card once, then return here to edit, play, or share it.</p>
+            <Link href="/create" className="button button-primary">＋ Create your first card</Link>
+          </div>
+        </section>
+      ) : filteredCards.length === 0 ? (
+        <section className="card-soft empty-state">
+          <div className="empty-state-inner">
+            <div className="empty-icon" aria-hidden="true">⌕</div>
+            <h2>No matching cards</h2>
+            <p>Try another title or clear the current filter.</p>
+            <button type="button" className="button" onClick={() => { setSearchQuery(""); setStatusFilter("all"); }}>Clear filters</button>
+          </div>
+        </section>
+      ) : (
+        <div className="card-list">
+          {filteredCards.map((card) => (
+            <article className={`card-soft saved-card ${selectMode ? "selectable-card" : ""}`} key={card._id}>
+              {selectMode && (
+                <label className="card-select-control">
+                  <input type="checkbox" checked={selected.has(card._id)} onChange={() => toggleSelect(card._id)} />
+                  <span className="sr-only">Select {card.title}</span>
+                </label>
+              )}
+              <div className="saved-card-preview">{renderCardPreview(card)}</div>
+              <div className="saved-card-copy">
+                <h3 title={card.title}>{card.title}</h3>
+                <div className="saved-card-meta">
+                  <span>{card.size}×{card.size}</span>
+                  <span>{new Date(card.updatedAt || card.createdAt).toLocaleDateString()}</span>
+                  <span className={card.isPublic && card.shareLink ? "card-status-shared" : ""}>{card.isPublic && card.shareLink ? "Shared" : "Draft"}</span>
+                </div>
+                {card.description && <p className="caption saved-card-description">{card.description}</p>}
+              </div>
+              <div className="saved-card-actions">
+                <Link href={`/cards/${card._id}`} className="button button-primary button-small">Open</Link>
+                <Link href={`/cards/${card._id}?next=share`} className="button button-small">Share</Link>
+                <Link href={`/create?cardId=${card._id}`} className="button button-small">Edit</Link>
+                <PlaySoloButton cardId={card._id} />
+                <StartGameButton cardId={card._id} label="Play with friends" compact className="button button-small button-teal" />
+                {card.isPublic && card.shareLink && <button type="button" className="button button-small button-quiet" onClick={() => copyShareLink(card)}>Copy link</button>}
+                <Link href={`/create?cardId=${card._id}&batchMode=1`} className="button button-small button-quiet">Bulk generate</Link>
+                {deleteConfirm === card._id ? (
+                  <span className="delete-confirm-group">
+                    <button type="button" className="button button-small button-danger" onClick={() => handleDelete(card._id)}>Confirm delete</button>
+                    <button type="button" className="button button-small" onClick={() => setDeleteConfirm(null)}>Cancel</button>
+                  </span>
                 ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    Delete Selected ({selected.size})
-                  </>
+                  <button type="button" className="button button-small button-quiet workspace-card-delete" onClick={() => setDeleteConfirm(card._id)}>Delete</button>
                 )}
-              </button>
-            </div>
-          )}
-
-          {error && (
-            <div className="mb-8 p-4 bg-[#ff5d8f]/10 border border-[#ff5d8f] rounded-xl text-[#ff5d8f] flex items-center gap-3">
-               <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {error}
-            </div>
-          )}
-
-          {sharedBanner !== null && (
-            <div className="mb-8 p-4 bg-[#2ec4b6]/10 border border-[#2ec4b6] rounded-xl text-[#2ec4b6] flex items-center justify-between gap-3 animate-fade-in-up">
-              <div className="flex items-center gap-3">
-                <svg className="w-5 h-5 flex-shrink-0 text-[#2ec4b6]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <p className="font-semibold">Your share links are ready</p>
-                  <p className="text-sm text-[#2ec4b6]">
-                    {sharedBanner.count > 0
-                      ? `${sharedBanner.count} unique link${sharedBanner.count !== 1 ? "s" : ""} created.`
-                      : "Your share links are being generated."}
-                  </p>
-                  {sharedBanner.count > 0 && (
-                    <p className="text-sm text-[#2ec4b6] mt-1">
-                      {sharedBanner.recipientCount > 0
-                        ? `We’ll email ${sharedBanner.recipientCount} recipient${sharedBanner.recipientCount !== 1 ? "s" : ""}${sharedBanner.selfCount > 0 ? ` and send ${sharedBanner.selfCount} link${sharedBanner.selfCount !== 1 ? "s" : ""} to you.` : "."}`
-                        : `We created ${sharedBanner.count} unique player link${sharedBanner.count !== 1 ? "s" : ""}. Copy one group invite from the dashboard.`}{" "}
-                      <Link href="/dashboard/share-links" className="underline font-semibold">
-                        Open Share Links dashboard
-                      </Link>
-                    </p>
-                  )}
-                </div>
               </div>
-              <button
-                onClick={() => setSharedBanner(null)}
-                className="text-[#2ec4b6] hover:text-[#2ec4b6] transition-colors"
-                aria-label="Dismiss"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          )}
-
-          {batchGroups.length > 0 && (
-            <div className="mb-10 bg-white rounded-2xl shadow-sm border border-[#a39a88] p-6 md:p-8">
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-bold text-[#33312e]">Your Batches</h2>
-                  <p className="text-sm text-[#6b6459] mt-1">
-                    Send unique cards from a batch to friends, coworkers, or classmates. Starts at $0.50 for up to 5 links.
-                  </p>
-                </div>
-                <Link
-                  href="/dashboard/share-links"
-                  className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-[#7c5cff] hover:text-[#7c5cff]"
-                >
-                  View sent links
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </Link>
-              </div>
-              <div className="space-y-3">
-                {batchGroups.map((group) => (
-                  <div
-                    key={group.batchId}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-[#fff7ed] rounded-xl border border-[#fff7ed]"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-semibold text-[#33312e] truncate">{group.title}</p>
-                      <p className="text-xs text-[#6b6459]">
-                        {group.cards.length} cards ·{" "}
-                        {new Date(group.cards[0]!.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="shrink-0">
-                      <ShareBatchButton
-                        batchId={group.batchId}
-                        cardCount={group.cards.length}
-                        batchTitle={group.title}
-                        variant="primary"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {cards.length === 0 ? (
-            <div className="bg-white rounded-3xl shadow-sm border border-[#a39a88] border-dashed p-16 text-center">
-              <div className="w-20 h-20 bg-[#7c5cff]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg
-                    className="w-10 h-10 text-[#7c5cff]"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                    />
-                </svg>
-              </div>
-              <h3 className="text-xl font-bold text-[#33312e] mb-2">You haven't created any cards yet</h3>
-              <p className="text-[#6b6459] mb-8 max-w-md mx-auto">
-                Get started by creating your first custom bingo card. It only takes a minute!
-              </p>
-              <Link
-                href="/create"
-                className="inline-flex items-center justify-center px-8 py-3.5 bg-gradient-to-r from-[#7c5cff] to-[#7c5cff] text-white rounded-xl hover:shadow-lg hover:shadow-[#7c5cff]/30 hover:-translate-y-0.5 transition-all font-bold text-lg"
-              >
-                Create Your First Card
-              </Link>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {cards.map((card) => (
-                <div
-                  key={card._id}
-                  className="group bg-white rounded-2xl shadow-sm border border-[#a39a88] hover:shadow-xl hover:shadow-[#7c5cff]/10 hover:border-[#7c5cff]/15 transition-all duration-300 overflow-hidden flex flex-col"
-                >
-                  {/* Card Preview */}
-                  <div
-                    className={`p-6 bg-[#fff7ed] border-b border-[#fff7ed] relative overflow-hidden ${selectMode ? "cursor-pointer" : ""}`}
-                    onClick={selectMode ? () => toggleSelect(card._id) : undefined}
-                  >
-                     <div className="absolute inset-0 bg-gradient-to-br from-[#fff7ed] to-white opacity-50"></div>
-                     {selectMode && (
-                       <div className="absolute top-3 left-3 z-20">
-                         <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
-                           selected.has(card._id)
-                             ? "bg-[#7c5cff] border-[#7c5cff]"
-                             : "bg-white border-[#a39a88] hover:border-[#7c5cff]"
-                         }`}>
-                           {selected.has(card._id) && (
-                             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                             </svg>
-                           )}
-                         </div>
-                       </div>
-                     )}
-                     <div className="relative z-10">
-                        {renderCardPreview(card)}
-                     </div>
-                  </div>
-
-                  {/* Card Info */}
-                  <div className="p-5 flex flex-col flex-grow">
-                    <div className="mb-4">
-                       <h3 className="font-bold text-[#33312e] text-lg mb-1 line-clamp-1">{card.title}</h3>
-                        {card.description ? (
-                            <p className="text-sm text-[#6b6459] line-clamp-2 min-h-[2.5em]">
-                            {card.description}
-                            </p>
-                        ) : (
-                             <p className="text-sm text-[#6b6459] italic min-h-[2.5em]">No description</p>
-                        )}
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs font-medium text-[#6b6459] mb-6 mt-auto">
-                      <span className="bg-[#fff7ed] px-2 py-1 rounded text-[#6b6459]">{card.size}×{card.size}</span>
-                      <span>
-                        {new Date(card.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-3 gap-2">
-                        <PlaySoloButton cardId={card._id} />
-                        <StartGameButton cardId={card._id} label="Friends" compact />
-                        <Link
-                          href={`/cards/${card._id}?next=share`}
-                          className="text-center px-3 py-2 bg-[#2ec4b6]/10 text-[#2ec4b6] border border-[#2ec4b6]/15 rounded-lg hover:bg-[#2ec4b6]/15 hover:border-[#2ec4b6] transition-colors text-sm font-semibold"
-                        >
-                          Share
-                        </Link>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2">
-                          <Link
-                            href={`/cards/${card._id}`}
-                            className="text-center px-4 py-2 bg-[#7c5cff]/10 text-[#7c5cff] border border-[#7c5cff]/15 rounded-lg hover:bg-[#7c5cff]/15 hover:border-[#7c5cff] transition-colors text-sm font-semibold"
-                          >
-                            Open
-                          </Link>
-                          <Link
-                            href={`/create?cardId=${card._id}`}
-                            className="text-center px-4 py-2 bg-white text-[#33312e] border border-[#a39a88] rounded-lg hover:bg-[#fff7ed] hover:border-[#a39a88] transition-colors text-sm font-semibold"
-                          >
-                            Edit
-                          </Link>
-                      </div>
-
-                      <Link
-                        href={`/create?cardId=${card._id}&batchMode=1`}
-                        className="w-full px-4 py-2.5 bg-[#7c5cff]/10 text-[#7c5cff] border border-[#7c5cff] rounded-lg hover:bg-[#7c5cff]/15 hover:border-[#7c5cff] transition-colors text-sm font-semibold flex items-center justify-center gap-2"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7h16M4 12h16M4 17h16" />
-                        </svg>
-                        Bulk Generate
-                      </Link>
-
-                      {card.isPublic && card.shareLink && (
-                        <button
-                          onClick={() => copyShareLink(card)}
-                          className="w-full px-4 py-2 bg-[#2ec4b6]/10 text-[#2ec4b6] border border-[#2ec4b6]/15 rounded-lg hover:bg-[#2ec4b6]/15 transition-colors text-sm font-semibold flex items-center justify-center gap-2"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                          </svg>
-                          Copy Link
-                        </button>
-                      )}
-
-                      {deleteConfirm === card._id ? (
-                        <div className="flex gap-2 animate-fade-in">
-                          <button
-                            onClick={() => handleDelete(card._id)}
-                            className="flex-1 px-3 py-2 bg-[#ff5d8f] text-white rounded-lg hover:bg-[#ff5d8f] transition text-xs font-bold"
-                          >
-                            Confirm
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirm(null)}
-                            className="flex-1 px-3 py-2 bg-[#a39a88] text-[#33312e] rounded-lg hover:bg-[#a39a88] transition text-xs font-bold"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setDeleteConfirm(card._id)}
-                          className="w-full px-4 py-2 text-[#6b6459] hover:text-[#ff5d8f] hover:bg-[#ff5d8f]/10 rounded-lg transition-colors text-xs font-medium"
-                        >
-                          Delete Card
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+            </article>
+          ))}
         </div>
-      </main>
-    </div>
+      )}
+    </WorkspaceShell>
   );
 }
