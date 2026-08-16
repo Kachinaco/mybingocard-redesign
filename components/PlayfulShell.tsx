@@ -1,5 +1,6 @@
 import Link from "next/link";
 import "@/app/confetti-site.css";
+import BingoPreviewBehavior from "@/components/BingoPreviewBehavior";
 
 export default function PlayfulShell({
   children,
@@ -31,6 +32,7 @@ export default function PlayfulShell({
         </div>
       </header>
       <main id="main" className="site-main">
+        <BingoPreviewBehavior />
         {children}
       </main>
       <footer className="site-footer">
