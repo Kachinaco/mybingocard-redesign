@@ -10,7 +10,6 @@
 
 const { execFileSync } = require("node:child_process");
 const fs = require("node:fs");
-const os = require("node:os");
 const path = require("node:path");
 
 const APP_DIR = process.env.MYBINGOCARD_APP_DIR || "/var/www/mybingocard.com";
@@ -24,9 +23,9 @@ const NEXT_PREVIOUS_DIR = path.join(APP_DIR, ".next.previous");
 const STATIC_ARCHIVE_DIR = path.join(APP_DIR, ".next-static-archive");
 // Keep staged builds outside the app checkout. A nested build makes Next.js
 // discover the parent checkout's lockfile and can change Turbopack's root.
-// That breaks remote font resolution and makes the deploy guard environment-
-// dependent. fs.mkdtempSync below still creates an isolated build directory.
-const DEPLOY_BUILDS_DIR = process.env.MYBINGOCARD_DEPLOY_BUILDS_DIR || path.join(os.tmpdir(), "mybingocard-deploy-builds");
+// Keep the staging directory on the same filesystem so the node_modules
+// symlink stays inside Turbopack's allowed filesystem root.
+const DEPLOY_BUILDS_DIR = process.env.MYBINGOCARD_DEPLOY_BUILDS_DIR || path.join(path.dirname(APP_DIR), ".mybingocard-deploy-builds");
 const STATIC_ARCHIVE_MAX_AGE_MS = Number(process.env.MYBINGOCARD_STATIC_ARCHIVE_MAX_AGE_DAYS || 14) * 24 * 60 * 60 * 1000;
 const args = new Set(process.argv.slice(2));
 
