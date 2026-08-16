@@ -1,77 +1,41 @@
-"use client";
+import type { Metadata } from "next";
+import PlayfulShell from "@/components/PlayfulShell";
 
-import { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-
-function UnsubscribeContent() {
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email") || "";
-  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
-
-  async function handleUnsubscribe() {
-    setStatus("loading");
-    try {
-      const res = await fetch("/api/unsubscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: decodeURIComponent(email) }),
-      });
-      if (res.ok) setStatus("done");
-      else setStatus("error");
-    } catch {
-      setStatus("error");
-    }
-  }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#fff7ed] p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-[#a39a88] p-8 text-center">
-        <h1 className="text-2xl font-bold text-[#33312e] mb-2">Unsubscribe</h1>
-
-        {status === "done" ? (
-          <>
-            <p className="text-[#33312e] mb-4">
-              You have been unsubscribed from MyBingoCard marketing emails.
-            </p>
-            <p className="text-sm text-[#6b6459]">
-              You will still receive essential account emails (password resets, billing).
-            </p>
-          </>
-        ) : (
-          <>
-            <p className="text-[#33312e] mb-6">
-              Unsubscribe <strong>{decodeURIComponent(email)}</strong> from
-              MyBingoCard marketing and engagement emails?
-            </p>
-            <button
-              onClick={handleUnsubscribe}
-              disabled={status === "loading"}
-              className="px-6 py-3 bg-[#7c5cff] text-white font-semibold rounded-xl hover:bg-[#7c5cff] disabled:opacity-50 transition-colors"
-            >
-              {status === "loading" ? "Processing..." : "Unsubscribe"}
-            </button>
-            {status === "error" && (
-              <p className="mt-4 text-[#ff5d8f] text-sm">
-                Something went wrong. Please try again or email support@mybingocard.com.
-              </p>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
+export const metadata: Metadata = {
+  title: "Email preferences",
+};
 
 export default function UnsubscribePage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#fff7ed]">
-          <p className="text-[#6b6459]">Loading...</p>
-        </div>
-      }
-    >
-      <UnsubscribeContent />
-    </Suspense>
+    <PlayfulShell>
+      <div dangerouslySetInnerHTML={{
+        __html: `
+        <section class="page-section">
+          <div class="content-rail">
+            <div class="auth-card card card-body">
+              
+      <label class="workflow-state-picker">
+        <span>Preview workflow state</span>
+        <select class="select-input" data-state-route="/unsubscribe" aria-label="Preview workflow state">
+          <option value="form" selected>Email preferences</option><option value="success">Preferences saved</option><option value="error">Could not update</option>
+        </select>
+        <small>The unsubscribe and email-preference form.</small>
+      </label>
+    
+              <span class="empty-icon" aria-hidden="true">✉️</span>
+              
+      <div class="page-heading">
+        <span class="eyebrow">Email preferences</span>
+        <h1 tabindex="-1">Choose which messages you receive</h1>
+        <p>A confirmation and control surface for opting out of eligible email.</p>
+        
+      </div>
+    <div class="settings-list"><label class="settings-row"><span class="settings-copy"><strong>Account and security</strong><span class="caption">Required messages about sign-in and account safety.</span></span><input type="checkbox" checked aria-label="Account and security"></label><label class="settings-row"><span class="settings-copy"><strong>Card reminders</strong><span class="caption">Helpful reminders about unfinished cards.</span></span><input type="checkbox"  aria-label="Card reminders"></label><label class="settings-row"><span class="settings-copy"><strong>Ideas and product news</strong><span class="caption">Occasional bingo ideas and new features.</span></span><input type="checkbox"  aria-label="Ideas and product news"></label></div><a href="/unsubscribe?state=success" data-route class="button button-primary">Save preferences</a><p class="caption"><a href="/unsubscribe?state=error" data-route class="">Preview an invalid or expired link</a></p>
+            </div>
+          </div>
+        </section>
+      `
+      }} />
+    </PlayfulShell>
   );
 }

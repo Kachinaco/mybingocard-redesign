@@ -50,3 +50,11 @@ bingo.db
 
 # Claude Code local state
 .claude/
+
+# Prototype redesign build artifacts
+prototype-captures/
+tmp-shot-*.png
+tmp-shots/
+tmp-compare-dom.cjs
+tmp-shot-create.cjs
+

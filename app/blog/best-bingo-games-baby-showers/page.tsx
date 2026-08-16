@@ -1,130 +1,43 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import BlogLayout from "@/components/BlogLayout";
-import BlogPostTracker from "../BlogPostTracker";
+import PlayfulShell from "@/components/PlayfulShell";
 
 export const metadata: Metadata = {
-  title: "The 7 Best Bingo Games for Baby Showers (2026 Guide)",
-  description:
-    "Discover baby shower bingo games that guests love, from gift bingo to baby prediction cards, with custom printable card ideas.",
-  keywords: ["baby shower bingo", "baby shower games", "baby bingo", "baby shower bingo cards", "baby shower activities", "gift bingo"],
-  alternates: { canonical: "https://mybingocard.com/blog/best-bingo-games-baby-showers" },
-  openGraph: {
-    title: "The 7 Best Bingo Games for Baby Showers",
-    description: "Creative baby shower bingo variations that guests absolutely love.",
-    url: "https://mybingocard.com/blog/best-bingo-games-baby-showers",
-    type: "article",
-    publishedTime: "2026-02-24",
-  },
+  title: "The 7 best bingo games for baby showers",
 };
 
-const schema = {
-  "@context": "https://schema.org",
-  "@type": "Article",
-  "@id": "https://mybingocard.com/blog/best-bingo-games-baby-showers#article",
-  mainEntityOfPage: {
-    "@type": "WebPage",
-    "@id": "https://mybingocard.com/blog/best-bingo-games-baby-showers",
-  },
-  headline: "The 7 Best Bingo Games for Baby Showers",
-  description: "Discover the best baby shower bingo games with creative variations and custom printable cards.",
-  datePublished: "2026-02-24",
-  dateModified: "2026-07-09",
-  author: { "@type": "Organization", name: "MyBingoCard" },
-  publisher: { "@type": "Organization", name: "MyBingoCard", url: "https://mybingocard.com" },
-};
-
-export default function BestBingoGamesBabyShowers() {
+export default function BlogBest_bingo_games_baby_showersPage() {
   return (
-    <>
-      <BlogPostTracker slug="best-bingo-games-baby-showers" title="The 7 Best Bingo Games for Baby Showers" />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
-      <BlogLayout
-        title="The 7 Best Bingo Games for Baby Showers"
-        date="February 24, 2026"
-        readTime="8 min read"
-        category="Baby Shower"
-        categoryGradient="from-[#ff5d8f] to-[#ff5d8f]"
-      >
-        <p>
-          Baby shower bingo is the one game that never fails. It keeps guests engaged, requires zero setup stress, and works for groups of every size. But not all baby shower bingo is created equal — some variations are far more fun than others.
-        </p>
-        <p>
-          These are 7 baby shower bingo games guests consistently rave about, with formats that are easy to explain and flexible enough for different guest lists. Each variation puts a unique twist on the classic format.
-        </p>
-
-        <h2>1. Gift Bingo (The Classic)</h2>
-        <p>
-          <strong>How it works:</strong> Before the shower, create bingo cards with common baby gifts in each square — diapers, onesies, pacifiers, baby blankets, etc. As the mom-to-be opens gifts, guests mark off matching items on their cards.
-        </p>
-        <p>
-          <strong>Why guests love it:</strong> It transforms gift opening — often the longest part of a shower — into an exciting, competitive game. Instead of passively watching, everyone is actively engaged.
-        </p>
-        <p>
-          <strong>Pro tip:</strong> Include both obvious items (diapers, wipes) and specific ones (baby thermometer, white noise machine) to keep the game balanced.
-        </p>
-
-        <h2>2. Baby Word Bingo</h2>
-        <p>
-          <strong>How it works:</strong> Cards feature baby-related vocabulary — &quot;nursery,&quot; &quot;lullaby,&quot; &quot;swaddle,&quot; &quot;teething,&quot; etc. A caller draws words from a bowl and reads them aloud.
-        </p>
-        <p>
-          <strong>Why guests love it:</strong> It&apos;s fast-paced, easy to understand, and great for groups where not everyone knows each other. The caller format keeps energy high.
-        </p>
-
-        <h2>3. Baby Prediction Bingo</h2>
-        <p>
-          <strong>How it works:</strong> Each square has a prediction about the baby — &quot;born before due date,&quot; &quot;over 7 pounds,&quot; &quot;has mom&apos;s eyes,&quot; &quot;first word is dada,&quot; etc. Guests mark which ones they think will come true.
-        </p>
-        <p>
-          <strong>Why guests love it:</strong> It creates hilarious discussions and debates. Plus, you can revisit the cards months later to see who predicted correctly!
-        </p>
-
-        <h2>4. Baby Emoji Bingo</h2>
-        <p>
-          <strong>How it works:</strong> Replace text with baby-themed emojis or cute illustrations. The caller shows an emoji and guests match it on their cards.
-        </p>
-        <p>
-          <strong>Why guests love it:</strong> The visual format is engaging and inclusive — perfect when guests speak different languages or when kids are playing too.
-        </p>
-
-        <h2>5. Diaper Raffle Bingo</h2>
-        <p>
-          <strong>How it works:</strong> Guests who bring a pack of diapers receive a bingo card. This combines a practical gift with a fun game.
-        </p>
-        <p>
-          <strong>Why guests love it:</strong> It incentivizes bringing diapers (which the parents will desperately need) and gives diaper-bringers an exclusive game to play.
-        </p>
-
-        <h2>6. Name That Tune Baby Bingo</h2>
-        <p>
-          <strong>How it works:</strong> Cards feature lullabies and baby-themed songs. Play short clips and guests mark the song on their card.
-        </p>
-        <p>
-          <strong>Why guests love it:</strong> It&apos;s a fun mashup of music trivia and bingo. Works especially well with a speaker system.
-        </p>
-
-        <h2>7. Custom Story Bingo</h2>
-        <p>
-          <strong>How it works:</strong> Cards feature things the parents-to-be might say or do during the shower — &quot;says &apos;so cute!&apos;&quot;, &quot;tears up,&quot; &quot;takes a photo,&quot; &quot;hugs someone.&quot; Guests observe and mark throughout the event.
-        </p>
-        <p>
-          <strong>Why guests love it:</strong> It turns the whole shower into a game. Guests pay closer attention to everything happening, creating a more connected experience.
-        </p>
-
-        <h2>Tips for Running Baby Shower Bingo</h2>
-        <ul>
-          <li><strong>Print extras</strong> — Always print 20% more cards than you think you need</li>
-          <li><strong>Provide markers</strong> — Small stickers, stamps, or M&amp;Ms work great as bingo markers</li>
-          <li><strong>Announce prizes upfront</strong> — Guests play harder when they know what they&apos;re competing for</li>
-          <li><strong>Play multiple rounds</strong> — First to a line, then full card, with different prizes</li>
-        </ul>
-
-        <h2>Create Your Baby Shower Bingo Cards</h2>
-        <p>
-          Ready to create the perfect baby shower bingo game? Start with <Link href="/baby-shower-gift-bingo">baby shower gift bingo</Link> for present opening, or use <Link href="/baby-prediction-bingo">baby prediction bingo</Link> for a guest-guessing game. Both start with editable square ideas, can be shuffled into unique cards, and support free PDF export.
-        </p>
-      </BlogLayout>
-    </>
+    <PlayfulShell>
+      <div dangerouslySetInnerHTML={{
+        __html: `
+      <section class="page-section">
+        <div class="content-rail article-layout">
+          <article class="article-body">
+            <nav class="breadcrumbs" aria-label="Breadcrumbs"><a href="/" data-route class="">Home</a><span aria-hidden="true">/</span><a href="/blog" data-route class="">Blog</a><span aria-hidden="true">/</span><span>The 7 best bingo games for baby showers</span></nav>
+            <span class="pill pill-purple">Practical guide · 6 minute read</span>
+            <h1>The 7 best bingo games for baby showers</h1>
+            <p class="muted" style="font-size:1.12rem">Creative gift, prediction, and guest bingo variations for baby showers.</p>
+            <h2>Start with the people in the room</h2>
+            <p>The best bingo card is specific enough to feel personal and simple enough that every player understands it immediately. List the moments, phrases, or facts your group already recognizes.</p>
+            <h2>Mix easy squares with surprises</h2>
+            <p>Give players a few quick marks so the card feels alive early. Then add prompts that reward attention and create a story as the event unfolds.</p>
+            <blockquote class="card card-body surface-yellow"><strong>Useful rule:</strong> if a square needs a paragraph of explanation, rewrite it as a shorter action or visible moment.</blockquote>
+            <h2>Test one card before making the batch</h2>
+            <p>Check the longest label, the smallest phone width, and a printed copy. A clear preview prevents a clever idea from becoming tiny or clipped when it matters.</p>
+            <h2>Choose the right play mode</h2>
+            <ul><li>Print when everyone is together and paper is part of the fun.</li><li>Share a card link for simple remote participation.</li><li>Host a live room when one caller should guide the group.</li></ul>
+            <div class="button-row"><a href="/create" data-route class="button button-primary">Make a bingo card</a><a href="/blog" data-route class="button">Read more guides</a></div>
+          </article>
+          <aside class="card-soft article-aside">
+            <span class="eyebrow">From this guide</span>
+            <h3>Make the example card</h3>
+            <p class="muted">Open a matching starter and change every square before sharing.</p>
+            <a href="/create" data-route class="button button-small">Open the creator</a>
+          </aside>
+        </div>
+      </section>
+    `
+      }} />
+    </PlayfulShell>
   );
 }

@@ -2,137 +2,101 @@ import type { Metadata } from "next";
 import PlayfulShell from "@/components/PlayfulShell";
 
 export const metadata: Metadata = {
-  title: "Baby Shower Bingo — MyBingoCard",
+  title: "Party bingo",
 };
 
-export default function Page() {
+export default function Party_bingoPage() {
   return (
     <PlayfulShell>
       <div dangerouslySetInnerHTML={{
         __html: `
-
-
-
-<header class="page-head">
-  <span class="k">🍼 Occasion</span>
-  <h1>Baby Shower Bingo</h1>
-  <p>The gift-opening game that keeps every guest watching. Free for up to 30 cards, ready in about a minute.</p>
-  <div class="mt-24">
-    <a class="btn" href="/create">Make baby shower cards</a>
-    <a class="btn btn-white" href="05-playful-confetti-play.html?game=baby-shower" style="margin-left:8px;">Preview a card</a>
-  </div>
-</header>
-
-<div class="section section-tight">
-  <div class="split">
-    <div class="card center">
-      <div class="mini mini-words" style="max-width:280px; margin:0 auto;">
-        <i>Diapers</i><i>Onesie</i><i>Bottle</i><i>Blanket</i><i>Pacifier</i>
-        <i>Stroller</i><i>Bib</i><i>Rattle</i><i>Booties</i><i>Monitor</i>
-        <i>Books</i><i>Lotion</i><i class="free-cell">FREE</i><i>Mobile</i><i>Wipes</i>
-        <i>Bath set</i><i>Teether</i><i>Socks</i><i>Carrier</i><i>Swing</i>
-        <i>High chair</i><i>Bunting</i><i>Toys</i><i>Sleep sack</i><i>Crib sheet</i>
+      <section class="hero">
+        <div class="content-rail hero-grid">
+          <div class="hero-copy">
+            <nav class="breadcrumbs" aria-label="Breadcrumbs"><a href="/" data-route class="">Home</a><span aria-hidden="true">/</span><a href="/bingo-games" data-route class="">Bingo games</a><span aria-hidden="true">/</span><span>Party bingo</span></nav>
+            <span class="pill pill-local">Events and occasions</span>
+            <h1>Party bingo</h1>
+            <p>Custom party bingo for birthdays, game nights, celebrations, and mixed-age groups.</p>
+            <div class="button-row">
+              <a href="/create?templateId=party-bingo" data-route class="button button-primary">Make this card <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M14 7l5 5-5 5"/></svg></a>
+              <a href="/templates" data-route class="button">Browse templates</a>
+            </div>
+          </div>
+          <div class="card hero-card surface-yellow">
+      <div class="bingo-card" data-bingo-preview>
+        <div class="bingo-card-title">
+          <strong data-preview-title>Party bingo</strong>
+          <span class="pill">Let’s play!</span>
+        </div>
+        <div class="bingo-head" style="grid-template-columns:repeat(5,minmax(0,1fr))">
+          <span class="bingo-letter">B</span><span class="bingo-letter">I</span><span class="bingo-letter">N</span><span class="bingo-letter">G</span><span class="bingo-letter">O</span>
+        </div>
+        <div class="bingo-grid" style="grid-template-columns:repeat(5,minmax(0,1fr))" data-preview-grid>
+          <span class="bingo-cell">Cake</span><span class="bingo-cell">Balloon</span><span class="bingo-cell">Gift</span><span class="bingo-cell">Dance</span><span class="bingo-cell">Photo</span><span class="bingo-cell">Music</span><span class="bingo-cell">Games</span><span class="bingo-cell">Candles</span><span class="bingo-cell">Toast</span><span class="bingo-cell">Party hat</span><span class="bingo-cell">Confetti</span><span class="bingo-cell">Prize</span><span class="bingo-cell is-free">FREE</span><span class="bingo-cell">Snack</span><span class="bingo-cell">Cheer</span><span class="bingo-cell">Selfie</span><span class="bingo-cell">Decor</span><span class="bingo-cell">Laugh</span><span class="bingo-cell">Make a wish</span><span class="bingo-cell">Birthday card</span><span class="bingo-cell">Guest</span><span class="bingo-cell">Favorite song</span><span class="bingo-cell">Sweet treat</span><span class="bingo-cell">Big hug</span><span class="bingo-cell">Surprise</span>
+        </div>
+        <p class="caption" style="text-align:center">Mark 5 in a row to win · local prototype</p>
       </div>
-      <p class="mt-16"><strong style="color:var(--ink);">Baby Shower Bingo</strong> · pastel theme · 5×5</p>
     </div>
-    <div>
-      <h2 style="font-size:clamp(22px,4vw,28px); margin-bottom:12px;">How it works at the shower</h2>
-      <ul class="check-list">
-        <li>Print one card per guest, or share a link to everyone's phone</li>
-        <li>Guests fill squares with gifts they think the parents-to-be will open</li>
-        <li>As each gift is unwrapped, players mark matching squares</li>
-        <li>First to five in a row wins — small prize optional but recommended</li>
-      </ul>
-      <p class="mt-16" style="font-weight:600; color:var(--mut); font-size:14px;">Our word list has 40+ shower-ready items baked in, so every card is unique and no two guests mark the same board.</p>
-    </div>
-  </div>
-</div>
-
-<div class="band band-teal"><div class="band-in">
-  <div class="sec-head" style="margin-bottom:clamp(18px,3vw,26px);">
-    <h2 style="color:#fff;">Make it yours in three steps</h2>
-  </div>
-  <div class="grid-3">
-    <div class="card">
-      <span class="num num-pink">1</span>
-      <h3 class="mt-16">Pick the theme</h3>
-      <p>Pastel pink, blue, sage, or neutral — or set custom colors to match the shower decor.</p>
-    </div>
-    <div class="card">
-      <span class="num num-yellow">2</span>
-      <h3 class="mt-16">Edit the words</h3>
-      <p>Keep our list, swap in the registry items, or add inside jokes and the baby's name.</p>
-    </div>
-    <div class="card">
-      <span class="num num-purple">3</span>
-      <h3 class="mt-16">Print or share</h3>
-      <p>Download a print-ready PDF, or text one link so guests play on their phones.</p>
-    </div>
-  </div>
-</div></div>
-
-<div class="section">
-  <div class="sec-head">
-    <span class="k">Word ideas</span>
-    <h2>A sample of the built-in list</h2>
-    <p>Tap any generator and the full list loads automatically — edit freely.</p>
-  </div>
-  <div class="chip-row">
-    <span class="pill pill-pink">Diapers</span>
-    <span class="pill pill-teal">Onesie</span>
-    <span class="pill pill-yellow">Bottle</span>
-    <span class="pill pill-purple">Blanket</span>
-    <span class="pill pill-pink">Pacifier</span>
-    <span class="pill pill-teal">Stroller</span>
-    <span class="pill pill-yellow">Bib</span>
-    <span class="pill pill-purple">Rattle</span>
-    <span class="pill pill-pink">Booties</span>
-    <span class="pill pill-teal">Monitor</span>
-    <span class="pill pill-yellow">Books</span>
-    <span class="pill pill-purple">Wipes</span>
-    <span class="pill pill-pink">Teether</span>
-    <span class="pill pill-teal">High chair</span>
-    <span class="pill pill-yellow">Sleep sack</span>
-    <span class="pill pill-purple">+ 25 more</span>
-  </div>
-</div>
-
-<div class="section section-tight">
-  <div class="sec-head">
-    <span class="k">More showers & parties</span>
-    <h2>Related games</h2>
-  </div>
-  <div class="grid-3">
-    <div class="card card-hover center">
-      <div style="font-size:30px; margin-bottom:8px;">💍</div>
-      <h3>Bridal Shower Bingo</h3>
-      <p>The wedding-version classic.</p>
-      <a class="btn btn-sm btn-teal mt-16" href="/bridal-shower-bingo">See bridal shower</a>
-    </div>
-    <div class="card card-hover center">
-      <div style="font-size:30px; margin-bottom:8px;">🎂</div>
-      <h3>Birthday Party Bingo</h3>
-      <p>Cake, candles, and chaos.</p>
-      <a class="btn btn-sm btn-teal mt-16" href="/birthday-bingo">See birthday</a>
-    </div>
-    <div class="card card-hover center">
-      <div style="font-size:30px; margin-bottom:8px;">👶</div>
-      <h3>Gender Reveal Bingo</h3>
-      <p>Team pink vs. team blue.</p>
-      <a class="btn btn-sm btn-teal mt-16" href="/baby-prediction-bingo">See gender reveal</a>
-    </div>
-  </div>
-</div>
-
-<div class="cta-band">
-  <h2>Shower coming up?</h2>
-  <p>Free for up to 30 cards — no account needed to print.</p>
-  <a class="btn btn-yellow" href="/create">Make baby shower cards</a>
-</div>
-
-
-
-`,
+        </div>
+      </section>
+      <section class="page-section">
+        <div class="content-rail">
+          <div class="feature-grid">
+            
+      <article class="card-soft feature-card">
+        <span class="feature-icon" aria-hidden="true">1</span>
+        <h3>Choose a useful starting point</h3>
+        <p class="muted">Begin with prompts shaped for party bingo, then replace anything that does not fit your group.</p>
+      </article>
+    
+            
+      <article class="card-soft feature-card">
+        <span class="feature-icon" aria-hidden="true">2</span>
+        <h3>Make every square yours</h3>
+        <p class="muted">Add names, images, inside jokes, vocabulary, predictions, or moments people can actually notice.</p>
+      </article>
+    
+            
+      <article class="card-soft feature-card">
+        <span class="feature-icon" aria-hidden="true">3</span>
+        <h3>Print, share, or host</h3>
+        <p class="muted">Preview the finished card before choosing paper copies, player links, or a live room.</p>
+      </article>
+    
+          </div>
+        </div>
+      </section>
+      <section class="page-section surface-purple">
+        <div class="content-rail article-layout">
+          <article class="article-body">
+            <span class="eyebrow">Make it work for your group</span>
+            <h2>What belongs on a party bingo card?</h2>
+            <p>Use a mix of easy wins and delightful surprises. Familiar squares help everyone begin; a few specific prompts make the card feel designed for this exact gathering.</p>
+            <h2>Keep the instructions short</h2>
+            <p>Tell players what to notice, how many squares make a win, and whether a free center counts. Put any event-specific rule near the card instead of hiding it in an email.</p>
+            <h2>Preview on the device people will use</h2>
+            <p>Paper cards need comfortable cell sizes. Phone players need short labels and generous touch targets. The redesigned creator keeps editing and preview modes separate on narrow screens.</p>
+          </article>
+          <aside class="card-soft article-aside">
+            <h3>Quick setup</h3>
+            <ul class="check-list"><li>Pick a grid size</li><li>Add your square ideas</li><li>Choose a readable theme</li><li>Preview before sharing</li></ul>
+            <a href="/create" data-route class="button button-primary button-small">Start this card</a>
+          </aside>
+        </div>
+      </section>
+      <section class="page-section">
+        <div class="content-rail">
+          <div class="page-heading"><span class="eyebrow">Keep exploring</span><h2>Related bingo ideas</h2></div>
+          <div class="template-grid">
+            <a class="card-soft template-card" href="/baby-prediction-bingo" data-route><span class="template-emoji" aria-hidden="true">✨</span><h3>Baby prediction bingo</h3><p class="muted">Prediction-card ideas for due dates, baby traits, names, and first milestones.</p></a>
+          
+            <a class="card-soft template-card" href="/baby-shower-bingo" data-route><span class="template-emoji" aria-hidden="true">✨</span><h3>Baby shower bingo</h3><p class="muted">Printable and online bingo cards for baby-shower guests and activities.</p></a>
+          
+            <a class="card-soft template-card" href="/baby-shower-gift-bingo" data-route><span class="template-emoji" aria-hidden="true">✨</span><h3>Baby shower gift bingo</h3><p class="muted">Gift-opening bingo built around common baby items and registry surprises.</p></a>
+          </div>
+        </div>
+      </section>
+    `
       }} />
     </PlayfulShell>
   );

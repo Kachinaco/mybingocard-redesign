@@ -8,48 +8,56 @@ export default function PlayfulShell({
 }) {
   return (
     <>
-      <nav className="nav">
-        <div className="nav-in">
-          <Link href="/" className="logo">
-            My<span>Bingo</span>Card
-          </Link>
-          <div className="nav-links">
-            <Link href="/templates">Templates</Link>
-            <Link href="/pricing">Pricing</Link>
-            <Link href="/features">Features</Link>
-            <Link href="/create" className="btn btn-sm">
-              Make a card now
+      <a href="#main" className="skip-link">Skip to content</a>
+      <header className="site-header">
+        <div className="site-header-inner">
+          <div className="brand-group">
+            <Link href="/" className="brand">
+              My<span>Bingo</span>Card
             </Link>
           </div>
+          <nav className="primary-nav" aria-label="Primary">
+            <Link href="/templates" className="nav-link">Templates</Link>
+            <Link href="/pricing" className="nav-link">Pricing</Link>
+            <Link href="/features" className="nav-link">Features</Link>
+            <Link href="/blog" className="nav-link">Blog</Link>
+          </nav>
+          <nav className="account-nav" aria-label="Account">
+            <Link href="/login" className="nav-link">Log in</Link>
+            <Link href="/create" className="button button-primary button-small">
+              Make a card
+            </Link>
+          </nav>
         </div>
-      </nav>
-      {children}
-      <footer className="footer">
-        <div className="footer-in">
-          <div>
-            <Link href="/" className="logo">My<span>Bingo</span>Card</Link>
-            <p className="fine">Custom bingo cards for every party, classroom, and get-together.</p>
+      </header>
+      <main id="main" className="site-main">
+        {children}
+      </main>
+      <footer className="site-footer">
+        <div className="site-footer-inner">
+          <div className="footer-column">
+            <Link href="/" className="brand">My<span>Bingo</span>Card</Link>
+            <p className="footer-note">Custom bingo cards for every party, classroom, and get-together.</p>
           </div>
-          <div>
-            <h4>Create</h4>
+          <div className="footer-column">
+            <h2>Create</h2>
             <Link href="/create">Make a card</Link>
             <Link href="/templates">Templates</Link>
             <Link href="/bingo-games">Bingo games</Link>
           </div>
-          <div>
-            <h4>Learn</h4>
+          <div className="footer-column">
+            <h2>Learn</h2>
             <Link href="/how-to-play-bingo">How to play</Link>
             <Link href="/blog">Blog</Link>
             <Link href="/features">Features</Link>
           </div>
-          <div>
-            <h4>Company</h4>
+          <div className="footer-column">
+            <h2>Company</h2>
             <Link href="/about">About</Link>
             <Link href="/contact">Contact</Link>
             <Link href="/pricing">Pricing</Link>
           </div>
         </div>
-        <div className="footer-bar">Design direction 05 — Playful Confetti · MyBingoCard</div>
       </footer>
     </>
   );

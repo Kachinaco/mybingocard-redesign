@@ -1,253 +1,103 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import LandingPageTracker from "@/components/LandingPageTracker";
-import SeoSupportBlock from "@/components/SeoSupportBlock";
+import PlayfulShell from "@/components/PlayfulShell";
 
 export const metadata: Metadata = {
-  title: "Office Bingo Card Generator — Free Work Party Bingo | MyBingoCard",
-  description:
-    "Create hilarious office bingo cards for your next work party or team meeting. Custom office bingo card generator — perfect for holiday parties, team events, and remote meetings.",
-  alternates: {
-    canonical: "https://mybingocard.com/office-party-bingo",
-  },
+  title: "Office party bingo",
 };
 
-const officeSquares = [
-  "Buzzword", "Free Snacks", "IT Issues", "Late Start", "FREE",
-  "Long Meeting", "Coffee Run", "Birthday Cake", "Awkward Hug", "Office Gossip",
-  "Zoom Freeze", "Mic Muted", "Fire Drill", "Team Photo", "Pizza Order",
-  "Secret Santa", "Karaoke", "Ugly Sweater", "White Elephant", "Boss Speech",
-  "Happy Hour", "Potluck", "Door Prize", "Name Tag", "Team Building",
-];
-
-const schema = {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: "Office Bingo Card Generator",
-  url: "https://mybingocard.com/office-party-bingo",
-  description:
-    "Custom office bingo card maker for work parties, holiday events, and team meetings with editable workplace square ideas.",
-  applicationCategory: "GameApplication",
-  operatingSystem: "All",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
-};
-
-function BingoGrid({ squares }: { squares: string[] }) {
+export default function Office_party_bingoPage() {
   return (
-    <div className="relative">
-      <div className="absolute -top-6 -left-6 w-14 h-14 bg-[#ffd9e6] border-[2.5px] border-[#33312e] rounded-2xl rotate-12 shadow-[0_3px_0_#33312e]"></div>
-      <div className="absolute -bottom-6 -right-6 w-12 h-12 bg-[#ffb800] border-[2.5px] border-[#33312e] rounded-full -rotate-12 shadow-[0_3px_0_#33312e]"></div>
-      <div className="relative bg-white rounded-2xl border-[2.5px] border-[#33312e] shadow-[0_6px_0_#33312e] p-6 transform rotate-2 hover:rotate-0 transition-all duration-500">
-        <div className="text-center mb-4">
-          <div className="flex justify-center gap-3 text-4xl font-black tracking-widest">
-            {["B","I","N","G","O"].map((l, i) => {
-              const colors = [
-                "from-[#ffb800] to-[#ff8a3d]",
-                "from-[#ff8a3d] to-[#ff5d8f]",
-                "from-[#ff5d8f] to-[#ff5d8f]",
-                "from-[#ff5d8f] to-[#ff5d8f]",
-                "from-[#ff5d8f] to-[#ff5d8f]",
-              ];
-              return (
-                <span key={i} className={`text-transparent bg-clip-text bg-gradient-to-br ${colors[i]}`}>{l}</span>
-              );
-            })}
-          </div>
-          <p className="text-[#a39a88] text-xs uppercase tracking-widest font-bold mt-2">Office Party Edition</p>
-        </div>
-        <div className="grid grid-cols-5 gap-1.5">
-          {squares.map((item, i) => (
-            <div
-              key={i}
-              className={`aspect-square flex items-center justify-center p-1.5 rounded-lg text-center text-[9px] leading-tight font-bold cursor-pointer
-                ${i === 4
-                  ? "bg-[#ffb800] text-white border-2 border-[#33312e]"
-                  : "bg-[#fff7ed] text-[#33312e] border-2 border-[#33312e]"
-                }`}
-            >
-              {item}
+    <PlayfulShell>
+      <div dangerouslySetInnerHTML={{
+        __html: `
+      <section class="hero">
+        <div class="content-rail hero-grid">
+          <div class="hero-copy">
+            <nav class="breadcrumbs" aria-label="Breadcrumbs"><a href="/" data-route class="">Home</a><span aria-hidden="true">/</span><a href="/bingo-games" data-route class="">Bingo games</a><span aria-hidden="true">/</span><span>Office party bingo</span></nav>
+            <span class="pill pill-local">Teams and work</span>
+            <h1>Office party bingo</h1>
+            <p>Party bingo for holiday lunches, team events, and workplace celebrations.</p>
+            <div class="button-row">
+              <a href="/create?templateId=office-party-bingo" data-route class="button button-primary">Make this card <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M14 7l5 5-5 5"/></svg></a>
+              <a href="/templates" data-route class="button">Browse templates</a>
             </div>
-          ))}
+          </div>
+          <div class="card hero-card surface-yellow">
+      <div class="bingo-card" data-bingo-preview>
+        <div class="bingo-card-title">
+          <strong data-preview-title>Office party bingo</strong>
+          <span class="pill">Let’s play!</span>
         </div>
+        <div class="bingo-head" style="grid-template-columns:repeat(5,minmax(0,1fr))">
+          <span class="bingo-letter">B</span><span class="bingo-letter">I</span><span class="bingo-letter">N</span><span class="bingo-letter">G</span><span class="bingo-letter">O</span>
+        </div>
+        <div class="bingo-grid" style="grid-template-columns:repeat(5,minmax(0,1fr))" data-preview-grid>
+          <span class="bingo-cell">Cake</span><span class="bingo-cell">Balloon</span><span class="bingo-cell">Gift</span><span class="bingo-cell">Dance</span><span class="bingo-cell">Photo</span><span class="bingo-cell">Music</span><span class="bingo-cell">Games</span><span class="bingo-cell">Candles</span><span class="bingo-cell">Toast</span><span class="bingo-cell">Party hat</span><span class="bingo-cell">Confetti</span><span class="bingo-cell">Prize</span><span class="bingo-cell is-free">FREE</span><span class="bingo-cell">Snack</span><span class="bingo-cell">Cheer</span><span class="bingo-cell">Selfie</span><span class="bingo-cell">Decor</span><span class="bingo-cell">Laugh</span><span class="bingo-cell">Make a wish</span><span class="bingo-cell">Birthday card</span><span class="bingo-cell">Guest</span><span class="bingo-cell">Favorite song</span><span class="bingo-cell">Sweet treat</span><span class="bingo-cell">Big hug</span><span class="bingo-cell">Surprise</span>
+        </div>
+        <p class="caption" style="text-align:center">Mark 5 in a row to win · local prototype</p>
       </div>
     </div>
-  );
-}
-
-export default function OfficePartyBingoPage() {
-  return (
-    <>
-      <LandingPageTracker templateCategory="office-party-bingo" />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
-      <div className="min-h-screen bg-[#fff7ed]">
-        {/* Navbar */}
-        <header className="fixed top-0 w-full z-50 bg-[#fff7ed]/95 backdrop-blur-md border-b-[3px] border-[#33312e]">
-          <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-10 h-10 bg-[#ff5d8f] border-2 border-[#33312e] rounded-xl flex items-center justify-center shadow-[0_2px_0_#33312e] group-hover:-rotate-6 transition-all duration-300">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-              </div>
-              <span className="text-xl font-heading font-bold text-[#ff5d8f]">
-                MyBingoCard
-              </span>
-            </Link>
-            <nav className="hidden md:flex items-center gap-8">
-              <Link href="/templates" className="text-sm font-bold text-[#33312e] hover:text-[#ff5d8f] transition-colors">Templates</Link>
-              <Link href="/pricing" className="text-sm font-bold text-[#33312e] hover:text-[#ff5d8f] transition-colors">Pricing</Link>
-              <div className="w-[2px] h-4 bg-[#33312e]/20"></div>
-              <Link href="/login" className="text-sm font-bold text-[#33312e] hover:text-[#ff5d8f] transition-colors">Sign In</Link>
-              <Link href="/create" className="cbtn cbtn-sm">
-                Create a Card
-              </Link>
-            </nav>
-          </div>
-        </header>
-
-        <main className="pt-20">
-          {/* Hero */}
-          <section className="relative overflow-hidden pt-12 pb-24 lg:pt-20 lg:pb-32">
+        </div>
+      </section>
+      <section class="page-section">
+        <div class="content-rail">
+          <div class="feature-grid">
             
+      <article class="card-soft feature-card">
+        <span class="feature-icon" aria-hidden="true">1</span>
+        <h3>Choose a useful starting point</h3>
+        <p class="muted">Begin with prompts shaped for office party bingo, then replace anything that does not fit your group.</p>
+      </article>
+    
             
-
-            <div className="container mx-auto px-4 lg:px-8 relative">
-              <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-                <div className="text-center lg:text-left animate-fade-in-up">
-                  <div className="inline-flex items-center gap-2 bg-white border-2 border-[#33312e] shadow-[0_2px_0_#33312e] rounded-full px-4 py-1.5 mb-8">
-                    <span className="text-xs font-heading font-semibold text-[#5b3fd4] uppercase tracking-wide">💼 Office Fun</span>
-                  </div>
-                  <h1 className="text-4xl lg:text-6xl font-heading font-bold text-[#33312e] mb-6 leading-[1.1]">
-                    Office Bingo{" "}
-                    <span className="text-[#ff5d8f]">
-                      Card Generator
-                    </span>
-                  </h1>
-                  <p className="text-lg font-semibold text-[#6b6459] mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    Liven up a work party, holiday gathering, or team meeting with editable office bingo cards full of familiar workplace moments. Add inside jokes, company memes, or department-specific phrases, save one card, and export an individual PDF or PNG for free. Use a paid batch pack for unique printable cards across the office, or add paid player links for remote teams.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-6">
-                    <Link
-                      href="/create"
-                      className="cbtn !text-lg !px-8 !py-4"
-                    >
-                      Generate Office Bingo Cards
-                    </Link>
-                    <Link
-                      href="/pricing"
-                      className="cbtn cbtn-white !text-lg !px-8 !py-4 flex items-center justify-center gap-2"
-                    >
-                      View Pricing
-                    </Link>
-                  </div>
-                  <p className="text-sm font-semibold text-[#a39a88]">1 free saved card · Individual PDF/PNG export · Paid group options</p>
-                </div>
-
-                <div className="relative">
-                  <BingoGrid squares={officeSquares} />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Use Cases */}
-          <section className="py-20 bg-white">
-            <div className="container mx-auto px-4 lg:px-8">
-              <h2 className="text-3xl md:text-4xl font-heading font-bold text-[#33312e] text-center mb-4">
-                Office bingo for every work occasion
-              </h2>
-              <p className="font-semibold text-[#6b6459] text-center max-w-2xl mx-auto mb-14">
-                From holiday parties to weekly standups — office bingo cards bring the team together.
-              </p>
-              <div className="grid md:grid-cols-3 gap-8">
-                {[
-                  { icon: "🎄", title: "Holiday Office Party", desc: "Ugly sweaters, Secret Santa, potluck dishes — create holiday-themed bingo that gets the whole office laughing." },
-                  { icon: "💻", title: "Virtual Meeting Bingo", desc: "\"You're on mute!\" — make remote meetings fun with relatable work-from-home bingo squares." },
-                  { icon: "🏆", title: "Team Building Events", desc: "Break the ice at company retreats and team-building days with custom corporate bingo cards." },
-                  { icon: "🎁", title: "White Elephant Games", desc: "Add a bingo twist to gift exchanges — first to see certain gifts on their card wins a prize!" },
-                  { icon: "🥳", title: "Employee Milestones", desc: "Celebrate birthdays, work anniversaries, and retirements with personalized bingo cards." },
-                  { icon: "📊", title: "Sales Kickoff Events", desc: "Turn all-hands meetings and conference sessions into interactive bingo games." },
-                ].map((f) => (
-                  <div key={f.title} className="ccard ccard-hover p-8">
-                    <div className="text-4xl mb-4">{f.icon}</div>
-                    <h3 className="text-xl font-heading font-bold text-[#33312e] mb-2">{f.title}</h3>
-                    <p className="font-semibold text-[#6b6459] text-sm leading-relaxed">{f.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* CTA */}
-          <section className="cband cband-purple py-24 relative overflow-hidden">
-            <div className="container mx-auto px-4 relative z-10 text-center">
-              <h2 className="text-4xl md:text-5xl font-heading font-bold text-white mb-6 tracking-tight">
-                Make the office party one they&apos;ll talk about Monday
-              </h2>
-              <p className="text-xl font-semibold text-white/85 mb-10 max-w-2xl mx-auto">
-                Make an office bingo card in under 2 minutes, then choose a paid batch pack or player links when the team needs its own cards.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/create" className="cbtn cbtn-yellow !text-lg !px-10 !py-4">
-                  Create Office Bingo Cards
-                </Link>
-                <Link href="/pricing" className="cbtn cbtn-purple !text-lg !px-10 !py-4 !border-white/80 !shadow-[0_3px_0_rgba(255,255,255,.8)]">
-                  See Pricing Plans
-                </Link>
-              </div>
-            </div>
-          </section>
-          <SeoSupportBlock slug="office-party-bingo" />
-        </main>
-
-        {/* Footer */}
-        <footer className="bg-white border-t-[3px] border-[#33312e] pt-16 pb-12">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="grid md:grid-cols-4 gap-12 mb-12">
-              <div className="col-span-1 md:col-span-2">
-                <Link href="/" className="flex items-center gap-2 mb-6">
-                  <div className="w-8 h-8 bg-[#ff5d8f] border-2 border-[#33312e] rounded-lg flex items-center justify-center shadow-[0_2px_0_#33312e]">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                    </svg>
-                  </div>
-                  <span className="text-xl font-heading font-bold text-[#33312e]">MyBingoCard</span>
-                </Link>
-                <p className="font-semibold text-[#6b6459] max-w-sm leading-relaxed">
-                  The easiest bingo card generator for office parties, team events, and workplace fun.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-heading font-bold text-[#33312e] mb-6">Product</h4>
-                <ul className="space-y-4">
-                  <li><Link href="/create" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Create Cards</Link></li>
-                  <li><Link href="/templates" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Templates</Link></li>
-                  <li><Link href="/pricing" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Pricing</Link></li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-heading font-bold text-[#33312e] mb-6">More Ideas</h4>
-                <ul className="space-y-4">
-                  <li><Link href="/baby-shower-bingo" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Baby Shower Bingo</Link></li>
-                  <li><Link href="/classroom-bingo" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Classroom Bingo</Link></li>
-                  <li><Link href="/wedding-bingo" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Wedding Bingo</Link></li>
-                  <li><Link href="/holiday-bingo" className="font-semibold text-[#6b6459] hover:text-[#ff5d8f] transition-colors">Holiday Bingo</Link></li>
-                </ul>
-              </div>
-            </div>
-            <div className="border-t-2 border-[#33312e]/10 pt-8 text-center text-[#a39a88] text-sm font-semibold">
-              <p>&copy; {new Date().getFullYear()} MyBingoCard. All rights reserved.</p>
-            </div>
+      <article class="card-soft feature-card">
+        <span class="feature-icon" aria-hidden="true">2</span>
+        <h3>Make every square yours</h3>
+        <p class="muted">Add names, images, inside jokes, vocabulary, predictions, or moments people can actually notice.</p>
+      </article>
+    
+            
+      <article class="card-soft feature-card">
+        <span class="feature-icon" aria-hidden="true">3</span>
+        <h3>Print, share, or host</h3>
+        <p class="muted">Preview the finished card before choosing paper copies, player links, or a live room.</p>
+      </article>
+    
           </div>
-        </footer>
-      </div>
-    </>
+        </div>
+      </section>
+      <section class="page-section surface-purple">
+        <div class="content-rail article-layout">
+          <article class="article-body">
+            <span class="eyebrow">Make it work for your group</span>
+            <h2>What belongs on a office party bingo card?</h2>
+            <p>Use a mix of easy wins and delightful surprises. Familiar squares help everyone begin; a few specific prompts make the card feel designed for this exact gathering.</p>
+            <h2>Keep the instructions short</h2>
+            <p>Tell players what to notice, how many squares make a win, and whether a free center counts. Put any event-specific rule near the card instead of hiding it in an email.</p>
+            <h2>Preview on the device people will use</h2>
+            <p>Paper cards need comfortable cell sizes. Phone players need short labels and generous touch targets. The redesigned creator keeps editing and preview modes separate on narrow screens.</p>
+          </article>
+          <aside class="card-soft article-aside">
+            <h3>Quick setup</h3>
+            <ul class="check-list"><li>Pick a grid size</li><li>Add your square ideas</li><li>Choose a readable theme</li><li>Preview before sharing</li></ul>
+            <a href="/create" data-route class="button button-primary button-small">Start this card</a>
+          </aside>
+        </div>
+      </section>
+      <section class="page-section">
+        <div class="content-rail">
+          <div class="page-heading"><span class="eyebrow">Keep exploring</span><h2>Related bingo ideas</h2></div>
+          <div class="template-grid">
+            <a class="card-soft template-card" href="/conference-bingo" data-route><span class="template-emoji" aria-hidden="true">✨</span><h3>Conference bingo</h3><p class="muted">Attendee bingo for sessions, booths, networking, and keynote moments.</p></a>
+          
+            <a class="card-soft template-card" href="/office-meeting-bingo" data-route><span class="template-emoji" aria-hidden="true">✨</span><h3>Office meeting bingo</h3><p class="muted">Light meeting bingo for recurring phrases, remote calls, and team rituals.</p></a>
+          
+            <a class="card-soft template-card" href="/onboarding-bingo" data-route><span class="template-emoji" aria-hidden="true">✨</span><h3>Onboarding bingo</h3><p class="muted">Interactive onboarding prompts for tools, people, policies, and first-week milestones.</p></a>
+          </div>
+        </div>
+      </section>
+    `
+      }} />
+    </PlayfulShell>
   );
 }

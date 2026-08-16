@@ -2,135 +2,133 @@ import type { Metadata } from "next";
 import PlayfulShell from "@/components/PlayfulShell";
 
 export const metadata: Metadata = {
-  title: "Bingo Games & Generators — MyBingoCard",
+  title: "Bingo games",
 };
 
-export default function Page() {
+export default function Bingo_gamesPage() {
   return (
     <PlayfulShell>
       <div dangerouslySetInnerHTML={{
         __html: `
-
-
-
-<header class="page-head">
-  <span class="k">Bingo games</span>
-  <h1>A generator for every occasion</h1>
-  <p>Purpose-built card makers with themed word lists baked in. Pick your game, tweak it, and you're playing in about a minute.</p>
-</header>
-
-<div class="section section-tight">
-  <div class="chip-row">
-    <a class="chip on" href="#" data-filter="all">All games</a>
-    <a class="chip" href="#" data-filter="party">🎉 Party</a>
-    <a class="chip" href="#" data-filter="classroom">✏️ Classroom</a>
-    <a class="chip" href="#" data-filter="watch">📺 Watch party</a>
-    <a class="chip" href="#" data-filter="work">🏢 Work</a>
-    <a class="chip" href="#" data-filter="classic">🎲 Classic</a>
-  </div>
-
-  <div class="grid-3">
-    <div class="card card-hover" data-cat="party">
-      <div style="font-size:34px; margin-bottom:10px;">🍼</div>
-      <h3>Baby Shower Bingo</h3>
-      <p>Gift-opening classic. Guests mark off presents as they're unwrapped.</p>
-      <div class="mt-16"><span class="pill pill-pink">Party</span> <span class="pill pill-teal">25 words included</span></div>
-      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=baby-shower">Open generator</a>
-    </div>
-    <div class="card card-hover" data-cat="party">
-      <div style="font-size:34px; margin-bottom:10px;">💍</div>
-      <h3>Bridal Shower Bingo</h3>
-      <p>Vows, toasts, and happy tears — a shower staple that runs itself.</p>
-      <div class="mt-16"><span class="pill pill-pink">Party</span> <span class="pill pill-teal">25 words included</span></div>
-      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=bridal-shower">Open generator</a>
-    </div>
-    <div class="card card-hover" data-cat="party">
-      <div style="font-size:34px; margin-bottom:10px;">🎂</div>
-      <h3>Birthday Party Bingo</h3>
-      <p>Cake, candles, and party moments for kids and grown-ups alike.</p>
-      <div class="mt-16"><span class="pill pill-pink">Party</span> <span class="pill pill-teal">25 words included</span></div>
-      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=birthday">Open generator</a>
-    </div>
-    <div class="card card-hover" data-cat="party">
-      <div style="font-size:34px; margin-bottom:10px;">🎄</div>
-      <h3>Holiday Bingo</h3>
-      <p>Christmas, Halloween, Easter, and more — seasonal word sets ready to go.</p>
-      <div class="mt-16"><span class="pill pill-pink">Party</span> <span class="pill pill-purple">8 themes</span></div>
-      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=holiday">Open generator</a>
-    </div>
-    <div class="card card-hover" data-cat="classroom">
-      <div style="font-size:34px; margin-bottom:10px;">📚</div>
-      <h3>Vocabulary Bingo</h3>
-      <p>Paste your word list — perfect for review games and reading practice.</p>
-      <div class="mt-16"><span class="pill pill-yellow">Classroom</span> <span class="pill pill-teal">Your words</span></div>
-      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=vocabulary">Open generator</a>
-    </div>
-    <div class="card card-hover" data-cat="classic">
-      <div style="font-size:34px; margin-bottom:10px;">🔢</div>
-      <h3>Number Bingo 1–75</h3>
-      <p>The classic B-I-N-G-O column format with a built-in caller.</p>
-      <div class="mt-16"><span class="pill pill-green">Classic</span> <span class="pill pill-teal">Caller included</span></div>
-      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=numbers">Open generator</a>
-    </div>
-    <div class="card card-hover" data-cat="watch">
-      <div style="font-size:34px; margin-bottom:10px;">🏈</div>
-      <h3>Super Bowl Bingo</h3>
-      <p>Commercials, plays, and halftime moments for the big game.</p>
-      <div class="mt-16"><span class="pill pill-purple">Watch party</span> <span class="pill pill-teal">25 words included</span></div>
-      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=super-bowl">Open generator</a>
-    </div>
-    <div class="card card-hover" data-cat="watch">
-      <div style="font-size:34px; margin-bottom:10px;">🏆</div>
-      <h3>Award Show Bingo</h3>
-      <p>Speeches, surprises, and red-carpet moments for Oscars night.</p>
-      <div class="mt-16"><span class="pill pill-purple">Watch party</span> <span class="pill pill-teal">25 words included</span></div>
-      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=award-show">Open generator</a>
-    </div>
-    <div class="card card-hover" data-cat="work">
-      <div style="font-size:34px; margin-bottom:10px;">👋</div>
-      <h3>Team Building Bingo</h3>
-      <p>Human-bingo icebreakers that get coworkers actually talking.</p>
-      <div class="mt-16"><span class="pill pill-yellow">Work</span> <span class="pill pill-teal">25 words included</span></div>
-      <a class="btn btn-sm btn-teal mt-16" href="05-playful-confetti-create.html?starter=team-building">Open generator</a>
-    </div>
-  </div>
-</div>
-
-<div class="band band-purple"><div class="band-in">
-  <div class="split">
-    <div>
-      <h2 style="font-size:clamp(23px,4vw,30px); margin-bottom:12px;">Can't find your game?</h2>
-      <p style="font-weight:600; margin-bottom:18px;">Start blank and build exactly what you need — your own words, colors, grid size, and title. Anything from 3×3 to 7×7.</p>
-      <a class="btn btn-yellow" href="/create">Start a blank card</a>
-    </div>
-    <div class="card center" style="background:#fff;">
-      <div class="mini" style="max-width:240px; margin:0 auto;">
-        <i style="background:#ffd9e6"></i><i style="background:#fff"></i><i style="background:#cdeee9"></i><i style="background:#fff"></i><i style="background:#fff0c7"></i>
-        <i style="background:#fff"></i><i style="background:#e9e4ff"></i><i style="background:#fff"></i><i style="background:#ffd9e6"></i><i style="background:#fff"></i>
-        <i style="background:#cdeee9"></i><i style="background:#fff"></i><i class="free-cell"></i><i style="background:#fff"></i><i style="background:#ffe6d4"></i>
-        <i style="background:#fff"></i><i style="background:#fff0c7"></i><i style="background:#fff"></i><i style="background:#e9e4ff"></i><i style="background:#fff"></i>
-        <i style="background:#ffd9e6"></i><i style="background:#fff"></i><i style="background:#cdeee9"></i><i style="background:#fff"></i><i style="background:#fff0c7"></i>
+      <section class="page-section">
+        <div class="content-rail stack">
+          
+      <div class="page-heading">
+        <span class="eyebrow">Ideas for every group</span>
+        <h1 tabindex="-1">Bingo games</h1>
+        <p>A browsable collection of bingo formats for classrooms, parties, showers, work, and events.</p>
+        
       </div>
-      <p class="mt-16">Your words. Your colors. Your game.</p>
-    </div>
-  </div>
-</div></div>
-
-
-
-<script>
-  document.querySelectorAll('.chip[data-filter]').forEach(function(chip) {
-    chip.addEventListener('click', function(e) {
-      e.preventDefault();
-      var f = chip.dataset.filter;
-      document.querySelectorAll('.chip[data-filter]').forEach(function(c) { c.classList.toggle('on', c === chip); });
-      document.querySelectorAll('[data-cat]').forEach(function(card) {
-        card.style.display = (f === 'all' || card.dataset.cat === f) ? '' : 'none';
-      });
-    });
-  });
-</script>
-`,
+    
+          <div class="toolbar">
+            <label class="search-field">
+              <span class="sr-only">Search bingo games</span>
+              <svg aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+              <input class="text-input" type="search" data-catalog-search placeholder="Classroom, wedding, team…">
+            </label>
+            <div class="segmented" aria-label="Catalog filter">
+              <button type="button" aria-pressed="true">All</button>
+              <button type="button" aria-pressed="false">Events</button>
+              <button type="button" aria-pressed="false">Education</button>
+            </div>
+          </div>
+          <div class="template-grid" data-catalog-grid>
+            
+                <a class="card-soft template-card" href="/ai-bingo-card-generator" data-route data-catalog-item="ai bingo card generator">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">🎉</span></div>
+                  <div class="stack-tight"><h3>AI bingo card generator</h3><p class="muted">Generate bingo-card ideas with AI, then customize the resulting squares and design.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/baby-prediction-bingo" data-route data-catalog-item="baby prediction bingo">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">📚</span></div>
+                  <div class="stack-tight"><h3>Baby prediction bingo</h3><p class="muted">Prediction-card ideas for due dates, baby traits, names, and first milestones.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/baby-shower-bingo" data-route data-catalog-item="baby shower bingo">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">💍</span></div>
+                  <div class="stack-tight"><h3>Baby shower bingo</h3><p class="muted">Printable and online bingo cards for baby-shower guests and activities.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/baby-shower-gift-bingo" data-route data-catalog-item="baby shower gift bingo">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">🎄</span></div>
+                  <div class="stack-tight"><h3>Baby shower gift bingo</h3><p class="muted">Gift-opening bingo built around common baby items and registry surprises.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/back-to-school-bingo" data-route data-catalog-item="back-to-school bingo">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">💻</span></div>
+                  <div class="stack-tight"><h3>Back-to-school bingo</h3><p class="muted">First-week classroom bingo for names, routines, supplies, and student icebreakers.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/bingo-board-generator" data-route data-catalog-item="bingo board generator">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">🎵</span></div>
+                  <div class="stack-tight"><h3>Bingo board generator</h3><p class="muted">Create printable or online bingo boards with custom words, images, and grid sizes.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/birthday-bingo" data-route data-catalog-item="birthday bingo">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">🎉</span></div>
+                  <div class="stack-tight"><h3>Birthday bingo</h3><p class="muted">Custom birthday bingo cards for children, adults, milestones, and family celebrations.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/bridal-shower-bingo" data-route data-catalog-item="bridal shower bingo">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">📚</span></div>
+                  <div class="stack-tight"><h3>Bridal shower bingo</h3><p class="muted">Celebration bingo for bridal showers, brunches, gifts, and wedding parties.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/bridal-shower-gift-bingo" data-route data-catalog-item="bridal shower gift bingo">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">💍</span></div>
+                  <div class="stack-tight"><h3>Bridal shower gift bingo</h3><p class="muted">Gift-opening bingo prompts for bridal showers and wedding celebrations.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/christmas-party-bingo" data-route data-catalog-item="christmas party bingo">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">🎄</span></div>
+                  <div class="stack-tight"><h3>Christmas party bingo</h3><p class="muted">Festive bingo for Christmas parties, family gatherings, and seasonal events.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/church-bingo" data-route data-catalog-item="church bingo">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">💻</span></div>
+                  <div class="stack-tight"><h3>Church bingo</h3><p class="muted">Custom bingo-card ideas for church groups, ministries, and community events.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/classroom-bingo" data-route data-catalog-item="classroom bingo">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">🎵</span></div>
+                  <div class="stack-tight"><h3>Classroom bingo</h3><p class="muted">Flexible classroom bingo for lessons, review activities, and student participation.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/conference-bingo" data-route data-catalog-item="conference bingo">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">🎉</span></div>
+                  <div class="stack-tight"><h3>Conference bingo</h3><p class="muted">Attendee bingo for sessions, booths, networking, and keynote moments.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/custom-bingo-card-maker" data-route data-catalog-item="custom bingo card maker">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">📚</span></div>
+                  <div class="stack-tight"><h3>Custom bingo card maker</h3><p class="muted">Design personalized bingo cards with custom squares, grid sizes, colors, and themes.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/end-of-year-bingo" data-route data-catalog-item="end-of-year bingo">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">💍</span></div>
+                  <div class="stack-tight"><h3>End-of-year bingo</h3><p class="muted">A classroom wrap-up activity for memories, milestones, review, and celebration.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/esl-bingo-generator" data-route data-catalog-item="esl bingo generator">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">🎄</span></div>
+                  <div class="stack-tight"><h3>ESL bingo generator</h3><p class="muted">Language-practice bingo for ESL vocabulary, listening, speaking, and conversation.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/family-reunion-bingo" data-route data-catalog-item="family reunion bingo">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">💻</span></div>
+                  <div class="stack-tight"><h3>Family reunion bingo</h3><p class="muted">Conversation-starting bingo cards for reunions, picnics, and family weekends.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+                <a class="card-soft template-card" href="/fundraiser-bingo" data-route data-catalog-item="fundraiser bingo">
+                  <div class="template-preview"><span class="template-emoji" aria-hidden="true">🎵</span></div>
+                  <div class="stack-tight"><h3>Fundraiser bingo</h3><p class="muted">Printable and hosted bingo for auctions, raffles, schools, and benefit events.</p><span class="eyebrow">Explore this game →</span></div>
+                </a>
+              
+          </div>
+          <p class="caption" data-catalog-status role="status">18 starting points shown</p>
+        </div>
+      </section>
+    `
       }} />
     </PlayfulShell>
   );

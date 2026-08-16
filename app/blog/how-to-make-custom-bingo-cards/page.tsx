@@ -1,127 +1,43 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import BlogLayout from "@/components/BlogLayout";
-import BlogPostTracker from "../BlogPostTracker";
+import PlayfulShell from "@/components/PlayfulShell";
 
 export const metadata: Metadata = {
-  title: "How to Make Custom Bingo Cards in 5 Minutes — Step-by-Step Guide",
-  description:
-    "Learn how to make custom bingo cards online with a free bingo card maker. Step-by-step guidance for personalized, printable bingo cards for any event using MyBingoCard.",
-  keywords: ["how to make bingo cards", "custom bingo cards", "bingo card maker", "create bingo cards", "printable bingo cards", "free bingo card maker"],
-  alternates: { canonical: "https://mybingocard.com/blog/how-to-make-custom-bingo-cards" },
-  openGraph: {
-    title: "How to Make Custom Bingo Cards in 5 Minutes",
-    description: "Step-by-step guide to creating custom bingo cards for any event.",
-    url: "https://mybingocard.com/blog/how-to-make-custom-bingo-cards",
-    type: "article",
-    publishedTime: "2026-03-01",
-  },
+  title: "How to make custom bingo cards",
 };
 
-const schema = {
-  "@context": "https://schema.org",
-  "@type": "Article",
-  "@id": "https://mybingocard.com/blog/how-to-make-custom-bingo-cards#article",
-  mainEntityOfPage: {
-    "@type": "WebPage",
-    "@id": "https://mybingocard.com/blog/how-to-make-custom-bingo-cards",
-  },
-  headline: "How to Make Custom Bingo Cards in 5 Minutes",
-  description: "A complete step-by-step guide to creating personalized bingo cards for any event.",
-  datePublished: "2026-03-01",
-  dateModified: "2026-07-09",
-  author: { "@type": "Organization", name: "MyBingoCard" },
-  publisher: { "@type": "Organization", name: "MyBingoCard", url: "https://mybingocard.com" },
-};
-
-export default function HowToMakeCustomBingoCards() {
+export default function BlogHow_to_make_custom_bingo_cardsPage() {
   return (
-    <>
-      <BlogPostTracker slug="how-to-make-custom-bingo-cards" title="How to Make Custom Bingo Cards in 5 Minutes" />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
-      <BlogLayout
-        title="How to Make Custom Bingo Cards in 5 Minutes"
-        date="March 1, 2026"
-        readTime="6 min read"
-        category="Guide"
-        categoryGradient="from-[#7c5cff] to-[#7c5cff]"
-      >
-        <p>
-          Whether you&apos;re planning a baby shower, classroom activity, wedding reception, or party game night, custom bingo cards are one of the easiest and most engaging activities you can add to any event. The best part? You can create printable or online bingo cards in less than 5 minutes, then customize them for your exact audience.
-        </p>
-        <p>
-          In this guide, we&apos;ll walk you through everything you need to know about making custom bingo cards online, from choosing your theme to printing perfect cards for your guests.
-        </p>
-
-        <h2>Why Custom Bingo Cards?</h2>
-        <p>
-          Standard bingo with numbered balls is fun, but custom bingo takes the game to another level. Instead of &quot;B-12&quot; or &quot;N-34,&quot; your squares contain words, phrases, or images that are meaningful to your specific event. Think &quot;bouquet toss&quot; for a wedding, &quot;photosynthesis&quot; for a science class, or &quot;baby yawns&quot; for a baby shower.
-        </p>
-        <p>
-          Custom bingo cards create shared experiences, spark conversations, and give guests something interactive to do. They&apos;re the perfect icebreaker that works for every age group.
-        </p>
-
-        <h2>Step 1: Choose Your Theme</h2>
-        <p>
-          Start by deciding what your bingo card is for. The theme determines everything from your word list to the card&apos;s color scheme. Here are common themes:
-        </p>
-        <ul>
-          <li><strong>Wedding Bingo</strong> — Reception moments like first dance, cake cutting, speeches</li>
-          <li><strong>Baby Shower Bingo</strong> — Gifts, baby items, and predictions</li>
-          <li><strong>Classroom Bingo</strong> — Vocabulary words, math facts, science terms</li>
-          <li><strong>Party Bingo</strong> — Fun moments, icebreaker activities, party games</li>
-          <li><strong>Holiday Bingo</strong> — Seasonal words, traditions, and holiday moments</li>
-        </ul>
-
-        <h2>Step 2: Create Your Word List</h2>
-        <p>
-          For a standard 5x5 bingo card, you&apos;ll need at least 25 unique items (24 custom squares plus one free space in the center). For the best experience, we recommend creating 30-40 items so each card can be uniquely shuffled.
-        </p>
-        <p>
-          <strong>Pro tip:</strong> Mix easy-to-spot items (things that will definitely happen) with rare ones (things that might happen). This balance keeps the game exciting without making it impossible to win.
-        </p>
-
-        <h2>Step 3: Design Your Card</h2>
-        <p>
-          With <Link href="/">MyBingoCard&apos;s free bingo card maker</Link>, you can customize every aspect of your card:
-        </p>
-        <ul>
-          <li><strong>Colors</strong> — Match your event&apos;s color palette</li>
-          <li><strong>Fonts</strong> — Choose from elegant to playful typography</li>
-          <li><strong>Card size</strong> — Compact 3x3, flexible 4x4, or standard 5x5</li>
-          <li><strong>Free space</strong> — Customize the center square text or image</li>
-        </ul>
-
-        <h2>Step 4: Generate Unique Cards</h2>
-        <p>
-          This is the magic of digital bingo card makers. When you hit &quot;generate,&quot; each card is automatically shuffled so every guest receives a unique layout. This means no two players have the same card, which prevents simultaneous winners and keeps the game competitive.
-        </p>
-        <p>
-          With MyBingoCard, you can export individual cards for free and buy printable batch packs when you need up to 500 unique cards from a single word list. Pay only when you need larger printable sets, player share links, or hosted live bingo.
-        </p>
-
-        <h2>Step 5: Export for Free or Add Paid Sharing</h2>
-        <p>
-          You have two options for distributing your bingo cards:
-        </p>
-        <ul>
-          <li><strong>PDF export</strong> — Export a clean PDF for free, sized for standard paper and print shops.</li>
-          <li><strong>Digital share link</strong> — Buy player links when you want guests to play on their phone, tablet, or computer with no printing needed.</li>
-        </ul>
-
-        <h2>Tips for a Great Bingo Game</h2>
-        <ul>
-          <li><strong>Prepare prizes</strong> — Even small prizes make the game 10x more exciting. Gift cards, candy, or a centerpiece from the table work great.</li>
-          <li><strong>Explain the rules</strong> — Not everyone knows bingo. Take 30 seconds to explain: mark squares when the event happens, first to complete a row/column/diagonal wins.</li>
-          <li><strong>Use a caller or let it happen naturally</strong> — For event bingo (wedding, baby shower), let guests mark squares as moments happen organically. For word/fact bingo, use a caller.</li>
-          <li><strong>Play multiple rounds</strong> — One round of bingo takes about 15-20 minutes. Plan for 2-3 rounds with different winning patterns (line, corners, full card).</li>
-        </ul>
-
-        <h2>Start Creating Your Bingo Cards Now</h2>
-        <p>
-          Ready to make your own custom bingo cards? Choose a starting point from the <Link href="/templates">template library</Link> or head to the <Link href="/create">card creator</Link>, build your card in under 5 minutes, and save, customize, generate, and export for free. Pay only if you want player share links or hosted live bingo.
-        </p>
-      </BlogLayout>
-    </>
+    <PlayfulShell>
+      <div dangerouslySetInnerHTML={{
+        __html: `
+      <section class="page-section">
+        <div class="content-rail article-layout">
+          <article class="article-body">
+            <nav class="breadcrumbs" aria-label="Breadcrumbs"><a href="/" data-route class="">Home</a><span aria-hidden="true">/</span><a href="/blog" data-route class="">Blog</a><span aria-hidden="true">/</span><span>How to make custom bingo cards</span></nav>
+            <span class="pill pill-purple">Practical guide · 6 minute read</span>
+            <h1>How to make custom bingo cards</h1>
+            <p class="muted" style="font-size:1.12rem">A step-by-step guide to planning, designing, and preparing personalized cards.</p>
+            <h2>Start with the people in the room</h2>
+            <p>The best bingo card is specific enough to feel personal and simple enough that every player understands it immediately. List the moments, phrases, or facts your group already recognizes.</p>
+            <h2>Mix easy squares with surprises</h2>
+            <p>Give players a few quick marks so the card feels alive early. Then add prompts that reward attention and create a story as the event unfolds.</p>
+            <blockquote class="card card-body surface-yellow"><strong>Useful rule:</strong> if a square needs a paragraph of explanation, rewrite it as a shorter action or visible moment.</blockquote>
+            <h2>Test one card before making the batch</h2>
+            <p>Check the longest label, the smallest phone width, and a printed copy. A clear preview prevents a clever idea from becoming tiny or clipped when it matters.</p>
+            <h2>Choose the right play mode</h2>
+            <ul><li>Print when everyone is together and paper is part of the fun.</li><li>Share a card link for simple remote participation.</li><li>Host a live room when one caller should guide the group.</li></ul>
+            <div class="button-row"><a href="/create" data-route class="button button-primary">Make a bingo card</a><a href="/blog" data-route class="button">Read more guides</a></div>
+          </article>
+          <aside class="card-soft article-aside">
+            <span class="eyebrow">From this guide</span>
+            <h3>Make the example card</h3>
+            <p class="muted">Open a matching starter and change every square before sharing.</p>
+            <a href="/create" data-route class="button button-small">Open the creator</a>
+          </aside>
+        </div>
+      </section>
+    `
+      }} />
+    </PlayfulShell>
   );
 }
