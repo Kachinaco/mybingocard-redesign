@@ -805,12 +805,14 @@ export default function CardViewPage() {
 
   if (error || !card) return (
     <WorkspaceShell current="/dashboard/cards">
-      <WorkspacePageHead title="Card not found" description="The saved card could not be loaded for this account." />
+      <WorkspacePageHead
+        title={error === "Card not found" ? "Card not found" : "We couldn't load this card"}
+        description={error === "Card not found" ? "The saved card could not be loaded for this account." : "Please try again, or return to My cards."}
+      />
       <section className="card card-body empty-state notice-danger" role="alert">
         <div className="empty-state-inner">
           <div className="empty-icon" aria-hidden="true">!</div>
-          <p className="font-heading text-xl font-bold text-[#33312e]">Card not found</p>
-          <p>{error || "This card may have been removed or is no longer available."}</p>
+          <p>{error === "Card not found" ? "The saved card could not be loaded for this account." : "Please try again, or return to My cards."}</p>
           <Link href="/dashboard/cards" className="button button-primary">Back to My cards</Link>
         </div>
       </section>
