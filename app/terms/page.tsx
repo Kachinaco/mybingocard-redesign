@@ -15,7 +15,7 @@ export default function TermsPage() {
           <span class="eyebrow">Trust and policies</span>
           <h1 tabindex="-1">Terms of service</h1>
           <p class="muted">The terms and conditions that govern use of MyBingoCard.</p>
-          <p class="caption">Design copy for review · updated July 30, 2026</p>
+          <p class="caption">Updated July 30, 2026</p>
           <h2>Plain-language summary</h2>
           <p>Use MyBingoCard to make, share, print, and play lawful bingo games. Do not use it for illegal gambling, harmful content, or access you do not have permission to grant.</p>
           <h2>Accounts and content</h2>

@@ -15,9 +15,9 @@ export default function PrivacyPage() {
           <span class="eyebrow">Trust and policies</span>
           <h1 tabindex="-1">Privacy policy</h1>
           <p class="muted">How MyBingoCard collects, uses, processes, and protects information.</p>
-          <p class="caption">Design copy for review · updated July 30, 2026</p>
+          <p class="caption">Updated July 30, 2026</p>
           <h2>Plain-language summary</h2>
-          <p>MyBingoCard uses the information needed to operate accounts, save cards, provide requested exports and games, support customers, and understand product reliability. This prototype uses no real customer information.</p>
+          <p>MyBingoCard uses the information needed to operate accounts, save cards, provide requested exports and games, support customers, and understand product reliability.</p>
           <h2>Accounts and content</h2>
           <p>You are responsible for the card text and images you add. Keep account details accurate, protect sign-in access, and use sharing controls that match your intended audience.</p>
           <h2>Payments and plan changes</h2>

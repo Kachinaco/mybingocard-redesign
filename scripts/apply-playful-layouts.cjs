@@ -11,13 +11,11 @@ function extractMetadata(source) {
   return block.slice(0, end + 1);
 }
 
-function layoutSource({ dir, route, metadata }) {
-  const relative = path.relative(ROOT, dir).replace(/\\/g, '/');
+function layoutSource({ metadata }) {
   const hasMetadata = metadata && metadata.trim().length > 0;
   const lines = [
     'import type { Metadata } from "next";',
     'import PlayfulShell from "@/components/PlayfulShell";',
-    'import WorkflowStatePicker from "@/components/WorkflowStatePicker";',
     '',
   ];
   if (hasMetadata) {
@@ -26,7 +24,6 @@ function layoutSource({ dir, route, metadata }) {
   lines.push('export default function Layout({ children }: { children: React.ReactNode }) {');
   lines.push('  return (');
   lines.push('    <PlayfulShell>');
-  lines.push('      <WorkflowStatePicker route="' + route + '" />');
   lines.push('      {children}');
   lines.push('    </PlayfulShell>');
   lines.push('  );');
@@ -63,7 +60,7 @@ for (const t of targets) {
     existing = fs.readFileSync(layoutPath, 'utf8');
   }
   const metadata = extractMetadata(existing);
-  const source = layoutSource({ dir, route: t.route, metadata });
+  const source = layoutSource({ metadata });
   fs.writeFileSync(layoutPath, source);
   console.log('wrote', t.dir, 'route', t.route, 'metadata', metadata ? 'yes' : 'no');
 }

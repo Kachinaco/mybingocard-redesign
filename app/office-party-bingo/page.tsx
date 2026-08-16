@@ -34,7 +34,7 @@ export default function Office_party_bingoPage() {
         <div class="bingo-grid" style="grid-template-columns:repeat(5,minmax(0,1fr))" data-preview-grid>
           <span class="bingo-cell">Cake</span><span class="bingo-cell">Balloon</span><span class="bingo-cell">Gift</span><span class="bingo-cell">Dance</span><span class="bingo-cell">Photo</span><span class="bingo-cell">Music</span><span class="bingo-cell">Games</span><span class="bingo-cell">Candles</span><span class="bingo-cell">Toast</span><span class="bingo-cell">Party hat</span><span class="bingo-cell">Confetti</span><span class="bingo-cell">Prize</span><span class="bingo-cell is-free">FREE</span><span class="bingo-cell">Snack</span><span class="bingo-cell">Cheer</span><span class="bingo-cell">Selfie</span><span class="bingo-cell">Decor</span><span class="bingo-cell">Laugh</span><span class="bingo-cell">Make a wish</span><span class="bingo-cell">Birthday card</span><span class="bingo-cell">Guest</span><span class="bingo-cell">Favorite song</span><span class="bingo-cell">Sweet treat</span><span class="bingo-cell">Big hug</span><span class="bingo-cell">Surprise</span>
         </div>
-        <p class="caption" style="text-align:center">Mark 5 in a row to win · local prototype</p>
+        <p class="caption" style="text-align:center">Mark 5 in a row to win</p>
       </div>
     </div>
         </div>

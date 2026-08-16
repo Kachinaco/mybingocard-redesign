@@ -1,5 +1,4 @@
 import PlayfulShell from "@/components/PlayfulShell";
-import WorkflowStatePicker from "@/components/WorkflowStatePicker";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -111,7 +110,6 @@ export default async function AdminLayout({
 
   return (
     <PlayfulShell>
-      <WorkflowStatePicker route="/admin" />
       <div className="min-h-screen bg-[#fff7ed]">
       <header className="sticky top-0 z-50 border-b border-[#a39a88] bg-white">
         <div className="px-4 sm:px-6">
