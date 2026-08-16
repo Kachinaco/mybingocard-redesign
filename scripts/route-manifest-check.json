@@ -1,0 +1,855 @@
+{
+  "total": 106,
+  "found": 106,
+  "missing": 0,
+  "routes": [
+    {
+      "path": "/",
+      "title": "Bingo card maker",
+      "group": "public-marketing",
+      "sourcePattern": "/",
+      "found": true,
+      "groupLabel": "Public marketing"
+    },
+    {
+      "path": "/about",
+      "title": "About MyBingoCard",
+      "group": "public-marketing",
+      "sourcePattern": "/about",
+      "found": true,
+      "groupLabel": "Public marketing"
+    },
+    {
+      "path": "/features",
+      "title": "Features",
+      "group": "public-marketing",
+      "sourcePattern": "/features",
+      "found": true,
+      "groupLabel": "Public marketing"
+    },
+    {
+      "path": "/pricing",
+      "title": "Pricing",
+      "group": "public-marketing",
+      "sourcePattern": "/pricing",
+      "found": true,
+      "groupLabel": "Public marketing"
+    },
+    {
+      "path": "/bingo-games",
+      "title": "Bingo games",
+      "group": "templates-discovery",
+      "sourcePattern": "/bingo-games",
+      "found": true,
+      "groupLabel": "Templates & discovery"
+    },
+    {
+      "path": "/templates",
+      "title": "Bingo card templates",
+      "group": "templates-discovery",
+      "sourcePattern": "/templates",
+      "found": true,
+      "groupLabel": "Templates & discovery"
+    },
+    {
+      "path": "/ai-bingo-card-generator",
+      "title": "AI bingo card generator",
+      "group": "seo-landing",
+      "sourcePattern": "/ai-bingo-card-generator",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/baby-prediction-bingo",
+      "title": "Baby prediction bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/baby-prediction-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/baby-shower-bingo",
+      "title": "Baby shower bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/baby-shower-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/baby-shower-gift-bingo",
+      "title": "Baby shower gift bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/baby-shower-gift-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/back-to-school-bingo",
+      "title": "Back-to-school bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/back-to-school-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/bingo-board-generator",
+      "title": "Bingo board generator",
+      "group": "seo-landing",
+      "sourcePattern": "/bingo-board-generator",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/birthday-bingo",
+      "title": "Birthday bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/birthday-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/bridal-shower-bingo",
+      "title": "Bridal shower bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/bridal-shower-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/bridal-shower-gift-bingo",
+      "title": "Bridal shower gift bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/bridal-shower-gift-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/christmas-party-bingo",
+      "title": "Christmas party bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/christmas-party-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/church-bingo",
+      "title": "Church bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/church-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/classroom-bingo",
+      "title": "Classroom bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/classroom-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/conference-bingo",
+      "title": "Conference bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/conference-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/custom-bingo-card-maker",
+      "title": "Custom bingo card maker",
+      "group": "seo-landing",
+      "sourcePattern": "/custom-bingo-card-maker",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/end-of-year-bingo",
+      "title": "End-of-year bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/end-of-year-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/esl-bingo-generator",
+      "title": "ESL bingo generator",
+      "group": "seo-landing",
+      "sourcePattern": "/esl-bingo-generator",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/family-reunion-bingo",
+      "title": "Family reunion bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/family-reunion-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/fundraiser-bingo",
+      "title": "Fundraiser bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/fundraiser-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/graduation-bingo",
+      "title": "Graduation bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/graduation-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/halloween-bingo",
+      "title": "Halloween bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/halloween-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/holiday-bingo",
+      "title": "Holiday bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/holiday-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/icebreaker-bingo",
+      "title": "Icebreaker bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/icebreaker-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/image-bingo-card-generator",
+      "title": "Image bingo card generator",
+      "group": "seo-landing",
+      "sourcePattern": "/image-bingo-card-generator",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/math-bingo-generator",
+      "title": "Math bingo generator",
+      "group": "seo-landing",
+      "sourcePattern": "/math-bingo-generator",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/movie-bingo",
+      "title": "Movie bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/movie-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/multiplication-bingo-cards",
+      "title": "Multiplication bingo cards",
+      "group": "seo-landing",
+      "sourcePattern": "/multiplication-bingo-cards",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/music-bingo",
+      "title": "Music bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/music-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/number-bingo-card-generator",
+      "title": "Number bingo card generator",
+      "group": "seo-landing",
+      "sourcePattern": "/number-bingo-card-generator",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/office-meeting-bingo",
+      "title": "Office meeting bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/office-meeting-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/office-party-bingo",
+      "title": "Office party bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/office-party-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/onboarding-bingo",
+      "title": "Onboarding bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/onboarding-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/online-bingo-card-generator",
+      "title": "Online bingo card generator",
+      "group": "seo-landing",
+      "sourcePattern": "/online-bingo-card-generator",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/party-bingo",
+      "title": "Party bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/party-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/periodic-table-bingo",
+      "title": "Periodic table bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/periodic-table-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/printable-bingo-cards",
+      "title": "Printable bingo cards",
+      "group": "seo-landing",
+      "sourcePattern": "/printable-bingo-cards",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/remote-meeting-bingo",
+      "title": "Remote meeting bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/remote-meeting-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/sight-word-bingo-generator",
+      "title": "Sight-word bingo generator",
+      "group": "seo-landing",
+      "sourcePattern": "/sight-word-bingo-generator",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/state-capitals-bingo",
+      "title": "State capitals bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/state-capitals-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/super-bowl-bingo",
+      "title": "Super Bowl bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/super-bowl-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/team-building-bingo",
+      "title": "Team-building bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/team-building-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/thanksgiving-bingo",
+      "title": "Thanksgiving bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/thanksgiving-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/training-bingo",
+      "title": "Training bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/training-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/trivia-bingo",
+      "title": "Trivia bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/trivia-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/vocabulary-bingo-generator",
+      "title": "Vocabulary bingo generator",
+      "group": "seo-landing",
+      "sourcePattern": "/vocabulary-bingo-generator",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/wedding-bingo",
+      "title": "Wedding bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/wedding-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/wedding-reception-bingo",
+      "title": "Wedding reception bingo",
+      "group": "seo-landing",
+      "sourcePattern": "/wedding-reception-bingo",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/word-bingo-generator",
+      "title": "Word bingo generator",
+      "group": "seo-landing",
+      "sourcePattern": "/word-bingo-generator",
+      "found": true,
+      "groupLabel": "SEO landing pages"
+    },
+    {
+      "path": "/blog",
+      "title": "Bingo ideas, tips & guides",
+      "group": "blog",
+      "sourcePattern": "/blog",
+      "found": true,
+      "groupLabel": "Blog"
+    },
+    {
+      "path": "/blog/best-bingo-card-generator",
+      "title": "How to choose the best bingo card generator",
+      "group": "blog",
+      "sourcePattern": "/blog/best-bingo-card-generator",
+      "found": true,
+      "groupLabel": "Blog"
+    },
+    {
+      "path": "/blog/best-bingo-games-baby-showers",
+      "title": "The 7 best bingo games for baby showers",
+      "group": "blog",
+      "sourcePattern": "/blog/best-bingo-games-baby-showers",
+      "found": true,
+      "groupLabel": "Blog"
+    },
+    {
+      "path": "/blog/fun-classroom-bingo-ideas",
+      "title": "15 fun classroom bingo ideas",
+      "group": "blog",
+      "sourcePattern": "/blog/fun-classroom-bingo-ideas",
+      "found": true,
+      "groupLabel": "Blog"
+    },
+    {
+      "path": "/blog/holiday-bingo-ideas",
+      "title": "20+ holiday bingo ideas",
+      "group": "blog",
+      "sourcePattern": "/blog/holiday-bingo-ideas",
+      "found": true,
+      "groupLabel": "Blog"
+    },
+    {
+      "path": "/blog/how-to-make-custom-bingo-cards",
+      "title": "How to make custom bingo cards",
+      "group": "blog",
+      "sourcePattern": "/blog/how-to-make-custom-bingo-cards",
+      "found": true,
+      "groupLabel": "Blog"
+    },
+    {
+      "path": "/blog/party-bingo-tips",
+      "title": "How to run the perfect party bingo game",
+      "group": "blog",
+      "sourcePattern": "/blog/party-bingo-tips",
+      "found": true,
+      "groupLabel": "Blog"
+    },
+    {
+      "path": "/blog/wedding-bingo-guide",
+      "title": "The ultimate wedding bingo guide",
+      "group": "blog",
+      "sourcePattern": "/blog/wedding-bingo-guide",
+      "found": true,
+      "groupLabel": "Blog"
+    },
+    {
+      "path": "/activate",
+      "title": "Activate account",
+      "group": "auth-account-entry",
+      "sourcePattern": "/activate",
+      "found": true,
+      "groupLabel": "Auth & account entry"
+    },
+    {
+      "path": "/auth-error",
+      "title": "Sign-in help",
+      "group": "auth-account-entry",
+      "sourcePattern": "/auth-error",
+      "found": true,
+      "groupLabel": "Auth & account entry"
+    },
+    {
+      "path": "/forgot-password",
+      "title": "Forgot password",
+      "group": "auth-account-entry",
+      "sourcePattern": "/forgot-password",
+      "found": true,
+      "groupLabel": "Auth & account entry"
+    },
+    {
+      "path": "/login",
+      "title": "Sign in",
+      "group": "auth-account-entry",
+      "sourcePattern": "/login",
+      "found": true,
+      "groupLabel": "Auth & account entry"
+    },
+    {
+      "path": "/magic-link",
+      "title": "Check your email",
+      "group": "auth-account-entry",
+      "sourcePattern": "/magic-link",
+      "found": true,
+      "groupLabel": "Auth & account entry"
+    },
+    {
+      "path": "/reset-password",
+      "title": "Reset password",
+      "group": "auth-account-entry",
+      "sourcePattern": "/reset-password",
+      "found": true,
+      "groupLabel": "Auth & account entry"
+    },
+    {
+      "path": "/signup",
+      "title": "Create an account",
+      "group": "auth-account-entry",
+      "sourcePattern": "/signup",
+      "found": true,
+      "groupLabel": "Auth & account entry"
+    },
+    {
+      "path": "/verify-email",
+      "title": "Verify email",
+      "group": "auth-account-entry",
+      "sourcePattern": "/verify-email",
+      "found": true,
+      "groupLabel": "Auth & account entry"
+    },
+    {
+      "path": "/welcome",
+      "title": "Welcome to MyBingoCard",
+      "group": "auth-account-entry",
+      "sourcePattern": "/welcome",
+      "found": true,
+      "groupLabel": "Auth & account entry"
+    },
+    {
+      "path": "/cards/demo-card",
+      "title": "Card workspace",
+      "group": "authenticated-saas",
+      "sourcePattern": "/cards/[id]",
+      "found": true,
+      "groupLabel": "Authenticated SaaS"
+    },
+    {
+      "path": "/create",
+      "title": "Create a bingo card",
+      "group": "authenticated-saas",
+      "sourcePattern": "/create",
+      "found": true,
+      "groupLabel": "Authenticated SaaS"
+    },
+    {
+      "path": "/dashboard",
+      "title": "Dashboard",
+      "group": "authenticated-saas",
+      "sourcePattern": "/dashboard",
+      "found": true,
+      "groupLabel": "Authenticated SaaS"
+    },
+    {
+      "path": "/dashboard/cards",
+      "title": "My cards",
+      "group": "authenticated-saas",
+      "sourcePattern": "/dashboard/cards",
+      "found": true,
+      "groupLabel": "Authenticated SaaS"
+    },
+    {
+      "path": "/dashboard/referrals",
+      "title": "Referrals",
+      "group": "authenticated-saas",
+      "sourcePattern": "/dashboard/referrals",
+      "found": true,
+      "groupLabel": "Authenticated SaaS"
+    },
+    {
+      "path": "/dashboard/share-links",
+      "title": "Share links",
+      "group": "authenticated-saas",
+      "sourcePattern": "/dashboard/share-links",
+      "found": true,
+      "groupLabel": "Authenticated SaaS"
+    },
+    {
+      "path": "/settings",
+      "title": "Account settings",
+      "group": "authenticated-saas",
+      "sourcePattern": "/settings",
+      "found": true,
+      "groupLabel": "Authenticated SaaS"
+    },
+    {
+      "path": "/game",
+      "title": "Live bingo",
+      "group": "play-share-game",
+      "sourcePattern": "/game",
+      "found": true,
+      "groupLabel": "Play, share & game"
+    },
+    {
+      "path": "/game/host/DEMO42",
+      "title": "Host live bingo",
+      "group": "play-share-game",
+      "sourcePattern": "/game/host/[roomCode]",
+      "found": true,
+      "groupLabel": "Play, share & game"
+    },
+    {
+      "path": "/game/join",
+      "title": "Join a live game",
+      "group": "play-share-game",
+      "sourcePattern": "/game/join",
+      "found": true,
+      "groupLabel": "Play, share & game"
+    },
+    {
+      "path": "/game/join-sheet/DEMO42",
+      "title": "Print the join sheet",
+      "group": "play-share-game",
+      "sourcePattern": "/game/join-sheet/[roomCode]",
+      "found": true,
+      "groupLabel": "Play, share & game"
+    },
+    {
+      "path": "/game/play/DEMO42",
+      "title": "Play live bingo",
+      "group": "play-share-game",
+      "sourcePattern": "/game/play/[roomCode]",
+      "found": true,
+      "groupLabel": "Play, share & game"
+    },
+    {
+      "path": "/play/demo-link",
+      "title": "Play shared bingo",
+      "group": "play-share-game",
+      "sourcePattern": "/play/[linkId]",
+      "found": true,
+      "groupLabel": "Play, share & game"
+    },
+    {
+      "path": "/share/demo-share",
+      "title": "Shared bingo card",
+      "group": "play-share-game",
+      "sourcePattern": "/share/[shareLink]",
+      "found": true,
+      "groupLabel": "Play, share & game"
+    },
+    {
+      "path": "/contact",
+      "title": "Contact support",
+      "group": "legal-support",
+      "sourcePattern": "/contact",
+      "found": true,
+      "groupLabel": "Legal & support"
+    },
+    {
+      "path": "/how-to-play-bingo",
+      "title": "How to play bingo",
+      "group": "legal-support",
+      "sourcePattern": "/how-to-play-bingo",
+      "found": true,
+      "groupLabel": "Legal & support"
+    },
+    {
+      "path": "/privacy",
+      "title": "Privacy policy",
+      "group": "legal-support",
+      "sourcePattern": "/privacy",
+      "found": true,
+      "groupLabel": "Legal & support"
+    },
+    {
+      "path": "/supplies",
+      "title": "Bingo supplies",
+      "group": "legal-support",
+      "sourcePattern": "/supplies",
+      "found": true,
+      "groupLabel": "Legal & support"
+    },
+    {
+      "path": "/terms",
+      "title": "Terms of service",
+      "group": "legal-support",
+      "sourcePattern": "/terms",
+      "found": true,
+      "groupLabel": "Legal & support"
+    },
+    {
+      "path": "/unsubscribe",
+      "title": "Email preferences",
+      "group": "legal-support",
+      "sourcePattern": "/unsubscribe",
+      "found": true,
+      "groupLabel": "Legal & support"
+    },
+    {
+      "path": "/admin",
+      "title": "Admin overview",
+      "group": "admin",
+      "sourcePattern": "/admin",
+      "found": true,
+      "groupLabel": "Admin"
+    },
+    {
+      "path": "/admin/cards",
+      "title": "Admin cards",
+      "group": "admin",
+      "sourcePattern": "/admin/cards",
+      "found": true,
+      "groupLabel": "Admin"
+    },
+    {
+      "path": "/admin/coupons",
+      "title": "Admin coupons",
+      "group": "admin",
+      "sourcePattern": "/admin/coupons",
+      "found": true,
+      "groupLabel": "Admin"
+    },
+    {
+      "path": "/admin/errors",
+      "title": "Admin errors",
+      "group": "admin",
+      "sourcePattern": "/admin/errors",
+      "found": true,
+      "groupLabel": "Admin"
+    },
+    {
+      "path": "/admin/support",
+      "title": "Admin support",
+      "group": "admin",
+      "sourcePattern": "/admin/support",
+      "found": true,
+      "groupLabel": "Admin"
+    },
+    {
+      "path": "/admin/users",
+      "title": "Admin users",
+      "group": "admin",
+      "sourcePattern": "/admin/users",
+      "found": true,
+      "groupLabel": "Admin"
+    },
+    {
+      "path": "/admin/users/demo-user",
+      "title": "Admin user detail",
+      "group": "admin",
+      "sourcePattern": "/admin/users/[id]",
+      "found": true,
+      "groupLabel": "Admin"
+    },
+    {
+      "path": "/admin/visitors",
+      "title": "Admin visitors",
+      "group": "admin",
+      "sourcePattern": "/admin/visitors",
+      "found": true,
+      "groupLabel": "Admin"
+    },
+    {
+      "path": "/auth-new-user",
+      "title": "New-user handoff",
+      "group": "system-states",
+      "sourcePattern": "/auth-new-user",
+      "found": true,
+      "groupLabel": "System states"
+    },
+    {
+      "path": "/b/DEMO",
+      "title": "Short card link",
+      "group": "system-states",
+      "sourcePattern": "/b/[code]",
+      "found": true,
+      "groupLabel": "System states"
+    },
+    {
+      "path": "/preview/create-loading",
+      "title": "Loading the card creator",
+      "group": "system-states",
+      "sourcePattern": "/create/loading.tsx",
+      "found": true,
+      "groupLabel": "System states"
+    },
+    {
+      "path": "/preview/error",
+      "title": "Something went wrong",
+      "group": "system-states",
+      "sourcePattern": "error.tsx",
+      "found": true,
+      "groupLabel": "System states"
+    },
+    {
+      "path": "/preview/not-found",
+      "title": "Page not found",
+      "group": "system-states",
+      "sourcePattern": "not-found.tsx",
+      "found": true,
+      "groupLabel": "System states"
+    },
+    {
+      "path": "/preview/play-loading",
+      "title": "Loading your bingo card",
+      "group": "system-states",
+      "sourcePattern": "/play/[linkId]/loading.tsx",
+      "found": true,
+      "groupLabel": "System states"
+    },
+    {
+      "path": "/r/FRIEND",
+      "title": "Referral link",
+      "group": "system-states",
+      "sourcePattern": "/r/[code]",
+      "found": true,
+      "groupLabel": "System states"
+    },
+    {
+      "path": "/unsupported-browser",
+      "title": "Browser not supported",
+      "group": "system-states",
+      "sourcePattern": "unsupported-browser.html",
+      "found": true,
+      "groupLabel": "System states"
+    }
+  ]
+}

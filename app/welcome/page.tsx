@@ -61,6 +61,8 @@ function BingoCardDemo() {
 export default function WelcomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#7c5cff]/10 via-white to-[#7c5cff]/10">
+      <span data-state="create-first" hidden />
+
       <div className="max-w-5xl mx-auto px-6 py-16 md:py-24">
 
         {/* Hero with card */}

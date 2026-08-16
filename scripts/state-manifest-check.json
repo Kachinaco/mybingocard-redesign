@@ -1,0 +1,700 @@
+{
+  "totalStates": 150,
+  "missingStateIds": 0,
+  "routeMissingPage": 0,
+  "routes": [
+    {
+      "routePath": "/pricing",
+      "sourcePattern": "/pricing",
+      "pageExists": true,
+      "stateIds": [
+        "compare",
+        "current-free",
+        "success",
+        "canceled"
+      ],
+      "captureIds": [
+        "compare",
+        "current-free",
+        "success",
+        "canceled"
+      ],
+      "sourceIds": [
+        "compare"
+      ],
+      "missingIds": []
+    },
+    {
+      "routePath": "/create",
+      "sourcePattern": "/create",
+      "pageExists": true,
+      "stateIds": [
+        "standard",
+        "numbers75",
+        "numbers90",
+        "ai",
+        "images",
+        "style",
+        "guest-save",
+        "limit",
+        "batch",
+        "batch-result",
+        "load-error",
+        "autosave-error"
+      ],
+      "captureIds": [
+        "standard",
+        "numbers75",
+        "numbers90",
+        "ai",
+        "images",
+        "style",
+        "guest-save",
+        "limit",
+        "batch",
+        "batch-result",
+        "load-error",
+        "autosave-error"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/login",
+      "sourcePattern": "/login",
+      "pageExists": true,
+      "stateIds": [
+        "password",
+        "magic",
+        "magic-sent",
+        "verified",
+        "invalid",
+        "unverified"
+      ],
+      "captureIds": [
+        "password",
+        "magic",
+        "magic-sent",
+        "verified",
+        "invalid",
+        "unverified"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/signup",
+      "sourcePattern": "/signup",
+      "pageExists": true,
+      "stateIds": [
+        "form",
+        "created"
+      ],
+      "captureIds": [
+        "form",
+        "created"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/magic-link",
+      "sourcePattern": "/magic-link",
+      "pageExists": true,
+      "stateIds": [
+        "loading",
+        "invalid"
+      ],
+      "captureIds": [
+        "loading",
+        "invalid"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/auth-error",
+      "sourcePattern": "/auth-error",
+      "pageExists": true,
+      "stateIds": [
+        "default",
+        "verification",
+        "account-not-linked",
+        "configuration",
+        "oauth-signin"
+      ],
+      "captureIds": [
+        "default",
+        "verification",
+        "account-not-linked",
+        "configuration",
+        "oauth-signin"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/verify-email",
+      "sourcePattern": "/verify-email",
+      "pageExists": true,
+      "stateIds": [
+        "waiting",
+        "resent",
+        "invalid-token",
+        "expired-token",
+        "server-error",
+        "resend-error"
+      ],
+      "captureIds": [
+        "waiting",
+        "resent",
+        "invalid-token",
+        "expired-token",
+        "server-error",
+        "resend-error"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/forgot-password",
+      "sourcePattern": "/forgot-password",
+      "pageExists": true,
+      "stateIds": [
+        "form",
+        "submitting",
+        "success",
+        "server-error",
+        "network-error"
+      ],
+      "captureIds": [
+        "form",
+        "submitting",
+        "success",
+        "server-error",
+        "network-error"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/reset-password",
+      "sourcePattern": "/reset-password",
+      "pageExists": true,
+      "stateIds": [
+        "form",
+        "success",
+        "invalid"
+      ],
+      "captureIds": [
+        "form",
+        "success",
+        "invalid"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/activate",
+      "sourcePattern": "/activate",
+      "pageExists": true,
+      "stateIds": [
+        "choice",
+        "success",
+        "canceled"
+      ],
+      "captureIds": [
+        "choice",
+        "success",
+        "canceled"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/welcome",
+      "sourcePattern": "/welcome",
+      "pageExists": true,
+      "stateIds": [
+        "create-first"
+      ],
+      "captureIds": [],
+      "sourceIds": [
+        "create-first"
+      ],
+      "missingIds": []
+    },
+    {
+      "routePath": "/cards/demo-card",
+      "sourcePattern": "/cards/[id]",
+      "pageExists": true,
+      "stateIds": [
+        "play",
+        "batch-select",
+        "checkout",
+        "batch-result",
+        "invite",
+        "loading",
+        "load-error",
+        "autosave-error",
+        "checkout-canceled",
+        "checkout-error",
+        "export-error",
+        "link-error"
+      ],
+      "captureIds": [
+        "play",
+        "batch-select",
+        "checkout",
+        "batch-result",
+        "invite",
+        "loading",
+        "load-error",
+        "autosave-error",
+        "checkout-canceled",
+        "checkout-error",
+        "export-error",
+        "link-error"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/dashboard/share-links",
+      "sourcePattern": "/dashboard/share-links",
+      "pageExists": true,
+      "stateIds": [
+        "populated",
+        "history",
+        "empty"
+      ],
+      "captureIds": [
+        "populated",
+        "history",
+        "empty"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/play/demo-link",
+      "sourcePattern": "/play/[linkId]",
+      "pageExists": true,
+      "stateIds": [
+        "loading",
+        "unclaimed",
+        "claiming",
+        "claim-error",
+        "owner",
+        "claimed-unavailable",
+        "expired",
+        "revoked",
+        "playable",
+        "bingo"
+      ],
+      "captureIds": [
+        "loading",
+        "unclaimed",
+        "claiming",
+        "claim-error",
+        "owner",
+        "claimed-unavailable",
+        "expired",
+        "revoked",
+        "playable",
+        "bingo"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/share/demo-share",
+      "sourcePattern": "/share/[shareLink]",
+      "pageExists": true,
+      "stateIds": [
+        "loading",
+        "password",
+        "incorrect",
+        "expired",
+        "not-found",
+        "playable",
+        "bingo"
+      ],
+      "captureIds": [
+        "loading",
+        "password",
+        "incorrect",
+        "expired",
+        "not-found",
+        "playable",
+        "bingo"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/game/host/DEMO42",
+      "sourcePattern": "/game/host/[roomCode]",
+      "pageExists": true,
+      "stateIds": [
+        "waiting",
+        "active",
+        "finished"
+      ],
+      "captureIds": [
+        "waiting",
+        "active",
+        "finished"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/game/play/DEMO42",
+      "sourcePattern": "/game/play/[roomCode]",
+      "pageExists": true,
+      "stateIds": [
+        "waiting",
+        "active",
+        "bingo",
+        "other-winner",
+        "expired"
+      ],
+      "captureIds": [
+        "waiting",
+        "active",
+        "bingo",
+        "other-winner",
+        "expired"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/game/join",
+      "sourcePattern": "/game/join",
+      "pageExists": true,
+      "stateIds": [
+        "form",
+        "room-found",
+        "joining",
+        "ended",
+        "session-expired",
+        "storage-blocked",
+        "network-error"
+      ],
+      "captureIds": [
+        "form",
+        "room-found",
+        "joining",
+        "ended",
+        "session-expired",
+        "storage-blocked",
+        "network-error"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/settings",
+      "sourcePattern": "/settings",
+      "pageExists": true,
+      "stateIds": [
+        "free",
+        "premium",
+        "canceling",
+        "password",
+        "delete"
+      ],
+      "captureIds": [
+        "free",
+        "premium",
+        "canceling",
+        "password",
+        "delete"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/dashboard",
+      "sourcePattern": "/dashboard",
+      "pageExists": true,
+      "stateIds": [
+        "populated",
+        "first-user"
+      ],
+      "captureIds": [
+        "populated",
+        "first-user"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/dashboard/cards",
+      "sourcePattern": "/dashboard/cards",
+      "pageExists": true,
+      "stateIds": [
+        "populated",
+        "empty",
+        "batch",
+        "selected",
+        "delete"
+      ],
+      "captureIds": [
+        "populated",
+        "empty",
+        "batch",
+        "selected",
+        "delete"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/dashboard/referrals",
+      "sourcePattern": "/dashboard/referrals",
+      "pageExists": true,
+      "stateIds": [
+        "populated",
+        "loading",
+        "empty",
+        "error"
+      ],
+      "captureIds": [
+        "populated",
+        "loading",
+        "empty",
+        "error"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/unsubscribe",
+      "sourcePattern": "/unsubscribe",
+      "pageExists": true,
+      "stateIds": [
+        "form",
+        "success",
+        "error"
+      ],
+      "captureIds": [
+        "form",
+        "success",
+        "error"
+      ],
+      "sourceIds": [
+        "form"
+      ],
+      "missingIds": []
+    },
+    {
+      "routePath": "/admin",
+      "sourcePattern": "/admin",
+      "pageExists": true,
+      "stateIds": [
+        "overview",
+        "attention"
+      ],
+      "captureIds": [
+        "overview",
+        "attention"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/admin/cards",
+      "sourcePattern": "/admin/cards",
+      "pageExists": true,
+      "stateIds": [
+        "populated",
+        "filtered",
+        "preview",
+        "delete",
+        "empty"
+      ],
+      "captureIds": [
+        "populated",
+        "filtered",
+        "preview",
+        "delete",
+        "empty"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/admin/coupons",
+      "sourcePattern": "/admin/coupons",
+      "pageExists": true,
+      "stateIds": [
+        "populated",
+        "create",
+        "disabled",
+        "empty"
+      ],
+      "captureIds": [
+        "populated",
+        "create",
+        "disabled",
+        "empty"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/admin/errors",
+      "sourcePattern": "/admin/errors",
+      "pageExists": true,
+      "stateIds": [
+        "unresolved",
+        "watching",
+        "selected",
+        "fixed",
+        "ignored",
+        "empty"
+      ],
+      "captureIds": [
+        "unresolved",
+        "watching",
+        "selected",
+        "fixed",
+        "ignored",
+        "empty"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/admin/support",
+      "sourcePattern": "/admin/support",
+      "pageExists": true,
+      "stateIds": [
+        "queue",
+        "conversation",
+        "resolved",
+        "empty"
+      ],
+      "captureIds": [
+        "queue",
+        "conversation",
+        "resolved",
+        "empty"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/admin/users",
+      "sourcePattern": "/admin/users",
+      "pageExists": true,
+      "stateIds": [
+        "populated",
+        "filtered",
+        "empty"
+      ],
+      "captureIds": [
+        "populated",
+        "filtered",
+        "empty"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/admin/users/demo-user",
+      "sourcePattern": "/admin/users/[id]",
+      "pageExists": true,
+      "stateIds": [
+        "overview",
+        "cards",
+        "activity",
+        "email",
+        "impersonate",
+        "cancel-subscription"
+      ],
+      "captureIds": [
+        "overview",
+        "cards",
+        "activity",
+        "email",
+        "impersonate",
+        "cancel-subscription"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/admin/visitors",
+      "sourcePattern": "/admin/visitors",
+      "pageExists": true,
+      "stateIds": [
+        "overview",
+        "identity-filtered",
+        "live-empty",
+        "history-empty",
+        "refresh-error"
+      ],
+      "captureIds": [
+        "overview",
+        "identity-filtered",
+        "live-empty",
+        "history-empty",
+        "refresh-error"
+      ],
+      "sourceIds": [],
+      "missingIds": []
+    },
+    {
+      "routePath": "/preview/not-found",
+      "sourcePattern": "not-found.tsx",
+      "pageExists": true,
+      "systemRoute": true
+    },
+    {
+      "routePath": "/preview/error",
+      "sourcePattern": "error.tsx",
+      "pageExists": true,
+      "systemRoute": true
+    },
+    {
+      "routePath": "/unsupported-browser",
+      "sourcePattern": "unsupported-browser.html",
+      "pageExists": true,
+      "systemRoute": true
+    },
+    {
+      "routePath": "/preview/create-loading",
+      "sourcePattern": "/create/loading.tsx",
+      "pageExists": true,
+      "systemRoute": true
+    },
+    {
+      "routePath": "/preview/play-loading",
+      "sourcePattern": "/play/[linkId]/loading.tsx",
+      "pageExists": true,
+      "systemRoute": true
+    },
+    {
+      "routePath": "/b/DEMO",
+      "sourcePattern": "/b/[code]",
+      "pageExists": true,
+      "systemRoute": true
+    },
+    {
+      "routePath": "/r/FRIEND",
+      "sourcePattern": "/r/[code]",
+      "pageExists": true,
+      "systemRoute": true
+    },
+    {
+      "routePath": "/auth-new-user",
+      "sourcePattern": "/auth-new-user",
+      "pageExists": true,
+      "systemRoute": true
+    }
+  ]
+}
