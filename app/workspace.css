@@ -37,6 +37,20 @@
   min-width: 0;
 }
 
+.card-detail-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.workspace-shell .card-tabs {
+  max-width: 100%;
+  margin-block-end: 20px;
+  overflow-x: auto;
+}
+
 .cards-summary-row {
   margin-block: 14px 16px;
 }

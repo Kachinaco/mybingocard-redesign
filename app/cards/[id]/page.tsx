@@ -9,6 +9,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import WorkspaceShell, { WorkspacePageHead } from "@/components/WorkspaceShell";
 import AdUnit from "@/components/AdUnit";
 import FavoriteButton from "@/components/FavoriteButton";
 import StartGameButton from "@/components/StartGameButton";
@@ -786,23 +787,28 @@ export default function CardViewPage() {
   };
 
   if (loading) return (
-    <div className={`min-h-screen flex items-center justify-center ${"bg-[#fff7ed]"}`}>
-      <div className="text-center">
-        <div className="inline-block w-12 h-12 border-4 border-[#7c5cff] border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className={"text-[#6b6459]"}>Loading card...</p>
+    <WorkspaceShell current="/dashboard/cards">
+      <div className="card empty-state" role="status">
+        <div className="empty-state-inner">
+          <div className="empty-icon" aria-hidden="true">▦</div>
+          <p>Loading card…</p>
+        </div>
       </div>
-    </div>
+    </WorkspaceShell>
   );
 
   if (error || !card) return (
-    <div className={`min-h-screen flex items-center justify-center px-4 ${"bg-[#fff7ed]"}`}>
-      <div className={`max-w-md w-full rounded-2xl shadow p-8 text-center ${"bg-white"}`}>
-        <div className="text-5xl mb-4">😕</div>
-        <h2 className={`text-2xl font-bold mb-2 ${"text-[#33312e]"}`}>Card Not Found</h2>
-        <p className={`mb-6 ${"text-[#6b6459]"}`}>{error}</p>
-        <Link href="/dashboard/cards" className="inline-block px-6 py-3 bg-[#7c5cff] text-white rounded-xl hover:bg-[#7c5cff] font-semibold">Back to My Cards</Link>
-      </div>
-    </div>
+    <WorkspaceShell current="/dashboard/cards">
+      <WorkspacePageHead title="Card not found" description="The saved card could not be loaded for this account." />
+      <section className="card card-body empty-state notice-danger" role="alert">
+        <div className="empty-state-inner">
+          <div className="empty-icon" aria-hidden="true">!</div>
+          <h2>Card not found</h2>
+          <p>{error || "It may have been removed or is no longer available."}</p>
+          <Link href="/dashboard/cards" className="button button-primary">Back to My cards</Link>
+        </div>
+      </section>
+    </WorkspaceShell>
   );
 
   const freeSpaceIdx = getFreeSpaceIndex();
@@ -859,7 +865,21 @@ export default function CardViewPage() {
     </div>
   );
 
-  return (
+  const cardDescription = `${shape.rows}×${shape.columns} card · ${totalCells} custom squares · ${card.style?.theme || "Custom theme"}`;
+  const workspacePlanLabel = userPlan?.hasPremiumAccess ? "Premium plan" : "Free plan";
+  const cardTabLabels = { play: "Play", share: "Share", export: "Export" } as const;
+  const handleCardTabChange = (tab: "play" | "share" | "export") => {
+    setActiveTab(tab === "export" ? "download" : tab);
+    if (tab === "play") trackNextStep("play");
+    if (tab === "share") trackNextStep("share");
+    if (tab === "export") {
+      trackExportButtonClicked("card_detail_tab", "download_cards");
+      trackBatchButtonClicked("open_panel", "card_detail_tab");
+      loadBatchPurchases();
+    }
+  };
+
+  const cardPage = (
     <div
       ref={cardContainerRef}
       className={`min-h-screen transition-colors duration-200 ${
@@ -876,33 +896,40 @@ export default function CardViewPage() {
       )}
 
       {!isFullscreen && (
-        <header className={`border-b sticky top-0 z-10 print:hidden ${
-          "bg-white border-[#fff7ed]"
-        }`}>
-          <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex justify-between items-center gap-2">
-            <div className="flex items-center gap-3">
-              <Link href="/dashboard" className="p-2 -ml-2 rounded-lg text-[#6b6459] hover:text-[#33312e] hover:bg-[#fff7ed] transition-colors">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-              </Link>
-              <Link href="/dashboard" className="hidden min-[390px]:inline text-lg sm:text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#7c5cff] to-[#7c5cff]">
-                MyBingoCard
-              </Link>
-            </div>
-            <div className="flex shrink-0 gap-1.5 sm:gap-2 items-center">
-              <FavoriteButton cardId={card._id} />
-              <Link href={`/create?cardId=${card._id}`} className="px-3 sm:px-4 py-2 text-sm border rounded-lg font-medium transition-colors border-[#a39a88] text-[#33312e] hover:bg-[#fff7ed]">
-                Edit
-              </Link>
-              <Link href="/dashboard/cards" className="hidden sm:inline px-4 py-2 text-sm transition-colors text-[#6b6459] hover:text-[#33312e]">
-                My Cards
-              </Link>
-            </div>
-          </div>
-
-        </header>
+        <>
+          <nav className="breadcrumbs" aria-label="Breadcrumbs">
+            <Link href="/dashboard/cards">My cards</Link>
+            <span aria-hidden="true">/</span>
+            <span>{card.title}</span>
+          </nav>
+          <WorkspacePageHead
+            title={card.title}
+            description={cardDescription}
+            action={
+              <div className="card-detail-head-actions">
+                <FavoriteButton cardId={card._id} />
+                <Link href={`/create?cardId=${card._id}`} className="button button-small">Edit</Link>
+                <span className="pill pill-success">Saved</span>
+              </div>
+            }
+          />
+          <nav className="segmented card-tabs" aria-label="Card actions">
+            {(["play", "share", "export"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                aria-current={activeTab === tab ? "page" : undefined}
+                aria-pressed={activeTab === tab}
+                onClick={() => handleCardTabChange(tab)}
+              >
+                {cardTabLabels[tab]}
+              </button>
+            ))}
+          </nav>
+        </>
       )}
 
-      <main className={`container mx-auto px-4 py-4 sm:py-6 max-w-5xl ${isFullscreen ? "" : "pb-24 md:pb-6"}`}>
+      <div className={`container mx-auto px-4 py-4 sm:py-6 max-w-5xl ${isFullscreen ? "" : "pb-24 md:pb-6"}`}>
         {bingo && !isFullscreen && (
           <div className="mb-4 bg-gradient-to-r from-[#ffb800] to-[#ff8a3d] text-white rounded-2xl p-3 text-center font-black text-xl shadow-lg print:hidden">
             🎉 BINGO! You got it! 🎉
@@ -967,36 +994,10 @@ export default function CardViewPage() {
 
         <div className={isFullscreen ? "" : "space-y-6"}>
           {!isFullscreen && (
-            <div className="hidden md:flex flex-wrap gap-3 items-start print:hidden">
+            <div className="flex flex-wrap gap-3 items-start print:hidden">
               <div className={`flex-1 min-w-[300px] rounded-2xl shadow-sm border overflow-hidden ${
                 "bg-white border-[#fff7ed]"
               }`}>
-                <div className={`flex border-b ${"border-[#fff7ed]"}`}>
-                  <button
-                    onClick={() => setActiveTab("play")}
-                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "play" ? "bg-[#2ec4b6] text-white" : "text-[#33312e] hover:bg-[#fff7ed]"}`}
-                  >
-                    🎮 Play
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("share")}
-                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "share" ? "bg-[#2ec4b6] text-white" : "text-[#33312e] hover:bg-[#fff7ed]"}`}
-                  >
-                    🔗 Share
-                  </button>
-                  <button
-                    onClick={() => {
-                      trackExportButtonClicked("desktop_tab", "download_cards");
-                      trackBatchButtonClicked("open_panel", "desktop_tab");
-                      setActiveTab("download");
-                      loadBatchPurchases();
-                    }}
-                    className={`flex-1 py-3 text-sm font-semibold transition-colors ${activeTab === "download" ? "bg-[#2ec4b6] text-white" : "text-[#33312e] hover:bg-[#fff7ed]"}`}
-                  >
-                    📄 Export
-                  </button>
-                </div>
-
                 {activeTab === "play" && (
                   <div className="p-4 space-y-4">
                     <div className="rounded-xl border border-[#2ec4b6]/15 bg-[#2ec4b6]/10 p-3">
@@ -1405,7 +1406,7 @@ export default function CardViewPage() {
         )}
 
         {!isFullscreen && (
-          <div className={`md:hidden fixed bottom-0 left-0 right-0 border-t shadow-lg z-20 print:hidden ${"bg-white border-[#a39a88]"}`}>
+          <div className={`hidden md:hidden fixed bottom-0 left-0 right-0 border-t shadow-lg z-20 print:hidden ${"bg-white border-[#a39a88]"}`}>
             {barExpanded && (
               <div className="px-4 pt-3 pb-2">
                 {activeTab === "play" && (
@@ -1599,7 +1600,13 @@ export default function CardViewPage() {
             </div>
           </div>
         )}
-      </main>
+      </div>
     </div>
+  );
+
+  return isFullscreen ? cardPage : (
+    <WorkspaceShell current="/dashboard/cards" planLabel={workspacePlanLabel}>
+      {cardPage}
+    </WorkspaceShell>
   );
 }
